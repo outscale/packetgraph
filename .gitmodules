@@ -1,0 +1,9 @@
+[submodule "3rdparty/rumprun-posix"]
+	path = 3rdparty/rumprun-posix
+	url = https://github.com/rumpkernel/rumprun-posix.git
+[submodule "3rdparty/dpdk"]
+	path = 3rdparty/dpdk
+	url = git://dpdk.org/dpdk
+[submodule "3rdparty/ccan"]
+	path = 3rdparty/ccan
+	url = git://git.ozlabs.org/~ccan/ccan
