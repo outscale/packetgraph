@@ -1,0 +1,65 @@
+/* Copyright 2014 Nodalink EURL
+ *
+ * This file is part of Butterfly.
+ *
+ * Butterfly is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published
+ * by the Free Software Foundation.
+ *
+ * Butterfly is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "bricks/brick.h"
+
+#define NOP_EDGES_COUNT	8
+
+struct nop_state {
+	struct brick brick;
+	int should_be_zero;
+};
+
+/* The fastpath data function of the nop_brick just forward the bursts */
+
+static void nop_burst(struct brick *brick, enum side side,
+		      struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask)
+{
+	struct brick_side *s = &brick->sides[flip_side(side)];
+	uint16_t i;
+
+	for (i = 0; i < s->max; i++)
+		if (s->edges[i].link)
+			brick_burst(s->edges[i].link, side, pkts, nb,
+				    pkts_mask);
+}
+
+static int nop_init(struct brick *brick)
+{
+	struct nop_state *state = brick_get_state(brick, struct nop_state);
+
+	g_assert(!state->should_be_zero);
+
+	/* initialize fast path */
+	brick->burst = nop_burst;
+
+	brick_set_max_edges(brick, NOP_EDGES_COUNT, NOP_EDGES_COUNT);
+	return 1;
+}
+
+static struct brick_ops nop_ops = {
+	.name		= "nop",
+	.state_size	= sizeof(struct nop_state),
+
+	.init		= nop_init,
+
+	.west_link	= brick_generic_west_link,
+	.east_link	= brick_generic_east_link,
+	.unlink		= brick_generic_unlink,
+};
+
+brick_register(struct nop_state, &nop_ops);
