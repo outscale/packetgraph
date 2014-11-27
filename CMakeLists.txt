@@ -23,3 +23,4 @@ include_directories(${GLIB2_INCLUDE_DIR} ${GLIB2_INTERNAL_INCLUDE_DIR}
 link_directories(${GLIB2_LIBRARIES})
 
 add_subdirectory(3rdparty)
+add_subdirectory(bricks)

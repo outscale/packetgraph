@@ -1,5 +1,7 @@
 set(DPDK_SOURCE_DIR ${3RDPARTY_DIR}/dpdk)
 
+set(CMAKE_C_FLAGS "-g -Wall")
+
 # build targets
 add_custom_target(dpdk ALL
 	DEPENDS ${DPDK_SOURCE_DIR}/build/build/app/_postbuild)

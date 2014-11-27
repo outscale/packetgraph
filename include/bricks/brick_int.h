@@ -27,8 +27,6 @@
 #include <rte_config.h>
 #include <rte_mbuf.h>
 
-#include "packets/burst.h"
-
 /**
  * Each step in the pipeline from the physical network card to the guest vm
  * uplink and backward is called a brick. A brick can be a switch, a hub, a
