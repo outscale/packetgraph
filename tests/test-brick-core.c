@@ -18,6 +18,7 @@
 #include <glib.h>
 
 #include "bricks/brick.h"
+#include "tests.h"
 
 static void test_brick_core_simple_lifecycle(void)
 {
@@ -257,10 +258,9 @@ static void test_brick_core_verify_multiple_link(void)
 	brick_decref(east_brick);
 }
 
-int main(int argc, char **argv)
+void test_brick_core(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_init(&argc, &argv, NULL);
 	g_test_add_func("/brick/core/simple-lifecycle",
 			test_brick_core_simple_lifecycle);
 	g_test_add_func("/brick/core/refcount", test_brick_core_refcount);
@@ -270,5 +270,4 @@ int main(int argc, char **argv)
 	g_test_add_func("/brick/core/verify/multiple-link",
 			test_brick_core_verify_multiple_link);
 
-	return g_test_run();
 }
