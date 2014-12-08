@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 {
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
+	test_error();
 	test_brick_core();
 	test_brick_flow();
 
