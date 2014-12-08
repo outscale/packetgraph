@@ -24,19 +24,27 @@ struct nop_state {
 
 /* The fastpath data function of the nop_brick just forward the bursts */
 
-static void nop_burst(struct brick *brick, enum side side,
-		      struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask)
+static int nop_burst(struct brick *brick, enum side side,
+		     struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
+		     struct switch_error **errp)
 {
 	struct brick_side *s = &brick->sides[flip_side(side)];
 	uint16_t i;
+	int ret = 1;
 
-	for (i = 0; i < s->max; i++)
+	for (i = 0; i < s->max; i++) {
 		if (s->edges[i].link)
-			brick_burst(s->edges[i].link, side, pkts, nb,
-				    pkts_mask);
+			ret = brick_burst(s->edges[i].link, side, pkts, nb,
+					  pkts_mask, errp);
+		if (!ret)
+			return 0;
+	}
+
+	return 1;
 }
 
-static int nop_init(struct brick *brick, struct brick_config *config)
+static int nop_init(struct brick *brick, struct brick_config *config,
+		    struct switch_error **errp)
 {
 	struct nop_state *state = brick_get_state(brick, struct nop_state);
 

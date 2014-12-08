@@ -29,20 +29,25 @@ struct collect_state {
 	uint64_t pkts_mask[MAX_SIDE];
 };
 
-static void collect_burst(struct brick *brick, enum side side,
+static int collect_burst(struct brick *brick, enum side side,
 			  struct rte_mbuf **pkts, uint16_t nb,
-			  uint64_t pkts_mask)
+			  uint64_t pkts_mask, struct switch_error **errp)
 {
 	struct collect_state *state =
 		brick_get_state(brick, struct collect_state);
 
 	BUILD_ASSERT(MAX_PKTS_BURST == 64);
-	g_assert(nb <= MAX_PKTS_BURST);
+	if (nb > MAX_PKTS_BURST) {
+		*errp = error_new("Burst too big");
+		return 0;
+	}
 
 	state->pkts_mask[side] = pkts_mask;
 	/* We made sure nb <= MAX_PKTS_BURST */
 	/* Flawfinder: ignore */
 	memcpy(state->pkts[side], pkts, nb * sizeof(struct rte_mbuf *));
+
+	return 1;
 }
 
 static struct rte_mbuf **collect_burst_get(struct brick *brick, enum side side,
@@ -60,7 +65,8 @@ static struct rte_mbuf **collect_burst_get(struct brick *brick, enum side side,
 	return state->pkts[side];
 }
 
-static int collect_init(struct brick *brick, struct brick_config *config)
+static int collect_init(struct brick *brick,
+			struct brick_config *config, struct switch_error **errp)
 {
 	brick->burst = collect_burst;
 	brick->burst_get = collect_burst_get;

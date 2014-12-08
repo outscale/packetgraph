@@ -28,6 +28,7 @@
 #include <rte_mbuf.h>
 
 #include "utils/config.h"
+#include "utils/errors.h"
 
 /**
  * Each step in the pipeline from the physical network card to the guest vm
@@ -83,8 +84,9 @@ struct brick {
 	 */
 
 	/* Accept a packet burst */
-	void (*burst)(struct brick *brick, enum side side,
-		      struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask);
+	int (*burst)(struct brick *brick, enum side side,
+		     struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
+		     struct switch_error **errp);
 	/**
 	 * Return a packet burst. This field is used bricks designed to
 	 * collect packets for testing purpose. In regular bricks it will be
@@ -118,16 +120,16 @@ struct brick_ops {
 
 	/* life cycle */
 	int (*init)(struct brick *brick,		/* constructor */
-		    struct brick_config *config);	/* return 1 on success,
-							 * and 0 on error
-							 */
-	void (*destroy)(struct brick *brick);		/* destructor */
+		    struct brick_config *config,	/* ret 1 on success */
+		    struct switch_error **errp);	/* and 0 on error */
+	void (*destroy)(struct brick *brick,		/* destructor */
+			struct switch_error **errp);
 
 	int (*west_link)(struct brick *target,	/* link to west side */
-			 struct brick *brick);
+			 struct brick *brick, struct switch_error **errp);
 	int (*east_link)(struct brick *target,	/* link to east side */
-			  struct brick *brick);
-	void (*unlink)(struct brick *brick);	/* unlink */
+			 struct brick *brick, struct switch_error **errp);
+	void (*unlink)(struct brick *brick, struct switch_error **errp);
 };
 
 

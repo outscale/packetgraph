@@ -84,16 +84,20 @@ void brick_set_max_edges(struct brick *brick,
  *
  * @param	name the brick_ops name to lookup
  * @param	config the brick configuration
+ * @param	errp a return pointer for an error message
  * @return	the instantiated brick
  */
-struct brick *brick_new(const char *name, struct brick_config *config)
+struct brick *brick_new(const char *name, struct brick_config *config,
+			 struct switch_error **errp)
 {
 	struct brick_ops **bricks;
 	struct brick *brick;
 	size_t num, i, ret;
 
-	if (!name)
+	if (!name) {
+		*errp = error_new("Brick name not set");
 		return NULL;
+	}
 
 	bricks = autodata_get(brick, &num);
 
@@ -104,27 +108,40 @@ struct brick *brick_new(const char *name, struct brick_config *config)
 	}
 
 	/* correct brick_ops not found -> fail */
-	if (i == num)
+	if (i == num) {
+		*errp = error_new("Brick '%s' not found", name);
 		return NULL;
+	}
 
-	if (bricks[i]->state_size <= 0)
+	if (bricks[i]->state_size <= 0) {
+		*errp = error_new("Brick state size is not positive");
 		return NULL;
+	}
 
 	/* The brick struct is be the first member of the state. */
 	brick = g_malloc0(bricks[i]->state_size);
 	brick->ops = bricks[i];
 	brick->refcount = 1;
 
-	g_assert(config->west_max <= UINT16_MAX);
-	g_assert(config->east_max <= UINT16_MAX);
+	if (config->west_max >= UINT16_MAX) {
+		*errp = error_new("Supports UINT16_MAX west neigbourghs");
+		goto fail_exit;
+	}
+
+	if (config->east_max >= UINT16_MAX) {
+		*errp = error_new("Supports UINT16_MAX east neigbourghs");
+		goto fail_exit;
+	}
 
 	brick_set_max_edges(brick, config->west_max, config->east_max);
 	brick->name = g_strdup(config->name);
 
-	ret = brick->ops->init(brick, config);
+	ret = brick->ops->init(brick, config, errp);
 
-	if (!ret)
+	if (!ret) {
+		*errp = error_new("Failed to init '%s' brick");
 		goto fail_exit;
+	}
 
 	assert_brick_callback(brick);
 	/* TODO: register the brick */
@@ -157,14 +174,17 @@ static int is_brick_valid(struct brick *brick)
  * This function decref a brick and it's private data
  *
  * @param	brick the brick to decref
+ * @param	errp a return pointer for an error message
  * @return	the brick if refcount >= or NULL if it has been destroyed
  */
-struct brick *brick_decref(struct brick *brick)
+struct brick *brick_decref(struct brick *brick, struct switch_error **errp)
 {
 	enum side i;
 
-	if (!brick)
+	if (!brick) {
+		*errp = error_new("NULL brick");
 		return NULL;
+	}
 
 	brick->refcount--;
 
@@ -175,7 +195,7 @@ struct brick *brick_decref(struct brick *brick)
 		return brick;
 
 	if (brick->ops->destroy)
-		brick->ops->destroy(brick);
+		brick->ops->destroy(brick, errp);
 
 	for (i = 0; i < MAX_SIDE; i++)
 		g_free(brick->sides[i].edges);
@@ -213,15 +233,19 @@ static uint16_t count_side(struct brick_side *side, struct brick *target)
  *
  * @param	brick the link to inspect while counting the links
  * @param	target the brick to look for in the edge arrays
+ * @param	errp a return pointer for an error message
  * @return	the total number of link from the brick to the target
  */
-uint32_t brick_links_count_get(struct brick *brick, struct brick *target)
+uint32_t brick_links_count_get(struct brick *brick,
+			   struct brick *target, struct switch_error **errp)
 {
 	uint32_t count = 0;
 	enum side i;
 
-	if (!brick)
+	if (!brick) {
+		*errp = error_new("brick is NULL");
 		return 0;
+	}
 
 	for (i = 0; i < MAX_SIDE; i++)
 		count += count_side(&brick->sides[i], target);
@@ -237,17 +261,24 @@ uint32_t brick_links_count_get(struct brick *brick, struct brick *target)
  *
  * @param	target the target of the link operation
  * @param	brick the brick to link to the target
+ * @param	errp a return pointer for an error message
  * @return	1 on success, 0 on error
  */
-int brick_west_link(struct brick *target, struct brick *brick)
+int brick_west_link(struct brick *target,
+		    struct brick *brick,
+		    struct switch_error **errp)
 {
-	if (!is_brick_valid(brick))
+	if (!is_brick_valid(brick)) {
+		*errp = error_new("Node is not valid");
 		return 0;
+	}
 
-	if (!brick->ops->west_link)
+	if (!brick->ops->west_link) {
+		*errp = error_new("Node link west callback not set");
 		return 0;
+	}
 
-	return brick->ops->west_link(target, brick);
+	return brick->ops->west_link(target, brick, errp);
 }
 
 /**
@@ -258,33 +289,45 @@ int brick_west_link(struct brick *target, struct brick *brick)
  *
  * @param	target the target of the link operation
  * @param	brick the brick to link to the target
+ * @param	errp a return pointer for an error message
  * @return	1 on success, 0 on error
  */
-int brick_east_link(struct brick *target, struct brick *brick)
+int brick_east_link(struct brick *target,
+		    struct brick *brick,
+		    struct switch_error **errp)
 {
-	if (!is_brick_valid(brick))
+	if (!is_brick_valid(brick)) {
+		*errp = error_new("Node is not valid");
 		return 0;
+	}
 
-	if (!brick->ops->east_link)
+	if (!brick->ops->east_link) {
+		*errp = error_new("Node link east callback not set");
 		return 0;
+	}
 
-	return brick->ops->east_link(target, brick);
+	return brick->ops->east_link(target, brick, errp);
 }
 
 /**
  * This function unlinks all the link from and to this brick
  *
  * @param	brick the brick brick to unlink
+ * @param	errp a return pointer for an error message
  */
-void brick_unlink(struct brick *brick)
+void brick_unlink(struct brick *brick, struct switch_error **errp)
 {
-	if (!is_brick_valid(brick))
+	if (!is_brick_valid(brick)) {
+		*errp = error_new("Node is not valid");
 		return;
+	}
 
-	if (!brick->ops->unlink)
+	if (!brick->ops->unlink) {
+		*errp = error_new("Node unlink callback not set");
 		return;
+	}
 
-	brick->ops->unlink(brick);
+	brick->ops->unlink(brick, errp);
 }
 
 /**
@@ -317,9 +360,11 @@ static uint16_t insert_link(struct brick_side *side, struct brick *brick)
  *
  * @param	target the target of the link operation
  * @param	brick the brick to link to the target
+ * @param	errp a return pointer for an error message
  * @return	1 on success, 0 on error
  */
-int brick_generic_west_link(struct brick *target, struct brick *brick)
+int brick_generic_west_link(struct brick *target,
+			    struct brick *brick, struct switch_error **errp)
 {
 	uint16_t target_index, brick_index;
 	enum side i;
@@ -327,8 +372,10 @@ int brick_generic_west_link(struct brick *target, struct brick *brick)
 	for (i = 0; i < MAX_SIDE; i++) {
 		struct brick_side *side = &target->sides[i];
 
-		if (side->nb == side->max)
+		if (side->nb == side->max) {
+			*errp = error_new("Side full");
 			return 0;
+		}
 	}
 
 	target_index = insert_link(&target->sides[WEST_SIDE], brick);
@@ -346,11 +393,13 @@ int brick_generic_west_link(struct brick *target, struct brick *brick)
  *
  * @param	target the target of the link operation
  * @param	brick the brick to link to the target
+ * @param	errp a return pointer for an error message
  * @return	1 on success, 0 on error
  */
-int brick_generic_east_link(struct brick *target, struct brick *brick)
+int brick_generic_east_link(struct brick *target,
+			    struct brick *brick, struct switch_error **errp)
 {
-	return brick_generic_west_link(brick, target);
+	return brick_generic_west_link(brick, target, errp);
 }
 
 static void reset_edge(struct brick_edge *edge)
@@ -362,6 +411,7 @@ static void reset_edge(struct brick_edge *edge)
 static void do_unlink(struct brick *brick, enum side side, uint16_t index)
 {
 	struct brick_edge *edge = &brick->sides[side].edges[index];
+	struct switch_error *error = NULL;
 	struct brick_edge *pair_edge;
 
 	if (!edge->link)
@@ -369,8 +419,10 @@ static void do_unlink(struct brick *brick, enum side side, uint16_t index)
 
 	pair_edge = &edge->link->sides[flip_side(side)].edges[edge->pair_index];
 
-	brick_decref(brick);
-	brick_decref(edge->link);
+	brick_decref(brick, &error);
+	g_assert(!error);
+	brick_decref(edge->link, &error);
+	g_assert(!error);
 	reset_edge(pair_edge);
 	reset_edge(edge);
 
@@ -381,8 +433,9 @@ static void do_unlink(struct brick *brick, enum side side, uint16_t index)
  * This function unlinks all the link from and to this brick
  *
  * @param	brick the brick brick to unlink
+ * @param	errp a return pointer for an error message
  */
-void brick_generic_unlink(struct brick *brick)
+void brick_generic_unlink(struct brick *brick, struct switch_error **errp)
 {
 	enum side i;
 	uint16_t j;
@@ -401,46 +454,58 @@ void brick_generic_unlink(struct brick *brick)
  * function.
  */
 
-inline void brick_burst(struct brick *brick, enum side side,
-			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask)
+inline int brick_burst(struct brick *brick, enum side side,
+		       struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
+		       struct switch_error **errp)
 {
-	brick->burst(brick, side, pkts, nb, pkts_mask);
-
+	return brick->burst(brick, side, pkts, nb, pkts_mask, errp);
 }
 
-inline void brick_burst_to_east(struct brick *brick, struct rte_mbuf **pkts,
-				uint16_t nb, uint64_t pkts_mask)
+inline int brick_burst_to_east(struct brick *brick, struct rte_mbuf **pkts,
+			       uint16_t nb, uint64_t pkts_mask,
+			       struct switch_error **errp)
 {
-	brick_burst(brick, WEST_SIDE, pkts, nb, pkts_mask);
+	return brick_burst(brick, WEST_SIDE, pkts, nb, pkts_mask, errp);
 }
 
-inline void brick_burst_to_west(struct brick *brick, struct rte_mbuf **pkts,
-				uint16_t nb, uint64_t pkts_mask)
+inline int brick_burst_to_west(struct brick *brick, struct rte_mbuf **pkts,
+			       uint16_t nb, uint64_t pkts_mask,
+			       struct switch_error **errp)
 {
-	brick_burst(brick, EAST_SIDE, pkts, nb, pkts_mask);
+	return brick_burst(brick, EAST_SIDE, pkts, nb, pkts_mask, errp);
 }
 
 /* These functions are are for automated testing purpose */
 struct rte_mbuf **brick_west_burst_get(struct brick *brick,
-				       uint64_t *pkts_mask)
+				       uint64_t *pkts_mask,
+				       struct switch_error **errp)
 {
-	if (!brick)
+	if (!brick) {
+		*errp = error_new("NULL brick");
 		return NULL;
+	}
 
-	if (!brick->burst_get)
+	if (!brick->burst_get) {
+		*errp = error_new("No burst_get callback");
 		return NULL;
+	}
 
 	return brick->burst_get(brick, WEST_SIDE, pkts_mask);
 }
 
 struct rte_mbuf **brick_east_burst_get(struct brick *brick,
-				       uint64_t *pkts_mask)
+				       uint64_t *pkts_mask,
+				       struct switch_error **errp)
 {
-	if (!brick)
+	if (!brick) {
+		*errp = error_new("NULL brick");
 		return NULL;
+	}
 
-	if (!brick->burst_get)
+	if (!brick->burst_get) {
+		*errp = error_new("No burst_get callback");
 		return NULL;
+	}
 
 	return brick->burst_get(brick, EAST_SIDE, pkts_mask);
 }
