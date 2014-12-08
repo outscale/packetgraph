@@ -17,8 +17,6 @@
 
 #include "bricks/brick.h"
 
-#define NOP_EDGES_COUNT	8
-
 struct nop_state {
 	struct brick brick;
 	int should_be_zero;
@@ -38,7 +36,7 @@ static void nop_burst(struct brick *brick, enum side side,
 				    pkts_mask);
 }
 
-static int nop_init(struct brick *brick)
+static int nop_init(struct brick *brick, struct brick_config *config)
 {
 	struct nop_state *state = brick_get_state(brick, struct nop_state);
 
@@ -47,7 +45,6 @@ static int nop_init(struct brick *brick)
 	/* initialize fast path */
 	brick->burst = nop_burst;
 
-	brick_set_max_edges(brick, NOP_EDGES_COUNT, NOP_EDGES_COUNT);
 	return 1;
 }
 

@@ -20,12 +20,14 @@
 #include "switch-config.h"
 #include "bricks/brick.h"
 #include "utils/bitmask.h"
+#include "utils/config.h"
 #include "tests.h"
 
 #define NB_PKTS 3
 
 static void test_brick_flow_west(void)
 {
+	struct brick_config *config = brick_config_new("mybrick", 4, 4);
 	struct brick *brick1, *brick2, *collect_west, *collect_east;
 	struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
@@ -40,11 +42,11 @@ static void test_brick_flow_west(void)
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
-	brick1 = brick_new("nop");
-	brick2 = brick_new("nop");
-	collect_west = brick_new("collect");
+	brick1 = brick_new("nop", config);
+	brick2 = brick_new("nop", config);
+	collect_west = brick_new("collect", config);
 	g_assert(collect_west);
-	collect_east = brick_new("collect");
+	collect_east = brick_new("collect", config);
 	g_assert(collect_east);
 
 	brick_west_link(brick1, collect_west);
@@ -83,10 +85,13 @@ static void test_brick_flow_west(void)
 	brick_decref(brick2);
 	brick_decref(collect_west);
 	brick_decref(collect_east);
+
+	brick_config_free(config);
 }
 
 static void test_brick_flow_east(void)
 {
+	struct brick_config *config = brick_config_new("mybrick", 4, 4);
 	struct brick *brick1, *brick2, *collect_west, *collect_east;
 	struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
@@ -101,11 +106,11 @@ static void test_brick_flow_east(void)
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
-	brick1 = brick_new("nop");
-	brick2 = brick_new("nop");
-	collect_west = brick_new("collect");
+	brick1 = brick_new("nop", config);
+	brick2 = brick_new("nop", config);
+	collect_west = brick_new("collect", config);
 	g_assert(collect_west);
-	collect_east = brick_new("collect");
+	collect_east = brick_new("collect", config);
 	g_assert(collect_east);
 
 	brick_west_link(brick1, collect_west);
@@ -144,6 +149,8 @@ static void test_brick_flow_east(void)
 	brick_decref(brick2);
 	brick_decref(collect_west);
 	brick_decref(collect_east);
+
+	brick_config_free(config);
 }
 
 void test_brick_flow(void)

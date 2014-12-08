@@ -25,8 +25,8 @@ inline enum side flip_side(enum side side);
 void brick_set_max_edges(struct brick *brick,
 			   uint16_t west_edges, uint16_t east_edges);
 
-/* lifecycle */
-struct brick *brick_new(const char *name);
+ /* lifecycle */
+struct brick *brick_new(const char *name, struct brick_config *config);
 void brick_incref(struct brick *brick);
 struct brick *brick_decref(struct brick *brick);
 

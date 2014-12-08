@@ -27,6 +27,8 @@
 #include <rte_config.h>
 #include <rte_mbuf.h>
 
+#include "utils/config.h"
+
 /**
  * Each step in the pipeline from the physical network card to the guest vm
  * uplink and backward is called a brick. A brick can be a switch, a hub, a
@@ -115,11 +117,11 @@ struct brick_ops {
 	ssize_t state_size;			/* private state size */
 
 	/* life cycle */
-	int (*init)(struct brick *brick);	/* constructor
-						 * return 1 on success,
-						 * and 0 on error
-						 */
-	void (*destroy)(struct brick *brick);	/* destructor */
+	int (*init)(struct brick *brick,		/* constructor */
+		    struct brick_config *config);	/* return 1 on success,
+							 * and 0 on error
+							 */
+	void (*destroy)(struct brick *brick);		/* destructor */
 
 	int (*west_link)(struct brick *target,	/* link to west side */
 			 struct brick *brick);

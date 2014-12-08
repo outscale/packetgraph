@@ -83,9 +83,10 @@ void brick_set_max_edges(struct brick *brick,
  * This function instantiates a brick by its brick_ops name
  *
  * @param	name the brick_ops name to lookup
+ * @param	config the brick configuration
  * @return	the instantiated brick
  */
-struct brick *brick_new(const char *name)
+struct brick *brick_new(const char *name, struct brick_config *config)
 {
 	struct brick_ops **bricks;
 	struct brick *brick;
@@ -114,17 +115,24 @@ struct brick *brick_new(const char *name)
 	brick->ops = bricks[i];
 	brick->refcount = 1;
 
-	ret = brick->ops->init(brick);
+	g_assert(config->west_max <= UINT16_MAX);
+	g_assert(config->east_max <= UINT16_MAX);
+
+	brick_set_max_edges(brick, config->west_max, config->east_max);
+	brick->name = g_strdup(config->name);
+
+	ret = brick->ops->init(brick, config);
 
 	if (!ret)
 		goto fail_exit;
 
 	assert_brick_callback(brick);
-
+	/* TODO: register the brick */
 	alloc_edges(brick);
 	return brick;
 
 fail_exit:
+	g_free(brick->name);
 	g_free(brick);
 	return NULL;
 }
@@ -172,6 +180,7 @@ struct brick *brick_decref(struct brick *brick)
 	for (i = 0; i < MAX_SIDE; i++)
 		g_free(brick->sides[i].edges);
 
+	g_free(brick->name);
 	/* The brick struct is be the first member of the state. */
 	g_free(brick);
 	return NULL;

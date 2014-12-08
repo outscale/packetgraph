@@ -18,29 +18,34 @@
 #include <glib.h>
 
 #include "bricks/brick.h"
+#include "utils/config.h"
 #include "tests.h"
 
 static void test_brick_core_simple_lifecycle(void)
 {
 	struct brick *brick;
+	struct brick_config *config = brick_config_new("mybrick", 2, 2);
 
-	brick = brick_new("foo");
+	brick = brick_new("foo", config);
 	g_assert(!brick);
 
-	brick = brick_new("nop");
+	brick = brick_new("nop", config);
 	g_assert(brick);
 
 	brick_decref(brick);
 
 	brick = brick_decref(NULL);
 	g_assert(!brick);
+
+	brick_config_free(config);
 }
 
 static void test_brick_core_refcount(void)
 {
 	struct brick *brick;
+	struct brick_config *config = brick_config_new("mybrick", 2, 2);
 
-	brick = brick_new("nop");
+	brick = brick_new("nop", config);
 	g_assert(brick);
 
 	/* Use the brick twice */
@@ -56,21 +61,24 @@ static void test_brick_core_refcount(void)
 	/* finally destroy the brick */
 	brick = brick_decref(brick);
 	g_assert(!brick);
+
+	brick_config_free(config);
 }
 
 static void test_brick_core_link(void)
 {
 	struct brick *west_brick, *middle_brick, *east_brick;
+	struct brick_config *config = brick_config_new("mybrick", 4, 4);
 	int64_t refcount;
 	int ret;
 
-	west_brick = brick_new("nop");
+	west_brick = brick_new("nop", config);
 	g_assert(west_brick);
 
-	middle_brick = brick_new("nop");
+	middle_brick = brick_new("nop", config);
 	g_assert(middle_brick);
 
-	east_brick = brick_new("nop");
+	east_brick = brick_new("nop", config);
 	g_assert(east_brick);
 
 	ret = brick_west_link(middle_brick, west_brick);
@@ -106,21 +114,24 @@ static void test_brick_core_link(void)
 	brick_decref(west_brick);
 	brick_decref(middle_brick);
 	brick_decref(east_brick);
+
+	brick_config_free(config);
 }
 
 static void test_brick_core_multiple_link(void)
 {
 	struct brick *west_brick, *middle_brick, *east_brick;
+	struct brick_config *config = brick_config_new("mybrick", 4, 4);
 	int64_t refcount;
 	int ret;
 
-	west_brick = brick_new("nop");
+	west_brick = brick_new("nop", config);
 	g_assert(west_brick);
 
-	middle_brick = brick_new("nop");
+	middle_brick = brick_new("nop", config);
 	g_assert(middle_brick);
 
-	east_brick = brick_new("nop");
+	east_brick = brick_new("nop", config);
 	g_assert(east_brick);
 
 	ret = brick_west_link(middle_brick, west_brick);
@@ -162,16 +173,19 @@ static void test_brick_core_multiple_link(void)
 	brick_decref(west_brick);
 	brick_decref(middle_brick);
 	brick_decref(east_brick);
+
+	brick_config_free(config);
 }
 
 static void test_brick_core_verify_multiple_link(void)
 {
 	struct brick *west_brick, *middle_brick, *east_brick;
+	struct brick_config *config = brick_config_new("mybrick", 4, 4);
 	uint32_t links_count;
 
-	west_brick = brick_new("nop");
-	middle_brick = brick_new("nop");
-	east_brick = brick_new("nop");
+	west_brick = brick_new("nop", config);
+	middle_brick = brick_new("nop", config);
+	east_brick = brick_new("nop", config);
 
 	/* create a few links */
 	brick_west_link(middle_brick, west_brick);
@@ -256,6 +270,8 @@ static void test_brick_core_verify_multiple_link(void)
 	brick_decref(west_brick);
 	brick_decref(middle_brick);
 	brick_decref(east_brick);
+
+	brick_config_free(config);
 }
 
 void test_brick_core(void)

@@ -1,4 +1,6 @@
 add_executable (tests tests.c test-brick-core.c
 		test-brick-flow.c
+		$<TARGET_OBJECTS:protos>
+		$<TARGET_OBJECTS:utils>
 		$<TARGET_OBJECTS:bricks>)
-target_link_libraries (tests ${GLIB2_LIBRARIES} ${CCAN_INSTALL_DIR}/lib/libccan.a)
+target_link_libraries (tests ${GLIB2_LIBRARIES} ${TARGET_LIBRARIES})

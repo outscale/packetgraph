@@ -60,11 +60,10 @@ static struct rte_mbuf **collect_burst_get(struct brick *brick, enum side side,
 	return state->pkts[side];
 }
 
-static int collect_init(struct brick *brick)
+static int collect_init(struct brick *brick, struct brick_config *config)
 {
 	brick->burst = collect_burst;
 	brick->burst_get = collect_burst_get;
-	brick_set_max_edges(brick, 1, 1);
 
 	return 1;
 }
