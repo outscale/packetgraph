@@ -30,8 +30,9 @@ struct collect_state {
 };
 
 static int collect_burst(struct brick *brick, enum side side,
-			  struct rte_mbuf **pkts, uint16_t nb,
-			  uint64_t pkts_mask, struct switch_error **errp)
+			 uint16_t edge_index, struct rte_mbuf **pkts,
+			 uint16_t nb, uint64_t pkts_mask,
+			 struct switch_error **errp)
 {
 	struct collect_state *state =
 		brick_get_state(brick, struct collect_state);

@@ -455,24 +455,26 @@ void brick_generic_unlink(struct brick *brick, struct switch_error **errp)
  */
 
 inline int brick_burst(struct brick *brick, enum side side,
-		       struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
-		       struct switch_error **errp)
+		       uint16_t edge_index, struct rte_mbuf **pkts, uint16_t nb,
+		       uint64_t pkts_mask, struct switch_error **errp)
 {
-	return brick->burst(brick, side, pkts, nb, pkts_mask, errp);
+	return brick->burst(brick, side, edge_index, pkts, nb, pkts_mask, errp);
 }
 
-inline int brick_burst_to_east(struct brick *brick, struct rte_mbuf **pkts,
-			       uint16_t nb, uint64_t pkts_mask,
-			       struct switch_error **errp)
+inline int brick_burst_to_east(struct brick *brick, uint16_t edge_index,
+			       struct rte_mbuf **pkts, uint16_t nb,
+			       uint64_t pkts_mask, struct switch_error **errp)
 {
-	return brick_burst(brick, WEST_SIDE, pkts, nb, pkts_mask, errp);
+	return brick_burst(brick, WEST_SIDE, edge_index,
+			   pkts, nb, pkts_mask, errp);
 }
 
-inline int brick_burst_to_west(struct brick *brick, struct rte_mbuf **pkts,
-			       uint16_t nb, uint64_t pkts_mask,
-			       struct switch_error **errp)
+inline int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
+			       struct rte_mbuf **pkts, uint16_t nb,
+			       uint64_t pkts_mask, struct switch_error **errp)
 {
-	return brick_burst(brick, EAST_SIDE, pkts, nb, pkts_mask, errp);
+	return brick_burst(brick, EAST_SIDE, edge_index,
+			   pkts, nb, pkts_mask, errp);
 }
 
 /* These functions are are for automated testing purpose */

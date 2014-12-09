@@ -54,16 +54,17 @@ int brick_generic_east_link(struct brick *target,
 void brick_generic_unlink(struct brick *brick, struct switch_error **errp);
 
 /* data flow */
-int brick_burst(struct brick *brick, enum side side, struct rte_mbuf **pkts,
-		uint16_t nb, uint64_t pkts_mask, struct switch_error **errp);
+int brick_burst(struct brick *brick, enum side side, uint16_t edge_index,
+		struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
+		struct switch_error **errp);
 
 /* data flow commodity functions */
-int brick_burst_to_east(struct brick *brick, struct rte_mbuf **pkts,
-			uint16_t nb, uint64_t pkts_mask,
+int brick_burst_to_east(struct brick *brick, uint16_t edge_index,
+			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 			struct switch_error **errp);
 
-int brick_burst_to_west(struct brick *brick, struct rte_mbuf **pkts,
-			uint16_t nb, uint64_t pkts_mask,
+int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
+			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 			struct switch_error **errp);
 
 /* used for testing */

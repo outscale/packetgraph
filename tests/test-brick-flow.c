@@ -62,7 +62,7 @@ static void test_brick_flow_west(void)
 	g_assert(!error);
 
 	/* send a pkts to the west from the eastest nope brick */
-	brick_burst_to_west(brick2, pkts, NB_PKTS, mask_firsts(NB_PKTS),
+	brick_burst_to_west(brick2, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
 			    &error);
 	g_assert(!error);
 
@@ -148,7 +148,7 @@ static void test_brick_flow_east(void)
 	g_assert(!error);
 
 	/* send a pkts to the east from the westest nope brick */
-	brick_burst_to_east(brick1, pkts, NB_PKTS, mask_firsts(NB_PKTS),
+	brick_burst_to_east(brick1, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
 			    &error);
 	g_assert(!error);
 
