@@ -373,6 +373,7 @@ static uint16_t insert_link(struct brick_side *side, struct brick *brick)
 		}
 
 	g_assert(0);
+	return 0;
 }
 
 /**

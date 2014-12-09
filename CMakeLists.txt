@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/
 find_package(GLIB2 REQUIRED)
 find_package(ProtobufC REQUIRED)
 
-set(CMAKE_C_FLAGS "-g -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wcast-qual -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes ${PROTOBUFC_DEFINITIONS}")
+set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wcast-qual -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes ${PROTOBUFC_DEFINITIONS}")
 
 include_directories(${GLIB2_INCLUDE_DIR} ${GLIB2_INTERNAL_INCLUDE_DIR}
 		    ${PROTOBUFC_INCLUDE_DIRS}
@@ -33,11 +33,11 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 		     ${CCAN_INSTALL_DIR}/lib/libccan.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_hash.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_mbuf.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_mempool.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_table.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_ring.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_eal.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_malloc.a
-		     ${DPDK_INSTALL_DIR}/lib/librte_mempool.a
-		     ${DPDK_INSTALL_DIR}/lib/librte_ring.a
 		     ${PROTOBUFC_LIBRARIES})
 
 add_subdirectory(3rdparty)

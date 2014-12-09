@@ -35,6 +35,7 @@ int main(int argc, char **argv)
 	test_error();
 	test_brick_core();
 	test_brick_flow();
+	test_switch();
 
 	return g_test_run();
 }

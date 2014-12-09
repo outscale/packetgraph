@@ -1,6 +1,7 @@
 add_executable (tests tests.c test-brick-core.c
 		test-brick-flow.c
 		test-error.c
+		test-switch.c
 		$<TARGET_OBJECTS:packets>
 		$<TARGET_OBJECTS:protos>
 		$<TARGET_OBJECTS:utils>

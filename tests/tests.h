@@ -21,5 +21,6 @@
 void test_brick_core(void);
 void test_brick_flow(void);
 void test_error(void);
+void test_switch(void);
 
 #endif
