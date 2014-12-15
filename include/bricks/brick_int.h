@@ -131,6 +131,10 @@ struct brick_ops {
 			 struct brick *brick, struct switch_error **errp);
 	void (*unlink)(struct brick *brick, struct switch_error **errp);
 
+	/* called to notify a brick that a neighbor broke a link with it */
+	void (*unlink_notify)(struct brick *brick, enum side unlinker_side,
+			      uint16_t edge_index);
+
 	int (*reset)(struct brick *brick, struct switch_error **errp);
 };
 

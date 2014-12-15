@@ -428,6 +428,24 @@ static void reset_edge(struct brick_edge *edge)
 	edge->pair_index = 0;
 }
 
+/* Optionaly notify the edge we are unlinking with of the unlink event
+ *
+ * @edge: the edge we are unlinking with
+ */
+static void unlink_notify(struct brick_edge *edge, enum side array_side)
+{
+	struct brick *brick = edge->link;
+
+	if (!brick)
+		return;
+
+	if (!brick->ops || !brick->ops->unlink_notify)
+		return;
+
+	brick->ops->unlink_notify(brick,
+				  flip_side(array_side), edge->pair_index);
+}
+
 static void do_unlink(struct brick *brick, enum side side, uint16_t index)
 {
 	struct brick_edge *edge = &brick->sides[side].edges[index];
@@ -441,7 +459,10 @@ static void do_unlink(struct brick *brick, enum side side, uint16_t index)
 
 	brick_decref(brick, &error);
 	g_assert(!error);
+
+	unlink_notify(edge, side);
 	brick_decref(edge->link, &error);
+
 	g_assert(!error);
 	reset_edge(pair_edge);
 	reset_edge(edge);
