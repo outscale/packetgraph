@@ -207,6 +207,26 @@ struct brick *brick_decref(struct brick *brick, struct switch_error **errp)
 }
 
 /**
+ * This reset a brick
+ *
+ * @param	brick the brick we are working with
+ * @param	errp a return pointer for an error message
+ * @return	1 on success, 0 on error
+ */
+int brick_reset(struct brick *brick, struct switch_error **errp)
+{
+	if (!brick) {
+		*errp = error_new("brick is NULL");
+		return 0;
+	}
+
+	if (!brick->ops || !brick->ops->reset)
+		return 0;
+
+	return brick->ops->reset(brick, errp);
+}
+
+/**
  * This function will be used in unit test to check a brick refcount
  *
  * @param	brick the brick to get the refcount from

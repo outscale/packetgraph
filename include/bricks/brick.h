@@ -31,6 +31,7 @@ struct brick *brick_new(const char *name, struct brick_config *config,
 			 struct switch_error **errp);
 void brick_incref(struct brick *brick);
 struct brick *brick_decref(struct brick *brick, struct switch_error **errp);
+int brick_reset(struct brick *brick, struct switch_error **errp);
 
 /* testing */
 int64_t brick_refcount(struct brick *brick);

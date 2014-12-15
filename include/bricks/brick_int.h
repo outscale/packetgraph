@@ -130,6 +130,8 @@ struct brick_ops {
 	int (*east_link)(struct brick *target,	/* link to east side */
 			 struct brick *brick, struct switch_error **errp);
 	void (*unlink)(struct brick *brick, struct switch_error **errp);
+
+	int (*reset)(struct brick *brick, struct switch_error **errp);
 };
 
 

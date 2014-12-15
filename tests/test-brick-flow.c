@@ -81,6 +81,7 @@ static void test_brick_flow_west(void)
 	g_assert(!error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
+
 	result_pkts = brick_east_burst_get(collect_west, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(pkts_mask == mask_firsts(NB_PKTS));

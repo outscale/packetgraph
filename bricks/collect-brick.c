@@ -21,6 +21,7 @@
 
 #include "switch-config.h"
 #include "bricks/brick.h"
+#include "packets/packets.h"
 
 struct collect_state {
 	struct brick brick;
@@ -43,10 +44,14 @@ static int collect_burst(struct brick *brick, enum side side,
 		return 0;
 	}
 
+	if (state->pkts_mask[side])
+		packets_free(state->pkts[side], state->pkts_mask[side]);
+
 	state->pkts_mask[side] = pkts_mask;
 	/* We made sure nb <= MAX_PKTS_BURST */
 	/* Flawfinder: ignore */
 	memcpy(state->pkts[side], pkts, nb * sizeof(struct rte_mbuf *));
+	packets_incref(state->pkts[side], state->pkts_mask[side]);
 
 	return 1;
 }
@@ -75,6 +80,24 @@ static int collect_init(struct brick *brick,
 	return 1;
 }
 
+static int collect_reset(struct brick *brick, struct switch_error **errp)
+{
+	enum side i;
+	struct collect_state *state =
+		brick_get_state(brick, struct collect_state);
+
+	for (i = 0; i < MAX_SIDE; i++) {
+		if (!state->pkts_mask[i])
+			continue;
+
+		packets_free(state->pkts[i], state->pkts_mask[i]);
+		packets_forget(state->pkts[i], state->pkts_mask[i]);
+		state->pkts_mask[i] = 0;
+	}
+
+	return 1;
+}
+
 static struct brick_ops collect_ops = {
 	.name		= "collect",
 	.state_size	= sizeof(struct collect_state),
@@ -84,6 +107,8 @@ static struct brick_ops collect_ops = {
 	.west_link	= brick_generic_west_link,
 	.east_link	= brick_generic_east_link,
 	.unlink		= brick_generic_unlink,
+
+	.reset		= collect_reset,
 };
 
 brick_register(struct collect_state, &collect_ops);
