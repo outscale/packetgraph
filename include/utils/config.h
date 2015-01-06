@@ -20,6 +20,8 @@
 
 #include "config.pb-c.h"
 
+#define output_enum	Output
+
 #define nop_config	_NopConfig
 #define collect_config	_CollectConfig
 #define brick_config	_BrickConfig

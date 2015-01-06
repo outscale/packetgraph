@@ -1,3 +1,8 @@
+enum output {
+     TO_EAST = 0;
+     TO_WEST = 1;
+}
+
 // The configuration message of the nop-brick
 message nop_config {
 
