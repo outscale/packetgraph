@@ -2,6 +2,7 @@ set(SOURCES tests.c
 	test-brick-core.c
 	test-brick-flow.c
 	test-error.c
+	test-diode.c
 	test-switch.c)
 
 add_executable(tests ${SOURCES}

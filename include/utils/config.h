@@ -25,6 +25,10 @@
 #define nop_config	_NopConfig
 #define collect_config	_CollectConfig
 #define brick_config	_BrickConfig
+#define diode_config	_DiodeConfig
+
+struct brick_config *diode_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max, output_enum output);
 
 struct brick_config *brick_config_init(struct brick_config *config,
 				       const char *name,

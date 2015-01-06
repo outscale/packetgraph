@@ -19,6 +19,19 @@
 
 #include "utils/config.h"
 
+struct brick_config *diode_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max, output_enum output)
+{
+	struct brick_config *config = g_new0(struct brick_config, 1);
+	struct diode_config *diode_config = g_new0(struct diode_config, 1);
+
+	brick_config__init(config);
+	diode_config__init(diode_config);
+	diode_config->output = output;
+	config->diode = diode_config;
+	return brick_config_init(config, name, west_max, east_max);
+}
+
 struct brick_config *brick_config_init(struct brick_config *config,
 				       const char *name,
 				       uint32_t west_max,
@@ -41,6 +54,7 @@ struct brick_config *brick_config_new(const char *name, uint32_t west_max,
 
 void brick_config_free(struct brick_config *config)
 {
+	g_free(config->diode);
 	g_free(config->name);
 	g_free(config);
 }
