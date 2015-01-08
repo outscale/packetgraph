@@ -11,8 +11,15 @@ set(CCAN_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/ccan)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
 
-include_directories(${PROJECT_SOURCE_DIR}/include
+set(CMAKE_C_FLAGS "-g -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wcast-qual -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes")
+
+find_package(GLIB2 REQUIRED)
+
+include_directories(${GLIB2_INCLUDE_DIR} ${GLIB2_INTERNAL_INCLUDE_DIR}
+		    ${PROJECT_SOURCE_DIR}/include
 		    ${DPDK_INSTALL_DIR}/include
 		    ${CCAN_INSTALL_DIR}/include)
+
+link_directories(${GLIB2_LIBRARIES})
 
 add_subdirectory(3rdparty)
