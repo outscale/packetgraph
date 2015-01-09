@@ -40,6 +40,16 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 		     ${DPDK_INSTALL_DIR}/lib/librte_malloc.a
 		     ${PROTOBUFC_LIBRARIES})
 
+set(CPPCHECK_COMMAND cppcheck -q  -f
+	-I ${PROJECT_SOURCE_DIR}/include
+	-I ${PROJECT_SOURCE_DIR}/protos
+	--enable=warning
+	--enable=style
+	--enable=performance
+	--enable=portability
+	--enable=information
+	--enable=missingInclude)
+
 add_subdirectory(3rdparty)
 add_subdirectory(utils)
 add_subdirectory(packets)
