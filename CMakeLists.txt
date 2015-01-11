@@ -56,3 +56,7 @@ add_subdirectory(packets)
 add_subdirectory(protos)
 add_subdirectory(bricks)
 add_subdirectory(tests)
+
+add_custom_target(flawfinder
+	COMMAND flawfinder -D --quiet bricks/ include/ packets/ utils/)
+add_dependencies(flawfinder tests)
