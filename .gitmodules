@@ -7,3 +7,6 @@
 [submodule "3rdparty/ccan"]
 	path = 3rdparty/ccan
 	url = git://git.ozlabs.org/~ccan/ccan
+[submodule "3rdparty/lizard"]
+	path = 3rdparty/lizard
+	url = https://github.com/terryyin/lizard.git
