@@ -214,14 +214,14 @@ if ($terse) {
 
 if ($tree) {
 	if (defined $root) {
-		if (!top_of_kernel_tree($root)) {
+		if (!top_of__tree($root)) {
 			die "$P: $root: --root does not point at a valid tree\n";
 		}
 	} else {
-		if (top_of_kernel_tree('.')) {
+		if (top_of__tree('.')) {
 			$root = '.';
 		} elsif ($0 =~ m@(.*)/scripts/[^/]*$@ &&
-						top_of_kernel_tree($1)) {
+						top_of__tree($1)) {
 			$root = $1;
 		}
 	}
@@ -587,13 +587,11 @@ for my $filename (@ARGV) {
 
 exit($exit);
 
-sub top_of_kernel_tree {
+sub top_of__tree {
 	my ($root) = @_;
 
 	my @tree_check = (
-		"COPYING", "CREDITS", "Kbuild", "MAINTAINERS", "Makefile",
-		"README", "Documentation", "arch", "include", "drivers",
-		"fs", "init", "ipc", "kernel", "lib", "scripts",
+		"README.md",
 	);
 
 	foreach my $check (@tree_check) {
