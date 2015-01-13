@@ -589,3 +589,23 @@ int brick_side_forward(struct brick_side *brick_side, enum side side,
 
 	return 1;
 }
+
+char *brick_handle_dup(struct brick *brick, struct switch_error **errp)
+{
+	if (!brick) {
+		*errp = error_new("Brick is NULL");
+		return 0;
+	}
+
+	if (!brick->ops) {
+		*errp = error_new("Brick has no ops");
+		return 0;
+	}
+
+	if (!brick->ops->handle_dup) {
+		*errp = error_new("No handle_dup callback");
+		return 0;
+	}
+
+	return brick->ops->handle_dup(brick, errp);
+}

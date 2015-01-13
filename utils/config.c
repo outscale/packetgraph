@@ -53,8 +53,23 @@ struct brick_config *brick_config_new(const char *name, uint32_t west_max,
 	return brick_config_init(config, name, west_max, east_max);
 }
 
+struct brick_config *vhost_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max,
+				      output_enum output)
+{
+	struct brick_config *config = g_new0(struct brick_config, 1);
+	struct vhost_config *vhost_config = g_new0(struct vhost_config, 1);
+
+	brick_config__init(config);
+	vhost_config__init(vhost_config);
+	vhost_config->output = output;
+	config->vhost = vhost_config;
+	return brick_config_init(config, name, west_max, east_max);
+}
+
 void brick_config_free(struct brick_config *config)
 {
+	g_free(config->vhost);
 	g_free(config->diode);
 	g_free(config->name);
 	g_free(config);

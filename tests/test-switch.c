@@ -18,13 +18,13 @@
 #include <glib.h>
 
 #include <rte_config.h>
-#include <rte_ether.h>
 
 #include "switch-config.h"
 #include "bricks/brick.h"
 #include "utils/config.h"
 #include "utils/mempool.h"
 #include "tests.h"
+#include "mac.h"
 
 #define NB_PKTS          3
 
@@ -38,36 +38,6 @@
 inline uint64_t mask_firsts(uint8_t count);
 
 struct rte_mempool *mbuf_pool;
-
-static inline int scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
-{
-	int ret;
-
-	/* is the input string long enough */
-	if (strlen(buf) < 17)
-		return 0;
-
-	ret = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
-		&eth_addr->addr_bytes[0],
-		&eth_addr->addr_bytes[1],
-		&eth_addr->addr_bytes[2],
-		&eth_addr->addr_bytes[3],
-		&eth_addr->addr_bytes[4],
-		&eth_addr->addr_bytes[5]);
-
-	/* where the 6 bytes parsed ? */
-	return ret == 6;
-}
-
-static void set_mac_addrs(struct rte_mbuf *mb, const char *src, const char *dst)
-{
-	struct ether_hdr *eth_hdr;
-
-	eth_hdr = rte_pktmbuf_mtod(mb, struct ether_hdr *);
-
-	scan_ether_addr(&eth_hdr->s_addr, src);
-	scan_ether_addr(&eth_hdr->d_addr, dst);
-}
 
 static void test_switch_lifecycle(void)
 {

@@ -1,9 +1,11 @@
 set(SOURCES tests.c
+	mac.c
 	test-brick-core.c
 	test-brick-flow.c
 	test-error.c
 	test-diode.c
-	test-switch.c)
+	test-switch.c
+	test-vhost.c)
 
 add_executable(tests ${SOURCES}
 		$<TARGET_OBJECTS:packets>

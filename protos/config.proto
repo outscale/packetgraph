@@ -18,6 +18,11 @@ message diode_config {
 	required output output = 1;
 };
 
+// The configuration message of vhost-user
+message vhost_config {
+	required output output = 1;
+};
+
 // The configuration message of any brick
 message brick_config {
 	// The unique name of the brick brick in the graph
@@ -30,4 +35,5 @@ message brick_config {
 	optional nop_config nop = 100;
 	optional collect_config collect = 101;
 	optional diode_config diode = 102;
+	optional vhost_config vhost = 103;
 };

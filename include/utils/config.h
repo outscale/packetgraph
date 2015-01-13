@@ -28,6 +28,7 @@
 #define collect_config	_CollectConfig
 #define brick_config	_BrickConfig
 #define diode_config	_DiodeConfig
+#define vhost_config	_VhostConfig
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max, output_enum output);
@@ -39,6 +40,10 @@ struct brick_config *brick_config_init(struct brick_config *config,
 
 struct brick_config *brick_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max);
+
+struct brick_config *vhost_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max,
+				      output_enum output);
 
 void brick_config_free(struct brick_config *config);
 

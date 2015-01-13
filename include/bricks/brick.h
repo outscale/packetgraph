@@ -84,4 +84,6 @@ int brick_side_forward(struct brick_side *brick_side, enum side side,
 		       struct rte_mbuf **pkts, uint16_t nb,
 		       uint64_t pkts_mask, struct switch_error **errp);
 
+char *brick_handle_dup(struct brick *brick, struct switch_error **errp);
+
 #endif

@@ -19,7 +19,7 @@ add_custom_target(buildroot ALL
 add_custom_command(
 	OUTPUT ${DPDK_SOURCE_DIR}/build/build/app/_postbuild
 	COMMAND make config T=x86_64-native-linuxapp-gcc
-	COMMAND make
+	COMMAND make CONFIG_RTE_LIBRTE_VHOST=y
 	WORKING_DIRECTORY dpdk
 	COMMENT Building DPDK)
 
@@ -60,7 +60,7 @@ add_dependencies(ccan-install ccan)
 # install commands
 add_custom_command(
 	OUTPUT ${DPDK_INSTALL_DIR}/include/rte_config.h
-	COMMAND make install T=x86_64-native-linuxapp-gcc DESTDIR=${3RDPARTY_INSTALL_DIR}
+	COMMAND make install CONFIG_RTE_LIBRTE_VHOST=y T=x86_64-native-linuxapp-gcc DESTDIR=${3RDPARTY_INSTALL_DIR}
 	WORKING_DIRECTORY dpdk
 	COMMENT Installing DPDK)
 

@@ -140,6 +140,11 @@ struct brick_ops {
 			      uint16_t edge_index);
 
 	int (*reset)(struct brick *brick, struct switch_error **errp);
+
+	/* this return a copy of the brick handle:
+	 * the socket path for vhost-user.
+	 */
+	char *(*handle_dup)(struct brick *brick, struct switch_error **errp);
 };
 
 

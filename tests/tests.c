@@ -19,6 +19,7 @@
 
 #include <rte_config.h>
 #include <rte_eal.h>
+#include <rte_virtio_net.h>
 
 #include "tests.h"
 
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
 	test_error();
 	test_brick_core();
 	test_brick_flow();
+	test_vhost();
 	test_switch();
 	test_diode();
 

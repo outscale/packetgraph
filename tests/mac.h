@@ -1,5 +1,5 @@
-/* Copyright 2014 Nodalink EURL
- *
+/* Copyright 2014-2015 Nodalink EURL
+
  * This file is part of Butterfly.
  *
  * Butterfly is free software: you can redistribute it and/or modify
@@ -15,14 +15,15 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TESTS_H_
-#define _TESTS_H_
+#ifndef TEST_MAC_H
+#define TEST_MAC_H
 
-void test_brick_core(void);
-void test_brick_flow(void);
-void test_error(void);
-void test_switch(void);
-void test_diode(void);
-void test_vhost(void);
+#include <rte_ether.h>
+
+int scan_ether_addr(struct ether_addr *eth_addr, const char *buf);
+
+void set_mac_addrs(struct rte_mbuf *mb, const char *src, const char *dst);
+
+void set_ether_type(struct rte_mbuf *mb, uint16_t ether_type);
 
 #endif

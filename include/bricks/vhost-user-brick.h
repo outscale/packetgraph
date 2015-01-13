@@ -1,4 +1,4 @@
-/* Copyright 2014 Nodalink EURL
+/* Copyright 2015 Nodalink EURL
  *
  * This file is part of Butterfly.
  *
@@ -15,14 +15,13 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TESTS_H_
-#define _TESTS_H_
+#ifndef _BRICKS_VHOST_USER_H_
+#define _BRICKS_VHOST_USER_H_
 
-void test_brick_core(void);
-void test_brick_flow(void);
-void test_error(void);
-void test_switch(void);
-void test_diode(void);
-void test_vhost(void);
+#include "bricks/brick.h"
+
+int vhost_start(const char *base_dir, struct switch_error **errp);
+
+void vhost_stop(void);
 
 #endif
