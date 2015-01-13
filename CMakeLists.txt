@@ -23,11 +23,26 @@ include_directories(${GLIB2_INCLUDE_DIR} ${GLIB2_INTERNAL_INCLUDE_DIR}
 		    ${CCAN_INSTALL_DIR}/include
 		    ${PROJECT_SOURCE_DIR}/protos)
 
-link_directories(${GLIB2_LIBRARIES} ${PROTOBUFC_LIBRARIES})
+link_directories(${GLIB2_LIBRARIES}
+		 ${DPDK_INSTALL_DIR}/lib
+		 ${PROTOBUFC_LIBRARIES})
 
-set(TARGET_LIBRARIES ${GLIB2_LIBRARIES} ${CCAN_INSTALL_DIR}/lib/libccan.a ${PROTOBUFC_LIBRARIES})
+set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
+		     pthread
+		     dl
+		     ${CCAN_INSTALL_DIR}/lib/libccan.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_hash.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_mbuf.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_table.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_eal.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_malloc.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_mempool.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_ring.a
+		     ${PROTOBUFC_LIBRARIES})
+
 add_subdirectory(3rdparty)
 add_subdirectory(utils)
+add_subdirectory(packets)
 add_subdirectory(protos)
 add_subdirectory(bricks)
 add_subdirectory(tests)
