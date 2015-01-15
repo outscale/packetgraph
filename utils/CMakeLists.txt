@@ -1,4 +1,4 @@
-set(SOURCES config.c errors.c mempool.c)
+set(SOURCES bitmask.c config.c errors.c mempool.c)
 
 add_library(utils OBJECT ${SOURCES})
 add_dependencies(utils protos)

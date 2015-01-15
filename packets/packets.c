@@ -16,6 +16,7 @@
  */
 
 #include "packets/packets.h"
+#include "utils/bitmask.h"
 
 /**
  * This function copy and pack a source packet array into a destination array
@@ -33,12 +34,9 @@ int packets_pack(struct rte_mbuf **dst,
 	int i;
 
 	for (i = 0; pkts_mask; i++) {
-		uint64_t bit;
 		uint16_t j;
 
-		j =  __builtin_ctzll(pkts_mask);
-		bit = 1LLU << j;
-		pkts_mask &= ~bit;
+		low_bit_iterate(pkts_mask, j);
 
 		dst[i] = src[j];
 	}
@@ -55,12 +53,9 @@ int packets_pack(struct rte_mbuf **dst,
 void packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for (; pkts_mask;) {
-		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(pkts_mask);
-		bit = 1LLU << i;
-		pkts_mask &= ~bit;
+		low_bit_iterate(pkts_mask, i);
 
 		rte_mbuf_refcnt_update(pkts[i], 1);
 	}
@@ -75,12 +70,9 @@ void packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask)
 void packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for (; pkts_mask;) {
-		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(pkts_mask);
-		bit = 1LLU << i;
-		pkts_mask &= ~bit;
+		low_bit_iterate(pkts_mask, i);
 
 		rte_pktmbuf_free(pkts[i]);
 	}
@@ -95,12 +87,9 @@ void packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask)
 void packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for (; pkts_mask;) {
-		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(pkts_mask);
-		bit = 1LLU << i;
-		pkts_mask &= ~bit;
+		low_bit_iterate(pkts_mask, i);
 
 		pkts[i] = NULL;
 	}

@@ -28,6 +28,7 @@
 #define HASH_KEY_SIZE		8
 
 #include "bricks/brick.h"
+#include "utils/bitmask.h"
 #include "switch-config.h"
 
 /* this tell from where a given source mac address came */
@@ -177,9 +178,7 @@ static int do_learn_filter_multicast(struct switch_state *state,
 		uint16_t i;
 		int ret;
 
-		i =  __builtin_ctzll(mask);
-		bit = 1LLU << i;
-		mask &= ~bit;
+		low_bit_iterate_full(mask, bit, i);
 
 		pkt = pkts[i];
 
@@ -228,9 +227,7 @@ static void do_switch(struct switch_state *state,
 		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(lookup_hit_mask);
-		bit = 1LLU << i;
-		lookup_hit_mask &= ~bit;
+		low_bit_iterate_full(lookup_hit_mask, bit, i);
 
 		entry = entries[i];
 
@@ -259,12 +256,9 @@ static void prefetch_packets(struct rte_mbuf **pkts,
 
 	for (mask = pkts_mask; mask; ) {
 		struct rte_mbuf *pkt;
-		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(mask);
-		bit = 1LLU << i;
-		mask &= ~bit;
+		low_bit_iterate(mask, i);
 
 		pkt = pkts[i];
 		rte_prefetch0(pkt);
@@ -273,12 +267,9 @@ static void prefetch_packets(struct rte_mbuf **pkts,
 	for (mask = pkts_mask; mask; ) {
 		struct ether_hdr *eth_hdr;
 		struct rte_mbuf *pkt;
-		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(mask);
-		bit = 1LLU << i;
-		mask &= ~bit;
+		low_bit_iterate(mask, i);
 
 		pkt = pkts[i];
 		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
@@ -294,12 +285,9 @@ static int prepare_hash_keys(struct rte_mbuf **pkts,
 	for ( ; pkts_mask; ) {
 		struct ether_hdr *eth_hdr;
 		struct rte_mbuf *pkt;
-		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(pkts_mask);
-		bit = 1LLU << i;
-		pkts_mask &= ~bit;
+		low_bit_iterate(pkts_mask, i);
 
 		pkt = pkts[i];
 
@@ -323,12 +311,9 @@ static void clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for ( ; pkts_mask; ) {
 		struct rte_mbuf *pkt;
-		uint64_t bit;
 		uint16_t i;
 
-		i =  __builtin_ctzll(pkts_mask);
-		bit = 1LLU << i;
-		pkts_mask &= ~bit;
+		low_bit_iterate(pkts_mask, i);
 
 		pkt = pkts[i];
 

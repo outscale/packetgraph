@@ -20,19 +20,23 @@
 
 #include <stdint.h>
 
-inline uint64_t mask_firsts(uint8_t count);
+uint64_t mask_firsts(uint8_t count);
 
-inline uint64_t mask_firsts(uint8_t count)
-{
-	uint8_t i;
-	uint64_t result = 0;
+/**
+ * Made as a macro for performance reason since a function would imply a 10%
+ * performance hit and a function in a separate module would not be inlined.
+ */
+#define low_bit_iterate_full(mask, bit, index) do {	\
+	index =  __builtin_ctzll(mask);			\
+	bit = 1LLU << index;				\
+	mask &= ~bit;					\
+	} while (0)
 
-	for (i = 0; i < count; i++) {
-		result <<= 1;
-		result |= 0x1;
-	}
-
-	return result;
-}
+#define low_bit_iterate(mask, index) do {	\
+	uint64_t bit;				\
+	index =  __builtin_ctzll(mask);		\
+	bit = 1LLU << index;			\
+	mask &= ~bit;				\
+	} while (0)
 
 #endif
