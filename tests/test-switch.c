@@ -19,17 +19,14 @@
 
 #include <rte_config.h>
 #include <rte_ether.h>
-#include <rte_mempool.h>
 
 #include "switch-config.h"
 #include "bricks/brick.h"
 #include "utils/config.h"
+#include "utils/mempool.h"
 #include "tests.h"
 
-#define NB_PKTS	  3
-#define NUM_MBUFS 8191
-#define MBUF_SIZE (1600 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
-#define MBUF_CACHE_SIZE 250
+#define NB_PKTS          3
 
 #define TEST_PORTS	40
 #define SIDE_PORTS	(TEST_PORTS / 2)
@@ -41,17 +38,6 @@
 inline uint64_t mask_firsts(uint8_t count);
 
 struct rte_mempool *mbuf_pool;
-
-static void mbuf_alloc(void)
-{
-	mbuf_pool = rte_mempool_create("MBUF_POOL", NUM_MBUFS,
-				       MBUF_SIZE, MBUF_CACHE_SIZE,
-				       sizeof(struct rte_pktmbuf_pool_private),
-				       rte_pktmbuf_pool_init, NULL,
-				       rte_pktmbuf_init, NULL,
-				       rte_socket_id(), 0);
-	g_assert(mbuf_pool);
-}
 
 static inline int scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
 {
@@ -1323,7 +1309,7 @@ static void test_switch_perf_switch(void)
 }
 void test_switch(void)
 {
-	mbuf_alloc();
+	mbuf_pool = get_mempool();
 	g_test_add_func("/switch/lifecycle", test_switch_lifecycle);
 	g_test_add_func("/switch/learn", test_switch_learn);
 	g_test_add_func("/switch/switching", test_switch_switching);
