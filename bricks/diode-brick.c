@@ -28,22 +28,11 @@ static int diode_burst(struct brick *brick, enum side side, uint16_t edge_index,
 {
 	struct diode_state *state = brick_get_state(brick, struct diode_state);
 	struct brick_side *s = &brick->sides[flip_side(side)];
-	int ret = 1;
-	uint16_t i;
 
 	if (state->output == side)
 		return 1;
 
-	for (i = 0; i < s->max; i++) {
-		if (s->edges[i].link)
-			ret = brick_burst(s->edges[i].link, side,
-					  s->edges[i].pair_index, pkts, nb,
-					  pkts_mask, errp);
-		if (unlikely(!ret))
-			return 0;
-	}
-
-	return 1;
+	return brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
 }
 
 static int diode_init(struct brick *brick,

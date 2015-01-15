@@ -553,3 +553,22 @@ struct rte_mbuf **brick_east_burst_get(struct brick *brick,
 
 	return brick->burst_get(brick, EAST_SIDE, pkts_mask);
 }
+
+int brick_side_forward(struct brick_side *brick_side, enum side side,
+		       struct rte_mbuf **pkts, uint16_t nb,
+		       uint64_t pkts_mask, struct switch_error **errp)
+{
+	int ret = 1;
+	uint16_t i;
+
+	for (i = 0; i < brick_side->max; i++) {
+		if (brick_side->edges[i].link)
+			ret = brick_burst(brick_side->edges[i].link, side,
+					  brick_side->edges[i].pair_index,
+					  pkts, nb, pkts_mask, errp);
+		if (unlikely(!ret))
+			return 0;
+	}
+
+	return 1;
+}

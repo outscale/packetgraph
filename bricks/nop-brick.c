@@ -29,19 +29,8 @@ static int nop_burst(struct brick *brick, enum side side, uint16_t edge_index,
 		     struct switch_error **errp)
 {
 	struct brick_side *s = &brick->sides[flip_side(side)];
-	uint16_t i;
-	int ret = 1;
 
-	for (i = 0; i < s->max; i++) {
-		if (s->edges[i].link)
-			ret = brick_burst(s->edges[i].link, side,
-					  s->edges[i].pair_index, pkts, nb,
-					  pkts_mask, errp);
-		if (!ret)
-			return 0;
-	}
-
-	return 1;
+	return brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
 }
 
 static int nop_init(struct brick *brick, struct brick_config *config,
