@@ -45,8 +45,8 @@ struct switch_side {
 
 struct switch_state {
 	struct brick brick;
-	void *table;			/* source mac address lookup table */
-	struct switch_side sides[2];	/* the two sides of the switch */
+	void *table;				/* mac addy lookup table */
+	struct switch_side sides[MAX_SIDE];	/* sides of the switch */
 };
 
 static inline uint64_t ether_hash(void *key, uint32_t key_size, uint64_t seed)
