@@ -31,11 +31,8 @@
  * @param	format the message format
  * @return	the newly allocated struct switch_error
  */
-struct switch_error *__error_new(int err_no,
-			  const char *file,
-			  uint64_t line,
-			  const char *function,
-			  const char *format, ...)
+struct switch_error *__error_new(int err_no, const char *file, uint64_t line,
+				 const char *function, const char *format, ...)
 {
 	va_list args;
 	struct switch_error *error = g_new0(struct switch_error, 1);

@@ -43,11 +43,8 @@
 
 #define error_new(...) error_new_errno(0, __VA_ARGS__)
 
-struct switch_error *__error_new(int err_no,
-			  const char *file,
-			  uint64_t line,
-			  const char *function,
-			  const char *format, ...);
+struct switch_error *__error_new(int err_no, const char *file, uint64_t line,
+				 const char *function, const char *format, ...);
 
 void error_free(struct switch_error *error);
 
