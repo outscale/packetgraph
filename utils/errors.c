@@ -90,3 +90,16 @@ void error_print(struct switch_error *error)
 		error->context->line, error->err_no,
 		error->message);
 }
+
+/**
+ * Check if *errp is not null
+ *
+ * Do not make use of this functions is performance critical path.
+ *
+ * @param	errp an error pointer
+ * @return	1 if the error is set else 0
+ */
+int error_is_set(struct switch_error **errp)
+{
+	return !!*errp;
+}

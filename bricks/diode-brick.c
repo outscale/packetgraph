@@ -51,7 +51,7 @@ static int diode_init(struct brick *brick,
 	brick->burst = diode_burst;
 
 	state->output = output_to_side(diode_config->output, errp);
-	if (!!*errp)
+	if (error_is_set(errp))
 		return 0;
 
 	return 1;

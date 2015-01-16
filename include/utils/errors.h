@@ -50,4 +50,6 @@ void error_free(struct switch_error *error);
 
 void error_print(struct switch_error *error);
 
+int error_is_set(struct switch_error **error);
+
 #endif
