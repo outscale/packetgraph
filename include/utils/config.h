@@ -20,6 +20,8 @@
 
 #include "config.pb-c.h"
 
+#include "utils/errors.h"
+
 #define output_enum	Output
 
 #define nop_config	_NopConfig
@@ -39,5 +41,7 @@ struct brick_config *brick_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max);
 
 void brick_config_free(struct brick_config *config);
+
+enum side output_to_side(output_enum output, struct switch_error **errp);
 
 #endif

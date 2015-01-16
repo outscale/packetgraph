@@ -18,6 +18,7 @@
 #include <glib.h>
 
 #include "utils/config.h"
+#include "bricks/brick_int.h"
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max, output_enum output)
@@ -57,4 +58,18 @@ void brick_config_free(struct brick_config *config)
 	g_free(config->diode);
 	g_free(config->name);
 	g_free(config);
+}
+
+enum side output_to_side(output_enum output, struct switch_error **errp)
+{
+	switch (output) {
+	case OUTPUT__TO_EAST:
+		return EAST_SIDE;
+	case OUTPUT__TO_WEST:
+		return WEST_SIDE;
+	default:
+		*errp = error_new("Output contain an invalid value");
+	}
+
+	return MAX_SIDE;
 }

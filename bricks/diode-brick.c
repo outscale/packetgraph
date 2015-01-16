@@ -50,17 +50,10 @@ static int diode_init(struct brick *brick,
 
 	brick->burst = diode_burst;
 
-	switch (diode_config->output) {
-	case OUTPUT__TO_EAST:
-		state->output = EAST_SIDE;
-		break;
-	case OUTPUT__TO_WEST:
-		state->output = WEST_SIDE;
-		break;
-	default:
-		*errp = error_new("output contain an invalid value");
+	state->output = output_to_side(diode_config->output, errp);
+	if (!!*errp)
 		return 0;
-	}
+
 	return 1;
 }
 
