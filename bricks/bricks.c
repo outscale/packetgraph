@@ -139,7 +139,7 @@ struct brick *brick_new(const char *name, struct brick_config *config,
 	ret = brick->ops->init(brick, config, errp);
 
 	if (!ret) {
-		*errp = error_new("Failed to init '%s' brick");
+		*errp = error_new("Failed to init '%s' brick", name);
 		goto fail_exit;
 	}
 
