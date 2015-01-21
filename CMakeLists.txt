@@ -43,7 +43,9 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 		     pthread
 		     dl
 		     urcu
+		     pcap
 		     ${CCAN_INSTALL_DIR}/lib/libccan.a
+		     ${DPDK_INSTALL_DIR}/lib/libethdev.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_hash.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_mbuf.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_mempool.a
@@ -51,7 +53,12 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 		     ${DPDK_INSTALL_DIR}/lib/librte_ring.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_eal.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_malloc.a
-		     ${DPDK_INSTALL_DIR}/lib/librte_vhost.a)
+		     ${DPDK_INSTALL_DIR}/lib/librte_vhost.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_pmd_pcap.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_pmd_ring.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_kvargs.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_pmd_e1000.a
+		     ${DPDK_INSTALL_DIR}/lib/librte_pmd_ixgbe.a)
 
 add_subdirectory(3rdparty)
 add_subdirectory(packetgraph)

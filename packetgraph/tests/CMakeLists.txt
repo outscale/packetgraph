@@ -16,5 +16,6 @@ set(SOURCES tests.c
 add_executable(tests ${SOURCES}
 		$<TARGET_OBJECTS:packets>
 		$<TARGET_OBJECTS:utils>
-		$<TARGET_OBJECTS:bricks>)
+		$<TARGET_OBJECTS:bricks>
+		$<TARGET_OBJECTS:bricks_stubs>)
 target_link_libraries (tests ${TARGET_LIBRARIES})
