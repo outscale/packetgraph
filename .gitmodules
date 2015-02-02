@@ -10,3 +10,6 @@
 [submodule "3rdparty/lizard"]
 	path = 3rdparty/lizard
 	url = https://github.com/terryyin/lizard.git
+[submodule "3rdparty/buildroot"]
+	path = 3rdparty/buildroot
+	url = git://git.buildroot.net/buildroot

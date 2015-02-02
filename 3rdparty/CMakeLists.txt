@@ -12,6 +12,9 @@ add_custom_target(rumprun-posix ALL
 add_custom_target(ccan ALL
 	DEPENDS ${3RDPARTY_DIR}/ccan/libccan.a)
 
+add_custom_target(buildroot ALL
+	DEPENDS ${3RDPARTY_DIR}/buildroot/output/images/rootfs.cpio)
+
 # build commands
 add_custom_command(
 	OUTPUT ${DPDK_SOURCE_DIR}/build/build/app/_postbuild
@@ -32,6 +35,14 @@ add_custom_command(
 	COMMAND make
 	WORKING_DIRECTORY ccan
 	COMMENT Building CCAN)
+
+add_custom_command(
+	OUTPUT ${3RDPARTY_DIR}/buildroot/output/images/rootfs.cpio
+	COMMAND git am ${3RDPARTY_DIR}/patches/0001-config-custom-buildroot-config-for-testing.patch
+	COMMAND make oldconfig
+	COMMAND make
+	WORKING_DIRECTORY buildroot
+	COMMENT Building buildroot)
 
 # install targets
 add_custom_target (dpdk-install ALL
@@ -77,5 +88,5 @@ add_custom_target(dependency-cleanup CLEAN
 	COMMENT Deleting dependencies)
 
 add_custom_target(3rdparty)
-add_dependencies(3rdparty dpdk-install rumprun-posix-install ccan-install)
+add_dependencies(3rdparty dpdk-install rumprun-posix-install ccan-install buildroot)
 
