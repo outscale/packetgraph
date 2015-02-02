@@ -85,6 +85,7 @@ inline uint64_t mask_firsts(uint8_t count);
 		brick_decref(collect_east, &error);		\
 		g_assert(!error);				\
 		brick_config_free(config);			\
+		brick_config_free(diode_config);		\
 	} while (0)
 
 #define	DIODE_TEST(get_burst_fn, to_collect, result_to_check) do {	    \
