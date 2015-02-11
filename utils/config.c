@@ -18,7 +18,7 @@
 #include <glib.h>
 
 #include "utils/config.h"
-#include "bricks/brick_int.h"
+#include "bricks/brick-int.h"
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max, output_enum output)

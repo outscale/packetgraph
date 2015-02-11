@@ -18,7 +18,7 @@
 #ifndef _BRICKS_BRICK_H_
 #define _BRICKS_BRICK_H_
 
-#include "bricks/brick_int.h"
+#include "bricks/brick-int.h"
 #include "utils/errors.h"
 
 inline enum side flip_side(enum side side);
