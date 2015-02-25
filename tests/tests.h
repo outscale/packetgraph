@@ -18,10 +18,16 @@
 #ifndef _TESTS_H_
 #define _TESTS_H_
 
+enum test_flags {
+	QUICK_TEST = 1,
+	PRINT_USAGE = 2,
+	FAIL = 4
+};
+
 void test_brick_core(void);
 void test_brick_flow(void);
 void test_error(void);
-void test_switch(void);
+void test_switch(uint64_t test_flags);
 void test_diode(void);
 void test_vhost(void);
 void test_pkts_count(void);

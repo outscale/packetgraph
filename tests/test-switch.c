@@ -1277,7 +1277,7 @@ static void test_switch_perf_switch(void)
 #undef TEST_PKTS
 #undef TEST_PKTS_COUNT
 }
-void test_switch(void)
+void test_switch(uint64_t test_flags)
 {
 	mbuf_pool = get_mempool();
 	g_test_add_func("/switch/lifecycle", test_switch_lifecycle);
@@ -1288,6 +1288,8 @@ void test_switch(void)
 			test_switch_multicast_destination);
 	g_test_add_func("/switch/multicast/both", test_switch_multicast_both);
 	g_test_add_func("/switch/filtered", test_switch_filtered);
+	if (test_flags & QUICK_TEST)
+		return;
 	g_test_add_func("/switch/perf/learn", test_switch_perf_learn);
 	g_test_add_func("/switch/perf/switch", test_switch_perf_switch);
 }
