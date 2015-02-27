@@ -520,6 +520,22 @@ inline int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
 			   pkts, nb, pkts_mask, errp);
 }
 
+inline int brick_poll(struct brick *brick,
+		      uint16_t *count, struct switch_error **errp)
+{
+	if (!brick) {
+		*errp = error_new("Brick is NULL");
+		return 0;
+	}
+
+	if (!brick->poll) {
+		*errp = error_new("No poll callback");
+		return 0;
+	}
+
+	return brick->poll(brick, count, errp);
+}
+
 /* These functions are are for automated testing purpose */
 struct rte_mbuf **brick_west_burst_get(struct brick *brick,
 				       uint64_t *pkts_mask,

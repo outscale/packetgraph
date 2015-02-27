@@ -87,6 +87,10 @@ struct brick {
 	int (*burst)(struct brick *brick, enum side side, uint16_t edge_index,
 		     struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 		     struct switch_error **errp);
+	/* polling */
+	int (*poll)(struct brick *brick,
+		    uint16_t *count, struct switch_error **errp);
+
 	/**
 	 * Return a packet burst. This field is used bricks designed to
 	 * collect packets for testing purpose. In regular bricks it will be

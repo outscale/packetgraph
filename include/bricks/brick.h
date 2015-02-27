@@ -68,6 +68,10 @@ int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
 			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 			struct switch_error **errp);
 
+/* polling */
+inline int brick_poll(struct brick *brick,
+		      uint16_t *count, struct switch_error **errp);
+
 /* used for testing */
 struct rte_mbuf **brick_west_burst_get(struct brick *brick,
 				       uint64_t *pkts_mask,
