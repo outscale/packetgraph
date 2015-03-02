@@ -3,23 +3,11 @@ set(BUILDROOT_SOURCE_DIR ${3RDPARTY_DIR}/buildroot)
 
 set(CMAKE_C_FLAGS "-g -Wall")
 
-# build targets
-add_custom_target(dpdk ALL
-	DEPENDS ${DPDK_SOURCE_DIR}/build/build/app/_postbuild)
-
 add_custom_target(rumprun-posix ALL
 	DEPENDS ${3RDPARTY_DIR}/rumprun-posix/rumpdyn/lib/librumpnet_npf.so)
 
 add_custom_target(ccan ALL
 	DEPENDS ${3RDPARTY_DIR}/ccan/libccan.a)
-
-# build commands
-add_custom_command(
-	OUTPUT ${DPDK_SOURCE_DIR}/build/build/app/_postbuild
-	COMMAND make config T=x86_64-native-linuxapp-gcc
-	COMMAND make CONFIG_RTE_LIBRTE_VHOST=y
-	WORKING_DIRECTORY dpdk
-	COMMENT Building DPDK)
 
 add_custom_command(
 	OUTPUT ${3RDPARTY_DIR}/rumprun-posix/rumpdyn/lib/librumpnet_npf.so
@@ -34,6 +22,17 @@ add_custom_command(
 	WORKING_DIRECTORY ccan
 	COMMENT Building CCAN)
 
+ExternalProject_Add(dpdk
+	SOURCE_DIR ${DPDK_SOURCE_DIR}
+	DOWNLOAD_DIR ${PROJECT_SOURCE_DIR}
+	DOWNLOAD_COMMAND git submodule update --init ${DPDK_SOURCE_DIR}
+	CONFIGURE_COMMAND make config T=x86_64-native-linuxapp-gcc
+	BINARY_DIR ${DPDK_SOURCE_DIR}
+	BUILD_COMMAND make CONFIG_RTE_LIBRTE_VHOST=y
+	INSTALL_DIR ${DPDK_INSTALL_DIR}
+	INSTALL_COMMAND make install CONFIG_RTE_LIBRTE_VHOST=y T=x86_64-native-linuxapp-gcc DESTDIR=${3RDPARTY_INSTALL_DIR}
+	LOG_BUILD 1 Building buildroot)
+
 ExternalProject_Add(buildroot
 	PATCH_COMMAND patch -t -N -p1 < ${3RDPARTY_DIR}/patches/0001-config-custom-buildroot-config-for-testing.patch || true
 	DOWNLOAD_DIR ${PROJECT_SOURCE_DIR}
@@ -46,11 +45,6 @@ ExternalProject_Add(buildroot
 	INSTALL_COMMAND true
 	LOG_BUILD 1 Building buildroot)
 
-# install targets
-add_custom_target (dpdk-install ALL
-	DEPENDS ${DPDK_INSTALL_DIR}/include/rte_config.h)
-add_dependencies(dpdk-install dpdk)
-
 add_custom_target (rumprun-posix-install ALL
 	DEPENDS ${RUMPRUN_POSIX_INSTALL_DIR}/include/rump/rump.h)
 add_dependencies(rumprun-posix-install rumprun-posix)
@@ -58,13 +52,6 @@ add_dependencies(rumprun-posix-install rumprun-posix)
 add_custom_target (ccan-install ALL
 	DEPENDS  ${CCAN_INSTALL_DIR}/lib/libccan.a)
 add_dependencies(ccan-install ccan)
-
-# install commands
-add_custom_command(
-	OUTPUT ${DPDK_INSTALL_DIR}/include/rte_config.h
-	COMMAND make install CONFIG_RTE_LIBRTE_VHOST=y T=x86_64-native-linuxapp-gcc DESTDIR=${3RDPARTY_INSTALL_DIR}
-	WORKING_DIRECTORY dpdk
-	COMMENT Installing DPDK)
 
 add_custom_command(
 	OUTPUT ${RUMPRUN_POSIX_INSTALL_DIR}/include/rump/rump.h
@@ -90,5 +77,5 @@ add_custom_target(dependency-cleanup CLEAN
 	COMMENT Deleting dependencies)
 
 add_custom_target(3rdparty)
-add_dependencies(3rdparty dpdk-install rumprun-posix-install ccan-install)
+add_dependencies(3rdparty rumprun-posix-install ccan-install)
 
