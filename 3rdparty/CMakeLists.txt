@@ -1,4 +1,5 @@
 set(DPDK_SOURCE_DIR ${3RDPARTY_DIR}/dpdk)
+set(BUILDROOT_SOURCE_DIR ${3RDPARTY_DIR}/buildroot)
 
 set(CMAKE_C_FLAGS "-g -Wall")
 
@@ -11,9 +12,6 @@ add_custom_target(rumprun-posix ALL
 
 add_custom_target(ccan ALL
 	DEPENDS ${3RDPARTY_DIR}/ccan/libccan.a)
-
-add_custom_target(buildroot ALL
-	DEPENDS ${3RDPARTY_DIR}/buildroot/output/images/rootfs.cpio)
 
 # build commands
 add_custom_command(
@@ -36,13 +34,17 @@ add_custom_command(
 	WORKING_DIRECTORY ccan
 	COMMENT Building CCAN)
 
-add_custom_command(
-	OUTPUT ${3RDPARTY_DIR}/buildroot/output/images/rootfs.cpio
-	COMMAND git am ${3RDPARTY_DIR}/patches/0001-config-custom-buildroot-config-for-testing.patch
-	COMMAND make oldconfig
-	COMMAND make
-	WORKING_DIRECTORY buildroot
-	COMMENT Building buildroot)
+ExternalProject_Add(buildroot
+	PATCH_COMMAND patch -t -N -p1 < ${3RDPARTY_DIR}/patches/0001-config-custom-buildroot-config-for-testing.patch || true
+	DOWNLOAD_DIR ${PROJECT_SOURCE_DIR}
+	DOWNLOAD_COMMAND git submodule update --init ${BUILDROOT_SOURCE_DIR}
+	SOURCE_DIR ${BUILDROOT_SOURCE_DIR}
+	UPDATE_COMMAND chmod +x overlay/sbin/init
+	CONFIGURE_COMMAND make oldconfig
+	BINARY_DIR ${BUILDROOT_SOURCE_DIR}
+	BUILD_COMMAND make
+	INSTALL_COMMAND true
+	LOG_BUILD 1 Building buildroot)
 
 # install targets
 add_custom_target (dpdk-install ALL
@@ -88,5 +90,5 @@ add_custom_target(dependency-cleanup CLEAN
 	COMMENT Deleting dependencies)
 
 add_custom_target(3rdparty)
-add_dependencies(3rdparty dpdk-install rumprun-posix-install ccan-install buildroot)
+add_dependencies(3rdparty dpdk-install rumprun-posix-install ccan-install)
 
