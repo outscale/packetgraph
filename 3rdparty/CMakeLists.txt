@@ -4,9 +4,6 @@ set(CCAN_SOURCE_DIR ${3RDPARTY_DIR}/ccan)
 
 set(CMAKE_C_FLAGS "-g -Wall")
 
-add_custom_target(rumprun-posix ALL
-	DEPENDS ${3RDPARTY_DIR}/rumprun-posix/rumpdyn/lib/librumpnet_npf.so)
-
 add_custom_command(
 	OUTPUT ${CCAN_INSTALL_DIR}/lib/libccan.a
 	COMMAND mkdir -p ${CCAN_INSTALL_DIR}/lib
@@ -27,13 +24,6 @@ ExternalProject_Add(ccan
 	INSTALL_DIR ${CCAN_SOURCE_DIR}
 	INSTALL_COMMAND true
 	LOG_BUILD 1 Building buildroot)
-
-add_custom_command(
-	OUTPUT ${3RDPARTY_DIR}/rumprun-posix/rumpdyn/lib/librumpnet_npf.so
-	COMMAND ./buildnb.sh
-	COMMAND . ./rumpremote.sh
-	WORKING_DIRECTORY rumprun-posix
-	COMMENT Building rump kernel posix component)
 
 add_custom_target (ccan-install ALL
 	DEPENDS  ${CCAN_INSTALL_DIR}/lib/libccan.a)
@@ -61,23 +51,11 @@ ExternalProject_Add(buildroot
 	INSTALL_COMMAND true
 	LOG_BUILD 1 Building buildroot)
 
-add_custom_target (rumprun-posix-install ALL
-	DEPENDS ${RUMPRUN_POSIX_INSTALL_DIR}/include/rump/rump.h)
-add_dependencies(rumprun-posix-install rumprun-posix)
-
-add_custom_command(
-	OUTPUT ${RUMPRUN_POSIX_INSTALL_DIR}/include/rump/rump.h
-	COMMAND mkdir -p  ${RUMPRUN_POSIX_INSTALL_DIR}
-	COMMAND cp -a rumpdyn/* ${RUMPRUN_POSIX_INSTALL_DIR}
-	COMMAND cp -a bin ${RUMPRUN_POSIX_INSTALL_DIR}
-	WORKING_DIRECTORY rumprun-posix
-	COMMENT Installing rump kernel posix component)
-
 # clean target
 add_custom_target(dependency-cleanup CLEAN
 	rm -rf ${3RDPARTY_INSTALL_DIR}
 	COMMENT Deleting dependencies)
 
 add_custom_target(3rdparty)
-add_dependencies(3rdparty rumprun-posix-install ccan-install)
+add_dependencies(3rdparty ccan-install)
 
