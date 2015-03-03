@@ -11,7 +11,7 @@ add_custom_command(
 	COMMAND cp -a libccan.a ${CCAN_INSTALL_DIR}/lib
 	COMMAND cp -a config.h  ${CCAN_INSTALL_DIR}/include
 	COMMAND find . -name '*.h'|grep '^./ccan'|tar -c  --files-from=-|tar -x  -C ${CCAN_INSTALL_DIR}/include
-	WORKING_DIRECTORY ccan
+	WORKING_DIRECTORY ${CCAN_SOURCE_DIR}
 	COMMENT Installing CCAN)
 
 ExternalProject_Add(ccan

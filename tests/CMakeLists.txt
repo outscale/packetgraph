@@ -1,3 +1,4 @@
+set(TESTS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/tests)
 set(SOURCES tests.c
 	mac.c
 	test-brick-core.c
@@ -15,5 +16,6 @@ add_executable(tests ${SOURCES}
 target_link_libraries (tests ${GLIB2_LIBRARIES} ${TARGET_LIBRARIES})
 
 add_custom_target(tests_static ALL
-	COMMAND ${CPPCHECK_COMMAND} ${SOURCES})
+	COMMAND ${CPPCHECK_COMMAND} ${SOURCES}
+	WORKING_DIRECTORY ${TESTS_SOURCE_DIR})
 add_dependencies(tests_static tests)

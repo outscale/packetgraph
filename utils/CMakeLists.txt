@@ -1,8 +1,11 @@
 set(SOURCES bitmask.c config.c errors.c mempool.c)
+set(UTILS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/utils)
 
 add_library(utils OBJECT ${SOURCES})
 add_dependencies(utils protos)
 
 add_custom_target(utils_static ALL
-	COMMAND ${CPPCHECK_COMMAND} ${SOURCES})
+	COMMAND ${CPPCHECK_COMMAND} ${SOURCES}
+      	WORKING_DIRECTORY ${UTILS_SOURCE_DIR})
+
 add_dependencies(utils_static utils)

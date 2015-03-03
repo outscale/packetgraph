@@ -5,7 +5,7 @@ project(BUTTERFLY)
 # 3rdparties directories
 set(3RDPARTY_DIR ${PROJECT_SOURCE_DIR}/3rdparty)
 
-set(3RDPARTY_INSTALL_DIR ${PROJECT_SOURCE_DIR}/3rdparty-build)
+set(3RDPARTY_INSTALL_DIR ${PROJECT_BINARY_DIR}/3rdparty-build)
 set(DPDK_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/x86_64-native-linuxapp-gcc)
 set(RUMPRUN_POSIX_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/rumprun_posix)
 set(CCAN_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/ccan)
@@ -24,7 +24,7 @@ include_directories(${GLIB2_INCLUDE_DIR} ${GLIB2_INTERNAL_INCLUDE_DIR}
 		    ${PROJECT_SOURCE_DIR}/include
 		    ${DPDK_INSTALL_DIR}/include
 		    ${CCAN_INSTALL_DIR}/include
-		    ${PROJECT_SOURCE_DIR}/protos)
+		    ${PROJECT_BINARY_DIR}/protos)
 
 link_directories(${GLIB2_LIBRARIES}
 		 ${DPDK_INSTALL_DIR}/lib
