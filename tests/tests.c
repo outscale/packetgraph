@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	test_vhost();
 	test_switch();
 	test_diode();
+	test_pkts_count();
 
 	return g_test_run();
 }

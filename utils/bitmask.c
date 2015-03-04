@@ -29,3 +29,8 @@ uint64_t mask_firsts(uint8_t count)
 
 	return result;
 }
+
+int mask_count(uint64_t pkts_mask)
+{
+	return __builtin_popcountll(pkts_mask);
+}

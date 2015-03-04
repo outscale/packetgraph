@@ -26,6 +26,7 @@
 
 #include <rte_config.h>
 #include <rte_mbuf.h>
+#include <rte_atomic.h>
 
 #include "utils/config.h"
 #include "utils/errors.h"
@@ -69,6 +70,7 @@ struct brick_side {
 	uint16_t max;			/* maximum number of edges */
 	uint16_t nb;			/* number of edges */
 	struct brick_edge *edges;	/* edges */
+	rte_atomic64_t packet_count;	/* incoming pkts count */
 };
 
 /**

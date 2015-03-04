@@ -22,6 +22,8 @@
 
 uint64_t mask_firsts(uint8_t count);
 
+int mask_count(uint64_t pkts_mask);
+
 /**
  * Made as a macro for performance reason since a function would imply a 10%
  * performance hit and a function in a separate module would not be inlined.

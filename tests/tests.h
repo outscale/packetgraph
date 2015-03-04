@@ -24,5 +24,6 @@ void test_error(void);
 void test_switch(void);
 void test_diode(void);
 void test_vhost(void);
+void test_pkts_count(void);
 
 #endif

@@ -23,6 +23,7 @@
 #include <glib.h>
 
 #include "bricks/brick.h"
+#include "utils/bitmask.h"
 
 /* return the oposite side */
 inline enum side flip_side(enum side side)
@@ -79,6 +80,14 @@ void brick_set_max_edges(struct brick *brick,
 	brick->sides[EAST_SIDE].max = east_edges;
 }
 
+static void zero_brick_counters(struct brick *brick)
+{
+	enum side i;
+
+	for (i = 0; i < MAX_SIDE; ++i)
+		rte_atomic64_set(&brick->sides[i].packet_count, 0);
+}
+
 /**
  * This function instantiates a brick by its brick_ops name
  *
@@ -122,6 +131,8 @@ struct brick *brick_new(const char *name, struct brick_config *config,
 	brick = g_malloc0(bricks[i]->state_size);
 	brick->ops = bricks[i];
 	brick->refcount = 1;
+
+	zero_brick_counters(brick);
 
 	if (config->west_max >= UINT16_MAX) {
 		*errp = error_new("Supports UINT16_MAX west neigbourghs");
@@ -501,6 +512,10 @@ inline int brick_burst(struct brick *brick, enum side side,
 		       uint16_t edge_index, struct rte_mbuf **pkts, uint16_t nb,
 		       uint64_t pkts_mask, struct switch_error **errp)
 {
+	/* @side is the opposite side of the direction on which
+	 * we send the packets, so we flip it */
+	rte_atomic64_add(&brick->sides[flip_side(side)].packet_count,
+			 mask_count(pkts_mask));
 	return brick->burst(brick, side, edge_index, pkts, nb, pkts_mask, errp);
 }
 
@@ -608,4 +623,12 @@ char *brick_handle_dup(struct brick *brick, struct switch_error **errp)
 	}
 
 	return brick->ops->handle_dup(brick, errp);
+}
+
+
+int64_t brick_pkts_count_get(struct brick *brick, enum side side)
+{
+	if (!brick)
+		return 0;
+	return rte_atomic64_read(&brick->sides[side].packet_count);
 }
