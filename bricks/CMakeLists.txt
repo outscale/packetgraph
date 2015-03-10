@@ -3,7 +3,7 @@ set(SOURCES bricks.c nop-brick.c collect-brick.c switch-brick.c diode-brick.c
 set(BRICKS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/bricks)
 
 add_library(bricks OBJECT ${SOURCES})
-add_dependencies(bricks 3rdparty protos)
+add_dependencies(bricks 3rdparty)
 
 add_custom_target(bricks_static ALL
 	COMMAND ${CPPCHECK_COMMAND} ${SOURCES}

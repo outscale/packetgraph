@@ -18,20 +18,31 @@
 #ifndef _UTILS_CONFIG_H_
 #define _UTILS_CONFIG_H_
 
-#include "config.pb-c.h"
-
+#include "common.h"
 #include "utils/errors.h"
 
-#define output_enum	Output
+struct diode_config {
+	enum side output;
+};
 
-#define nop_config	_NopConfig
-#define collect_config	_CollectConfig
-#define brick_config	_BrickConfig
-#define diode_config	_DiodeConfig
-#define vhost_config	_VhostConfig
+struct vhost_config {
+	enum side output;
+};
+
+struct brick_config {
+	/* The unique name of the brick brick in the graph */
+	char *name;
+	/* The maximum number of west edges */
+	uint32_t west_max;
+	/* The maximum number of east edges */
+	uint32_t east_max;
+
+	struct diode_config *diode;
+	struct vhost_config *vhost;
+};
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
-				      uint32_t east_max, output_enum output);
+				      uint32_t east_max, enum side output);
 
 struct brick_config *brick_config_init(struct brick_config *config,
 				       const char *name,
@@ -43,10 +54,8 @@ struct brick_config *brick_config_new(const char *name, uint32_t west_max,
 
 struct brick_config *vhost_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max,
-				      output_enum output);
+				      enum side output);
 
 void brick_config_free(struct brick_config *config);
-
-enum side output_to_side(output_enum output, struct switch_error **errp);
 
 #endif

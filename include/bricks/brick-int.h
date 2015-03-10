@@ -28,6 +28,7 @@
 #include <rte_mbuf.h>
 #include <rte_atomic.h>
 
+#include "common.h"
 #include "utils/config.h"
 #include "utils/errors.h"
 
@@ -52,12 +53,6 @@
 	(type *) ptr; })
 
 struct brick_ops;
-
-enum side {
-	WEST_SIDE = 0,
-	EAST_SIDE = 1,
-	MAX_SIDE  = 2,
-};
 
 /* The end of an edge linking two struct brick */
 struct brick_edge {

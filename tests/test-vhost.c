@@ -153,11 +153,11 @@ static void test_vhost_flow(void)
 	struct brick_config *vhost_config_0 = vhost_config_new("vhost-0",
 							1,
 							1,
-							OUTPUT__TO_EAST);
+							EAST_SIDE);
 	struct brick_config *vhost_config_1 = vhost_config_new("vhost-1",
 							1,
 							1,
-							OUTPUT__TO_EAST);
+							EAST_SIDE);
 	const char mac_addr_0[18] = "52:54:00:12:34:11";
 	const char mac_addr_1[18] = "52:54:00:12:34:12";
 	struct rte_mempool *mbuf_pool = get_mempool();

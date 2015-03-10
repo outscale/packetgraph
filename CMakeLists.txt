@@ -13,22 +13,18 @@ set(CCAN_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/ccan)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
 
 find_package(GLIB2 REQUIRED)
-find_package(ProtobufC REQUIRED)
 find_package(LibURCU REQUIRED)
 
-set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes ${PROTOBUFC_DEFINITIONS}")
+set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes")
 
 include_directories(${GLIB2_INCLUDE_DIR} ${GLIB2_INTERNAL_INCLUDE_DIR}
 		    ${LIBURCU_INCLUDE_DIR}
-		    ${PROTOBUFC_INCLUDE_DIRS}
 		    ${PROJECT_SOURCE_DIR}/include
 		    ${DPDK_INSTALL_DIR}/include
-		    ${CCAN_INSTALL_DIR}/include
-		    ${PROJECT_BINARY_DIR}/protos)
+		    ${CCAN_INSTALL_DIR}/include)
 
 link_directories(${GLIB2_LIBRARIES}
 		 ${DPDK_INSTALL_DIR}/lib
-		 ${PROTOBUFC_LIBRARIES}
 		 ${LIBURCU_LIBRARY})
 
 set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
@@ -43,12 +39,10 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 		     ${DPDK_INSTALL_DIR}/lib/librte_ring.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_eal.a
 		     ${DPDK_INSTALL_DIR}/lib/librte_malloc.a
-		     ${DPDK_INSTALL_DIR}/lib/librte_vhost.a
-		     ${PROTOBUFC_LIBRARIES})
+		     ${DPDK_INSTALL_DIR}/lib/librte_vhost.a)
 
 set(CPPCHECK_COMMAND cppcheck -q  -f
 	-I ${PROJECT_SOURCE_DIR}/include
-	-I ${PROJECT_SOURCE_DIR}/protos
 	--enable=warning
 	--enable=style
 	--enable=performance
@@ -59,7 +53,6 @@ set(CPPCHECK_COMMAND cppcheck -q  -f
 add_subdirectory(3rdparty)
 add_subdirectory(utils)
 add_subdirectory(packets)
-add_subdirectory(protos)
 add_subdirectory(bricks)
 add_subdirectory(tests)
 
@@ -76,4 +69,3 @@ add_dependencies(flawfinder lizard)
 add_custom_target(rats
 	COMMAND rats --quiet ${DIRECTORIES})
 add_dependencies(rats flawfinder)
-

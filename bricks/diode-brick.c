@@ -36,7 +36,7 @@ static int diode_burst(struct brick *brick, enum side side, uint16_t edge_index,
 }
 
 static int diode_init(struct brick *brick,
-		      BrickConfig *config, struct switch_error **errp)
+		      struct brick_config *config, struct switch_error **errp)
 {
 	struct diode_state *state = brick_get_state(brick, struct diode_state);
 	struct diode_config *diode_config;
@@ -50,7 +50,7 @@ static int diode_init(struct brick *brick,
 
 	brick->burst = diode_burst;
 
-	state->output = output_to_side(diode_config->output, errp);
+	state->output = diode_config->output;
 	if (error_is_set(errp))
 		return 0;
 

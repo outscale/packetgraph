@@ -182,7 +182,7 @@ static int vhost_init(struct brick *brick, struct brick_config *config,
 
 	vhost_config = config->vhost;
 
-	state->output = output_to_side(vhost_config->output, errp);
+	state->output = vhost_config->output;
 
 	if (error_is_set(errp))
 		return 0;

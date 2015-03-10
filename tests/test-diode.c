@@ -30,8 +30,8 @@
 inline uint64_t mask_firsts(uint8_t count);
 
 #define	TEST_DIODE_INIT(output)						\
-	BrickConfig *config = brick_config_new("mybrick", 4, 4);	\
-	BrickConfig *diode_config = diode_config_new("mydiode", 4, 4,	\
+	struct brick_config *config = brick_config_new("mybrick", 4, 4);       \
+	struct brick_config *diode_config = diode_config_new("mydiode", 4, 4,  \
 						     output);		\
 	struct brick *node1, *node2, *collect_west, *collect_east;	\
 	struct rte_mbuf *pkts[MAX_PKTS_BURST], **result_pkts;		\
@@ -101,7 +101,7 @@ inline uint64_t mask_firsts(uint8_t count);
 
 static void test_diode_west_good_direction(void)
 {
-	TEST_DIODE_INIT(OUTPUT__TO_WEST);
+	TEST_DIODE_INIT(WEST_SIDE);
 
 	/* send a burst to the west from the eastest nope brick */
 	brick_burst_to_west(node2, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
@@ -120,7 +120,7 @@ static void test_diode_west_good_direction(void)
 
 static void test_diode_west_bad_direction(void)
 {
-	TEST_DIODE_INIT(OUTPUT__TO_EAST);
+	TEST_DIODE_INIT(EAST_SIDE);
 
 	/* send a burst to the west from the eastest nope brick */
 	brick_burst_to_west(node2, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
@@ -137,7 +137,7 @@ static void test_diode_west_bad_direction(void)
 
 static void test_diode_east_good_direction(void)
 {
-	TEST_DIODE_INIT(OUTPUT__TO_EAST);
+	TEST_DIODE_INIT(EAST_SIDE);
 
 	/* send a burst to the east from the westest nope brick */
 	brick_burst_to_east(node1, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
@@ -156,7 +156,7 @@ static void test_diode_east_good_direction(void)
 
 static void test_diode_east_bad_direction(void)
 {
-	TEST_DIODE_INIT(OUTPUT__TO_WEST);
+	TEST_DIODE_INIT(WEST_SIDE);
 
 	/* send a burst to the east from the westest nope brick */
 	brick_burst_to_east(node1, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),

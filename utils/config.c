@@ -21,13 +21,11 @@
 #include "bricks/brick-int.h"
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
-				      uint32_t east_max, output_enum output)
+				      uint32_t east_max, enum side output)
 {
 	struct brick_config *config = g_new0(struct brick_config, 1);
 	struct diode_config *diode_config = g_new0(struct diode_config, 1);
 
-	brick_config__init(config);
-	diode_config__init(diode_config);
 	diode_config->output = output;
 	config->diode = diode_config;
 	return brick_config_init(config, name, west_max, east_max);
@@ -49,19 +47,16 @@ struct brick_config *brick_config_new(const char *name, uint32_t west_max,
 {
 	struct brick_config *config = g_new0(struct brick_config, 1);
 
-	brick_config__init(config);
 	return brick_config_init(config, name, west_max, east_max);
 }
 
 struct brick_config *vhost_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max,
-				      output_enum output)
+				      enum side output)
 {
 	struct brick_config *config = g_new0(struct brick_config, 1);
 	struct vhost_config *vhost_config = g_new0(struct vhost_config, 1);
 
-	brick_config__init(config);
-	vhost_config__init(vhost_config);
 	vhost_config->output = output;
 	config->vhost = vhost_config;
 	return brick_config_init(config, name, west_max, east_max);
@@ -73,18 +68,4 @@ void brick_config_free(struct brick_config *config)
 	g_free(config->diode);
 	g_free(config->name);
 	g_free(config);
-}
-
-enum side output_to_side(output_enum output, struct switch_error **errp)
-{
-	switch (output) {
-	case OUTPUT__TO_EAST:
-		return EAST_SIDE;
-	case OUTPUT__TO_WEST:
-		return WEST_SIDE;
-	default:
-		*errp = error_new("Output contain an invalid value");
-	}
-
-	return MAX_SIDE;
 }
