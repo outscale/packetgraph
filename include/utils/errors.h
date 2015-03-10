@@ -18,13 +18,7 @@
 #ifndef _UTILS_ERRORS_H
 #define _UTILS_ERRORS_H
 
-/**
- * These define are made to keep using the Linux coding style.
- * They point to structures in the protocol buffer header.
- */
-#include "error.pb-c.h"
-#define error_context	_ErrorContext
-#define switch_error	_SwitchError
+#include <stdint.h>
 
 /* To use the error infrastructure pass a struct switch_error **errp with
  * *errp == NULL to the various functions.
@@ -32,6 +26,21 @@
  * *errp = error_new() and the caller will be able to check for *errp != NULL.
  * After consumption of the error free it with error_free().
  */
+
+struct error_context {
+	char *file;
+	int has_line;
+	uint64_t line;
+	char *function;
+};
+
+
+struct switch_error {
+	struct error_context context;
+	char *message;
+	int has_err_no;
+	int32_t err_no;
+};
 
 /* NOTE: Do not pass an *errp != NULL to functions using struct switch_error. */
 

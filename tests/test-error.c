@@ -47,18 +47,18 @@ static void test_error_vanilla(void)
 
 	g_assert(!error->has_err_no);
 
-	g_assert(error->context->file);
-	g_assert_cmpstr(basename(error->context->file),
+	g_assert(error->context.file);
+	g_assert_cmpstr(basename(error->context.file),
 			==,
 			"test-error.c");
 
-	g_assert(error->context->function);
-	g_assert_cmpstr(error->context->function,
+	g_assert(error->context.function);
+	g_assert_cmpstr(error->context.function,
 			==,
 			"test_error_vanilla");
 
-	g_assert(error->context->has_line);
-	g_assert(error->context->line == line);
+	g_assert(error->context.has_line);
+	g_assert(error->context.line == line);
 
 	error_free(error);
 }
@@ -78,18 +78,18 @@ static void test_error_errno(void)
 	g_assert(error->has_err_no);
 	g_assert(error->err_no == EIO);
 
-	g_assert(error->context->file);
-	g_assert_cmpstr(basename(error->context->file),
+	g_assert(error->context.file);
+	g_assert_cmpstr(basename(error->context.file),
 			==,
 			"test-error.c");
 
-	g_assert(error->context->function);
-	g_assert_cmpstr(error->context->function,
+	g_assert(error->context.function);
+	g_assert_cmpstr(error->context.function,
 			==,
 			"test_error_errno");
 
-	g_assert(error->context->has_line);
-	g_assert(error->context->line == line);
+	g_assert(error->context.has_line);
+	g_assert(error->context.line == line);
 
 	error_free(error);
 }
