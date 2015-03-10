@@ -35,8 +35,10 @@ static void test_error_lifecycle(void)
 
 static void test_error_vanilla(void)
 {
+	uint64_t line;
 	struct switch_error *error = NULL;
 
+	line = __LINE__ + 1;
 	error = error_new("Trashcan overflow");
 
 	g_assert(error->message);
@@ -56,15 +58,17 @@ static void test_error_vanilla(void)
 			"test_error_vanilla");
 
 	g_assert(error->context->has_line);
-	g_assert(error->context->line == 38);
+	g_assert(error->context->line == line);
 
 	error_free(error);
 }
 
 static void test_error_errno(void)
 {
+	uint64_t line;
 	struct switch_error *error = NULL;
 
+	line = __LINE__ + 1;
 	error = error_new_errno(EIO, "Bad write");
 
 	g_assert(error->message);
@@ -85,7 +89,7 @@ static void test_error_errno(void)
 			"test_error_errno");
 
 	g_assert(error->context->has_line);
-	g_assert(error->context->line == 66);
+	g_assert(error->context->line == line);
 
 	error_free(error);
 }
