@@ -19,9 +19,8 @@
 #define _BRICKS_BRICK_H_
 
 #include "bricks/brick-int.h"
+#include "bricks/brick-api.h"
 #include "utils/errors.h"
-
-inline enum side flip_side(enum side side);
 
 void brick_set_max_edges(struct brick *brick,
 			   uint16_t west_edges, uint16_t east_edges);
@@ -34,16 +33,8 @@ struct brick *brick_decref(struct brick *brick, struct switch_error **errp);
 int brick_reset(struct brick *brick, struct switch_error **errp);
 
 /* testing */
-int64_t brick_refcount(struct brick *brick);
 uint32_t brick_links_count_get(struct brick *brick,
 			   struct brick *target, struct switch_error **errp);
-
-/* relationship between bricks */
-int brick_west_link(struct brick *target,
-		    struct brick *brick, struct switch_error **errp);
-int brick_east_link(struct brick *target,
-		    struct brick *brick, struct switch_error **errp);
-void brick_unlink(struct brick *brick, struct switch_error **errp);
 
 /* generic functions used to factorize code */
 
@@ -67,13 +58,6 @@ int brick_burst_to_east(struct brick *brick, uint16_t edge_index,
 int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
 			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 			struct switch_error **errp);
-
-/* polling */
-inline int brick_poll(struct brick *brick,
-		      uint16_t *count, struct switch_error **errp);
-
-/* pkts count */
-inline int64_t brick_pkts_count_get(struct brick *brick, enum side side);
 
 /* used for testing */
 struct rte_mbuf **brick_west_burst_get(struct brick *brick,
