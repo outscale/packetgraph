@@ -23,7 +23,7 @@
 #include <rte_config.h>
 #include <rte_hash_crc.h>
 
-#include "switch-config.h"
+#include "common.h"
 #include "bricks/vhost-user-brick.h"
 #include "packets/packets.h"
 #include "utils/mempool.h"

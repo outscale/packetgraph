@@ -29,7 +29,7 @@
 
 #include "bricks/brick.h"
 #include "utils/bitmask.h"
-#include "switch-config.h"
+#include "common.h"
 
 /* this tell from where a given source mac address came */
 struct address_source {

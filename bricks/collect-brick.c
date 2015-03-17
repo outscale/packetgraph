@@ -19,7 +19,7 @@
 #include <string.h>
 #include <ccan/build_assert/build_assert.h>
 
-#include "switch-config.h"
+#include "common.h"
 #include "bricks/brick.h"
 #include "packets/packets.h"
 

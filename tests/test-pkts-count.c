@@ -18,7 +18,7 @@
 #include <glib.h>
 #include <string.h>
 
-#include "switch-config.h"
+#include "common.h"
 #include "bricks/brick.h"
 #include "utils/bitmask.h"
 #include "utils/config.h"

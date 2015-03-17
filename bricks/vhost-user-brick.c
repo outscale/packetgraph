@@ -30,7 +30,7 @@
 #include <linux/virtio_ring.h>
 #include <rte_virtio_net.h>
 
-#include "switch-config.h"
+#include "common.h"
 #include "bricks/brick.h"
 #include "bricks/vhost-user-brick.h"
 #include "packets/packets.h"

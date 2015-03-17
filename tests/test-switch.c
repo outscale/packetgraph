@@ -19,7 +19,7 @@
 
 #include <rte_config.h>
 
-#include "switch-config.h"
+#include "common.h"
 #include "bricks/brick.h"
 #include "utils/config.h"
 #include "utils/mempool.h"
