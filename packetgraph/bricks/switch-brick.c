@@ -409,6 +409,19 @@ static int switch_init(struct brick *brick,
 	return 1;
 }
 
+struct brick *switch_new(const char *name, uint32_t west_max,
+			uint32_t east_max,
+			struct switch_error **errp)
+{
+	struct brick_config *config = brick_config_new(name, west_max,
+						       east_max);
+	struct brick *ret = brick_new("switch", config, errp);
+
+	brick_config_free(config);
+	return ret;
+}
+
+
 static void switch_destroy(struct brick *brick, struct switch_error **errp)
 {
 	struct switch_state *state =

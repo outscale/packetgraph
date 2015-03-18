@@ -57,6 +57,20 @@ static int diode_init(struct brick *brick,
 	return 1;
 }
 
+struct brick *diode_new(const char *name,
+			      uint32_t west_max,
+			      uint32_t east_max,
+			      enum side output,
+			      struct switch_error **errp)
+{
+	struct brick_config *config = diode_config_new(name, west_max,
+						       east_max, output);
+	struct brick *ret = brick_new("diode", config, errp);
+
+	brick_config_free(config);
+	return ret;
+}
+
 static struct brick_ops diode_ops = {
 	.name		= "diode",
 	.state_size	= sizeof(struct diode_state),

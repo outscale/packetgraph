@@ -42,4 +42,35 @@ inline int brick_poll(struct brick *brick,
 /* pkts count */
 inline int64_t brick_pkts_count_get(struct brick *brick, enum side side);
 
+/* constructors */
+struct brick *nop_new(const char *name,
+		      uint32_t west_max,
+		      uint32_t east_max,
+		      struct switch_error **errp);
+
+
+struct brick *packetsgen_new(const char *name,
+			uint32_t west_max,
+			uint32_t east_max,
+			enum side output,
+			struct switch_error **errp);
+
+struct brick *diode_new(const char *name,
+			uint32_t west_max,
+			uint32_t east_max,
+			enum side output,
+			struct switch_error **errp);
+
+struct brick *vhost_new(const char *name, uint32_t west_max,
+			uint32_t east_max, enum side output,
+			struct switch_error **errp);
+
+struct brick *switch_new(const char *name, uint32_t west_max,
+			uint32_t east_max,
+			struct switch_error **errp);
+
+
+/* destructor */
+void brick_destroy(struct brick *brick);
+
 #endif

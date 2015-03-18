@@ -198,6 +198,19 @@ static int vhost_init(struct brick *brick, struct brick_config *config,
 	return 1;
 }
 
+struct brick *vhost_new(const char *name, uint32_t west_max,
+			uint32_t east_max, enum side output,
+			struct switch_error **errp)
+{
+	struct brick_config *config = vhost_config_new(name, west_max,
+						       east_max, output);
+	struct brick *ret = brick_new("vhost", config, errp);
+
+	brick_config_free(config);
+	return ret;
+}
+
+
 static void vhost_destroy(struct brick *brick, struct switch_error **errp)
 {
 	struct vhost_state *state = brick_get_state(brick, struct vhost_state);

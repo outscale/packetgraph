@@ -182,6 +182,14 @@ static int is_brick_valid(struct brick *brick)
 	return 1;
 }
 
+void brick_destroy(struct brick *brick)
+{
+	struct switch_error *errp = NULL;
+
+	brick_unlink(brick, &errp);
+	brick_decref(brick, &errp);
+}
+
 /**
  * This function decref a brick and it's private data
  *

@@ -100,6 +100,20 @@ static int packetsgen_init(struct brick *brick, struct brick_config *config,
 	return 1;
 }
 
+struct brick *packetsgen_new(const char *name,
+			      uint32_t west_max,
+			      uint32_t east_max,
+			      enum side output,
+			      struct switch_error **errp)
+{
+	struct brick_config *config = diode_config_new(name, west_max,
+						       east_max, output);
+	struct brick *ret = brick_new("packetsgen", config, errp);
+
+	brick_config_free(config);
+	return ret;
+}
+
 static struct brick_ops packetsgen_ops = {
 	.name		= "packetsgen",
 	.state_size	= sizeof(struct packetsgen_state),

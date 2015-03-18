@@ -46,6 +46,20 @@ static int nop_init(struct brick *brick, struct brick_config *config,
 	return 1;
 }
 
+struct brick *nop_new(const char *name,
+			    uint32_t west_max,
+			    uint32_t east_max,
+			    struct switch_error **errp)
+{
+	struct brick_config *config = brick_config_new(name, west_max,
+						       east_max);
+	struct brick *ret = brick_new("nop", config, errp);
+
+	brick_config_free(config);
+
+	return ret;
+}
+
 static struct brick_ops nop_ops = {
 	.name		= "nop",
 	.state_size	= sizeof(struct nop_state),
