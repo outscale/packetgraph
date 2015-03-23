@@ -289,6 +289,8 @@ static const struct virtio_net_device_ops virtio_net_device_ops = {
 /**
  * Check that the socket path exists and has the right perm and store it
  *
+ * WARNING: As strlen is called on base_dir it should be a valid C string
+ *
  * @param: the base directory where the vhost-user socket will be created
  * @param: an error pointer
  *
@@ -309,6 +311,7 @@ static void check_and_store_base_dir(const char *base_dir,
 	pthread_mutex_lock(&mutex);
 
 	/* guard against implementation issues */
+	/* Flawfinder: ignore we notified the user base_dir must be valid */
 	if (strlen(base_dir) >= PATH_MAX) {
 		*errp = error_new("base_dir too long");
 		goto free_exit;
