@@ -386,5 +386,9 @@ free_exit:
 
 void vhost_stop(void)
 {
+	void *ret;
+
+	pthread_cancel(vhost_session_thread);
+	pthread_join(vhost_session_thread, &ret);
 	rcu_unregister_thread();
 }
