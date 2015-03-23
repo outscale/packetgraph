@@ -309,7 +309,15 @@ static void check_and_store_base_dir(const char *base_dir,
 
 	pthread_mutex_lock(&mutex);
 
+	/* guard against implementation issues */
+	if (strlen(base_dir) >= PATH_MAX) {
+		*errp = error_new("base_dir too long");
+		return;
+	}
+
+	/* Flawfinder: ignore */
 	sockets_path = realpath(base_dir, resolved_path);
+	/* Neither base_dir nor resolved_path is smaller than PATH_MAX. */
 	if (!sockets_path) {
 		pthread_mutex_unlock(&mutex);
 		*errp = error_new_errno(errno, "Cannot resolve path of %s",
