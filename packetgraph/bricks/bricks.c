@@ -26,7 +26,7 @@
 #include "utils/bitmask.h"
 
 /* return the oposite side */
-inline enum side flip_side(enum side side)
+enum side flip_side(enum side side)
 {
 	if (side == WEST_SIDE)
 		return EAST_SIDE;
@@ -555,7 +555,7 @@ inline int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
 			   pkts, nb, pkts_mask, errp);
 }
 
-inline int brick_poll(struct brick *brick,
+int brick_poll(struct brick *brick,
 		      uint16_t *count, struct switch_error **errp)
 {
 	if (!brick) {

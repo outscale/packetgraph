@@ -23,7 +23,7 @@
 
 struct brick;
 
-inline enum side flip_side(enum side side);
+enum side flip_side(enum side side);
 
 /* testing */
 int64_t brick_refcount(struct brick *brick);
@@ -36,11 +36,11 @@ int brick_east_link(struct brick *target,
 void brick_unlink(struct brick *brick, struct switch_error **errp);
 
 /* polling */
-inline int brick_poll(struct brick *brick,
+int brick_poll(struct brick *brick,
 		      uint16_t *count, struct switch_error **errp);
 
 /* pkts count */
-inline int64_t brick_pkts_count_get(struct brick *brick, enum side side);
+int64_t brick_pkts_count_get(struct brick *brick, enum side side);
 
 /* constructors */
 struct brick *nop_new(const char *name,
