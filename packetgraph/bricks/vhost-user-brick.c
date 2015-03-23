@@ -296,7 +296,7 @@ static const struct virtio_net_device_ops virtio_net_device_ops = {
 static void check_and_store_base_dir(const char *base_dir,
 				     struct switch_error **errp)
 {
-	char resolved_path[PATH_MAX];
+	char *resolved_path = g_malloc0(PATH_MAX);
 	struct stat st;
 	int ret;
 
@@ -304,7 +304,7 @@ static void check_and_store_base_dir(const char *base_dir,
 	if ((lstat(base_dir, &st)) || !S_ISDIR(st.st_mode)) {
 		*errp = error_new("Invalid vhost-user socket directory %s",
 				  base_dir);
-		return;
+		goto free_exit;
 	}
 
 	pthread_mutex_lock(&mutex);
@@ -312,7 +312,7 @@ static void check_and_store_base_dir(const char *base_dir,
 	/* guard against implementation issues */
 	if (strlen(base_dir) >= PATH_MAX) {
 		*errp = error_new("base_dir too long");
-		return;
+		goto free_exit;
 	}
 
 	/* Flawfinder: ignore */
@@ -322,7 +322,7 @@ static void check_and_store_base_dir(const char *base_dir,
 		pthread_mutex_unlock(&mutex);
 		*errp = error_new_errno(errno, "Cannot resolve path of %s",
 					base_dir);
-		return;
+		goto free_exit;
 	}
 
 	ret = access(sockets_path, R_OK | W_OK | X_OK);
@@ -330,13 +330,16 @@ static void check_and_store_base_dir(const char *base_dir,
 		pthread_mutex_unlock(&mutex);
 		*errp = error_new_errno(errno, "Invalid permission on %s",
 					base_dir);
-		return;
+		goto free_exit;
 
 	}
 
 	sockets_path = g_strdup(sockets_path);
 
 	pthread_mutex_unlock(&mutex);
+
+free_exit:
+	g_free(resolved_path);
 }
 
 static void *vhost_session_thread_body(void *opaque)
