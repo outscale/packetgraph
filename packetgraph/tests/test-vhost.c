@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include <rte_config.h>
 #include <rte_hash_crc.h>
@@ -168,6 +170,7 @@ static void test_vhost_flow(void)
 	struct rte_mbuf **result_pkts;
 	int ret, qemu_pid, i;
 	uint64_t pkts_mask;
+	int exit_status;
 
 	/* start vhost */
 	ret = vhost_start("/tmp", &error);
@@ -236,6 +239,8 @@ static void test_vhost_flow(void)
 	}
 
 	/* kill QEMU */
+	kill(qemu_pid, SIGKILL);
+	waitpid(qemu_pid, &exit_status, 0);
 	g_spawn_close_pid(qemu_pid);
 
 	result_pkts = brick_east_burst_get(collect, &pkts_mask, &error);
