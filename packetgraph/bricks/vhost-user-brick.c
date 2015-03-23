@@ -298,7 +298,6 @@ static void check_and_store_base_dir(const char *base_dir,
 {
 	char *resolved_path = g_malloc0(PATH_MAX);
 	struct stat st;
-	int ret;
 
 	/* does the base directory exists ? */
 	if ((lstat(base_dir, &st)) || !S_ISDIR(st.st_mode)) {
@@ -323,15 +322,6 @@ static void check_and_store_base_dir(const char *base_dir,
 		*errp = error_new_errno(errno, "Cannot resolve path of %s",
 					base_dir);
 		goto free_exit;
-	}
-
-	ret = access(sockets_path, R_OK | W_OK | X_OK);
-	if (ret) {
-		pthread_mutex_unlock(&mutex);
-		*errp = error_new_errno(errno, "Invalid permission on %s",
-					base_dir);
-		goto free_exit;
-
 	}
 
 	sockets_path = g_strdup(sockets_path);
