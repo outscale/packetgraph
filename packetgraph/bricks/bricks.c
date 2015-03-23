@@ -459,10 +459,10 @@ static void unlink_notify(struct brick_edge *edge, enum side array_side)
 				  flip_side(array_side), edge->pair_index);
 }
 
-static void do_unlink(struct brick *brick, enum side side, uint16_t index)
+static void do_unlink(struct brick *brick, enum side side, uint16_t index,
+		      struct switch_error **errp)
 {
 	struct brick_edge *edge = &brick->sides[side].edges[index];
-	struct switch_error *error = NULL;
 	struct brick_edge *pair_edge;
 
 	if (!edge->link)
@@ -470,13 +470,17 @@ static void do_unlink(struct brick *brick, enum side side, uint16_t index)
 
 	pair_edge = &edge->link->sides[flip_side(side)].edges[edge->pair_index];
 
-	brick_decref(brick, &error);
-	g_assert(!error);
+	brick_decref(brick, errp);
+
+	if (error_is_set(errp))
+		return;
 
 	unlink_notify(edge, side);
-	brick_decref(edge->link, &error);
+	brick_decref(edge->link, errp);
 
-	g_assert(!error);
+	if (error_is_set(errp))
+		return;
+
 	reset_edge(pair_edge);
 	reset_edge(edge);
 
@@ -495,8 +499,12 @@ void brick_generic_unlink(struct brick *brick, struct switch_error **errp)
 	uint16_t j;
 
 	for (i = 0; i < MAX_SIDE; i++)
-		for (j = 0; j < brick->sides[i].max; j++)
-			do_unlink(brick, i, j);
+		for (j = 0; j < brick->sides[i].max; j++) {
+			do_unlink(brick, i, j, errp);
+
+			if (error_is_set(errp))
+				return;
+		}
 }
 
 /**
