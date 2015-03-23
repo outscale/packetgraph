@@ -19,7 +19,7 @@ set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0
 
 include_directories(${GLIB2_INCLUDE_DIR} ${GLIB2_INTERNAL_INCLUDE_DIR}
 		    ${LIBURCU_INCLUDE_DIR}
-		    ${PROJECT_SOURCE_DIR}/include
+		    ${PROJECT_SOURCE_DIR}/packetgraph/include
 		    ${DPDK_INSTALL_DIR}/include
 		    ${CCAN_INSTALL_DIR}/include)
 
@@ -42,7 +42,7 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 		     ${DPDK_INSTALL_DIR}/lib/librte_vhost.a)
 
 set(CPPCHECK_COMMAND cppcheck -q  -f
-	-I ${PROJECT_SOURCE_DIR}/include
+	-I ${PROJECT_SOURCE_DIR}/packetgraph/include
 	--enable=warning
 	--enable=style
 	--enable=performance
@@ -51,12 +51,10 @@ set(CPPCHECK_COMMAND cppcheck -q  -f
 	--enable=missingInclude)
 
 add_subdirectory(3rdparty)
-add_subdirectory(utils)
-add_subdirectory(packets)
-add_subdirectory(bricks)
-add_subdirectory(tests)
+add_subdirectory(packetgraph)
 
-set(DIRECTORIES bricks/ include/ packets/ utils/)
+set(DIRECTORIES packetgraph/bricks/ packetgraph/include/
+		packetgraph/packets/ packetgraph/utils/)
 
 add_custom_target(lizard
 	COMMAND ${PROJECT_SOURCE_DIR}/3rdparty/lizard/lizard -C 10 -w  ${DIRECTORIES})

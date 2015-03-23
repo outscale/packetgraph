@@ -1,4 +1,4 @@
-set(TESTS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/tests)
+set(TESTS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/packetgraph/tests)
 set(SOURCES tests.c
 	mac.c
 	test-brick-core.c

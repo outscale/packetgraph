@@ -591,8 +591,7 @@ sub top_of__tree {
 	my ($root) = @_;
 
 	my @tree_check = (
-		"README.md", "bricks", "packets", "utils", "tests",
-		"3rdparty",
+		"README.md", "packetgraph", "3rdparty",
 	);
 
 	foreach my $check (@tree_check) {
