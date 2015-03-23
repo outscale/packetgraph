@@ -18,6 +18,9 @@
 #ifndef _UTILS_CONFIG_H_
 #define _UTILS_CONFIG_H_
 
+#include <rte_config.h>
+#include <rte_ether.h>
+
 #include "common.h"
 #include "utils/errors.h"
 #include "packets/packets.h"
@@ -42,6 +45,12 @@ struct nic_config {
 	uint8_t portid;
 };
 
+struct vtep_config {
+	enum side output;
+	int32_t ip;
+	struct ether_addr mac;
+};
+
 struct brick_config {
 	/* The unique name of the brick brick in the graph */
 	char *name;
@@ -54,7 +63,12 @@ struct brick_config {
 	struct vhost_config *vhost;
 	struct nic_config *nic;
 	struct packetsgen_config *packetsgen;
+	struct vtep_config *vtep;
 };
+
+struct brick_config *vtep_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max, enum side output,
+				      uint32_t ip, struct ether_addr mac);
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max, enum side output);

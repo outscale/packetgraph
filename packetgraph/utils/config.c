@@ -16,9 +16,25 @@
  */
 
 #include <glib.h>
+#include <rte_config.h>
+#include <rte_ether.h>
 
 #include "utils/config.h"
 #include "bricks/brick-int.h"
+
+struct brick_config *vtep_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max, enum side output,
+				      uint32_t ip, struct ether_addr mac)
+{
+	struct brick_config *config = g_new0(struct brick_config, 1);
+	struct vtep_config *vtep_config = g_new0(struct vtep_config, 1);
+
+	vtep_config->output = output;
+	vtep_config->ip = ip;
+	ether_addr_copy(&mac, &vtep_config->mac);
+	config->vtep = vtep_config;
+	return brick_config_init(config, name, west_max, east_max);
+}
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max, enum side output)
@@ -99,6 +115,7 @@ struct brick_config *nic_config_new(const char *name, uint32_t west_max,
 
 void brick_config_free(struct brick_config *config)
 {
+	g_free(config->vtep);
 	g_free(config->vhost);
 	if (config->nic) {
 		g_free(config->nic->ifname);
