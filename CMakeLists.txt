@@ -64,6 +64,6 @@ add_custom_target(flawfinder
 	COMMAND flawfinder -D --quiet ${DIRECTORIES})
 add_dependencies(flawfinder lizard)
 
-add_custom_target(rats
+add_custom_target(rats ALL
 	COMMAND rats --quiet ${DIRECTORIES})
 add_dependencies(rats flawfinder)
