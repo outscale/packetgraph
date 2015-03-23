@@ -1147,6 +1147,7 @@ static void test_switch_perf_learn(void)
 	brick_decref(brick, &error);
 	g_assert(!error);
 
+	brick_config_free(nop_config);
 	brick_config_free(config);
 	g_assert(!error);
 
@@ -1270,6 +1271,7 @@ static void test_switch_perf_switch(void)
 	brick_decref(brick, &error);
 	g_assert(!error);
 
+	brick_config_free(nop_config);
 	brick_config_free(config);
 	g_assert(!error);
 
