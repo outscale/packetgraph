@@ -127,7 +127,7 @@ static inline int is_filtered(struct ether_addr *eth_addr)
 {
 	return eth_addr->addr_bytes[0] == 0x01 &&
 	       eth_addr->addr_bytes[1] == 0x80 &&
-	       eth_addr->addr_bytes[2] == 0XC2 &&
+	       eth_addr->addr_bytes[2] == 0xC2 &&
 	       eth_addr->addr_bytes[3] == 0x00 &&
 	       eth_addr->addr_bytes[4] == 0x00 &&
 	       eth_addr->addr_bytes[5] <= 0x0F;
