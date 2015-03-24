@@ -59,6 +59,8 @@ struct switch_error *__error_new(int err_no, const char *file, uint64_t line,
  */
 void error_free(struct switch_error *error)
 {
+	if (!error)
+		return;
 	g_free(error->context.file);
 	g_free(error->context.function);
 
