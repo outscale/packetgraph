@@ -294,7 +294,7 @@ static int prepare_hash_keys(struct rte_mbuf **pkts,
 		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 
 		if (unlikely(pkt->data_off < HASH_KEY_SIZE * 2)) {
-			*errp = error_new("Not enough headroom space\n");
+			*errp = error_new("Not enough headroom space");
 			return 0;
 		}
 
