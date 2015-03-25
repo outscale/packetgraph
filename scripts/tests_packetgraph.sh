@@ -24,5 +24,6 @@ if [ ! -f $GRAPH ]; then
 fi
 
 # Run the packetgraph tests in quick mode
-$GRAPH -c1 -n1 --socket-mem 64 -- -quick-test || { echo 'failed' ; exit 1; }
+echo $BUTTERFLY_ROOT/enter.pcap
+$GRAPH -c1 -n1 --socket-mem 64 --vdev=eth_pcap0,rx_pcap=$BUTTERFLY_ROOT/enter.pcap,tx_pcap=$BUTTERFLY_ROOT/out.pcap --vdev=eth_ring0 -- -quick-test || { echo 'failed' ; exit 1; }
 

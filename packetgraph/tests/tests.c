@@ -18,15 +18,16 @@
 #include <glib.h>
 
 #include <rte_config.h>
+#include <rte_common.h>
 #include <rte_eal.h>
 #include <rte_virtio_net.h>
+#include <rte_ethdev.h>
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "tests.h"
-
 
 static void print_usage(void)
 {
@@ -60,6 +61,14 @@ int main(int argc, char **argv)
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize DPDK */
+	devinitfn_pmd_pcap_drv();
+	devinitfn_pmd_ring_drv();
+	#ifdef RTE_LIBRTE_IGB_PMD
+	devinitfn_pmd_igb_drv();
+	#endif
+	#ifdef RTE_LIBRTE_IXGBE_PMD
+	devinitfn_rte_ixgbe_driver();
+	#endif
 	ret = rte_eal_init(argc, argv);
 	g_assert(ret >= 0);
 	/* accounting program name */
@@ -79,6 +88,7 @@ int main(int argc, char **argv)
 	test_diode();
 	test_hub();
 	test_pkts_count();
+	test_nic();
 
 	return g_test_run();
 }
