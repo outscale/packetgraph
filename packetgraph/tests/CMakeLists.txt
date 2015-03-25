@@ -10,7 +10,8 @@ set(SOURCES tests.c
 	test-diode.c
 	test-switch.c
 	test-vhost.c
-	test-pkts-count.c)
+	test-pkts-count.c
+	test-hub.c)
 
 add_executable(tests ${SOURCES}
 		$<TARGET_OBJECTS:packets>

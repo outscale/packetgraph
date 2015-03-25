@@ -77,6 +77,7 @@ int main(int argc, char **argv)
 	test_vhost();
 	test_switch(test_flags);
 	test_diode();
+	test_hub();
 	test_pkts_count();
 
 	return g_test_run();
