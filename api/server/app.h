@@ -43,6 +43,12 @@ struct Config {
     bool show_revision;
 };
 
+struct Stats {
+    Stats();
+    uint64_t start_date;
+    uint64_t request_counter;
+};
+
 class Log {
  public:
     Log();
@@ -72,6 +78,7 @@ class Log {
 // Some global app:: variables
 extern bool request_exit;
 extern Config config;
+extern Stats stats;
 extern Model model;
 extern Log log;
 }  // namespace app

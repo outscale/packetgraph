@@ -30,6 +30,9 @@
 void API::process_request(const std::string &request, std::string *response) {
     if (response == nullptr)
         return;
+    // Increment request counter
+    app::stats.request_counter++;
+
     // Request printer
     std::string human_message;
     google::protobuf::TextFormat::Printer printer;

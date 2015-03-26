@@ -27,6 +27,11 @@
 #include "api/protocol/revision.h"
 
 namespace app {
+Stats::Stats() {
+    start_date = time(nullptr);
+    request_counter = 0;
+}
+
 Config::Config() {
     api_endpoint = "tcp://0.0.0.0:9999";
     log_level = "error";
@@ -197,6 +202,7 @@ void Log::error(const std::string &message, const char *file,
 // Global instances in app namespace
 bool request_exit(false);
 Config config;
+Stats stats;
 Model model;
 Log log;
 
