@@ -58,12 +58,11 @@ set(DIRECTORIES packetgraph/bricks/ packetgraph/include/
 
 add_custom_target(lizard
 	COMMAND ${PROJECT_SOURCE_DIR}/3rdparty/lizard/lizard -C 10 -w  ${DIRECTORIES})
-add_dependencies(lizard tests)
 
 add_custom_target(flawfinder
 	COMMAND flawfinder -D --quiet ${DIRECTORIES})
 add_dependencies(flawfinder lizard)
 
-add_custom_target(rats ALL
+add_custom_target(rats tests
 	COMMAND rats --quiet ${DIRECTORIES})
 add_dependencies(rats flawfinder)
