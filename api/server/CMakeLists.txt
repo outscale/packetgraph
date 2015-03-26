@@ -1,7 +1,8 @@
 set(SOURCES app.cc
             server.cc
             model.cc
-            api.cc)
+            api.cc
+            api_0.cc)
 
 set (SOURCES_P)
 foreach (_s ${SOURCES})

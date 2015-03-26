@@ -90,7 +90,10 @@ void API::dispatch(const proto::Message &req, proto::Message *rep) {
 
     if (req.has_message_0()) {
         LOG_DEBUG_("dispatch to MessageV0");
-        // TODO(jerome.jutteau)
+        rep->set_allocated_message_0(new MessageV0);
+        auto req_0 = req.message_0();
+        auto rep_0 = rep->mutable_message_0();
+        API_0::process(req_0, rep_0);
     } else {
         LOG_ERROR_("message version not supported");
         rep->set_allocated_error(new proto::Error);

@@ -170,4 +170,87 @@ class API {
     static void action_app_quit();
 };
 
+class API_0: public API {
+ public:
+    /* Process a MessageV0 */
+    static void process(const MessageV0 &req, MessageV0 *res);
+
+ private:
+    /* Methods below construct message from request to response */
+    static void nic_add(const MessageV0_Request &req, MessageV0_Response *res);
+    static void nic_update(const MessageV0_Request &req,
+                           MessageV0_Response *res);
+    static void nic_list(const MessageV0_Request &req,
+                         MessageV0_Response *res);
+    static void nic_details(const MessageV0_Request &req,
+                            MessageV0_Response *res);
+    static void nic_export(const MessageV0_Request &req,
+                           MessageV0_Response *res);
+    static void nic_stats(const MessageV0_Request &req,
+                          MessageV0_Response *res);
+    static void sg_add(const MessageV0_Request &req, MessageV0_Response *res);
+    static void sg_del(const MessageV0_Request &req, MessageV0_Response *res);
+    static void sg_list(const MessageV0_Request &req, MessageV0_Response *res);
+    static void sg_rule_add(const MessageV0_Request &req,
+                            MessageV0_Response *res);
+    static void sg_rule_del(const MessageV0_Request &req,
+                            MessageV0_Response *res);
+    static void sg_rule_list(const MessageV0_Request &req,
+                             MessageV0_Response *res);
+    static void sg_member_add(const MessageV0_Request &req,
+                              MessageV0_Response *res);
+    static void sg_member_del(const MessageV0_Request &req,
+                              MessageV0_Response *res);
+    static void sg_member_list(const MessageV0_Request &req,
+                               MessageV0_Response *res);
+    static void app_status(const MessageV0_Request &req,
+                           MessageV0_Response *res);
+    static void app_quit(const MessageV0_Request &req,
+                         MessageV0_Response *res);
+    static void app_config(const MessageV0_Request &req,
+                           MessageV0_Response *res);
+    /* Methods below pre-format some standard response */
+    inline static void build_ok_res(MessageV0_Response *res);
+    inline static void build_nok_res(MessageV0_Response *res);
+    inline static void build_nok_res(MessageV0_Response *res,
+                                     std::string description);
+    inline static void build_nok_res(MessageV0_Response *res,
+                                     const char *description);
+    inline static void build_nok_res(MessageV0_Response *res,
+                                     const app::Error &error);
+    /* Methods below permits to validate that the content of a Message is
+     * is well formated as expected.
+     */
+    static bool validate_nic(const MessageV0_Nic &nic);
+    static bool validate_nic_update(const MessageV0_NicUpdateReq &nic_update);
+    static bool validate_sg(const MessageV0_Sg &sg);
+    static bool validate_sg_rule(const MessageV0_Rule &rule);
+    static bool validate_ip(const std::string &ip);
+    static bool validate_mac(const std::string &mac);
+    static bool validate_cidr(const MessageV0_Cidr &cidr);
+    /* Methods to convert from this message version to object model
+     * and reciprocally.
+     */
+    static bool convert(const app::Nic &nic_model, MessageV0_Nic *nic_message);
+    static bool convert(const MessageV0_Nic &nic_message, app::Nic *nic_model);
+    static bool convert(const MessageV0_NicUpdateReq &nic_update_message,
+                        API::NicUpdate *nic_update_model);
+    static bool convert(const app::Sg &sg_model, MessageV0_Sg *sg_message);
+    static bool convert(const MessageV0_Sg &sg_message, app::Sg *sg_model);
+    static bool convert(const app::Rule &rule_model,
+                        MessageV0_Rule *rule_message);
+    static bool convert(const MessageV0_Rule &rule_message,
+                        app::Rule *rule_model);
+    static bool convert(const app::Ip &ip_model, std::string *ip_message);
+    static bool convert(const std::string &ip_message, app::Ip *ip_model);
+    static bool convert(const app::Mac &mac_model, std::string *mac_message);
+    static bool convert(const std::string &mac_message, app::Mac *mac_model);
+    static bool convert(const app::Cidr &cidr_model,
+                        MessageV0_Cidr *cidr_message);
+    static bool convert(const MessageV0_Cidr &cidr_message,
+                        app::Cidr *cidr_model);
+    static bool convert(const app::Error &error_model,
+                        MessageV0_Error *error_message);
+};
+
 #endif  // API_SERVER_API_H_
