@@ -16,6 +16,7 @@
  */
 #include <unistd.h>
 #include <syslog.h>
+#include <glib.h>
 #include <iostream>
 #include <ctime>
 #include <thread>
@@ -23,8 +24,87 @@
 #include <string>
 #include "api/server/app.h"
 #include "api/server/server.h"
+#include "api/protocol/revision.h"
 
 namespace app {
+Config::Config() {
+    api_endpoint = "tcp://0.0.0.0:9999";
+    log_level = "error";
+    show_revision = false;
+}
+
+bool Config::parse_cmd(int argc, char **argv) {
+    auto gfree = [](gchar *p) { g_free(p); };
+    std::unique_ptr<gchar, decltype(gfree)> config_path_cmd(nullptr, gfree);
+    std::unique_ptr<gchar, decltype(gfree)> external_ip_cmd(nullptr, gfree);
+    std::unique_ptr<gchar, decltype(gfree)> api_endpoint_cmd(nullptr, gfree);
+    std::unique_ptr<gchar, decltype(gfree)> log_level_cmd(nullptr, gfree);
+    std::unique_ptr<gchar, decltype(gfree)> pid_path_cmd(nullptr, gfree);
+    std::unique_ptr<gchar, decltype(gfree)> socket_folder_cmd(nullptr, gfree);
+
+    static GOptionEntry entries[] = {
+        {"config", 'c', 0, G_OPTION_ARG_FILENAME, &config_path_cmd,
+         "Path to configuration file", "FILE"},
+        {"ip", 'i', 0, G_OPTION_ARG_STRING, &external_ip_cmd,
+         "IP address to use", "IP_ADDRESS"},
+        {"endpoint", 'e', 0, G_OPTION_ARG_STRING, &api_endpoint_cmd,
+         "API endpoint to bind (default is 'tcp://0.0.0.0:9999')",
+         "API_ENDPOINT"},
+        {"log-level", 'l', 0, G_OPTION_ARG_STRING, &log_level_cmd,
+         "Log level to use. LOG_LEVEL can be 'none', 'error' (default), " \
+         "'warning', 'info' or 'debug'", "LOG_LEVEL"},
+        {"revision", 'r', 0, G_OPTION_ARG_NONE, &show_revision,
+         "Show the protocol revision number and exit", nullptr},
+        {"pid", 'p', 0, G_OPTION_ARG_FILENAME, &pid_path_cmd,
+         "Write PID of process in specified file", "FILE"},
+        {"socket-dir", 's', 0, G_OPTION_ARG_FILENAME, &socket_folder_cmd,
+         "Create network sockets in specified directory", "DIR"},
+        { nullptr }
+    };
+    GOptionContext *context = g_option_context_new("");
+    g_option_context_add_main_entries(context, entries, nullptr);
+
+    GError *error = nullptr;
+    if (!g_option_context_parse(context, &argc, &argv, &error)) {
+        if (error != nullptr)
+            std::cout << error->message << std::endl;
+        return false;
+    }
+
+    // Get back gchar to config in std::string
+    if (config_path_cmd != nullptr)
+        config_path = std::string(&*config_path_cmd);
+    if (external_ip_cmd != nullptr)
+        external_ip = std::string(&*external_ip_cmd);
+    if (api_endpoint_cmd != nullptr)
+        api_endpoint = std::string(&*api_endpoint_cmd);
+    if (log_level_cmd != nullptr)
+        log_level = std::string(&*log_level_cmd);
+    if (pid_path_cmd != nullptr)
+        pid_path = std::string(&*pid_path_cmd);
+    if (socket_folder_cmd != nullptr)
+        socket_folder = std::string(&*socket_folder_cmd);
+
+    return true;
+}
+
+bool Config::missing_mandatory() {
+    bool ret = false;
+    if (external_ip.length() == 0) {
+        std::cerr << "IP to use is not set" << std::endl;
+        app::log.error("IP to use is not set");
+        ret = true;
+    }
+    if (socket_folder.length() == 0) {
+        std::cerr << "socket folder is not set" << std::endl;
+        app::log.error("socket folder is not set");
+        ret = true;
+    }
+
+    if (ret)
+        app::log.error("missing mandatory configuration items");
+    return ret;
+}
 
 Log::Log() {
     // Set default log level
@@ -116,6 +196,8 @@ void Log::error(const std::string &message, const char *file,
 
 // Global instances in app namespace
 bool request_exit(false);
+Config config;
+Model model;
 Log log;
 
 }  // namespace app
@@ -123,17 +205,36 @@ Log log;
 int
 main(int argc, char *argv[]) {
     try {
+        // Check parameters
+        if (!app::config.parse_cmd(argc, argv))
+            return 0;
+
+        // Set log level from options
+        app::log.set_log_level(app::config.log_level);
+
+        // Ask for revision number ?
+        if (app::config.show_revision) {
+            std::cout << PROTOS_REVISION << std::endl;
+            return 0;
+        }
+
+        // Ready to start ?
+        if (app::config.missing_mandatory()) {
+            std::cerr << "Some arguments are missing, please check " \
+            "configuration or use --help" << std::endl;
+            return 0;
+        }
+
         app::log.info("butterfly starts");
 
         // Prepare & run libbutterfly
         // TODO(jerome.jutteau)
 
         // Prepare & run API server
-        bool exit = false;
-        APIServer server("tcp://0.0.0.0:9999", &exit);
+        APIServer server(app::config.api_endpoint, &app::request_exit);
         server.run_threaded();
 
-        while (!exit)
+        while (!app::request_exit)
             std::this_thread::sleep_for(std::chrono::seconds(1));
     } catch (std::exception & e) {
         LOG_ERROR_(e.what());

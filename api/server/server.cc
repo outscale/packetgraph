@@ -19,6 +19,7 @@
 #include <thread>
 #include "api/server/server.h"
 #include "api/server/app.h"
+#include "api/server/api.h"
 
 APIServer::APIServer(std::string zmq_endpoint, bool *end_trigger) {
     endpoint_ = zmq_endpoint;
@@ -84,7 +85,7 @@ APIServer::process(const zmqpp::message &req, zmqpp::message *res) {
 
     // Process request
     std::string response_string;
-    // TODO(jerome.jutteau)
+    API::process_request(request_string, &response_string);
 
     // Pack message in ZMQ
     LOG_DEBUG_("pack response in a ZMQmessage");

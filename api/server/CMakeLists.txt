@@ -1,7 +1,7 @@
-
 set(SOURCES app.cc
             server.cc
-            model.cc)
+            model.cc
+            api.cc)
 
 set (SOURCES_P)
 foreach (_s ${SOURCES})
@@ -10,16 +10,20 @@ endforeach()
 
 add_executable(api_server ${SOURCES_P})
 
-add_dependencies(api_server libzmq zmqpp)
+add_dependencies(api_server api_protocol libzmq zmqpp)
 
 set_target_properties(api_server PROPERTIES OUTPUT_NAME butterfly-server)
 
 include_directories(${PROJECT_SOURCE_DIR}
+                    ${PROJECT_BINARY_DIR}
                     ${LIBZMQ_INCLUDE_DIR}
-                    ${ZMQPP_INCLUDE_DIR})
+                    ${ZMQPP_INCLUDE_DIR}
+                    ${PROTOBUF_INCLUDE_DIR})
 
 target_link_libraries(api_server
+                      api_protocol
                       pthread
+                      ${PROTOBUF_LIBRARIES}
                       ${GLIB2_LIBRARIES}
                       ${LIBZMQ_LIBRARIES}
                       ${ZMQPP_LIBRARIES})

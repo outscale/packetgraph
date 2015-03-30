@@ -19,6 +19,7 @@
 #define API_SERVER_APP_H_
 
 #include <string>
+#include "api/server/model.h"
 
 // Usefull macros
 #define LOG_PRINT_(str, method) \
@@ -29,6 +30,18 @@
 #define LOG_ERROR_(str) LOG_PRINT_(str, app::log.error)
 
 namespace app {
+struct Config {
+    Config();
+    bool parse_cmd(int argc, char **argv);
+    bool missing_mandatory();
+    std::string external_ip;
+    std::string config_path;
+    std::string pid_path;
+    std::string api_endpoint;
+    std::string log_level;
+    std::string socket_folder;
+    bool show_revision;
+};
 
 class Log {
  public:
@@ -58,6 +71,8 @@ class Log {
 
 // Some global app:: variables
 extern bool request_exit;
+extern Config config;
+extern Model model;
 extern Log log;
 }  // namespace app
 
