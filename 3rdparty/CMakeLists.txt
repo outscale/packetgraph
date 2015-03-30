@@ -37,7 +37,7 @@ ExternalProject_Add(dpdk
 	BUILD_COMMAND make CONFIG_RTE_LIBRTE_VHOST=y
 	INSTALL_DIR ${DPDK_INSTALL_DIR}
 	INSTALL_COMMAND make install CONFIG_RTE_LIBRTE_VHOST=y T=x86_64-native-linuxapp-gcc DESTDIR=${3RDPARTY_INSTALL_DIR}
-	LOG_BUILD 1 Building buildroot)
+	LOG_BUILD 1 Building dpdk)
 
 ExternalProject_Add(buildroot
 	PATCH_COMMAND patch -t -N -p1 < ${3RDPARTY_DIR}/patches/0001-config-custom-buildroot-config-for-testing.patch || true
