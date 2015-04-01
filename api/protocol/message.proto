@@ -1,0 +1,45 @@
+/* Copyright 2015 Outscale SAS
+ *
+ * This file is part of Butterfly.
+ *
+ * Butterfly is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published
+ * by the Free Software Foundation.
+ *
+ * Butterfly is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+syntax = "proto2";
+package proto;
+
+import "message_0.proto";
+
+message Message {
+  // Revision indicator of the protocol
+  required uint32 revision = 1;
+  optional Error error = 2;
+  optional MessageV0 message_0 = 3;
+}
+
+// Messages is the only message sent to the API.
+message Messages {
+  repeated Message messages = 1;
+}
+
+message Error {
+  optional Code code = 1;
+
+  enum Code {
+    PARSE_ERROR = 0;
+    INTERNAL_ERROR = 1;
+    VERSION_NOT_MANAGED = 2;
+    EMPTY_REQUEST = 3;
+  }
+}
+

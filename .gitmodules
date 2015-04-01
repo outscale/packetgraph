@@ -10,3 +10,6 @@
 [submodule "3rdparty/buildroot"]
 	path = 3rdparty/buildroot
 	url = git://git.buildroot.net/buildroot
+[submodule "3rdparty/protobuf"]
+	path = 3rdparty/protobuf
+	url = https://github.com/google/protobuf.git

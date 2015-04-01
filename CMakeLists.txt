@@ -9,11 +9,19 @@ set(3RDPARTY_INSTALL_DIR ${PROJECT_BINARY_DIR}/3rdparty-build)
 set(DPDK_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/x86_64-native-linuxapp-gcc)
 set(RUMPRUN_POSIX_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/rumprun_posix)
 set(CCAN_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/ccan)
+set(LIBZMQ_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/libzmq)
+set(ZMQPP_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/zmqpp)
+set(PROTOBUF_INSTALL_DIR ${3RDPARTY_INSTALL_DIR}/protobuf)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
 
 find_package(GLIB2 REQUIRED)
 find_package(LibURCU REQUIRED)
+
+set(PROTOBUF_LIBRARIES ${PROTOBUF_INSTALL_DIR}/src/.libs/libprotobuf-lite.a
+                       ${PROTOBUF_INSTALL_DIR}/src/.libs/libprotobuf.a)
+set(PROTOBUF_INCLUDE_DIR ${3RDPARTY_DIR}/protobuf/src)
+set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_INSTALL_DIR}/src/protoc)
 
 set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes")
 
@@ -43,6 +51,7 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 
 add_subdirectory(3rdparty)
 add_subdirectory(packetgraph)
+add_subdirectory(api)
 
 set(DIRECTORIES ${PROJECT_SOURCE_DIR}/packetgraph/bricks/ ${PROJECT_SOURCE_DIR}/packetgraph/include/
 		${PROJECT_SOURCE_DIR}/packetgraph/packets/ ${PROJECT_SOURCE_DIR}/packetgraph/utils/)
