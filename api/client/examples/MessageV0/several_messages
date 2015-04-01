@@ -1,0 +1,17 @@
+messages {
+  revision: 0
+  message_0 {
+    request {
+      app_status_req: true
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      app_status_req: true
+    }
+  }
+}
+

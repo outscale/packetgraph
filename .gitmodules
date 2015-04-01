@@ -13,3 +13,9 @@
 [submodule "3rdparty/protobuf"]
 	path = 3rdparty/protobuf
 	url = https://github.com/google/protobuf.git
+[submodule "3rdparty/zmqpp"]
+	path = 3rdparty/zmqpp
+	url = https://github.com/zeromq/zmqpp.git
+[submodule "3rdparty/libzmq"]
+	path = 3rdparty/libzmq
+	url = https://github.com/zeromq/libzmq.git

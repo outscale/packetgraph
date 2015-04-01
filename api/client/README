@@ -1,0 +1,11 @@
+# Introduction
+
+api_client permits to quickly test some messages designed with protobuf.
+Just describe your protobuf message in json as shown in examples.
+
+# Usage
+
+./api_client --help
+./api_client -e tcp://127.0.0.1:8888 -v -i app_status_req
+
+

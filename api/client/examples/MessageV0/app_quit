@@ -1,0 +1,9 @@
+messages {
+  revision: 0
+  message_0 {
+    request {
+      app_quit_req: true
+    }
+  }
+}
+

@@ -22,6 +22,10 @@ set(PROTOBUF_LIBRARIES ${PROTOBUF_INSTALL_DIR}/src/.libs/libprotobuf-lite.a
                        ${PROTOBUF_INSTALL_DIR}/src/.libs/libprotobuf.a)
 set(PROTOBUF_INCLUDE_DIR ${3RDPARTY_DIR}/protobuf/src)
 set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_INSTALL_DIR}/src/protoc)
+set(LIBZMQ_LIBRARIES ${LIBZMQ_INSTALL_DIR}/lib/libzmq-static.a)
+set(LIBZMQ_INCLUDE_DIR ${3RDPARTY_DIR}/libzmq/include)
+set(ZMQPP_LIBRARIES ${ZMQPP_INSTALL_DIR}/libzmqpp-static.a)
+set(ZMQPP_INCLUDE_DIR ${3RDPARTY_DIR}/zmqpp/src)
 
 set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes")
 
@@ -77,4 +81,8 @@ add_custom_target(tests-packetgraph
 
 add_custom_target(tests-packetgraph-style
                   COMMAND ${PROJECT_SOURCE_DIR}/scripts/tests_packetgraph_style.sh ${PROJECT_SOURCE_DIR}
+                  WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+
+add_custom_target(tests-api-style
+                  COMMAND ${PROJECT_SOURCE_DIR}/scripts/tests_api_style.sh ${PROJECT_SOURCE_DIR}
                   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})

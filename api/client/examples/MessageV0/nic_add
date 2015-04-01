@@ -1,0 +1,19 @@
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_add_req {
+        id: "nic-1"
+        mac: "52:54:00:00:d7:11"
+        vni: 321
+        ip: "1.2.3.4"
+        ip: "1.2.3.5"
+        ip: "2001:0db8:0000:85a3:0000:0000:ac1f:8001"
+        security_group: "sg-1"
+        security_group: "sg-2"
+        ip_anti_spoof: true
+      }
+    }
+  }
+}
+

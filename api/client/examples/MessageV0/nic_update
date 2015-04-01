@@ -1,0 +1,16 @@
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_update_req {
+        id: "nic-1"
+        ip_anti_spoof: false
+        ip: "4.3.2.1"
+        ip: "1.2.3.4"
+        security_group: "sg-1"
+        security_group: "sg-3"
+      }
+    }
+  }
+}
+
