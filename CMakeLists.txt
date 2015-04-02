@@ -67,10 +67,12 @@ add_custom_target(rats tests
 	COMMAND rats --quiet ${DIRECTORIES})
 add_dependencies(rats flawfinder)
 
-add_custom_target(test-all
+# Add custom targets for tests
+
+add_custom_target(tests-all
                   COMMAND ${PROJECT_SOURCE_DIR}/scripts/tests_all.sh ${PROJECT_SOURCE_DIR}
                   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
-add_custom_target(test-packetgraph
+add_custom_target(tests-packetgraph
                   COMMAND ${PROJECT_SOURCE_DIR}/scripts/tests_packetgraph.sh ${PROJECT_SOURCE_DIR}
                   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
