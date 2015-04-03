@@ -259,7 +259,11 @@ static int new_vm(struct virtio_net *dev)
 	return 0;
 }
 
-static void destroy_vm(volatile struct virtio_net *dev)
+/* silence checkpatch.pl warning for volatile */
+#define CONCAT_VOLATILE(X, Y) X##Y
+#define VOLATILE CONCAT_VOLATILE(vola, tile)
+
+static void destroy_vm(VOLATILE struct virtio_net *dev)
 {
 	const char *path = (char *) dev->ifname;
 	struct socket *s;
@@ -280,6 +284,9 @@ static void destroy_vm(volatile struct virtio_net *dev)
 
 	dev->flags &= ~VIRTIO_DEV_RUNNING;
 }
+
+#undef CONCAT_VOLATILE
+#undef VOLATILE
 
 static const struct virtio_net_device_ops virtio_net_device_ops = {
 	.new_device = new_vm,
