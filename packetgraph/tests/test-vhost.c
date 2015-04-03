@@ -34,7 +34,7 @@
 #include "tests.h"
 #include "mac.h"
 
-#define BUILDROOT "./3rdparty/buildroot/output/"
+#define BUILDROOT PROJECT_ROOT"/3rdparty/buildroot/output/"
 #define IMAGE BUILDROOT"/build/linux-3.18.4/arch/x86_64/boot/bzImage"
 #define CPIO  BUILDROOT"/images/rootfs.cpio"
 

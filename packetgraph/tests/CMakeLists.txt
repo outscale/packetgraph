@@ -1,4 +1,7 @@
 set(TESTS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/packetgraph/tests)
+
+add_definitions( -DPROJECT_ROOT="${PROJECT_SOURCE_DIR}" )
+
 set(SOURCES tests.c
 	mac.c
 	test-brick-core.c
