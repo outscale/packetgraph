@@ -21,6 +21,25 @@
 #include <rte_config.h>
 #include <rte_mbuf.h>
 
+#include "utils/errors.h"
+
+#define HASH_ENTRIES		(1024 * 32)
+#define HASH_KEY_SIZE		8
+
+/**
+ * Made as a macro for performance reason since a function would imply a 10%
+ * performance hit and a function in a separate module would not be inlined.
+ */
+#define dst_key_ptr(pkt)						\
+	((struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt, 0))
+
+/**
+ * Made as a macro for performance reason since a function would imply a 10%
+ * performance hit and a function in a separate module would not be inlined.
+ */
+#define src_key_ptr(pkt)						\
+	((struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt, HASH_KEY_SIZE))
+
 int packets_pack(struct rte_mbuf **dst,
 		 struct rte_mbuf **src,
 		 uint64_t pkts_mask);
@@ -30,5 +49,13 @@ void packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask);
 void packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
 void packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask);
+
+void packets_prefetch(struct rte_mbuf **pkts, uint64_t pkts_mask);
+
+int packets_prepare_hash_keys(struct rte_mbuf **pkts,
+			      uint64_t pkts_mask,
+			      struct switch_error **errp);
+
+void packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
 #endif

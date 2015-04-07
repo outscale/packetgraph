@@ -15,6 +15,15 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <rte_config.h>
+#include <rte_table_hash.h>
+#include <rte_table.h>
+#include <rte_table_hash.h>
+#include <rte_ether.h>
+
+#include <glib.h>
+#include <string.h>
+
 #include "packets/packets.h"
 #include "utils/bitmask.h"
 
@@ -92,5 +101,80 @@ void packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask)
 		low_bit_iterate(pkts_mask, i);
 
 		pkts[i] = NULL;
+	}
+}
+
+
+void packets_prefetch(struct rte_mbuf **pkts,
+		      uint64_t pkts_mask)
+{
+	uint64_t mask;
+
+	for (mask = pkts_mask; mask; ) {
+		struct rte_mbuf *pkt;
+		uint16_t i;
+
+		low_bit_iterate(mask, i);
+
+		pkt = pkts[i];
+		rte_prefetch0(pkt);
+
+	}
+	for (mask = pkts_mask; mask; ) {
+		struct ether_hdr *eth_hdr;
+		struct rte_mbuf *pkt;
+		uint16_t i;
+
+		low_bit_iterate(mask, i);
+
+		pkt = pkts[i];
+		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
+		rte_prefetch0(eth_hdr);
+
+	}
+}
+
+int packets_prepare_hash_keys(struct rte_mbuf **pkts,
+			     uint64_t pkts_mask,
+			     struct switch_error **errp)
+{
+	for ( ; pkts_mask; ) {
+		struct ether_hdr *eth_hdr;
+		struct rte_mbuf *pkt;
+		uint16_t i;
+
+		low_bit_iterate(pkts_mask, i);
+
+		pkt = pkts[i];
+
+		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
+
+		if (unlikely(pkt->data_off < HASH_KEY_SIZE * 2)) {
+			*errp = error_new("Not enough headroom space");
+			return 0;
+		}
+
+		memset(dst_key_ptr(pkt), 0, HASH_KEY_SIZE * 2);
+		ether_addr_copy(&eth_hdr->d_addr, dst_key_ptr(pkt));
+		ether_addr_copy(&eth_hdr->s_addr, src_key_ptr(pkt));
+		rte_prefetch0(dst_key_ptr(pkt));
+	}
+
+	return 1;
+}
+
+void packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask)
+{
+	for ( ; pkts_mask; ) {
+		struct rte_mbuf *pkt;
+		uint16_t i;
+
+		low_bit_iterate(pkts_mask, i);
+
+		pkt = pkts[i];
+
+		g_assert(pkt->data_off >= HASH_KEY_SIZE * 2);
+
+		memset(dst_key_ptr(pkt), 0, HASH_KEY_SIZE * 2);
 	}
 }

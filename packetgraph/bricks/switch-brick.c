@@ -24,11 +24,9 @@
 #include <rte_table_hash.h>
 #include <rte_prefetch.h>
 
-#define HASH_ENTRIES		(1024 * 32)
-#define HASH_KEY_SIZE		8
-
 #include "bricks/brick.h"
 #include "utils/bitmask.h"
+#include "packets/packets.h"
 #include "common.h"
 
 /* this tell from where a given source mac address came */
@@ -151,17 +149,6 @@ static inline int learn_addr(struct switch_state *state,
 	return !ret;
 }
 
-static inline struct ether_addr *dst_key_ptr(struct rte_mbuf *pkt)
-{
-	return (struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt, 0);
-}
-
-static inline struct ether_addr *src_key_ptr(struct rte_mbuf *pkt)
-{
-	return (struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt,
-								 HASH_KEY_SIZE);
-}
-
 static int do_learn_filter_multicast(struct switch_state *state,
 				     struct address_source *source,
 				     struct rte_mbuf **pkts,
@@ -249,80 +236,6 @@ static void do_switch(struct switch_state *state,
 	flood(state, source, flood_mask);
 }
 
-static void prefetch_packets(struct rte_mbuf **pkts,
-			     uint64_t pkts_mask)
-{
-	uint64_t mask;
-
-	for (mask = pkts_mask; mask; ) {
-		struct rte_mbuf *pkt;
-		uint16_t i;
-
-		low_bit_iterate(mask, i);
-
-		pkt = pkts[i];
-		rte_prefetch0(pkt);
-
-	}
-	for (mask = pkts_mask; mask; ) {
-		struct ether_hdr *eth_hdr;
-		struct rte_mbuf *pkt;
-		uint16_t i;
-
-		low_bit_iterate(mask, i);
-
-		pkt = pkts[i];
-		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
-		rte_prefetch0(eth_hdr);
-
-	}
-}
-
-static int prepare_hash_keys(struct rte_mbuf **pkts,
-			     uint64_t pkts_mask,
-			     struct switch_error **errp)
-{
-	for ( ; pkts_mask; ) {
-		struct ether_hdr *eth_hdr;
-		struct rte_mbuf *pkt;
-		uint16_t i;
-
-		low_bit_iterate(pkts_mask, i);
-
-		pkt = pkts[i];
-
-		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
-
-		if (unlikely(pkt->data_off < HASH_KEY_SIZE * 2)) {
-			*errp = error_new("Not enough headroom space");
-			return 0;
-		}
-
-		memset(dst_key_ptr(pkt), 0, HASH_KEY_SIZE * 2);
-		ether_addr_copy(&eth_hdr->d_addr, dst_key_ptr(pkt));
-		ether_addr_copy(&eth_hdr->s_addr, src_key_ptr(pkt));
-		rte_prefetch0(dst_key_ptr(pkt));
-	}
-
-	return 1;
-}
-
-static void clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask)
-{
-	for ( ; pkts_mask; ) {
-		struct rte_mbuf *pkt;
-		uint16_t i;
-
-		low_bit_iterate(pkts_mask, i);
-
-		pkt = pkts[i];
-
-		g_assert(pkt->data_off >= HASH_KEY_SIZE * 2);
-
-		memset(dst_key_ptr(pkt), 0, HASH_KEY_SIZE * 2);
-	}
-}
-
 static int switch_burst(struct brick *brick, enum side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
 			uint16_t nb, uint64_t pkts_mask,
@@ -339,11 +252,11 @@ static int switch_burst(struct brick *brick, enum side from,
 	source.edge_index = edge_index;
 	source.unlink = state->sides[from].unlinks[edge_index];
 
-	prefetch_packets(pkts, pkts_mask);
+	packets_prefetch(pkts, pkts_mask);
 
 	zero_masks(state);
 
-	ret = prepare_hash_keys(pkts, pkts_mask, errp);
+	ret = packets_prepare_hash_keys(pkts, pkts_mask, errp);
 	if (unlikely(!ret))
 		return 0;
 
@@ -365,10 +278,10 @@ static int switch_burst(struct brick *brick, enum side from,
 	do_switch(state, &source, unicast_mask, lookup_hit_mask,
 		  (struct address_source **) entries);
 
-	clear_hash_keys(pkts, pkts_mask);
+	packets_clear_hash_keys(pkts, pkts_mask);
 	return forward_bursts(state, &source, pkts, nb, errp);
 no_forward:
-	clear_hash_keys(pkts, pkts_mask);
+	packets_clear_hash_keys(pkts, pkts_mask);
 	return 0;
 }
 
