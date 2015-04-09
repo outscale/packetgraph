@@ -18,6 +18,8 @@
 #ifndef _TESTS_H_
 #define _TESTS_H_
 
+#include <stdint.h>
+
 enum test_flags {
 	QUICK_TEST = 1,
 	PRINT_USAGE = 2,
@@ -34,6 +36,7 @@ void test_pkts_count(void);
 void test_hub(void);
 void test_nic(void);
 void test_firewall(void);
+void test_vtep(void);
 
 /* dpdk driver init */
 void devinitfn_pmd_igb_drv(void);

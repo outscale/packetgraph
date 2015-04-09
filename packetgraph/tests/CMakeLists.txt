@@ -17,7 +17,8 @@ set(SOURCES tests.c
 	test-pkts-count.c
 	test-hub.c
 	test-nic.c
-	test-firewall.c)
+	test-firewall.c
+	test-vtep.c)
 
 add_executable(tests ${SOURCES}
 		$<TARGET_OBJECTS:packets>

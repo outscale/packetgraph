@@ -90,6 +90,7 @@ int main(int argc, char **argv)
 	test_pkts_count();
 	test_nic();
 	test_firewall();
+	test_vtep();
 
 	return g_test_run();
 }

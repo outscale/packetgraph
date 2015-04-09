@@ -26,4 +26,10 @@ void set_mac_addrs(struct rte_mbuf *mb, const char *src, const char *dst);
 
 void set_ether_type(struct rte_mbuf *mb, uint16_t ether_type);
 
+void get_ether_addrs(struct rte_mbuf *mb, struct ether_hdr **dest);
+
+void print_mac(struct ether_addr *eth_addr);
+
+const char *printable_mac(struct ether_addr *eth_addr, char *buf);
+
 #endif

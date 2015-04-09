@@ -61,3 +61,22 @@ void set_ether_type(struct rte_mbuf *mb, uint16_t ether_type)
 
 	eth_hdr->ether_type = rte_cpu_to_be_16(ether_type);
 }
+
+void get_ether_addrs(struct rte_mbuf *mb, struct ether_hdr **dest)
+{
+	*dest = rte_pktmbuf_mtod(mb, struct ether_hdr *);
+}
+
+const char *printable_mac(struct ether_addr *eth_addr, char *buf)
+{
+	ether_format_addr(buf, 32, eth_addr);
+	return buf;
+}
+
+void print_mac(struct ether_addr *eth_addr)
+{
+	char buf[32];
+
+	ether_format_addr(buf, 32, eth_addr);
+	printf("%s", buf);
+}
