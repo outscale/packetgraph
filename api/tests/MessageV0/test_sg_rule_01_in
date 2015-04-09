@@ -1,0 +1,132 @@
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_del {
+        sg_id: "sg-1"
+        rule {
+          direction: INBOUND
+          protocol: -1
+          port_start: 0
+          port_end: 1024
+          cidr {
+            address: "2001:0db8:0000:85a3:0000:0000:ac1f:9999"
+            mask_size: 8
+          }
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_add {
+        sg_id: "sg-1"
+        rule {
+          direction: INBOUND
+          protocol: -1
+          port_start: 0
+          port_end: 1024
+          cidr {
+            address: "2001:0db8:0000:85a3:0000:0000:ac1f:8001"
+            mask_size: 8
+          }
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_add {
+        sg_id: "sg-1"
+        rule {
+          direction: INBOUND
+          protocol: -1
+          port_start: 0
+          port_end: 1024
+          cidr {
+            address: "2001:0db8:0000:85a3:0000:0000:ac1f:8001"
+            mask_size: 8
+          }
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_del {
+        sg_id: "sg-1"
+        rule {
+          direction: INBOUND
+          protocol: -1
+          port_start: 0
+          port_end: 1024
+          cidr {
+            address: "2001:0db8:0000:85a3:0000:0000:ac1f:8001"
+            mask_size: 8
+          }
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_del {
+        sg_id: "sg-1"
+        rule {
+          direction: INBOUND
+          protocol: -1
+          port_start: 0
+          port_end: 1024
+          cidr {
+            address: "2001:0db8:0000:85a3:0000:0000:ac1f:8001"
+            mask_size: 8
+          }
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_rule_list: "sg-1"
+    }
+  }
+}

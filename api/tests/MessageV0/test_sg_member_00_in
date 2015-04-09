@@ -1,0 +1,123 @@
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_add {
+        id: "sg-1"
+        member: "1.2.3.4"
+        member: "1.2.3.5"
+        member: "1.2.3.6"
+        member: "1.2.3.7"
+        rule {
+          direction: INBOUND
+          protocol: 17
+          port_start: 0
+          port_end: 65535
+          cidr {
+            address: "1.2.3.0"
+            mask_size: 24
+          }
+        }
+        rule {
+          direction: INBOUND
+          protocol: 6
+          port_start: 0
+          port_end: 65535
+          security_group: "sg-42"
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_list: true
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_add {
+        sg_id: "sg-1"
+        member: "2001:0db8:0000:85a3:0000:0000:ac1f:8001"
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_add {
+        sg_id: "sg-1"
+        member: "2001:0db8:0000:85a3:0000:0000:ac1f:8002"
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_del {
+        sg_id: "sg-1"
+        member: "2001:0db8:0000:85a3::0000:ac1f:8001"
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_del {
+        sg_id: "sg-1"
+        member: "2001:0db8::85a3:0000:0000:ac1f:8002"
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      sg_member_list: "sg-1"
+    }
+  }
+}

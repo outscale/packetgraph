@@ -40,6 +40,24 @@ else
     echo "${GREEN}packetgraph style test OK${NORMAL}"
 fi
 
+# API tests
+$BUTTERFLY_ROOT/scripts/tests_api.sh $BUTTERFLY_ROOT
+if [ $? != 0 ]; then
+    echo "${RED}API test failed${NORMAL}"
+    exit 1
+else
+    echo "${GREEN}API test OK${NORMAL}"
+fi
+
+# API style test
+$BUTTERFLY_ROOT/scripts/tests_api_style.sh $BUTTERFLY_ROOT
+if [ $? != 0 ]; then
+    echo "${RED}API style test failed${NORMAL}"
+    exit 1
+else
+    echo "${GREEN}API style test OK${NORMAL}"
+fi
+
 echo "${GREEN}All test succeded${NORMAL}"
 exit 0
 

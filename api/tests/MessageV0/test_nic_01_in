@@ -1,0 +1,109 @@
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_add {
+        id: "nic-1"
+        mac: "42:42:42:42:42:42"
+        vni: 321
+        ip: "1.2.3.4"
+        ip: "1.2.3.5"
+        ip: "2001:0db8:0000:85a3:0000:0000:ac1f:8001"
+        security_group: "sg-1"
+        security_group: "sg-2"
+        ip_anti_spoof: true
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_list: true
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_add {
+        id: "nic-1"
+        mac: "42:42:42:42:42:41"
+        vni: 320
+        ip: "3.2.3.4"
+        ip: "3.2.3.5"
+        ip: "2001:0db8:0000:85a3:0000:0000:ac1f:8002"
+        security_group: "sg-1"
+        security_group: "sg-4"
+        ip_anti_spoof: false
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_list: true
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_update {
+        id: "nic-1"
+        ip_anti_spoof: false
+        ip: "4.3.2.1"
+        ip: "1.2.3.4"
+        security_group: "sg-1"
+        security_group: "sg-3"
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_add {
+        id: "nic-1"
+        mac: "42:42:42:42:42:41"
+        vni: 320
+        ip: "3.2.3.4"
+        ip: "3.2.3.5"
+        ip: "2001:0db8:0000:85a3:0000:0000:ac1f:8003"
+        security_group: "sg-1"
+        security_group: "sg-8"
+        ip_anti_spoof: false
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_list: true
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_stats: "nic-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    request {
+      nic_export: "nic-1"
+    }
+  }
+}

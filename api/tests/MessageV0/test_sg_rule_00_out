@@ -1,0 +1,163 @@
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+      sg_list: "sg-1"
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: -1
+        cidr {
+          address: "2001:db8:0:85a3::ac1f:8001"
+          mask_size: 8
+        }
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: 6
+        port_start: 0
+        port_end: 65535
+        security_group: "sg-42"
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: 17
+        port_start: 0
+        port_end: 65535
+        cidr {
+          address: "1.2.3.0"
+          mask_size: 24
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: -1
+        cidr {
+          address: "2001:db8:0:85a3::ac1f:8001"
+          mask_size: 8
+        }
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: 6
+        port_start: 1000
+        port_end: 65535
+        security_group: "some-sg"
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: 6
+        port_start: 0
+        port_end: 65535
+        security_group: "sg-42"
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: 17
+        port_start: 0
+        port_end: 65535
+        cidr {
+          address: "1.2.3.0"
+          mask_size: 24
+        }
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+    }
+  }
+}
+messages {
+  revision: 0
+  message_0 {
+    response {
+      status {
+        status: true
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: -1
+        cidr {
+          address: "2001:db8:0:85a3::ac1f:8001"
+          mask_size: 8
+        }
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: 6
+        port_start: 0
+        port_end: 65535
+        security_group: "sg-42"
+      }
+      sg_rule_list {
+        direction: INBOUND
+        protocol: 17
+        port_start: 0
+        port_end: 65535
+        cidr {
+          address: "1.2.3.0"
+          mask_size: 24
+        }
+      }
+    }
+  }
+}

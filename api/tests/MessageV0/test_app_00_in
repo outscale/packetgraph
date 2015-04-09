@@ -1,0 +1,11 @@
+messages {
+  revision: 0
+  message_0 {
+    message_id: "my_message_id"
+    request {
+      app_config {
+        log_level: "info"
+      }
+    }
+  }
+}
