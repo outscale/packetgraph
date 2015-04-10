@@ -24,6 +24,7 @@
 #include <string>
 #include "api/server/app.h"
 #include "api/server/server.h"
+#include "api/server/simpleini/SimpleIni.hpp"
 #include "api/protocol/revision.h"
 
 namespace app {
@@ -89,6 +90,13 @@ bool Config::parse_cmd(int argc, char **argv) {
         pid_path = std::string(&*pid_path_cmd);
     if (socket_folder_cmd != nullptr)
         socket_folder = std::string(&*socket_folder_cmd);
+
+    // Load from configuration file if provided
+    if (config_path.length() > 0 && !LoadConfigFile(config_path)) {
+        std::cerr << "Failed to open configuration file" << std::endl;
+        app::log.error("Failed to open configuration file");
+        return false;
+    }
 
     return true;
 }
@@ -210,6 +218,57 @@ void WritePid(std::string pid_path) {
     pid_t pid = getpid();
     f << pid;
     f.close();
+}
+
+bool LoadConfigFile(std::string config_path) {
+    CSimpleIniA ini;
+    ini.SetUnicode();
+    if (ini.LoadFile(config_path.c_str()) != SI_OK)
+        return false;
+    const char *v;
+
+    v = ini.GetValue("general", "log-level", "_");
+    if (std::string(v) != "_") {
+        config.log_level = v;
+        log.set_log_level(config.log_level);
+        std::string m = "LoadConfig: get log-level from config: " +
+            config.log_level;
+        log.debug(m);
+    }
+
+    v = ini.GetValue("general", "ip", "_");
+    if (std::string(v) != "_") {
+        config.external_ip = v;
+        std::string m = "LoadConfig: get ip from config: " +
+            config.external_ip;
+        log.debug(m);
+    }
+
+    v = ini.GetValue("general", "endpoint", "_");
+    if (std::string(v) != "_") {
+        config.api_endpoint = v;
+        std::string m = "LoadConfig: get endpoint from config: " +
+            config.api_endpoint;
+        log.debug(m);
+    }
+
+    v = ini.GetValue("general", "pid", "_");
+    if (std::string(v) != "_") {
+        config.pid_path = v;
+        std::string m = "LoadConfig: get pid path from config: " +
+            config.pid_path;
+        log.debug(m);
+    }
+
+    v = ini.GetValue("general", "socket-dir", "_");
+    if (std::string(v) != "_") {
+        config.socket_folder = v;
+        std::string m = "LoadConfig: get socket-dir from config: " +
+            config.socket_folder;
+        log.debug(m);
+    }
+
+    return true;
 }
 
 void SignalRegister() {

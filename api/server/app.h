@@ -79,6 +79,9 @@ class Log {
 void SignalRegister();
 void SignalHandler(int signum);
 
+// Manage configuration file
+bool LoadConfigFile(std::string config_path);
+
 // Manage PID
 void WritePid(std::string pid_path);
 
