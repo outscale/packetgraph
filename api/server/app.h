@@ -79,6 +79,9 @@ class Log {
 void SignalRegister();
 void SignalHandler(int signum);
 
+// Manage PID
+void WritePid(std::string pid_path);
+
 // Some global app:: variables
 extern bool request_exit;
 extern Config config;

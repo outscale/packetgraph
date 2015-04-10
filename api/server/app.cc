@@ -199,6 +199,19 @@ void Log::error(const std::string &message, const char *file,
     error(message.c_str(), file, func, line);
 }
 
+void WritePid(std::string pid_path) {
+    std::ofstream f;
+    f.open(pid_path, std::ios::out);
+    if (!f.good()) {
+        log.error("Cannot write to PID file");
+        f.close();
+        return;
+    }
+    pid_t pid = getpid();
+    f << pid;
+    f.close();
+}
+
 void SignalRegister() {
     signal(SIGINT, SignalHandler);
     signal(SIGQUIT, SignalHandler);
@@ -249,6 +262,10 @@ main(int argc, char *argv[]) {
             "configuration or use --help" << std::endl;
             return 0;
         }
+
+        // Write PID
+        if (app::config.pid_path.length() > 0)
+            app::WritePid(app::config.pid_path);
 
         app::log.info("butterfly starts");
 
