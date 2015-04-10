@@ -199,6 +199,22 @@ void Log::error(const std::string &message, const char *file,
     error(message.c_str(), file, func, line);
 }
 
+void SignalRegister() {
+    signal(SIGINT, SignalHandler);
+    signal(SIGQUIT, SignalHandler);
+    signal(SIGABRT, SignalHandler);
+    signal(SIGKILL, SignalHandler);
+    signal(SIGSEGV, SignalHandler);
+    signal(SIGSTOP, SignalHandler);
+}
+
+void
+SignalHandler(int signum) {
+    std::string m = "got signal " + std::to_string(signum);
+    app::log.info(m);
+    app::request_exit = true;
+}
+
 // Global instances in app namespace
 bool request_exit(false);
 Config config;
@@ -211,6 +227,9 @@ Log log;
 int
 main(int argc, char *argv[]) {
     try {
+        // Register signals
+        app::SignalRegister();
+
         // Check parameters
         if (!app::config.parse_cmd(argc, argv))
             return 0;

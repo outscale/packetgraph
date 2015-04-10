@@ -75,6 +75,10 @@ class Log {
                               const char *func, int line);
 };
 
+// Manage signals
+void SignalRegister();
+void SignalHandler(int signum);
+
 // Some global app:: variables
 extern bool request_exit;
 extern Config config;
