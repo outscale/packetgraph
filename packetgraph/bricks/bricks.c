@@ -402,6 +402,10 @@ int brick_generic_west_link(struct brick *target,
 	uint16_t target_index, brick_index;
 	enum side i;
 
+	if (target == brick) {
+		*errp = error_new("Can not link a brick to herself");
+		return 0;
+	}
 	for (i = 0; i < MAX_SIDE; i++) {
 		struct brick_side *side = &target->sides[i];
 
