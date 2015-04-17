@@ -5,31 +5,70 @@ Butterfly permits to connect Virtual Machine (VM) NICs and manage their
 network flow.
 
 Butterfly permits to isolate, connect and filter traffic between virtual
-machines. This is particulary usefull in cloud environments in order to manage
-network interactions between Virtual Machines or external network.
+machines using VXLAN. This is particulary usefull in cloud environments in
+order to manage network interactions between Virtual Machines or external
+network.
 
 # Architecture
 
-Here is the butterfly architecture, all it's software architecture is
-organized around connected bricks.
+Butterfly has two main components: Packetgraph library and Butterfly.
+
+## Packetgraph
+
+Packetgraph library is build upon DPDK making a collection of network bricks
+you can connect them to form a network graph.
+Everyone is free to use this library to build up there own network
+infrastructure accelerated.
+
+Here are current developped bricks available in packetgraph:
+
+- switch: a layer 2 switch
+- vhost: allow to connect a vhost NIC to a virtual machine (virtio based)
+- firewall: allow to filter traffic passing through it (based on NPF)
+- diode: only let packets pass in one direction
+- hub: act as a hub device, passing packets to all connected bricks
+- nic: allow to pass packets to a NIC of the system (accelerated by DPDK)
+- vtep: VXLAN Virtual Terminal End Point switching packets on virtual lans
+- packetgen: a debug brick allowing to generate packets in the graph
+
+Packetgraph is made in C language and a minimal C++ wrapper (packetgraph++) is
+also available.
+
+Butterfly is a specific use case of packetgraph but you can navigate in
+packetgraph examples to see how to use it.
+
+## Butterfly
+
+Butterfly is built on top of packetgraph++ and build a network graph for
+it's own goal: connect virtual machines on different hosts on layer 2
+with the best performances.
+
+Here is the butterfly architecture 
 
 ![Butterfly architecture](http://i.imgur.com/zQRXbTm.png)
 
-1. Butterfly use [Data Plane Development Kit (DPDK)](http://dpdk.org/)
-to accelerate traffic latency and minimize Operating System impact in packet
-filtering.
+All the bricks use [Data Plane Development Kit (DPDK)](http://dpdk.org/)
 
-2. Butterfly use [Virtual Extensible LAN (VXLAN)](http://en.wikipedia.org/wiki/Virtual_Extensible_LAN/)
+The software architecture is organized around the following
+connected bricks (from Packetgraph):
+
+1. Butterfly accelerate traffic latency and minimize Operating System
+impact in packet filtering. This corresponds to "nic" brick in packetgraph.
+
+2. Butterfly use [Virtual Extensible LAN (VXLAN)]
+(http://en.wikipedia.org/wiki/Virtual_Extensible_LAN/)
 permetting to isolate traffic between virtual machines over an external
-network.
+network. Each links from a specific side corresponds to a VXLAN, the other
+side corresponds to VTEP endpoint ("vtep" brick in packetgraph).
 
-3. Butterfly use a home-made layer 2 switch
+3. Butterfly use the layer 2 switch from packetgraph
 
-4. Firewalling permits to filter network traffic from each virtual machines.
-It is based on [NPF](http://www.netbsd.org/~rmind/npf/)
+4. Firewalling allow to filter network traffic from each virtual machines.
+It is based on [NPF](http://www.netbsd.org/~rmind/npf/). This corresponds to
+the "firewall" brick in packetgraph.
 
 5. Butterfly can manage several Virtual Machines on the same host by using
-vhost-user with Qemu.
+vhost-user with Qemu. This corresponds to "vhost" brick in packetgraph.
 
 # Butterfly API
 
@@ -44,14 +83,15 @@ defined API to configure all it's parameters.
 
 # Build instructions
 
-## Build under Debian x86_64
-
-Here are some explainations on how to build Butterfly on Debian SID
+Here are some explainations on how to build Butterfly
 (February 2015).
 
 Install needed packages:
 
-    sudo apt-get install git cmake gcc g++ libc6-dev libc6-dbg libc6-i386 libglib2.0-dev libprotobuf-c1 protobuf-c-compiler cppcheck
+# Debian SID
+    apt-get install git cmake gcc g++ libc6-dev libc6-dbg libc6-i386 libglib2.0-dev libprotobuf-c1 protobuf-c-compiler cppcheck qemu
+# Arch Linux
+    pacman -S git multilib-devel base-devel cmake glib2 protobuf-c cppcheck qemu
 
 Let's clone and init submodule:
 
@@ -66,9 +106,9 @@ And let's build !
     cmake .
     make
 
-Now you can get a coffee, it will take some time.
+Now you can get a coffee, it will take some time (https://xkcd.com/303/).
 
-## Other platforms
+## Other platforms
 
 Feel free to share you build instructions :)
 
