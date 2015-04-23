@@ -16,16 +16,19 @@ if [ ! -d $BUTTERFLY_ROOT/packetgraph ]; then
     exit 1
 fi
 
-tmp=$BUTTERFLY_BUILD_ROOT/.tmp_tests_packetgraph_style
-echo "0" > ${tmp}_ret
-find $BUTTERFLY_ROOT/packetgraph -name "*.[ch]" | while read f; do
-    echo "checking $f..."
-    $BUTTERFLY_ROOT/scripts/checkpatch.pl -q -f $f 2> /dev/null > $tmp
-    if [ ! -z "$(cat $tmp)" ]; then
-        cat $tmp
-        echo "1" > ${tmp}_ret
-    fi
-done
-ret=$(cat ${tmp}_ret)
-rm $tmp ${tmp}_ret
-exit $ret
+c_filelist=$(find $BUTTERFLY_ROOT/packetgraph -type f -name "*.c" -printf %p\ )
+h_filelist=$(find $BUTTERFLY_ROOT/packetgraph -type f -name "*.h" -printf %p\ )
+$BUTTERFLY_ROOT/scripts/checkpatch.pl -q -f $c_filelist $h_filelist
+if [ $? != 0 ]; then
+    echo "checkpatch tests failed"
+    exit 1
+fi
+
+cppcheck -q  -f -I $BUTTERFLY_ROOT/packetgraph/include --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
+
+if [ $? != 0 ]; then
+    echo "cppcheck tests failed"
+    exit 1
+fi
+
+exit 0

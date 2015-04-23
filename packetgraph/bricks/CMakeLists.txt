@@ -4,8 +4,3 @@ set(BRICKS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/packetgraph/bricks)
 
 add_library(bricks OBJECT ${SOURCES})
 add_dependencies(bricks 3rdparty)
-
-add_custom_target(bricks_static ALL
-	COMMAND ${CPPCHECK_COMMAND} ${SOURCES}
-	WORKING_DIRECTORY ${BRICKS_SOURCE_DIR})
-add_dependencies(bricks_static bricks)
