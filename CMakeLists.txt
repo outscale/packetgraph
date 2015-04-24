@@ -44,19 +44,17 @@ set(TARGET_LIBRARIES ${GLIB2_LIBRARIES}
 add_subdirectory(3rdparty)
 add_subdirectory(packetgraph)
 
-set(DIRECTORIES packetgraph/bricks/ packetgraph/include/
-		packetgraph/packets/ packetgraph/utils/)
+set(DIRECTORIES ${PROJECT_SOURCE_DIR}/packetgraph/bricks/ ${PROJECT_SOURCE_DIR}/packetgraph/include/
+		${PROJECT_SOURCE_DIR}/packetgraph/packets/ ${PROJECT_SOURCE_DIR}/packetgraph/utils/)
 
 add_custom_target(lizard
 	COMMAND ${PROJECT_SOURCE_DIR}/3rdparty/lizard/lizard -C 10 -w  ${DIRECTORIES})
 
 add_custom_target(flawfinder
 	COMMAND flawfinder -D --quiet ${DIRECTORIES})
-add_dependencies(flawfinder lizard)
 
-add_custom_target(rats tests
-	COMMAND rats --quiet ${DIRECTORIES})
-add_dependencies(rats flawfinder)
+add_custom_target(rats
+	COMMAND rats  ${DIRECTORIES})
 
 # Add custom targets for tests
 
