@@ -18,7 +18,9 @@ fi
 
 sources="$BUTTERFLY_ROOT/api/client/client.cc \
 $BUTTERFLY_ROOT/api/server/app.cc \
-$BUTTERFLY_ROOT/api/server/app.h"
+$BUTTERFLY_ROOT/api/server/app.h \
+$BUTTERFLY_ROOT/api/server/server.cc \
+$BUTTERFLY_ROOT/api/server/server.h"
 
 $BUTTERFLY_ROOT/scripts/cpplint.py --filter=-build/c++11 --root=$BUTTERFLY_ROOT $sources
 if [ $? != 0 ]; then

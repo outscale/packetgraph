@@ -1,5 +1,6 @@
 
-set(SOURCES app.cc)
+set(SOURCES app.cc
+            server.cc)
 
 set (SOURCES_P)
 foreach (_s ${SOURCES})
@@ -8,13 +9,19 @@ endforeach()
 
 add_executable(api_server ${SOURCES_P})
 
+add_dependencies(api_server libzmq zmqpp)
+
 set_target_properties(api_server PROPERTIES OUTPUT_NAME butterfly-server)
 
-include_directories("${PROJECT_SOURCE_DIR}")
+include_directories(${PROJECT_SOURCE_DIR}
+                    ${LIBZMQ_INCLUDE_DIR}
+                    ${ZMQPP_INCLUDE_DIR})
 
 target_link_libraries(api_server
                       pthread
-                      ${GLIB2_LIBRARIES})
+                      ${GLIB2_LIBRARIES}
+                      ${LIBZMQ_LIBRARIES}
+                      ${ZMQPP_LIBRARIES})
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")

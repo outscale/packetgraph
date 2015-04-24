@@ -22,6 +22,7 @@
 #include <fstream>
 #include <string>
 #include "api/server/app.h"
+#include "api/server/server.h"
 
 namespace app {
 
@@ -128,9 +129,11 @@ main(int argc, char *argv[]) {
         // TODO(jerome.jutteau)
 
         // Prepare & run API server
-        // TODO(jerome.jutteau)
+        bool exit = false;
+        APIServer server("tcp://0.0.0.0:9999", &exit);
+        server.run_threaded();
 
-        while (!app::request_exit)
+        while (!exit)
             std::this_thread::sleep_for(std::chrono::seconds(1));
     } catch (std::exception & e) {
         LOG_ERROR_(e.what());
