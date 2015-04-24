@@ -47,7 +47,7 @@ add_subdirectory(packetgraph)
 set(DIRECTORIES ${PROJECT_SOURCE_DIR}/packetgraph/bricks/ ${PROJECT_SOURCE_DIR}/packetgraph/include/
 		${PROJECT_SOURCE_DIR}/packetgraph/packets/ ${PROJECT_SOURCE_DIR}/packetgraph/utils/)
 
-add_custom_target(lizard
+add_custom_target(lizard-run
 	COMMAND ${PROJECT_SOURCE_DIR}/3rdparty/lizard/lizard -C 10 -w  ${DIRECTORIES})
 
 add_custom_target(flawfinder

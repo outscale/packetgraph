@@ -1,6 +1,7 @@
 set(DPDK_SOURCE_DIR ${3RDPARTY_DIR}/dpdk)
 set(BUILDROOT_SOURCE_DIR ${3RDPARTY_DIR}/buildroot)
 set(CCAN_SOURCE_DIR ${3RDPARTY_DIR}/ccan)
+set(LIZARD_SOURCE_DIR ${3RDPARTY_DIR}/lizard)
 
 set(CMAKE_C_FLAGS "-g -Wall")
 
@@ -50,6 +51,16 @@ ExternalProject_Add(buildroot
 	BUILD_COMMAND make
 	INSTALL_COMMAND true
 	LOG_BUILD 1 Building buildroot)
+
+ExternalProject_Add(lizard
+	SOURCE_DIR ${LIZARD_SOURCE_DIR}
+	DOWNLOAD_DIR ${PROJECT_SOURCE_DIR}
+	DOWNLOAD_COMMAND git submodule update --init ${LIZARD_SOURCE_DIR}
+	CONFIGURE_COMMAND ""
+	BINARY_DIR ${LIZARD_SOURCE_DIR}
+	BUILD_COMMAND ""
+	INSTALL_COMMAND ""
+	LOG_BUILD 1 Building lizard)
 
 # clean target
 add_custom_target(dependency-cleanup CLEAN
