@@ -350,7 +350,8 @@ static void switch_destroy(struct brick *brick, struct switch_error **errp)
 }
 
 static void switch_unlink_notify(struct brick *brick,
-				 enum side side, uint16_t edge_index)
+				 enum side side, uint16_t edge_index,
+				 struct switch_error **errp)
 {
 	struct switch_state *state =
 		brick_get_state(brick, struct switch_state);
