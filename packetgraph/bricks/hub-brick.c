@@ -21,7 +21,7 @@ struct hub_state {
 	struct brick brick;
 };
 
-static int hub_burst(struct brick *brick, enum side side, uint16_t edge_index,
+static int hub_burst(struct brick *brick, enum side from, uint16_t edge_index,
 		     struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 		     struct switch_error **errp)
 {
@@ -35,7 +35,7 @@ static int hub_burst(struct brick *brick, enum side side, uint16_t edge_index,
 		for (j = 0; j < s->max; j++) {
 			if (!s->edges[j].link)
 				continue;
-			if (side == i && j == edge_index)
+			if (from == i && j == edge_index)
 				continue;
 			ret = brick_burst(s->edges[j].link, flip_side(i),
 					  s->edges[j].pair_index,

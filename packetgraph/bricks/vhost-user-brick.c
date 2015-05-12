@@ -62,7 +62,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_t vhost_session_thread;
 
-static int vhost_burst(struct brick *brick, enum side side, uint16_t edge_index,
+static int vhost_burst(struct brick *brick, enum side from, uint16_t edge_index,
 		       struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 		       struct switch_error **errp)
 {
@@ -70,7 +70,7 @@ static int vhost_burst(struct brick *brick, enum side side, uint16_t edge_index,
 	struct virtio_net *virtio_net;
 	uint16_t pkts_count;
 
-	if (state->output == side) {
+	if (state->output == from) {
 		*errp = error_new("Burst packets going on the wrong direction");
 		return 0;
 	}

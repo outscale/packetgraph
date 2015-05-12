@@ -35,7 +35,7 @@
 struct address_source {
 	uint64_t unlink;	/* hot plugging unlink */
 	uint16_t edge_index;    /* index of the port the packet came from */
-	enum side side;		/* side of the switch the packet came from */
+	enum side from;		/* side of the switch the packet came from */
 };
 
 /* structure used to describe a side (EAST_SIDE/WEST_SIDE) of the switch */
@@ -82,12 +82,12 @@ static inline void zero_masks(struct switch_state *state)
 			state->brick.sides[i].max * sizeof(uint64_t));
 }
 
-static inline int forward(struct switch_state *state, enum side side,
+static inline int forward(struct switch_state *state, enum side to,
 			  uint16_t index, struct rte_mbuf **pkts, uint16_t nb,
 			  struct switch_error **errp)
 {
-	struct brick_edge *edge =  &state->brick.sides[side].edges[index];
-	struct switch_side *switch_side = &state->sides[side];
+	struct brick_edge *edge =  &state->brick.sides[to].edges[index];
+	struct switch_side *switch_side = &state->sides[to];
 
 	if (!switch_side->masks[index])
 		return 1;
@@ -95,7 +95,7 @@ static inline int forward(struct switch_state *state, enum side side,
 	if (!edge->link)
 		return 1;
 
-	return brick_burst(edge->link, flip_side(side), edge->pair_index,
+	return brick_burst(edge->link, flip_side(to), edge->pair_index,
 			   pkts, nb, switch_side->masks[index], errp);
 }
 
@@ -104,7 +104,7 @@ static int forward_bursts(struct switch_state *state,
 			  struct rte_mbuf **pkts, uint16_t nb,
 			  struct switch_error **errp)
 {
-	struct switch_side *switch_side = &state->sides[source->side];
+	struct switch_side *switch_side = &state->sides[source->from];
 	enum side i;
 	uint16_t j;
 	int ret;
@@ -223,7 +223,7 @@ static void do_switch(struct switch_state *state,
 		struct switch_side *switch_side;
 		struct address_source *entry;
 		uint16_t edge_index;
-		enum side side;
+		enum side from;
 		uint64_t bit;
 		uint16_t i;
 
@@ -231,8 +231,8 @@ static void do_switch(struct switch_state *state,
 
 		entry = entries[i];
 
-		side = entry->side;
-		switch_side = &state->sides[side];
+		from = entry->from;
+		switch_side = &state->sides[from];
 		edge_index = entry->edge_index;
 
 		/* the lookup table entry is stale due to a port hotplug */
@@ -323,7 +323,7 @@ static void clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask)
 	}
 }
 
-static int switch_burst(struct brick *brick, enum side side,
+static int switch_burst(struct brick *brick, enum side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
 			uint16_t nb, uint64_t pkts_mask,
 			struct switch_error **errp)
@@ -335,9 +335,9 @@ static int switch_burst(struct brick *brick, enum side side,
 	struct address_source source;
 	int ret;
 
-	source.side = side;
+	source.from = from;
 	source.edge_index = edge_index;
-	source.unlink = state->sides[side].unlinks[edge_index];
+	source.unlink = state->sides[from].unlinks[edge_index];
 
 	prefetch_packets(pkts, pkts_mask);
 

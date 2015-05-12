@@ -30,7 +30,7 @@ struct collect_state {
 	uint64_t pkts_mask[MAX_SIDE];
 };
 
-static int collect_burst(struct brick *brick, enum side side,
+static int collect_burst(struct brick *brick, enum side from,
 			 uint16_t edge_index, struct rte_mbuf **pkts,
 			 uint16_t nb, uint64_t pkts_mask,
 			 struct switch_error **errp)
@@ -44,14 +44,14 @@ static int collect_burst(struct brick *brick, enum side side,
 		return 0;
 	}
 
-	if (state->pkts_mask[side])
-		packets_free(state->pkts[side], state->pkts_mask[side]);
+	if (state->pkts_mask[from])
+		packets_free(state->pkts[from], state->pkts_mask[from]);
 
-	state->pkts_mask[side] = pkts_mask;
+	state->pkts_mask[from] = pkts_mask;
 	/* We made sure nb <= MAX_PKTS_BURST */
 	/* Flawfinder: ignore */
-	memcpy(state->pkts[side], pkts, nb * sizeof(struct rte_mbuf *));
-	packets_incref(state->pkts[side], state->pkts_mask[side]);
+	memcpy(state->pkts[from], pkts, nb * sizeof(struct rte_mbuf *));
+	packets_incref(state->pkts[from], state->pkts_mask[from]);
 
 	return 1;
 }

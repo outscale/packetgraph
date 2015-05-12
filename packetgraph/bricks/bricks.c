@@ -520,15 +520,15 @@ void brick_generic_unlink(struct brick *brick, struct switch_error **errp)
  * function.
  */
 
-inline int brick_burst(struct brick *brick, enum side side,
+inline int brick_burst(struct brick *brick, enum side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts, uint16_t nb,
 		       uint64_t pkts_mask, struct switch_error **errp)
 {
 	/* @side is the opposite side of the direction on which
 	 * we send the packets, so we flip it */
-	rte_atomic64_add(&brick->sides[flip_side(side)].packet_count,
+	rte_atomic64_add(&brick->sides[flip_side(from)].packet_count,
 			 mask_count(pkts_mask));
-	return brick->burst(brick, side, edge_index, pkts, nb, pkts_mask, errp);
+	return brick->burst(brick, from, edge_index, pkts, nb, pkts_mask, errp);
 }
 
 inline int brick_burst_to_east(struct brick *brick, uint16_t edge_index,
@@ -598,7 +598,7 @@ struct rte_mbuf **brick_east_burst_get(struct brick *brick,
 	return brick->burst_get(brick, EAST_SIDE, pkts_mask);
 }
 
-int brick_side_forward(struct brick_side *brick_side, enum side side,
+int brick_side_forward(struct brick_side *brick_side, enum side from,
 		       struct rte_mbuf **pkts, uint16_t nb,
 		       uint64_t pkts_mask, struct switch_error **errp)
 {
@@ -607,7 +607,7 @@ int brick_side_forward(struct brick_side *brick_side, enum side side,
 
 	for (i = 0; i < brick_side->max; i++) {
 		if (brick_side->edges[i].link)
-			ret = brick_burst(brick_side->edges[i].link, side,
+			ret = brick_burst(brick_side->edges[i].link, from,
 					  brick_side->edges[i].pair_index,
 					  pkts, nb, pkts_mask, errp);
 		if (unlikely(!ret))

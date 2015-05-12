@@ -81,7 +81,7 @@ struct brick {
 	 */
 
 	/* Accept a packet burst */
-	int (*burst)(struct brick *brick, enum side side, uint16_t edge_index,
+	int (*burst)(struct brick *brick, enum side from, uint16_t edge_index,
 		     struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
 		     struct switch_error **errp);
 	/* polling */
