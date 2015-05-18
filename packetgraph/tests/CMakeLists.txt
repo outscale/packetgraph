@@ -17,4 +17,4 @@ add_executable(tests ${SOURCES}
 		$<TARGET_OBJECTS:packets>
 		$<TARGET_OBJECTS:utils>
 		$<TARGET_OBJECTS:bricks>)
-target_link_libraries (tests ${GLIB2_LIBRARIES} ${TARGET_LIBRARIES})
+target_link_libraries (tests ${TARGET_LIBRARIES})
