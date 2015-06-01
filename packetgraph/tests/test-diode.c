@@ -23,11 +23,10 @@
 #include "utils/config.h"
 #include "packets/packets.h"
 #include "utils/mempool.h"
+#include "utils/bitmask.h"
 #include "tests.h"
 
 #define NB_PKTS 3
-
-inline uint64_t mask_firsts(uint8_t count);
 
 #define	TEST_DIODE_INIT(output)						\
 	struct brick_config *config = brick_config_new("mybrick", 4, 4);       \

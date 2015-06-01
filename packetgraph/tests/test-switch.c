@@ -23,6 +23,7 @@
 #include "bricks/brick.h"
 #include "utils/config.h"
 #include "utils/mempool.h"
+#include "utils/bitmask.h"
 #include "tests.h"
 #include "mac.h"
 
@@ -34,8 +35,6 @@
 #define TEST_MOD	(TEST_PKTS - MAX_PKTS_BURST)
 #define TEST_PKTS_COUNT (200 * 1000 * 1000)
 #define PKTS_BURST	3
-
-inline uint64_t mask_firsts(uint8_t count);
 
 struct rte_mempool *mbuf_pool;
 
