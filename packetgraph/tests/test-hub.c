@@ -29,38 +29,38 @@
 
 #define NB_PKTS 3
 
-#define		TEST_HUB_DESTROY()				\
-	do {							\
-		brick_unlink(hub, &error);			\
-		g_assert(!error);				\
-		brick_unlink(collect_east1, &error);		\
-		g_assert(!error);				\
-		brick_unlink(collect_east2, &error);		\
-		g_assert(!error);				\
-		brick_unlink(collect_west1, &error);		\
-		g_assert(!error);				\
-		brick_unlink(collect_west2, &error);		\
-		g_assert(!error);				\
-		packets_free(pkts, mask_firsts(NB_PKTS));	\
-		brick_decref(hub, &error);			\
-		g_assert(!error);				\
-		brick_reset(collect_east1, &error);		\
-		g_assert(!error);				\
-		brick_reset(collect_east2, &error);		\
-		g_assert(!error);				\
-		brick_reset(collect_west1, &error);		\
-		g_assert(!error);				\
-		brick_reset(collect_west2, &error);		\
-		g_assert(!error);				\
-		brick_decref(collect_east1, &error);		\
-		g_assert(!error);				\
-		brick_decref(collect_east2, &error);		\
-		g_assert(!error);				\
-		brick_decref(collect_west1, &error);		\
-		g_assert(!error);				\
-		brick_decref(collect_west2, &error);		\
-		g_assert(!error);				\
-		brick_config_free(config);			\
+#define		TEST_HUB_DESTROY()					\
+	do {								\
+		brick_unlink(hub, &error);				\
+		g_assert(!error);					\
+		brick_unlink(collect1, &error);				\
+		g_assert(!error);					\
+		brick_unlink(collect2, &error);				\
+		g_assert(!error);					\
+		brick_unlink(collect3, &error);				\
+		g_assert(!error);					\
+		brick_unlink(collect4, &error);				\
+		g_assert(!error);					\
+		packets_free(pkts, mask_firsts(NB_PKTS));		\
+		brick_decref(hub, &error);				\
+		g_assert(!error);					\
+		brick_reset(collect1, &error);				\
+		g_assert(!error);					\
+		brick_reset(collect2, &error);				\
+		g_assert(!error);					\
+		brick_reset(collect3, &error);				\
+		g_assert(!error);					\
+		brick_reset(collect4, &error);				\
+		g_assert(!error);					\
+		brick_decref(collect1, &error);				\
+		g_assert(!error);					\
+		brick_decref(collect2, &error);				\
+		g_assert(!error);					\
+		brick_decref(collect3, &error);				\
+		g_assert(!error);					\
+		brick_decref(collect4, &error);				\
+		g_assert(!error);					\
+		brick_config_free(config);				\
 	} while (0)
 
 #define		TEST_HUB_COLLECT_AND_TEST(get_burst_fn,	to_col, to_check) do { \
@@ -78,8 +78,7 @@ static void test_hub_east_dispatch(void)
 {
 	struct brick_config *config = brick_config_new("mybrick", 4, 4);
 	struct brick *hub;
-	struct brick *collect_east1, *collect_east2;
-	struct brick *collect_west1, *collect_west2;
+	struct brick *collect1, *collect2, *collect3, *collect4;
 	struct rte_mbuf *pkts[NB_PKTS], **result_pkts;
 	struct rte_mempool *mbuf_pool = get_mempool();
 	struct switch_error *error = NULL;
@@ -93,48 +92,47 @@ static void test_hub_east_dispatch(void)
 	}
 	hub = brick_new("hub", config, &error);
 	g_assert(!error);
-	collect_east1 = brick_new("collect", config, &error);
+	collect1 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_east1);
-	collect_east2 = brick_new("collect", config, &error);
+	g_assert(collect1);
+	collect2 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_east2);
-	collect_west1 = brick_new("collect", config, &error);
+	g_assert(collect2);
+	collect3 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_west1);
-	collect_west2 = brick_new("collect", config, &error);
+	g_assert(collect3);
+	collect4 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_west2);
-	brick_west_link(hub, collect_east1, &error);
+	g_assert(collect4);
+	brick_west_link(hub, collect1, &error);
 	g_assert(!error);
-	brick_west_link(hub, collect_east2, &error);
+	brick_west_link(hub, collect2, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect_west1, &error);
+	brick_east_link(hub, collect3, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect_west2, &error);
+	brick_east_link(hub, collect4, &error);
 	g_assert(!error);
 
 	/* send a burst to the east from */
 
 	brick_burst_to_east(hub, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
 			    &error);
-	g_assert(!error);
 
-	/* check no packet ended on the sending block collect_east1 */
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_east1, NB_PKTS);
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_east1, 0);
+	/* check no packet ended on the sending block collect1 */
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect1, 0);
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect1, 0);
 
-	/* check packets on collect_east2 */
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_east2, 0);
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_east2, NB_PKTS);
+	/* check packets on collect2 */
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect2, NB_PKTS);
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect2, 0);
 
-	/* check packets on collect_west1 */
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_west1, 0);
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_west1, 0);
+	/* check packets on collect3 */
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect3, 0);
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect3, NB_PKTS);
 
-	/* check packets on collect_west2 */
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_west2, NB_PKTS);
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_west2, 0);
+	/* check packets on collect4 */
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect4, 0);
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect4, NB_PKTS);
 
 
 	TEST_HUB_DESTROY();
@@ -144,8 +142,7 @@ static void test_hub_west_dispatch(void)
 {
 	struct brick_config *config = brick_config_new("mybrick", 4, 4);
 	struct brick *hub;
-	struct brick *collect_east1, *collect_east2;
-	struct brick *collect_west1, *collect_west2;
+	struct brick *collect1, *collect2, *collect3, *collect4;
 	struct rte_mbuf *pkts[NB_PKTS], **result_pkts;
 	struct rte_mempool *mbuf_pool = get_mempool();
 	struct switch_error *error = NULL;
@@ -159,47 +156,46 @@ static void test_hub_west_dispatch(void)
 	}
 	hub = brick_new("hub", config, &error);
 	g_assert(!error);
-	collect_east1 = brick_new("collect", config, &error);
+	collect1 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_east1);
-	collect_east2 = brick_new("collect", config, &error);
+	g_assert(collect1);
+	collect2 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_east2);
-	collect_west1 = brick_new("collect", config, &error);
+	g_assert(collect2);
+	collect3 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_west1);
-	collect_west2 = brick_new("collect", config, &error);
+	g_assert(collect3);
+	collect4 = brick_new("collect", config, &error);
 	g_assert(!error);
-	g_assert(collect_west2);
-	brick_west_link(hub, collect_east1, &error);
+	g_assert(collect4);
+	brick_west_link(hub, collect1, &error);
 	g_assert(!error);
-	brick_west_link(hub, collect_east2, &error);
+	brick_west_link(hub, collect2, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect_west1, &error);
+	brick_east_link(hub, collect3, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect_west2, &error);
+	brick_east_link(hub, collect4, &error);
 	g_assert(!error);
 
 	/* send a burst to the west from the hub */
 	brick_burst_to_west(hub, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
 			    &error);
-	g_assert(!error);
 
-	/* check packets on collect_east1 */
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_east1, 0);
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_east1, 0);
+	/* check packets on collect1 */
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect1, NB_PKTS);
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect1, 0);
 
-	/* check packets on collect_east2 */
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_east2, 0);
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_east2, NB_PKTS);
+	/* check packets on collect2 */
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect2, NB_PKTS);
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect2, 0);
 
-	/* check no packet ended on the sending block collect_west1 */
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_west1, NB_PKTS);
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_west1, 0);
+	/* check no packet ended on the sending block collect3 */
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect3, 0);
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect3, 0);
 
-	/* check packets on collect_west2 */
-	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect_west2, NB_PKTS);
-	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect_west2, 0);
+	/* check packets on collect4 */
+	TEST_HUB_COLLECT_AND_TEST(brick_east_burst_get, collect4, 0);
+	TEST_HUB_COLLECT_AND_TEST(brick_west_burst_get, collect4, NB_PKTS);
 
 	TEST_HUB_DESTROY();
 }
