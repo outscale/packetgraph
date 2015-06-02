@@ -52,9 +52,9 @@
 	collect_east = brick_new("collect", config, &error);		\
 	g_assert(!error);						\
 	g_assert(collect_east);						\
-	brick_west_link(brick, collect_west, &error);			\
+	brick_link(collect_west, brick, &error);			\
 	g_assert(!error);						\
-	brick_east_link(brick, collect_east, &error);			\
+	brick_link(brick, collect_east, &error);			\
 	g_assert(!error)
 
 #define	TEST_PKTS_COUNT_DESTROY() do {				\

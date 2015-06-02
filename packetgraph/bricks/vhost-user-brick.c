@@ -241,8 +241,6 @@ static struct brick_ops vhost_ops = {
 	.init		= vhost_init,
 	.destroy	= vhost_destroy,
 
-	.west_link	= brick_generic_west_link,
-	.east_link	= brick_generic_east_link,
 	.unlink		= brick_generic_unlink,
 
 	.handle_dup	= vhost_handle_dup,

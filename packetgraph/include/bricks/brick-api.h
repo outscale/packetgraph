@@ -29,10 +29,9 @@ enum side flip_side(enum side side);
 int64_t brick_refcount(struct brick *brick);
 
 /* relationship between bricks */
-int brick_west_link(struct brick *target,
-		    struct brick *brick, struct switch_error **errp);
-int brick_east_link(struct brick *target,
-		    struct brick *brick, struct switch_error **errp);
+int brick_link(struct brick *west, struct brick *east,
+	       struct switch_error **errp);
+
 void brick_unlink(struct brick *brick, struct switch_error **errp);
 
 /* polling */

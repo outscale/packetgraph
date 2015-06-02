@@ -104,11 +104,11 @@ static void test_brick_core_link(void)
 	g_assert(east_brick);
 	g_assert(!error);
 
-	ret = brick_west_link(middle_brick, west_brick, &error);
+	ret = brick_link(west_brick, middle_brick,  &error);
 	g_assert(ret);
 	g_assert(!error);
 
-	ret = brick_east_link(middle_brick, east_brick, &error);
+	ret = brick_link(middle_brick, east_brick, &error);
 	g_assert(ret);
 	g_assert(!error);
 
@@ -168,20 +168,20 @@ static void test_brick_core_multiple_link(void)
 	g_assert(east_brick);
 	g_assert(!error);
 
-	ret = brick_west_link(middle_brick, west_brick, &error);
+	ret = brick_link(west_brick, middle_brick, &error);
 	g_assert(ret);
 	g_assert(!error);
-	ret = brick_west_link(middle_brick, west_brick, &error);
+	ret = brick_link(west_brick, middle_brick, &error);
 	g_assert(ret);
 	g_assert(!error);
 
-	ret = brick_east_link(middle_brick, east_brick, &error);
+	ret = brick_link(middle_brick, east_brick, &error);
 	g_assert(ret);
 	g_assert(!error);
-	ret = brick_east_link(middle_brick, east_brick, &error);
+	ret = brick_link(middle_brick, east_brick, &error);
 	g_assert(ret);
 	g_assert(!error);
-	ret = brick_east_link(middle_brick, east_brick, &error);
+	ret = brick_link(middle_brick, east_brick, &error);
 	g_assert(ret);
 	g_assert(!error);
 
@@ -236,15 +236,15 @@ static void test_brick_core_verify_multiple_link(void)
 	g_assert(!error);
 
 	/* create a few links */
-	brick_west_link(middle_brick, west_brick, &error);
+	brick_link(west_brick, middle_brick, &error);
 	g_assert(!error);
-	brick_west_link(middle_brick, west_brick, &error);
+	brick_link(west_brick, middle_brick, &error);
 	g_assert(!error);
-	brick_east_link(middle_brick, east_brick, &error);
+	brick_link(middle_brick, east_brick, &error);
 	g_assert(!error);
-	brick_east_link(middle_brick, east_brick, &error);
+	brick_link(middle_brick, east_brick, &error);
 	g_assert(!error);
-	brick_east_link(middle_brick, east_brick, &error);
+	brick_link(middle_brick, east_brick, &error);
 	g_assert(!error);
 
 	/* check the link count */

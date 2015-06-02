@@ -192,7 +192,7 @@ static void test_vhost_flow(void)
 	g_assert(collect);
 
 	/* build the graph */
-	brick_east_link(collect, vhost_1, &error);
+	brick_link(collect, vhost_1, &error);
 	g_assert(!error);
 
 	/* spawn first QEMU */

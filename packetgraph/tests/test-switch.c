@@ -75,11 +75,11 @@ static void test_switch_learn(void)
 	collect3 = brick_new("collect", config, &error);
 	g_assert(!error);
 
-	brick_west_link(brick, collect1, &error);
+	brick_link(collect1, brick, &error);
 	g_assert(!error);
-	brick_west_link(brick, collect2, &error);
+	brick_link(collect2, brick, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect3, &error);
+	brick_link(brick, collect3, &error);
 	g_assert(!error);
 
 	for (i = 0; i < NB_PKTS; i++) {
@@ -255,13 +255,13 @@ static void test_switch_switching(void)
 	collect4 = brick_new("collect", config, &error);
 	g_assert(!error);
 
-	brick_west_link(brick, collect1, &error);
+	brick_link(collect1, brick, &error);
 	g_assert(!error);
-	brick_west_link(brick, collect2, &error);
+	brick_link(collect2, brick, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect3, &error);
+	brick_link(brick, collect3, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect4, &error);
+	brick_link(brick, collect4, &error);
 	g_assert(!error);
 
 	/* we will first exercise the learning abilities of the switch by
@@ -430,13 +430,13 @@ static void test_switch_unlink(void)
 	collect4 = brick_new("collect", config, &error);
 	g_assert(!error);
 
-	brick_west_link(brick, collect1, &error);
+	brick_link(collect1, brick, &error);
 	g_assert(!error);
-	brick_west_link(brick, collect2, &error);
+	brick_link(collect2, brick, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect3, &error);
+	brick_link(brick, collect3, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect4, &error);
+	brick_link(brick, collect4, &error);
 	g_assert(!error);
 
 	/* we will first exercise the learning abilities of the switch by
@@ -504,7 +504,7 @@ static void test_switch_unlink(void)
 
 	brick_unlink(collect2, &error);
 	g_assert(!error);
-	brick_west_link(brick, collect2, &error);
+	brick_link(collect2, brick, &error);
 	g_assert(!error);
 
 	/* now we send a packet burst to "10:10:10:10:10:10"" and make sure
@@ -621,11 +621,11 @@ static void test_switch_multicast_destination(void)
 	collect3 = brick_new("collect", config, &error);
 	g_assert(!error);
 
-	brick_west_link(brick, collect1, &error);
+	brick_link(collect1, brick, &error);
 	g_assert(!error);
-	brick_west_link(brick, collect2, &error);
+	brick_link(collect2, brick, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect3, &error);
+	brick_link(brick, collect3, &error);
 	g_assert(!error);
 
 	/* take care of sending multicast as source address to make sure the
@@ -805,11 +805,11 @@ static void test_switch_multicast_both(void)
 	collect3 = brick_new("collect", config, &error);
 	g_assert(!error);
 
-	brick_west_link(brick, collect1, &error);
+	brick_link(collect1, brick, &error);
 	g_assert(!error);
-	brick_west_link(brick, collect2, &error);
+	brick_link(collect2, brick, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect3, &error);
+	brick_link(brick, collect3, &error);
 	g_assert(!error);
 
 	/* take care of sending multicast as source address to make sure the
@@ -992,11 +992,11 @@ static void test_switch_filtered(void)
 	collect3 = brick_new("collect", config, &error);
 	g_assert(!error);
 
-	brick_west_link(brick, collect1, &error);
+	brick_link(collect1, brick, &error);
 	g_assert(!error);
-	brick_west_link(brick, collect2, &error);
+	brick_link(collect2, brick, &error);
 	g_assert(!error);
-	brick_east_link(brick, collect3, &error);
+	brick_link(brick, collect3, &error);
 	g_assert(!error);
 
 	/* take care of sending multicast as source address to make sure the
@@ -1084,12 +1084,12 @@ static void test_switch_perf_learn(void)
 	}
 
 	for (i = 0; i < TEST_PORTS / 2; i++) {
-		brick_west_link(brick, nops[i], &error);
+		brick_link(nops[i], brick, &error);
 		g_assert(!error);
 	}
 
 	for (i = 0; i < TEST_PORTS / 2; i++) {
-		brick_east_link(brick, nops[i + TEST_PORTS / 2], &error);
+		brick_link(brick, nops[i + TEST_PORTS / 2], &error);
 		g_assert(!error);
 	}
 
@@ -1176,12 +1176,12 @@ static void test_switch_perf_switch(void)
 	}
 
 	for (i = 0; i < SIDE_PORTS; i++) {
-		brick_west_link(brick, nops[i], &error);
+		brick_link(nops[i], brick, &error);
 		g_assert(!error);
 	}
 
 	for (i = 0; i < SIDE_PORTS; i++) {
-		brick_east_link(brick, nops[i + TEST_PORTS / 2], &error);
+		brick_link(brick, nops[i + TEST_PORTS / 2], &error);
 		g_assert(!error);
 	}
 

@@ -126,10 +126,6 @@ struct brick_ops {
 	void (*destroy)(struct brick *brick,		/* destructor */
 			struct switch_error **errp);
 
-	int (*west_link)(struct brick *target,	/* link to west side */
-			 struct brick *brick, struct switch_error **errp);
-	int (*east_link)(struct brick *target,	/* link to east side */
-			 struct brick *brick, struct switch_error **errp);
 	void (*unlink)(struct brick *brick, struct switch_error **errp);
 
 	/* called to notify a brick that a neighbor broke a link with it */

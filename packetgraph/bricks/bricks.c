@@ -294,62 +294,6 @@ uint32_t brick_links_count_get(struct brick *brick,
 }
 
 /**
- * This function add a west link from target to brick
- *
- * This function will also add a east link from brick to target.
- * It establish bidirectionals links.
- *
- * @param	target the target of the link operation
- * @param	brick the brick to link to the target
- * @param	errp a return pointer for an error message
- * @return	1 on success, 0 on error
- */
-int brick_west_link(struct brick *target,
-		    struct brick *brick,
-		    struct switch_error **errp)
-{
-	if (!is_brick_valid(brick)) {
-		*errp = error_new("Node is not valid");
-		return 0;
-	}
-
-	if (!brick->ops->west_link) {
-		*errp = error_new("Node link west callback not set");
-		return 0;
-	}
-
-	return brick->ops->west_link(target, brick, errp);
-}
-
-/**
- * This function add a east link from target to brick
- *
- * This function will also add a west link from brick to target.
- * It establish bidirectionals links.
- *
- * @param	target the target of the link operation
- * @param	brick the brick to link to the target
- * @param	errp a return pointer for an error message
- * @return	1 on success, 0 on error
- */
-int brick_east_link(struct brick *target,
-		    struct brick *brick,
-		    struct switch_error **errp)
-{
-	if (!is_brick_valid(brick)) {
-		*errp = error_new("Node is not valid");
-		return 0;
-	}
-
-	if (!brick->ops->east_link) {
-		*errp = error_new("Node link east callback not set");
-		return 0;
-	}
-
-	return brick->ops->east_link(target, brick, errp);
-}
-
-/**
  * This function unlinks all the link from and to this brick
  *
  * @param	brick the brick brick to unlink
@@ -404,48 +348,36 @@ static uint16_t insert_link(struct brick_side *side, struct brick *brick)
  * @param	errp a return pointer for an error message
  * @return	1 on success, 0 on error
  */
-int brick_generic_west_link(struct brick *target,
-			    struct brick *brick, struct switch_error **errp)
+int brick_link(struct brick *west, struct brick *east,
+			    struct switch_error **errp)
 {
-	uint16_t target_index, brick_index;
-	enum side i;
+	uint16_t west_index, east_index;
 
-	if (target == brick) {
+	if (!is_brick_valid(east) || !is_brick_valid(west)) {
+		*errp = error_new("Node is not valid");
+		return 0;
+	}
+
+	if (west == east) {
 		*errp = error_new("Can not link a brick to herself");
 		return 0;
 	}
-	for (i = 0; i < MAX_SIDE; i++) {
-		struct brick_side *side = &target->sides[i];
-
-		if (side->nb == side->max) {
-			*errp = error_new("Side full");
-			return 0;
-		}
+	if (east->sides[WEST_SIDE].nb == east->sides[WEST_SIDE].max ||
+	    west->sides[EAST_SIDE].nb == west->sides[EAST_SIDE].max) {
+		*errp = error_new("Side full");
+		return 0;
 	}
 
-	target_index = insert_link(&target->sides[WEST_SIDE], brick);
-	brick_index = insert_link(&brick->sides[EAST_SIDE], target);
+	east_index = insert_link(&east->sides[WEST_SIDE], west);
+	west_index = insert_link(&west->sides[EAST_SIDE], east);
 
 	/* finish the pairing of the edge */
-	brick->sides[EAST_SIDE].edges[brick_index].pair_index = target_index;
-	target->sides[WEST_SIDE].edges[target_index].pair_index = brick_index;
+	east->sides[WEST_SIDE].edges[east_index].pair_index = west_index;
+	west->sides[EAST_SIDE].edges[west_index].pair_index = east_index;
 
 	return 1;
 }
 
-/**
- * Default implementation is made to fill the east links of brick_ops
- *
- * @param	target the target of the link operation
- * @param	brick the brick to link to the target
- * @param	errp a return pointer for an error message
- * @return	1 on success, 0 on error
- */
-int brick_generic_east_link(struct brick *target,
-			    struct brick *brick, struct switch_error **errp)
-{
-	return brick_generic_west_link(brick, target, errp);
-}
 
 static void reset_edge(struct brick_edge *edge)
 {

@@ -54,11 +54,11 @@
 	collect_east = brick_new("collect", config, &error);		\
 	g_assert(!error);						\
 	g_assert(collect_east);						\
-	brick_west_link(node1, collect_west, &error);			\
+	brick_link(collect_west, node1, &error);			\
 	g_assert(!error);						\
-	brick_east_link(node1, node2, &error);				\
+	brick_link(node1, node2, &error);				\
 	g_assert(!error);						\
-	brick_east_link(node2, collect_east, &error);			\
+	brick_link(node2, collect_east, &error);			\
 	g_assert(!error)
 
 #define	TEST_DIODE_DESTROY() do {				\

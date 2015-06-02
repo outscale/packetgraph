@@ -451,9 +451,6 @@ static struct brick_ops switch_ops = {
 	.init		= switch_init,
 	.destroy	= switch_destroy,
 
-	.west_link	= brick_generic_west_link,
-	.east_link	= brick_generic_east_link,
-
 	.unlink		= brick_generic_unlink,
 
 	.unlink_notify  = switch_unlink_notify,

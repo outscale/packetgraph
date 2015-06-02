@@ -104,13 +104,13 @@ static void test_hub_east_dispatch(void)
 	collect4 = brick_new("collect", config, &error);
 	g_assert(!error);
 	g_assert(collect4);
-	brick_west_link(hub, collect1, &error);
+	brick_link(collect1, hub, &error);
 	g_assert(!error);
-	brick_west_link(hub, collect2, &error);
+	brick_link(collect2, hub, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect3, &error);
+	brick_link(hub, collect3, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect4, &error);
+	brick_link(hub, collect4, &error);
 	g_assert(!error);
 
 	/* send a burst to the east from */
@@ -168,13 +168,13 @@ static void test_hub_west_dispatch(void)
 	collect4 = brick_new("collect", config, &error);
 	g_assert(!error);
 	g_assert(collect4);
-	brick_west_link(hub, collect1, &error);
+	brick_link(collect1, hub, &error);
 	g_assert(!error);
-	brick_west_link(hub, collect2, &error);
+	brick_link(collect2, hub, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect3, &error);
+	brick_link(hub, collect3, &error);
 	g_assert(!error);
-	brick_east_link(hub, collect4, &error);
+	brick_link(hub, collect4, &error);
 	g_assert(!error);
 
 	/* send a burst to the west from the hub */

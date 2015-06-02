@@ -66,8 +66,6 @@ static struct brick_ops nop_ops = {
 
 	.init		= nop_init,
 
-	.west_link	= brick_generic_west_link,
-	.east_link	= brick_generic_east_link,
 	.unlink		= brick_generic_unlink,
 };
 

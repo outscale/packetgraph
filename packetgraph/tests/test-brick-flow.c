@@ -53,11 +53,11 @@ static void test_brick_flow_west(void)
 	g_assert(!error);
 	g_assert(collect_east);
 
-	brick_west_link(brick1, collect_west, &error);
+	brick_link(collect_west, brick1, &error);
 	g_assert(!error);
-	brick_east_link(brick1, brick2, &error);
+	brick_link(brick1, brick2, &error);
 	g_assert(!error);
-	brick_east_link(brick2, collect_east, &error);
+	brick_link(brick2, collect_east, &error);
 	g_assert(!error);
 
 	/* send a pkts to the west from the eastest nope brick */
@@ -150,11 +150,11 @@ static void test_brick_flow_east(void)
 	g_assert(!error);
 	g_assert(collect_east);
 
-	brick_west_link(brick1, collect_west, &error);
+	brick_link(collect_west, brick1, &error);
 	g_assert(!error);
-	brick_east_link(brick1, brick2, &error);
+	brick_link(brick1, brick2, &error);
 	g_assert(!error);
-	brick_east_link(brick2, collect_east, &error);
+	brick_link(brick2, collect_east, &error);
 	g_assert(!error);
 
 	/* send a pkts to the east from the westest nope brick */
