@@ -24,17 +24,21 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-cppcheck -q  -f -I $BUTTERFLY_ROOT/packetgraph/include --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
-
-if [ $? != 0 ]; then
-    echo "cppcheck tests failed"
-    exit 1
-fi
-
 make lizard-run
 if [ $? != 0 ]; then
     echo "lizard tests failed"
     exit 1
+fi
+
+cppcheck > /dev/null
+if [ $? != 0 ]; then
+    echo "cppcheck is not installed, some tests will be skipped"
+else
+    cppcheck -q  -f -I $BUTTERFLY_ROOT/packetgraph/include --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
+    if [ $? != 0 ]; then
+	echo "cppcheck tests failed"
+	exit 1
+    fi
 fi
 
 rats > /dev/null
