@@ -98,6 +98,18 @@ static int collect_reset(struct brick *brick, struct switch_error **errp)
 	return 1;
 }
 
+struct brick *collect_new(const char *name, uint32_t west_max,
+			uint32_t east_max,
+			struct switch_error **errp)
+{
+	struct brick_config *config = brick_config_new(name, west_max,
+						       east_max);
+	struct brick *ret = brick_new("collect", config, errp);
+
+	brick_config_free(config);
+	return ret;
+}
+
 static struct brick_ops collect_ops = {
 	.name		= "collect",
 	.state_size	= sizeof(struct collect_state),
