@@ -31,6 +31,21 @@ struct brick_config *diode_config_new(const char *name, uint32_t west_max,
 	return brick_config_init(config, name, west_max, east_max);
 }
 
+struct brick_config *packetsgen_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max, enum side output,
+				      struct rte_mbuf **packets,
+				      uint16_t packets_nb)
+{
+	struct brick_config *config = g_new0(struct brick_config, 1);
+	struct packetsgen_config *pc = g_new0(struct packetsgen_config, 1);
+
+	pc->output = output;
+	pc->packets = packets;
+	pc->packets_nb = packets_nb;
+	config->packetsgen = pc;
+	return brick_config_init(config, name, west_max, east_max);
+}
+
 struct brick_config *brick_config_init(struct brick_config *config,
 				       const char *name,
 				       uint32_t west_max,
@@ -90,6 +105,7 @@ void brick_config_free(struct brick_config *config)
 		g_free(config->nic);
 	}
 	g_free(config->diode);
+	g_free(config->packetsgen);
 	g_free(config->name);
 	g_free(config);
 }

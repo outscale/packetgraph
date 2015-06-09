@@ -20,9 +20,16 @@
 
 #include "common.h"
 #include "utils/errors.h"
+#include "packets/packets.h"
 
 struct diode_config {
 	enum side output;
+};
+
+struct packetsgen_config {
+	enum side output;
+	struct rte_mbuf **packets;
+	uint16_t packets_nb;
 };
 
 struct vhost_config {
@@ -46,10 +53,16 @@ struct brick_config {
 	struct diode_config *diode;
 	struct vhost_config *vhost;
 	struct nic_config *nic;
+	struct packetsgen_config *packetsgen;
 };
 
 struct brick_config *diode_config_new(const char *name, uint32_t west_max,
 				      uint32_t east_max, enum side output);
+
+struct brick_config *packetsgen_config_new(const char *name, uint32_t west_max,
+					   uint32_t east_max, enum side output,
+					   struct rte_mbuf **packets,
+					   uint16_t packets_nb);
 
 struct brick_config *brick_config_init(struct brick_config *config,
 				       const char *name,
