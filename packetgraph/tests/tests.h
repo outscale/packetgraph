@@ -33,6 +33,7 @@ void test_vhost(void);
 void test_pkts_count(void);
 void test_hub(void);
 void test_nic(void);
+void test_firewall(void);
 
 /* dpdk driver init */
 void devinitfn_pmd_igb_drv(void);

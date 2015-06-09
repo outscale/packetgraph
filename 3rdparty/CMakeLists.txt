@@ -5,6 +5,7 @@ set(LIZARD_SOURCE_DIR ${3RDPARTY_DIR}/lizard)
 set(PROTOBUF_SOURCE_DIR ${3RDPARTY_DIR}/protobuf)
 set(LIBZMQ_SOURCE_DIR ${3RDPARTY_DIR}/libzmq)
 set(ZMQPP_SOURCE_DIR ${3RDPARTY_DIR}/zmqpp)
+set(NPF_SOURCE_DIR ${3RDPARTY_DIR}/npf)
 
 set(CMAKE_C_FLAGS "-g -Wall")
 
@@ -42,6 +43,18 @@ ExternalProject_Add(dpdk
 	INSTALL_DIR ${DPDK_INSTALL_DIR}
 	INSTALL_COMMAND make install CONFIG_RTE_LIBRTE_PMD_PCAP=y CONFIG_RTE_LIBRTE_VHOST=y T=x86_64-native-linuxapp-gcc DESTDIR=${3RDPARTY_INSTALL_DIR}
 	LOG_BUILD 1 Building dpdk)
+
+ExternalProject_Add(npf-dpdk
+    SOURCE_DIR ${NPF_SOURCE_DIR}
+	CONFIGURE_COMMAND true
+    PATCH_COMMAND cp ${NPF_SOURCE_DIR}/src/kern/npfkern.h ${NPF_INSTALL_DIR}/src/libnpf/net/
+    DOWNLOAD_DIR ${PROJECT_SOURCE_DIR}
+    DOWNLOAD_COMMAND git submodule update --init ${NPF_SOURCE_DIR} && /bin/cp -r ${NPF_SOURCE_DIR} ${3RDPARTY_INSTALL_DIR}
+    BINARY_DIR ${NPF_INSTALL_DIR}
+    BUILD_COMMAND make RTE_SDK=${DPDK_SOURCE_DIR} -C ${NPF_INSTALL_DIR}/dpdk
+    INSTALL_DIR ${NPF_INSTALL_DIR}
+    INSTALL_COMMAND true
+    LOG_BUILD 1 Building npf-dpdk)
 
 ExternalProject_Add(buildroot
 	PATCH_COMMAND patch -t -N -p1 < ${3RDPARTY_DIR}/patches/0001-config-custom-buildroot-config-for-testing.patch || true

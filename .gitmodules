@@ -19,3 +19,6 @@
 [submodule "3rdparty/libzmq"]
 	path = 3rdparty/libzmq
 	url = https://github.com/zeromq/libzmq.git
+[submodule "npf"]
+	path = 3rdparty/npf
+	url = https://github.com/rmind/npf.git

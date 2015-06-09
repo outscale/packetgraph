@@ -90,7 +90,6 @@ struct brick *nic_new_by_id(const char *name, uint32_t west_max,
 			    uint8_t portid,
 			    struct switch_error **errp);
 
-
 /* NIC functions */
 
 /**
@@ -155,7 +154,16 @@ struct nic_stats {
 void nic_get_stats(struct brick *nic,
 		   struct nic_stats *stats);
 
+struct brick *firewall_new(const char *name, uint32_t west_max,
+			uint32_t east_max, struct switch_error **errp);
+
 /* destructor */
 void brick_destroy(struct brick *brick);
+
+/* firewall specific API */
+int firewall_rule_add(struct brick *brick, const char *filter, enum side dir,
+		      int stateful, struct switch_error **errp);
+int firewall_rule_flush(struct brick *brick);
+int firewall_reload(struct brick *brick);
 
 #endif
