@@ -115,6 +115,7 @@ static void test_nic_simple_flow(void)
 	/* break the chain */
 	brick_destroy(nic_west);
 	brick_destroy(collect_east);
+	brick_destroy(collect_west);
 	brick_destroy(nic_ring);
 
 	brick_config_free(config);
