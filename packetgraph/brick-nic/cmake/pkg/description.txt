@@ -1,0 +1,2 @@
+packetgraph-nic is part of the packetgraph project. The nic brick function is
+to connect packetgraph to a real system network interface using DPDK.

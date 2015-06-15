@@ -1,0 +1,2 @@
+packetgraph-hub is part of the packetgraph project. The hub brick function is
+to broadcast all packets to all connected ports (except the source port).
