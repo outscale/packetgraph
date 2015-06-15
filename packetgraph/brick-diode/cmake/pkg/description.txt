@@ -1,0 +1,2 @@
+packetgraph-diode is part of the packetgraph project. The diode brick is
+ responsible to let packets pass in one way only.
