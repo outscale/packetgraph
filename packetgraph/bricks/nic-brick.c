@@ -123,7 +123,7 @@ static int ifname_to_portid(char *ifname, struct switch_error **errp)
 
 		rte_eth_dev_info_get(port_id, &dev_info);
 
-		if (if_indextoname(dev_info.if_index, ifname) == NULL) {
+		if (if_indextoname(dev_info.if_index, tmp) == NULL) {
 			/* try to get name from DPDK */
 			struct rte_eth_dev *dev = &rte_eth_devices[port_id];
 
@@ -136,13 +136,10 @@ static int ifname_to_portid(char *ifname, struct switch_error **errp)
 	return -1;
 }
 
-static int nic_init(struct brick *brick, struct brick_config *config,
-		    struct switch_error **errp)
+static int nic_init_ports(struct nic_state *state, struct switch_error **errp)
 {
-	struct nic_state *state = brick_get_state(brick, struct nic_state);
-	struct nic_config *nic_config;
-	struct rte_mempool *mp = get_mempool();
 	int ret;
+	struct rte_mempool *mp = get_mempool();
 	static const struct rte_eth_conf port_conf = {
 		.rxmode = {
 			.split_hdr_size = 0,
@@ -157,38 +154,6 @@ static int nic_init(struct brick *brick, struct brick_config *config,
 		},
 	};
 
-
-	if (!config) {
-		*errp = error_new("config is NULL");
-		return 0;
-	}
-	nic_config = config->nic;
-
-	if (!nic_config) {
-		*errp = error_new("config->nic is NULL");
-		return 0;
-	}
-
-	state->output = nic_config->output;
-	if (error_is_set(errp))
-		return 0;
-
-	/* Setup port id */
-	if (nic_config->ifname) {
-		state->portid = ifname_to_portid(nic_config->ifname, errp);
-		if (error_is_set(errp))
-			return 0;
-	} else {
-		if (nic_config->portid < rte_eth_dev_count()) {
-			state->portid = nic_config->portid;
-		} else {
-			*errp = error_new("Invalid port id %i",
-					  nic_config->portid);
-			return 0;
-		}
-	}
-
-	/* Setup port */
 	ret = rte_eth_dev_configure(state->portid, 1, 1, &port_conf);
 	if (ret < 0) {
 		*errp = error_new(
@@ -216,6 +181,46 @@ static int nic_init(struct brick *brick, struct brick_config *config,
 				  state->portid);
 		return 0;
 	}
+	return 1;
+}
+
+static int nic_init(struct brick *brick, struct brick_config *config,
+		    struct switch_error **errp)
+{
+	struct nic_state *state = brick_get_state(brick, struct nic_state);
+	struct nic_config *nic_config;
+	int ret;
+
+	if (!config) {
+		*errp = error_new("config is NULL");
+		return 0;
+	}
+	nic_config = config->nic;
+
+	if (!nic_config) {
+		*errp = error_new("config->nic is NULL");
+		return 0;
+	}
+
+	state->output = nic_config->output;
+	if (error_is_set(errp))
+		return 0;
+
+	/* Setup port id */
+	if (nic_config->ifname) {
+		state->portid = ifname_to_portid(nic_config->ifname, errp);
+		if (error_is_set(errp))
+			return 0;
+	} else if (nic_config->portid < rte_eth_dev_count()) {
+		state->portid = nic_config->portid;
+	} else {
+		*errp = error_new("Invalid port id %i",
+				  nic_config->portid);
+		return 0;
+	}
+
+	if (!nic_init_ports(state, errp))
+		return 0;
 
 	ret = rte_eth_dev_start(state->portid);
 	if (ret < 0) {
