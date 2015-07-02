@@ -236,6 +236,7 @@ static void nic_destroy(struct brick *brick, struct switch_error **errp)
 {
 	struct nic_state *state =
 		brick_get_state(brick, struct nic_state);
+	rte_eth_xstats_reset(state->portid);
 	rte_eth_dev_stop(state->portid);
 }
 
