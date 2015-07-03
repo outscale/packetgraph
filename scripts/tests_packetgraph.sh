@@ -3,6 +3,7 @@
 # Butterfly root
 BUTTERFLY_ROOT=$1
 BUTTERFLY_BUILD_ROOT=.
+TEST_DIR=$BUTTERFLY_ROOT/packetgraph/tests/
 
 # Test Butterfly build root
 if [ ! -f $BUTTERFLY_BUILD_ROOT/packetgraph/tests/tests ]; then
@@ -24,6 +25,5 @@ if [ ! -f $GRAPH ]; then
 fi
 
 # Run the packetgraph tests in quick mode
-echo $BUTTERFLY_ROOT/enter.pcap
-$GRAPH -c1 -n1 --socket-mem 64 --vdev=eth_pcap0,rx_pcap=$BUTTERFLY_ROOT/enter.pcap,tx_pcap=$BUTTERFLY_ROOT/out.pcap --vdev=eth_ring0 -- -quick-test || { echo 'failed' ; exit 1; }
+$GRAPH -c1 -n1 --socket-mem 64 --vdev=eth_pcap0,rx_pcap=$TEST_DIR/enter.pcap,tx_pcap=$TEST_DIR/out.pcap --vdev=eth_ring0 -- -quick-test || { echo 'failed' ; exit 1; }
 
