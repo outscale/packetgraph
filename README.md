@@ -92,6 +92,7 @@ Install needed packages:
 
 # Debian SID
     apt-get install git cmake gcc g++ libc6-dev libc6-dbg libc6-i386 libglib2.0-dev libprotobuf-c1 protobuf-c-compiler cppcheck qemu
+
 # Arch Linux
     pacman -S git multilib-devel base-devel cmake glib2 protobuf-c cppcheck qemu
 
@@ -109,6 +110,70 @@ And let's build !
     make
 
 Now you can get a coffee, it will take some time (https://xkcd.com/303/).
+
+## CentOS 7
+
+
+### Install pre-requisite
+
+- yum install git cmake gcc gcc-c++ glib2-devel.x86_64 glib2.x86_64 flex bison bc libstdc++.i686 perl-Data-Dumper.x86_64 libpcap-devel fuse-devel wget zlib-devel
+
+- wget http://ftp.free.fr/mirrors/fedora.redhat.com/fedora/linux/releases/21/Everything/x86_64/os/Packages/u/userspace-rcu-0.8.1-5.fc21.x86_64.rpm
+- rpm -i userspace-rcu-0.8.1-5.fc21.x86_64.rpm
+- wget http://ftp.free.fr/mirrors/fedora.redhat.com/fedora/linux/releases/21/Everything/x86_64/os/Packages/u/userspace-rcu-devel-0.8.1-5.fc21.x86_64.rpm
+- rpm -i userspace-rcu-devel-0.8.1-5.fc21.x86_64.rpm
+- wget http://noxt.eu/~rmind/libprop-0.6.5-1.el7.centos.x86_64.rpm
+- rpm -i libprop-0.6.5-1.el7.centos.x86_64.rpm
+
+### Get and install patched libcdb
+
+- git clone https://github.com/rmind/libcdb
+- cd libcdb
+- make rpm
+- rpm -ihv RPMS/x86_64/libcdb-*
+
+### Get and install NPF
+
+- git clone https://github.com/rmind/npf
+- cd npf/pkg
+- make rpm
+- rpm -ihv RPMS/x86_64/npf-*
+
+### Get and install Qemu
+
+- git clone git://git.qemu-project.org/qemu.git
+- cd qemu
+- git submodule update --init pixman
+- git submodule update --init dtc
+- ./configure
+- make
+- make install
+- sudo -ln -s /usr/local/bin/qemu-system-x86_64 /usr/bin/
+(tests will reach qemu here)
+
+### Configure Hugepages for Centos
+
+#### Enable hugepages
+
+- echo "vm.nr_hugepages=550" >> cat /etc/sysctl.conf
+- sysctl -p /etc/sysctl.conf
+
+check:
+- grep HugePages /proc/meminfo
+
+#### Mount hugepages
+
+- mkdir /mnt/huge
+- mount -t hugetlbfs none /mnt/huge
+
+### Build and run tests
+
+- mkdir build
+- cd build
+- cmake ..
+- make
+as super user:
+- make tests-all
 
 ## Other platforms
 
