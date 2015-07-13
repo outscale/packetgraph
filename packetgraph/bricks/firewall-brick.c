@@ -26,6 +26,8 @@
 #define FIREWALL_SIDE_TO_NPF(side) \
 	((side) == WEST_SIDE ? PFIL_OUT : PFIL_IN)
 
+#define NWORKERS 1
+
 struct ifnet;
 
 struct firewall_state {
@@ -217,6 +219,7 @@ static int firewall_init(struct brick *brick,
 	/* initialize fast path */
 	brick->burst = firewall_burst;
 	/* init NPF configuration */
+	npf_sysinit(NWORKERS);
 	npf = npf_dpdk_create();
 	npf_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
@@ -233,6 +236,7 @@ static void firewall_destroy(struct brick *brick,
 	npf_dpdk_ifdetach(state->npf, state->ifp);
 	npf_destroy(state->npf);
 	firewall_rule_flush(brick);
+	npf_sysfini();
 }
 
 static struct brick_ops firewall_ops = {
@@ -246,3 +250,5 @@ static struct brick_ops firewall_ops = {
 };
 
 brick_register(struct firewall_state, &firewall_ops);
+
+#undef NWORKERS
