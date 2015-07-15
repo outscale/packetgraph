@@ -20,10 +20,13 @@
 
 #define	__FAVOR_BSD
 #include <arpa/inet.h>
-#include <net/ethernet.h>
-#include <netinet/ether.h>
+/* #include <net/ethernet.h> */
+/* #include <netinet/ether.h> */
 #include <netinet/ip.h>
-#include <netinet/udp.h>
+/* #include <netinet/udp.h> */
+
+#include <rte_config.h>
+#include <rte_ether.h>
 #include <pcap/pcap.h>
 
 #include "npf_dpdk.h"
@@ -32,15 +35,16 @@
 #include "tests.h"
 #include "bricks/brick.h"
 #include "utils/bitmask.h"
+#include "mac.h"
 
 static struct rte_mbuf *build_ip_packet(const char *src_ip,
 					const char *dst_ip, uint16_t data)
 {
 	struct rte_mempool *mp = get_mempool();
 	struct rte_mbuf *pkt = rte_pktmbuf_alloc(mp);
-	uint16_t len = sizeof(struct ether_header) + sizeof(struct ip) +
+	uint16_t len = sizeof(struct ether_hdr) + sizeof(struct ip) +
 		sizeof(uint16_t);
-	struct ether_header *eth;
+	struct ether_hdr *eth;
 	struct ip *ip;
 	uint16_t *payload_ip;
 
@@ -50,9 +54,9 @@ static struct rte_mbuf *build_ip_packet(const char *src_ip,
 	pkt->next = NULL;
 
 	/* ethernet header */
-	eth = rte_pktmbuf_mtod(pkt, struct ether_header*);
+	eth = rte_pktmbuf_mtod(pkt, struct ether_hdr*);
 	memset(eth, 0, len);
-	eth->ether_type = htobe16(ETHERTYPE_IP);
+	eth->ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 
 	/* ipv4 header */
 	ip = (struct ip *)(eth + 1);
@@ -94,8 +98,8 @@ static struct rte_mbuf *build_non_ip_packet(void)
 	struct rte_mempool *mp = get_mempool();
 	struct rte_mbuf *pkt = rte_pktmbuf_alloc(mp);
 	uint8_t *payload;
-	struct ether_header *eth;
-	uint16_t len = sizeof(struct ether_header) + 1;
+	struct ether_hdr *eth;
+	uint16_t len = sizeof(struct ether_hdr) + 1;
 
 	pkt->pkt_len = len;
 	pkt->data_len = len;
@@ -103,9 +107,9 @@ static struct rte_mbuf *build_non_ip_packet(void)
 	pkt->next = NULL;
 
 	/* ethernet header */
-	eth = rte_pktmbuf_mtod(pkt, struct ether_header*);
+	eth = rte_pktmbuf_mtod(pkt, struct ether_hdr*);
 	memset(eth, 0, len);
-	eth->ether_type = htobe16(ETHERTYPE_ARP);
+	eth->ether_type = rte_cpu_to_be_16(ETHER_TYPE_ARP);
 
 	/* write some data */
 	payload = (uint8_t *)(eth + 1);
@@ -128,7 +132,7 @@ static void firewall_filter_rules(enum side dir)
 	uint64_t bit;
 	uint16_t packet_count;
 	struct ip *ip;
-	struct ether_header *eth;
+	struct ether_hdr *eth;
 
 	/* create and connect 3 bricks: generator -> firewall -> collector */
 	gen = packetsgen_new("gen", 2, 2, flip_side(dir), packets, nb, &error);
@@ -191,7 +195,7 @@ static void firewall_filter_rules(enum side dir)
 	for (; filtered_pkts_mask;) {
 		low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0);
-		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_header*);
+		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
 	}
@@ -221,7 +225,7 @@ static void firewall_filter_rules(enum side dir)
 	for (; filtered_pkts_mask;) {
 		low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0 || i % 3 == 1);
-		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_header*);
+		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1") ||
 			 ip->ip_src.s_addr == inet_addr("10.0.0.2"));
@@ -275,7 +279,7 @@ static void firewall_filter_rules(enum side dir)
 	for (; filtered_pkts_mask;) {
 		low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 1);
-		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_header*);
+		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.2"));
 	}
@@ -308,7 +312,7 @@ static void firewall_filter_rules(enum side dir)
 	for (; filtered_pkts_mask;) {
 		low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0 || i % 3 == 1);
-		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_header*);
+		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1") ||
 			 ip->ip_src.s_addr == inet_addr("10.0.0.2"));
@@ -365,7 +369,7 @@ static void firewall_filter_rules(enum side dir)
 	for (; filtered_pkts_mask;) {
 		low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0);
-		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_header*);
+		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
 	}
@@ -402,7 +406,7 @@ static void firewall_filter_rules(enum side dir)
 	for (; filtered_pkts_mask;) {
 		low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0);
-		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_header*);
+		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
 	}
@@ -425,10 +429,10 @@ static void firewall_replay(const unsigned char *pkts[],
 	struct switch_error *error = NULL;
 	uint16_t i, packet_count;
 	struct rte_mbuf *packet;
-	struct ether_header *eth;
-	struct ip *ip;
+	struct ether_hdr *eth;
 	uint64_t filtered_pkts_mask;
 	struct rte_mbuf **filtered_pkts;
+	struct ether_addr tmp_addr;
 	int ret;
 
 	/* have some collectors and generators on each sides
@@ -468,8 +472,10 @@ static void firewall_replay(const unsigned char *pkts[],
 
 	/* replay traffic */
 	for (i = 0; i < pkts_nb; i++) {
+		struct ip *ip;
+
 		packet = build_packet(pkts[i], pkts_size[i]);
-		eth = rte_pktmbuf_mtod(packet, struct ether_header*);
+		eth = rte_pktmbuf_mtod(packet, struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
 
 		if (ip->ip_src.s_addr == inet_addr("10.0.2.15")) {
@@ -482,9 +488,9 @@ static void firewall_replay(const unsigned char *pkts[],
 			g_assert(mask_count(filtered_pkts_mask) == 1);
 			/* check eth source address */
 			eth = rte_pktmbuf_mtod(filtered_pkts[0],
-					       struct ether_header*);
-			g_assert(strcmp(ether_ntoa((struct ether_addr *)
-				    eth->ether_shost), "8:0:27:b6:5:16") == 0);
+					       struct ether_hdr*);
+			scan_ether_addr(&tmp_addr, "08:00:27:b6:05:16");
+			g_assert(is_same_ether_addr(&eth->s_addr, &tmp_addr));
 			/* check ip source address */
 			ip = (struct ip *)(eth + 1);
 			g_assert(ip->ip_src.s_addr == inet_addr("10.0.2.15"));
@@ -498,9 +504,9 @@ static void firewall_replay(const unsigned char *pkts[],
 			g_assert(mask_count(filtered_pkts_mask) == 1);
 			/* check eth source address */
 			eth = rte_pktmbuf_mtod(filtered_pkts[0],
-					       struct ether_header*);
-			g_assert(strcmp(ether_ntoa((struct ether_addr *)
-				    eth->ether_shost), "52:54:0:12:35:2") == 0);
+					       struct ether_hdr*);
+			scan_ether_addr(&tmp_addr, "52:54:00:12:35:02");
+			g_assert(is_same_ether_addr(&eth->s_addr, &tmp_addr));
 			/* check ip source address */
 			ip = (struct ip *)(eth + 1);
 			g_assert(ip->ip_src.s_addr ==

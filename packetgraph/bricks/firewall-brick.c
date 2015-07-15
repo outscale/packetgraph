@@ -14,10 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <net/if.h>
-#include <net/ethernet.h>
 #include <glib.h>
 #include <rte_config.h>
+#include <rte_ether.h>
 #include "bricks/brick.h"
 #include "utils/bitmask.h"
 #include "npf/dpdk/npf_dpdk.h"
@@ -155,7 +154,6 @@ static int firewall_burst(struct brick *brick, enum side side,
 	uint16_t i;
 	int ret;
 	struct rte_mbuf *tmp;
-	struct ether_header *eth;
 
 	s = &brick->sides[flip_side(side)];
 	state = brick_get_state(brick, struct firewall_state);
@@ -166,14 +164,16 @@ static int firewall_burst(struct brick *brick, enum side side,
 
 	it_mask = pkts_mask;
 	for (; it_mask;) {
+		struct ether_hdr *eth;
+
 		low_bit_iterate_full(it_mask, bit, i);
 
 		/* Firewall only manage IPv4 or IPv6 filtering.
 		 * Let non-ip packets (like ARP) pass.
 		 */
-		eth = rte_pktmbuf_mtod(pkts[i], struct ether_header*);
-		if (eth->ether_type != htobe16(ETHERTYPE_IP) &&
-		    eth->ether_type != htobe16(ETHERTYPE_IPV6)) {
+		eth = rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
+		if (eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv4) &&
+		    eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv6)) {
 			continue;
 		}
 
@@ -182,7 +182,7 @@ static int firewall_burst(struct brick *brick, enum side side,
 		 * have to clone packets just for filtering and will have to
 		 * restroy cloned packets after handling them in NPF.
 		 */
-		rte_pktmbuf_adj(pkts[i], sizeof(struct ether_header));
+		rte_pktmbuf_adj(pkts[i], sizeof(struct ether_hdr));
 
 		/* filter packet */
 		tmp = pkts[i];
@@ -194,7 +194,7 @@ static int firewall_burst(struct brick *brick, enum side side,
 			pkts_mask &= ~bit;
 
 		/* set back layer 2 */
-		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_header));
+		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
 	}
 
 	/* decrement reference of packets which has not been free by npf-dpdk */
