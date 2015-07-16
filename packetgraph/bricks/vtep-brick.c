@@ -732,6 +732,19 @@ static int vtep_init(struct brick *brick,
 	return 1;
 }
 
+struct brick *vtep_new(const char *name, uint32_t west_max,
+		       uint32_t east_max, enum side output,
+		       uint32_t ip, struct ether_addr mac,
+		       struct switch_error **errp)
+{
+	struct brick_config *config = vtep_config_new(name, west_max, east_max,
+						      output, ip, mac);
+	struct brick *ret = brick_new("vtep", config, errp);
+
+	brick_config_free(config);
+	return ret;
+}
+
 static void vtep_destroy(struct brick *brick, struct switch_error **errp)
 {
 	struct vtep_state *state = brick_get_state(brick, struct vtep_state);

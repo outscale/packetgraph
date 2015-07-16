@@ -90,6 +90,11 @@ struct brick *nic_new_by_id(const char *name, uint32_t west_max,
 			    uint8_t portid,
 			    struct switch_error **errp);
 
+struct brick *vtep_new(const char *name, uint32_t west_max,
+		       uint32_t east_max, enum side output,
+		       uint32_t ip, struct ether_addr mac,
+		       struct switch_error **errp);
+
 /* NIC functions */
 
 /**
