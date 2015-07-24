@@ -1,9 +1,0 @@
-messages {
-  revision: 0
-  message_0 {
-    request {
-      nic_stats_req: "nic-1"
-    }
-  }
-}
-
