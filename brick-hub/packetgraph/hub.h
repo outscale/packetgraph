@@ -26,7 +26,7 @@
  * @param	name name of the brick
  * @param	west_max maximum of links you can connect on the west side
  * @param	east_max maximum of links you can connect on the east side
-  * @param	errp is set in case of an error
+ * @param	errp is set in case of an error
  * @return	a pointer to a brick structure, on success, 0 on error
  */
 struct brick *hub_new(const char *name, uint32_t west_max,
