@@ -32,10 +32,11 @@ flow.
 A real life example would be to plug a diode on a hub to mirror all traffic
 to a vhost for sniffing or logging purposes.
 
+```
 [nic]---[hub]-----------[nic]
           |
           +--[>diode>]--[nic]
-
+```
 ```
 struct brick *d;
 d = diode_new("my diode", 1, 1, EAST_SIDE, &error);
