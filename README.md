@@ -42,3 +42,11 @@ In order to reduce dependencies, the project has been splitted in several libs:
 - Each brick is a library.
 
 Check each libraries to build them :)
+
+# Question ? Contact us !
+
+Packetgraph is an open-source project, feel free to contact us on IRC:
+
+> server: irc.freenode.org
+
+> chan: #betterfly
