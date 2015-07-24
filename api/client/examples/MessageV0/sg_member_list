@@ -1,9 +1,0 @@
-messages {
-  revision: 0
-  message_0 {
-    request {
-      sg_member_list_req: "sg-1"
-    }
-  }
-}
-
