@@ -13,7 +13,9 @@ Note that:
 
 Real life example (which is available in examples folder):
 
+```
 [nic]--[firewall]--[nic]
+```
 
 # Building
 
