@@ -5,8 +5,8 @@ modifications.
 
 # Packetgraph
 
-Packetgraph library is build upon DPDK making a collection of network bricks
-you can connect to form a network graph.
+Packetgraph library is build upon [DPDK](http://dpdk.org/) making a collection
+of network bricks you can connect to form a network graph.
 The goal of this project is to provides a low-latency software defined
 network.
 Everyone is free to use this library to build up there own network
