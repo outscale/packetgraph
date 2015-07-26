@@ -36,7 +36,7 @@ if [ -z $RTE_SDK ]; then
 fi
 
 export PG_CORE="$p/build-core"
-for n in build-core build-brick-diode build-brick-firewall build-brick-hub build-brick-nic build-brick-switch build-brick-vhost; do
+for n in build-core build-brick-diode build-brick-print build-brick-firewall build-brick-hub build-brick-nic build-brick-switch build-brick-vhost; do
 	build=$p/$n
 	mkdir $build | true
 	cd $build
@@ -48,6 +48,6 @@ for n in build-core build-brick-diode build-brick-firewall build-brick-hub build
 	mv $build/*.rpm $p/
 done
 
-for n in build-core build-brick-diode build-brick-firewall build-brick-hub build-brick-nic build-brick-switch build-brick-vhost; do
+for n in build-core build-brick-diode build-brick-print build-brick-firewall build-brick-hub build-brick-nic build-brick-switch build-brick-vhost; do
 	rm -rf $p/$n
 done

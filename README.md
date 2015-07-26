@@ -20,6 +20,7 @@ Here are current developped bricks available in packetgraph:
 - diode: only let packets pass in one direction
 - hub: act as a hub device, passing packets to all connected bricks
 - nic: allow to pass packets to a NIC of the system (accelerated by DPDK)
+- print: a basic print brick to show packets flowing through it
 
 Comming soon:
 
