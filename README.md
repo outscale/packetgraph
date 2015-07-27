@@ -35,6 +35,19 @@ Futur bricks:
 - nat: manage network address translation
 - dhcp: add a dhcp server (Dynamic Host Configuration Protocol)
 
+# Examples
+
+Here are some possible graphics you can do with paquetgraph. You will find
+some implementations in "examples" folder.
+
+![A simple firewall](http://i.imgur.com/suqQAbG.png "A simple firewall")
+
+![A switch with several nics around](http://i.imgur.com/GT60CpA.png "A switch with several nics around")
+
+![Virtual machines bridged with the NIC](http://i.imgur.com/UnDYTLB.png "Virtual machines bridged with the NIC")
+
+![Virtual machines connected to a vxlan and protected by a firewall](http://i.imgur.com/Mnxid6n.png "Virtual machines connected to a vxlan and protected by a firewall")
+
 # Building
 
 In order to reduce dependencies, the project has been splitted in several libs:
