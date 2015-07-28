@@ -89,10 +89,10 @@ static int print_burst(struct brick *brick, enum side from, uint16_t edge_index,
 		}
 
 		if (state->flags | PRINT_FLAG_TIMESTAMP)
-			fprintf(o, " [%"PRIu64"]", diff);
+			fprintf(o, " [time=%"PRIu64"]", diff);
 
 		if (state->flags | PRINT_FLAG_SIZE)
-			fprintf(o, " [%"PRIu64"]", size);
+			fprintf(o, " [size=%"PRIu64"]", size);
 
 		if (state->flags | PRINT_FLAG_SUMMARY)
 			print_summary(data, size, o);
