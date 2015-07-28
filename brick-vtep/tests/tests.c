@@ -17,8 +17,6 @@
 
 #include <glib.h>
 
-#include <ccan/endian/endian.h>
-
 #include <rte_config.h>
 #include <rte_ethdev.h>
 #include <rte_eth_ring.h>
@@ -27,11 +25,13 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#include "bricks/brick.h"
-#include "utils/mempool.h"
-#include "utils/bitmask.h"
-#include "tests.h"
-#include "mac.h"
+#include <packetgraph/brick.h>
+#include <packetgraph/vtep.h>
+#include <packetgraph/utils/mempool.h>
+#include <packetgraph/utils/mac.h>
+#include <packetgraph/utils/bitmask.h>
+#include <packetgraph/collect.h>
+#include <packetgraph/hub.h>
 
 /* redeclar here for testing purpose,
  * theres stucture should not be use by user */
@@ -81,7 +81,7 @@ static void check_multicast_hdr(struct multicast_pkt *hdr, uint32_t ip_dst,
 				struct ether_addr *dst_addr)
 {
 	(void)hdr->igmp.checksum; /* cppcheck, don't speak please */
-	g_assert(hdr->ethernet.ether_type == cpu_to_be16(ETHER_TYPE_IPv4));
+	g_assert(hdr->ethernet.ether_type == rte_cpu_to_be_16(ETHER_TYPE_IPv4));
 	g_assert(hdr->ipv4.version_ihl == 0x45);
 	g_assert(hdr->ipv4.next_proto_id == 0x02);
 	g_assert(hdr->ipv4.dst_addr == ip_dst);
@@ -101,20 +101,6 @@ static void test_vtep_simple(void)
 				      0xc3, 0xc4, 0xc5} };
 	struct ether_addr multicast_mac1, multicast_mac2;
 	/*we're usin the same cfg for the collect and the hub*/
-	struct brick_config *collect_config = brick_config_new("collect", 3, 3);
-	struct brick_config *hub_collect_config;
-	struct brick_config *vtep_config_w = vtep_config_new("vtep-w",
-							       2,
-							       1,
-							       EAST_SIDE,
-							       1, /* vtep ip */
-							       mac_src);
-	struct brick_config *vtep_config_e = vtep_config_new("vtep-e",
-							       1,
-							       2,
-							       WEST_SIDE,
-							       2,
-							       mac_dest);
 	struct brick *vtep_west, *vtep_east;
 	struct brick *collect_west1, *collect_east1;
 	struct brick *collect_west2, *collect_east2;
@@ -127,41 +113,43 @@ static void test_vtep_simple(void)
 	struct ether_hdr *tmp;
 	uint16_t i;
 
-	hub_collect_config = brick_config_new("hub collect", 3, 3);
-
-	vtep_west = brick_new("vtep", vtep_config_w, &error);
+	/*For testing purpose this vtep ip is 1*/
+	vtep_west = vtep_new("vtep", 2, 1, EAST_SIDE, 1, mac_src, &error);
 	if (error)
 		error_print(error);
 	g_assert(!error);
 	g_assert(vtep_west);
 
-	vtep_east = brick_new("vtep", vtep_config_e, &error);
+	/*For testing purpose this vtep ip is 2*/
+	vtep_east = vtep_new("vtep", 1, 2, WEST_SIDE, 2, mac_dest, &error);
 	if (error)
 		error_print(error);
 	g_assert(!error);
 	g_assert(vtep_east);
 
-	collect_east1 = brick_new("collect", collect_config, &error);
+ 	collect_east1 = collect_new("collect-east1", 1, 1, &error);
 	if (error)
 		error_print(error);
 	g_assert(!error);
 	g_assert(collect_east1);
-	collect_east2 = brick_new("collect", collect_config, &error);
+	collect_east2 = collect_new("collect-east2", 1, 1, &error);
 	if (error)
 		error_print(error);
 	g_assert(!error);
 	g_assert(collect_east2);
 
-	collect_west1 = brick_new("collect", collect_config, &error);
+	collect_west1 = collect_new("collect-west1", 1, 1, &error);
 	g_assert(!error);
 	g_assert(collect_west1);
-	collect_west2 = brick_new("collect", collect_config, &error);
+	collect_west2 = collect_new("collect-west2", 1, 1, &error);
 	g_assert(!error);
 	g_assert(collect_west2);
-	collect_hub = brick_new("collect", hub_collect_config, &error);
+	collect_hub = collect_new("collect-hub", 3, 3, &error);
 	g_assert(!error);
 	g_assert(collect_hub);
-	hub = brick_new("hub", collect_config, &error);
+	hub = hub_new("hub", 3, 3, &error);
+	if (error)
+		error_print(error);
 	g_assert(!error);
 	g_assert(hub);
 
@@ -287,7 +275,7 @@ static void test_vtep_simple(void)
 		hdr = rte_pktmbuf_mtod(result_pkts[i], struct headers *);
 		g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
 					    &mac_multicast));
-		g_assert(be32_to_cpu(hdr->ipv4.dst_addr) ==
+		g_assert(rte_be_to_cpu_32(hdr->ipv4.dst_addr) ==
 			 inet_addr("224.0.0.5"));
 		set_mac_addrs(pkts[i],
 			      printable_mac(&mac_dest, buf),
@@ -316,15 +304,11 @@ static void test_vtep_simple(void)
 
 		hdr = rte_pktmbuf_mtod(result_pkts[i], struct headers *);
 		g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
-					    &vtep_config_e->vtep->mac));
-		g_assert(be32_to_cpu(hdr->ipv4.dst_addr) == 2);
+					    vtep_get_mac(vtep_east)));
+		g_assert(rte_be_to_cpu_32(hdr->ipv4.dst_addr) == 2);
 	}
 
 	/* kill'em all */
-	brick_config_free(vtep_config_w);
-	brick_config_free(vtep_config_e);
-	brick_config_free(collect_config);
-
 	brick_unlink(vtep_west, &error);
 	g_assert(!error);
 	brick_decref(vtep_west, &error);
@@ -364,8 +348,27 @@ static void test_vtep_simple(void)
 
 #undef NB_PKTS
 
-void test_vtep(void)
+static void test_vtep(void)
 {
 	g_test_add_func("/brick/vtep/simple",
 			test_vtep_simple);
+}
+
+int main(int argc, char **argv)
+{
+	struct switch_error *error;
+	int r;
+
+	/* tests in the same order as the header function declarations */
+	g_test_init(&argc, &argv, NULL);
+
+	/* initialize packetgraph */
+	packetgraph_start(argc, argv, &error);
+	g_assert(!error);
+
+	test_vtep();
+	r = g_test_run();
+
+	packetgraph_stop();
+	return r;
 }

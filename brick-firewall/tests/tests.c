@@ -31,13 +31,13 @@
 
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/utils/mempool.h>
+#include <packetgraph/utils/mac.h>
 #include <packetgraph/brick.h>
 #include <packetgraph/firewall.h>
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/collect.h>
 #include <packetgraph/packetsgen.h>
 #include <packetgraph/packets.h>
-#include "mac.h"
 
 static struct rte_mbuf *build_ip_packet(const char *src_ip,
 					const char *dst_ip, uint16_t data)

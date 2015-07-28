@@ -26,10 +26,12 @@
 #include <rte_config.h>
 #include <rte_ether.h>
 
-#include "bricks/brick.h"
-#include "utils/mempool.h"
-#include "utils/bitmask.h"
-#include "utils/lifecycle.h"
+#include <packetgraph/packetgraph.h>
+#include <packetgraph/nic.h>
+#include <packetgraph/vtep.h>
+#include <packetgraph/packetsgen.h>
+#include <packetgraph/utils/mempool.h>
+#include <packetgraph/utils/bitmask.h>
 
 struct vtep_opts {
 	const char *ip;
@@ -244,7 +246,7 @@ int main(int argc, char **argv)
 	struct ether_addr inner_addr;
 	GList *neighbor_addrs = NULL;
 
-	ret = packetgraph_start(argc, argv, "/tmp", &error);
+	ret = packetgraph_start(argc, argv, &error);
 	g_assert(ret != -1);
 	g_assert(!error);
 

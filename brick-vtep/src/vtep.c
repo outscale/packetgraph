@@ -25,8 +25,6 @@
  *	  the NIC
  */
 
-#include <ccan/endian/endian.h>
-
 #include <rte_config.h>
 #include <rte_errno.h>
 #include <rte_ether.h>
@@ -38,10 +36,18 @@
 #include <rte_prefetch.h>
 #include <rte_udp.h>
 
-#include "bricks/brick.h"
-#include "packets/packets.h"
-#include "utils/bitmask.h"
-#include "utils/mempool.h"
+#include <packetgraph/brick.h>
+#include <packetgraph/utils/bitmask.h>
+#include <packetgraph/common.h>
+#include <packetgraph/packets.h>
+#include <packetgraph/vtep.h>
+#include <packetgraph/utils/mempool.h>
+
+struct vtep_config {
+       enum side output;
+       int32_t ip;
+       struct ether_addr mac;
+};
 
 #define VTEP_I_FLAG		(1 << 4)
 #define VTEP_DST_PORT		4789
@@ -106,6 +112,11 @@ struct vtep_state {
 	rte_atomic16_t packet_id;	/* IP identification number */
 	struct rte_mbuf *pkts[64];
 };
+
+struct ether_addr *vtep_get_mac(struct brick *brick)
+{
+	return brick ? &brick_get_state(brick, struct vtep_state)->mac : NULL;
+}
 
 static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac);
 
@@ -183,7 +194,7 @@ static void vxlan_build(struct vxlan_hdr *header, uint32_t vni)
 	 * We have checked the VNI validity at VNI setup so reserved byte will
 	 * be zero.
 	 */
-	header->vx_vni = cpu_to_be32(vni);
+	header->vx_vni = rte_cpu_to_be_32(vni);
 }
 
 /**
@@ -231,9 +242,9 @@ static void udp_build(struct udp_hdr *udp_hdr,
 	uint32_t ether_hash = ethernet_header_hash(inner_eth_hdr);
 	uint16_t src_port = src_port_compute(ether_hash);
 
-	udp_hdr->src_port = cpu_to_be16(src_port);
-	udp_hdr->dst_port = cpu_to_be16(dst_port);
-	udp_hdr->dgram_len = cpu_to_be16(datagram_len);
+	udp_hdr->src_port = rte_cpu_to_be_16(src_port);
+	udp_hdr->dst_port = rte_cpu_to_be_16(dst_port);
+	udp_hdr->dgram_len = rte_cpu_to_be_16(datagram_len);
 
 	/* UDP checksum SHOULD be transmited as zero */
 }
@@ -253,11 +264,11 @@ static void ip_build(struct vtep_state *state, struct ipv4_hdr *ip_hdr,
 
 	/* TOS is zero (routine) */
 
-	ip_hdr->total_length = cpu_to_be16(datagram_len);
+	ip_hdr->total_length = rte_cpu_to_be_16(datagram_len);
 
 	/* Set the packet id and increment it */
 	ip_hdr->packet_id =
-		cpu_to_be16(rte_atomic16_add_return(&state->packet_id, 1));
+		rte_cpu_to_be_16(rte_atomic16_add_return(&state->packet_id, 1));
 
 	/* the implementation do not use neither DF nor MF */
 
@@ -271,8 +282,8 @@ static void ip_build(struct vtep_state *state, struct ipv4_hdr *ip_hdr,
 
 	/* the header checksum computation is to be offloaded in the NIC */
 
-	ip_hdr->src_addr = cpu_to_be32(src_ip);
-	ip_hdr->dst_addr = cpu_to_be32(dst_ip);
+	ip_hdr->src_addr = rte_cpu_to_be_32(src_ip);
+	ip_hdr->dst_addr = rte_cpu_to_be_32(dst_ip);
 }
 
 /**
@@ -291,7 +302,7 @@ static void ethernet_build(struct ether_hdr *eth_hdr,
 	ether_addr_copy(dst_mac, &eth_hdr->d_addr);
 
 	/* the ethernet frame carries an IP packet */
-	eth_hdr->ether_type = cpu_to_be16(ETHER_TYPE_IPv4);
+	eth_hdr->ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 }
 
 static uint16_t udp_overhead(void)
@@ -350,7 +361,7 @@ static int vtep_header_prepend(struct vtep_state *state,
 	ip_build(state, &headers->ipv4, state->ip, dst_ip,
 		 packet_len + ip_overhead());
 	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
-	
+
 	return 1;
 }
 
@@ -395,7 +406,7 @@ static int vtep_encapsulate(struct vtep_state *state, struct vtep_port *port,
 		/* pick up the right destination ip */
 		if (unicast)
 			entry = entries[i];
-		
+
 		tmp = rte_pktmbuf_clone(pkts[i], mp);
 		if (unlikely(!tmp))
 			return 0;
@@ -496,7 +507,7 @@ static inline int add_dst_iner_macs(struct vtep_port *port,
 			pkt_addr = rte_pktmbuf_mtod(pkts[i],
 						    struct ether_hdr *);
 			ether_addr_copy(&hdrs[i]->ethernet.s_addr, &dst.mac);
-			dst.ip = be32_to_cpu(hdrs[i]->ipv4.src_addr);
+			dst.ip = rte_be_to_cpu_32(hdrs[i]->ipv4.src_addr);
 			if (!unlikely(add_dst_iner_mac(port,
 						       &pkt_addr->s_addr,
 						       &dst)))
@@ -524,11 +535,11 @@ static void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 		low_bit_iterate(mask, i);
 		hdrs[i] = rte_pktmbuf_mtod(pkts[i], struct headers *);
 		if (hdrs[i]->ethernet.ether_type !=
-		    cpu_to_be16(ETHER_TYPE_IPv4) ||
+		    rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
 		    hdrs[i]->ipv4.next_proto_id != 17 ||
 		    hdrs[i]->vxlan.vx_flags != VTEP_I_FLAG)
 			continue;
-		if (is_multicast_ip(be32_to_cpu(hdrs[i]->ipv4.dst_addr)))
+		if (is_multicast_ip(rte_be_to_cpu_32(hdrs[i]->ipv4.dst_addr)))
 			*multicast_mask |= (1 << i);
 		*computed_mask |= (1 << i);
 	}
@@ -694,12 +705,12 @@ static int vtep_init(struct brick *brick,
 		return 0;
 	}
 
-	if (!config->vtep) {
-		*errp = error_new("config->vtep is NULL");
+	if (!config->brick_config) {
+		*errp = error_new("config->brick_config is NULL");
 		return 0;
 	}
 
-	vtep_config = config->vtep;
+	vtep_config = config->brick_config;
 
 	state->output = vtep_config->output;
 	if (brick->sides[state->output].max != 1) {
@@ -730,6 +741,20 @@ static int vtep_init(struct brick *brick,
 	brick->burst = vtep_burst;
 
 	return 1;
+}
+
+static struct brick_config *vtep_config_new(const char *name, uint32_t west_max,
+				      uint32_t east_max, enum side output,
+				      uint32_t ip, struct ether_addr mac)
+{
+	struct brick_config *config = g_new0(struct brick_config, 1);
+	struct vtep_config *vtep_config = g_new0(struct vtep_config, 1);
+
+	vtep_config->output = output;
+	vtep_config->ip = ip;
+	ether_addr_copy(&mac, &vtep_config->mac);
+	config->brick_config = vtep_config;
+	return brick_config_init(config, name, west_max, east_max);
 }
 
 struct brick *vtep_new(const char *name, uint32_t west_max,
@@ -810,32 +835,15 @@ static uint64_t multicast_get_dst_addr(uint32_t ip)
 	uint64_t dst = 0;
 
 	/* Forge dst mac addr */
-	dst |= (cpu_to_be32(ip) & 0x0007ffff);
+	dst |= (rte_cpu_to_be_32(ip) & 0x0007ffff);
 	((uint8_t *)&dst)[5] = 0x10;
 	((uint8_t *)&dst)[4] = 0x5e;
 	/* To network order */
-	dst = cpu_to_be64(dst);
+	dst = rte_cpu_to_be_64(dst);
 	return dst;
 }
 
 #define UINT64_TO_MAC(val) ((struct ether_addr *)((uint16_t *)&val + 1))
-
-/* static void multicast_build_ip() */
-/* { */
-/* 	hdr->ipv4.version_ihl = 0x45; */
-/* 	hdr->ipv4.type_of_service = 0; */
-/* 	hdr->ipv4.total_length = cpu_to_be16(sizeof(struct ipv4_hdr) + */
-/* 					     sizeof(struct igmp_hdr)); */
-/* 	hdr->ipv4.packet_id = 0; */
-/* 	hdr->ipv4.fragment_offset = 0; */
-/* 	hdr->ipv4.time_to_live = 1; */
-/* 	hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER; */
-/* 	hdr->ipv4.hdr_checksum = 0; */
-/* 	hdr->ipv4.dst_addr = multicast_ip; */
-/* 	hdr->ipv4.src_addr = state->ip; */
-
-/* 	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4); */
-/* } */
 
 static void multicast_subscribe(struct vtep_state *state,
 				struct vtep_port *port,
@@ -871,12 +879,12 @@ static void multicast_subscribe(struct vtep_state *state,
 	 * byte of dst when making the copy*/
 	ether_addr_copy(UINT64_TO_MAC(dst),
 			&hdr->ethernet.d_addr);
-	hdr->ethernet.ether_type = cpu_to_be16(ETHER_TYPE_IPv4);
+	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 
 	/* 4-5 = 0x45 */
 	hdr->ipv4.version_ihl = 0x45;
 	hdr->ipv4.type_of_service = 0;
-	hdr->ipv4.total_length = cpu_to_be16(sizeof(struct ipv4_hdr) +
+	hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
 					     sizeof(struct igmp_hdr));
 	hdr->ipv4.packet_id = 0;
 	hdr->ipv4.fragment_offset = 0;
@@ -945,12 +953,12 @@ static void multicast_unsubscribe(struct vtep_state *state,
 	 * byte of dst when making the copy*/
 	ether_addr_copy(UINT64_TO_MAC(dst),
 			&hdr->ethernet.d_addr);
-	hdr->ethernet.ether_type = cpu_to_be16(ETHER_TYPE_IPv4);
+	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 
 	/* 4-5 = 0x45 */
 	hdr->ipv4.version_ihl = 0x45;
 	hdr->ipv4.type_of_service = 0;
-	hdr->ipv4.total_length = cpu_to_be16(sizeof(struct ipv4_hdr) +
+	hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
 					     sizeof(struct igmp_hdr));
 	hdr->ipv4.packet_id = 0;
 	hdr->ipv4.fragment_offset = 0;
@@ -1049,18 +1057,6 @@ known_error_exit:
 	rte_table_hash_key8_lru_dosig_ops.f_free(port->mac_to_dst);
 }
 
-/**
- * Add a VNI to the VTEP
- *
- * NOTE: Adding the same VNI twice is not authorized and will result in an
- *       assertion
- *
- * @param	brick the brick we are working on
- * @param	neighbor a brick connected to the VTEP port
- * @param	vni the VNI to add
- * @param	multicast_ip the multicast ip to associate to the VNI
- * @param	errp an error pointer
- */
 void vtep_add_vni(struct brick *brick,
 		   struct brick *neighbor,
 		   uint32_t vni, uint32_t multicast_ip,
@@ -1179,44 +1175,6 @@ static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac)
 							&entry);
 }
 
-/**
- * Add a MAC to a VNI
- *
- * @param	brick the brick
- * @param	neighbor the neighbor brick which is use as a VNI
- * @param	mac the mac
- * @param	errp an error pointer
- */
-void vtep_add_mac(struct brick *brick,
-		   struct brick *neighbor,
-
-		   struct ether_addr *mac,
-		   struct switch_error **errp)
-{
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
-	enum side side = flip_side(state->output);
-	struct vtep_port *port;
-	int ret;
-	int i;
-
-	for (i = 0; i < brick->sides[side].max; i++)
-		if (neighbor == brick->sides[side].edges[i].link) {
-			ret = 1;
-			break;
-		}
-	if (!ret) {
-		*errp = error_new("VTEP brick index not found");
-		return;
-	}
-
-	port = &state->ports[i];
-	if (!do_add_mac(port, mac)) {
-		*errp = error_new("Failed to add mac for brick'%s'",
-				  state->brick.name);
-	}
-}
-
-
 static void vtep_unlink_notify(struct brick *brick,
 				enum side side, uint16_t edge_index,
 				struct switch_error **errp)
@@ -1243,4 +1201,4 @@ static struct brick_ops vtep_ops = {
 
 #undef HEADERS_LENGTH
 
-brick_register(struct vtep_state, &vtep_ops);
+brick_register(vtep, &vtep_ops);

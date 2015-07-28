@@ -25,11 +25,7 @@
 #include <packetgraph/utils/bitmask.h>
 
 /* All registred bricks. */
-GList *packetgraph_all_bricks;
-void brick_init_all_bricks(void)
-{
-	packetgraph_all_bricks = NULL;
-}
+GList *packetgraph_all_bricks = NULL;
 
 /* return the oposite side */
 enum side flip_side(enum side side)

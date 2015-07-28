@@ -247,7 +247,7 @@ static int nic_init(struct brick *brick, struct brick_config *config,
 		*errp = error_new("config is NULL");
 		return 0;
 	}
-	nic_config = config->nic;
+	nic_config = config->brick_config;
 
 	if (!nic_config) {
 		*errp = error_new("config->nic is NULL");

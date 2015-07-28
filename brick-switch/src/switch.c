@@ -31,6 +31,7 @@
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/common.h>
 #include <packetgraph/switch.h>
+#include <packetgraph/packets.h>
 
 /* this tell from where a given source mac address came */
 struct address_source {

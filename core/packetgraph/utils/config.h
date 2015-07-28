@@ -21,12 +21,6 @@
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
-struct vtep_config {
-	enum side output;
-	int32_t ip;
-	struct ether_addr mac;
-};
-
 struct brick_config {
 	/* The unique name of the brick brick in the graph */
 	char *name;

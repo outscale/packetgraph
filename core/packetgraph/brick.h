@@ -73,18 +73,4 @@ int brick_side_forward(struct brick_side *brick_side, enum side from,
 
 char *brick_handle_dup(struct brick *brick, struct switch_error **errp);
 
-/* Add for testing purpose SHOULD BE REMOVE(or move) ! */
-
-void vtep_add_vni(struct brick *brick,
-		   struct brick *neighbor,
-		   uint32_t vni, uint32_t multicast_ip,
-		   struct switch_error **errp);
-
-#include <rte_ether.h>
-
-void vtep_add_mac(struct brick *brick,
-		   struct brick *neighbor,
-		   struct ether_addr *mac,
-		   struct switch_error **errp);
-
 #endif

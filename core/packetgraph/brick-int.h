@@ -142,8 +142,6 @@ struct brick_ops {
 	char *(*handle_dup)(struct brick *brick, struct switch_error **errp);
 };
 
-void brick_init_all_bricks(void) __attribute__((constructor(101)));
-
 extern GList *packetgraph_all_bricks;
 /**
  * Macro to register a brick operations structure
@@ -152,7 +150,7 @@ extern GList *packetgraph_all_bricks;
  */
 #define brick_register(brickname, ops) \
 	static void brick_##brickname##_register(void) \
-		__attribute__((constructor(102))); \
+		__attribute__((constructor(101))); \
 	static void brick_##brickname##_register(void) \
 	{ \
 		packetgraph_all_bricks = g_list_append(packetgraph_all_bricks, \

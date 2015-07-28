@@ -29,6 +29,7 @@
 
 #include <net/npf.h>
 #include <net/npfkern.h>
+#include <net/if.h>
 #include <npf.h>
 
 struct ifnet;
