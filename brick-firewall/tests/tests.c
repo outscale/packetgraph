@@ -190,8 +190,6 @@ static void firewall_filter_rules(enum side dir)
 		filtered_pkts = brick_east_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	g_assert(!error);
-	printf("mask_count(filtered_pkts_mask): %i\n",
-	       mask_count(filtered_pkts_mask));
 	g_assert(mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
 		low_bit_iterate_full(filtered_pkts_mask, bit, i);
