@@ -48,6 +48,7 @@ enum print_flags {
  * @param	output file descriptor where to write packets informations
  *		NULL means to use the standard output (stdout).
  * @param	flags print flags from enum print_flags.
+ * @param	type_filter ethernet type skiped at printing.
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure, on success, 0 on error
  */
@@ -56,6 +57,7 @@ struct brick *print_new(const char *name,
 			uint32_t east_max,
 			FILE *output,
 			int flags,
+			uint16_t *type_filter,
 			struct switch_error **errp);
 
 /**

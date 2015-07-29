@@ -57,7 +57,7 @@ static void print_proto_ip(void *data, size_t size, FILE *o)
 	else if (payload_type == IPPROTO_UDP)
 		print_proto_udp(payload, payload_size, o);
 	else
-		fprintf(o, " [type=%u]", payload_type);
+		fprintf(o, " [type=0x%x]", payload_type);
 }
 
 static void print_proto_arp(void *data, size_t size, FILE *o)
@@ -87,7 +87,7 @@ static void print_proto_eth(void *data, size_t size, FILE *o)
 	else if (payload_type == htobe16(ETHERTYPE_ARP))
 		print_proto_arp(payload, payload_size, o);
 	else
-		fprintf(o, "[ethertype: %u]", (unsigned int) eth->ether_type);
+		fprintf(o, "[ethertype: 0x%x]", (unsigned int) eth->ether_type);
 	fprintf(o, "\n");
 }
 

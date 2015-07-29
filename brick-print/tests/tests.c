@@ -97,7 +97,7 @@ static void test_print_simple(void)
 	build_packets(packets);
 	gen = packetsgen_new("gen", 1, 1, EAST_SIDE, packets, NB_PKTS, &error);
 	g_assert(!error);
-	print = print_new("My print", 1, 1, NULL, PRINT_FLAG_MAX, &error);
+	print = print_new("My print", 1, 1, NULL, PRINT_FLAG_MAX, NULL, &error);
 	g_assert(!error);
 	col = collect_new("col", 1, 1, &error);
 	g_assert(!error);
