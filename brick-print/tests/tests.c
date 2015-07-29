@@ -18,8 +18,8 @@
 #include <glib.h>
 #include <string.h>
 #include <arpa/inet.h>
-#include <net/ethernet.h>
-#include <netinet/ether.h>
+#include <rte_config.h>
+#include <rte_ether.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 
@@ -38,8 +38,8 @@ static struct rte_mbuf *build_ip_packet(void)
 {
 	struct rte_mempool *mp = get_mempool();
 	struct rte_mbuf *pkt = rte_pktmbuf_alloc(mp);
-	uint16_t len = sizeof(struct ether_header) + sizeof(struct ip) + 6;
-	struct ether_header *eth;
+	uint16_t len = sizeof(struct ether_hdr) + sizeof(struct ip) + 6;
+	struct ether_hdr *eth;
 	struct ip *ip;
 	uint8_t *payload_ip;
 
@@ -49,9 +49,9 @@ static struct rte_mbuf *build_ip_packet(void)
 	pkt->next = NULL;
 
 	/* ethernet header */
-	eth = rte_pktmbuf_mtod(pkt, struct ether_header*);
+	eth = rte_pktmbuf_mtod(pkt, struct ether_hdr*);
 	memset(eth, 0, len);
-	eth->ether_type = htobe16(ETHERTYPE_IP);
+	eth->ether_type = htobe16(ETHER_TYPE_IPv4);
 
 	/* ipv4 header */
 	ip = (struct ip *)(eth + 1);
