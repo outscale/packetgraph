@@ -27,15 +27,6 @@ Comming soon:
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs
 - antispoof: a basic arp anti-spoofing brick
 
-Futur bricks:
-
-- bond: permits to bond two physical nic
-- ipsec: for authenticating and encrypting IP packet of a communication session
-- gre: generic routing encapsulationn, a tunneling protocol
-- vpn: virtual private network, a tunneling protocol
-- nat: manage network address translation
-- dhcp: add a dhcp server (Dynamic Host Configuration Protocol)
-
 # Examples
 
 Here are some possible graphics you can do with paquetgraph. You will find
