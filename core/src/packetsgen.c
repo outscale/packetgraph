@@ -85,8 +85,6 @@ static int packetsgen_poll(struct brick *brick, uint16_t *pkts_cnt,
 		ret = brick_side_forward(s, flip_side(state->output),
 					 pkts, PACKETSGEN_POLL_NB_PKTS,
 					 pkts_mask, errp);
-		packets_free(pkts, pkts_mask);
-		g_free(pkts);
 	} else {
 		pkts = g_new0(struct rte_mbuf*, state->packets_nb);
 		for (i = 0; i < state->packets_nb; i++)
@@ -96,8 +94,9 @@ static int packetsgen_poll(struct brick *brick, uint16_t *pkts_cnt,
 		ret = brick_side_forward(s, flip_side(state->output),
 					 pkts, state->packets_nb,
 					 pkts_mask, errp);
-		g_free(pkts);
 	}
+	packets_free(pkts, pkts_mask);
+	g_free(pkts);
 	return ret;
 }
 
