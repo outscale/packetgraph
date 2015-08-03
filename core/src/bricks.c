@@ -345,14 +345,7 @@ static uint16_t insert_link(struct brick_side *side, struct brick *brick)
 	return 0;
 }
 
-/**
- * Default implementation is made to fill the west links of brick_ops
- *
- * @param	target the target of the link operation
- * @param	brick the brick to link to the target
- * @param	errp a return pointer for an error message
- * @return	1 on success, 0 on error
- */
+
 int brick_link(struct brick *west, struct brick *east,
 			    struct switch_error **errp)
 {
@@ -383,6 +376,24 @@ int brick_link(struct brick *west, struct brick *east,
 	return 1;
 }
 
+int brick_chained_links_int(struct switch_error **errp,
+		struct brick *west, ...)
+{
+	va_list ap;
+	struct brick *east;
+	int ret = 1;
+
+	va_start(ap, west);
+	while ((east = va_arg(ap, struct brick *)) != NULL) {
+		ret = brick_link(west, east, errp);
+		if (!ret)
+			goto exit;
+		west = east;
+	}
+exit:
+	va_end(ap);
+	return ret;
+}
 
 static void reset_edge(struct brick_edge *edge)
 {

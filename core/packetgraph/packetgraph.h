@@ -18,6 +18,7 @@
 #ifndef _PACKETGRAPH_H_
 #define _PACKETGRAPH_H_
 
+#include <stdarg.h>
 #include <packetgraph/utils/errors.h>
 #include <packetgraph/utils/config.h>
 #include <packetgraph/brick-int.h>
@@ -57,6 +58,20 @@ enum side flip_side(enum side side);
  */
 int brick_link(struct brick *west, struct brick *east,
 	       struct switch_error **errp);
+
+#define brick_chained_links(errp, west, args...)	\
+	(brick_chained_links_int(errp, west, args, NULL))
+
+/**
+ * Link a serie of bricks together.
+ *
+ * @param	errp is set in case of an error
+ * @param	west the brick wich will be linked to it's east side to the
+ *		other brick.
+ * @return	1 on success, 0 on error
+ */
+int brick_chained_links_int(struct switch_error **errp,
+		struct brick *west, ...);
 
 /**
  * Unlink a brick from all it's connected neighbours.
