@@ -86,7 +86,7 @@ int brick_poll(struct brick *brick, uint16_t *count,
  * @param	errp is set in case of an error
  * @return	number of packets the brick got on the specified side.
  */
-int64_t brick_pkts_count_get(struct brick *brick, enum side side);
+uint64_t brick_pkts_count_get(struct brick *brick, enum side side);
 
 /**
  * Delete a brick.

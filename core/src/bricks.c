@@ -588,7 +588,7 @@ char *brick_handle_dup(struct brick *brick, struct switch_error **errp)
 }
 
 
-int64_t brick_pkts_count_get(struct brick *brick, enum side side)
+uint64_t brick_pkts_count_get(struct brick *brick, enum side side)
 {
 	if (!brick)
 		return 0;
