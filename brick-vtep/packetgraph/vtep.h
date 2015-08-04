@@ -18,7 +18,11 @@
 #ifndef _BRICKS_BRICK_VTEP_H_
 #define _BRICKS_BRICK_VTEP_H_
 
+#ifndef __cplusplus
 #include <rte_ether.h>
+#else
+struct ether_addr;
+#endif
 
 struct ether_addr *vtep_get_mac(struct brick *brick);
 
