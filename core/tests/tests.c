@@ -77,6 +77,7 @@ int main(int argc, char **argv)
 	test_brick_core();
 	test_brick_flow();
 	test_pkts_count();
+	test_brick_graph();
 
 	return g_test_run();
 }

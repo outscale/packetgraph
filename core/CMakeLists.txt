@@ -23,6 +23,7 @@ add_library(packetgraph-core-objects OBJECT
 	./src/packets.c
 	./src/nop.c
 	./src/collect.c
+	./src/graph.c
 	./src/packetsgen.c)
 
 target_include_directories(packetgraph-core-objects PUBLIC
@@ -40,6 +41,7 @@ set(HEADERS
 		packets.h
 		nop.h
 		collect.h
+		graph.h
 		packetsgen.h
 		utils/bitmask.h
 		utils/config.h
@@ -98,6 +100,7 @@ include(CPack)
 
 add_executable(packetgraph-core-tests 
 		tests/test-core.c
+		tests/test-graph.c
 		tests/test-flow.c
 		tests/test-error.c
 		tests/test-pkts-count.c

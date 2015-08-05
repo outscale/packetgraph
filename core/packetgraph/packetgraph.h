@@ -22,6 +22,7 @@
 #include <packetgraph/utils/errors.h>
 #include <packetgraph/utils/config.h>
 #include <packetgraph/brick-int.h>
+#include <packetgraph/graph.h>
 
 /**
  * Initialize packetgraph.
