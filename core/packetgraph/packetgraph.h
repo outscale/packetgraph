@@ -65,6 +65,7 @@ int brick_link(struct brick *west, struct brick *east,
 
 /**
  * Link a serie of bricks together.
+ * You should use brick_chained_links macro.
  *
  * @param	errp is set in case of an error
  * @param	west the brick wich will be linked to it's east side to the
