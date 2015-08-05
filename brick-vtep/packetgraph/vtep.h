@@ -24,6 +24,26 @@
 struct ether_addr;
 #endif
 
+/**
+ * Create a new vtep
+ *
+ * @name:	the name
+ * @west_max:	the maximum number of connections to the west
+ * @east_max:	The maximum number of connections to the east
+ * @ip:		the vtep ip
+ * @mac:	the vtep mac
+ * @errp:	an error pointer
+ */
+struct brick *vtep_new(const char *name, uint32_t west_max,
+		       uint32_t east_max, enum side output,
+		       uint32_t ip, struct ether_addr mac,
+		       struct switch_error **errp);
+
+/**
+ * Get MAC address of the vtep
+ * @param	brick a pointer to a vtep brick
+ * @return	mac address of the vtep
+ */
 struct ether_addr *vtep_get_mac(struct brick *brick);
 
 /**
@@ -42,20 +62,5 @@ void vtep_add_vni(struct brick *brick,
 		  struct brick *neighbor,
 		  uint32_t vni, uint32_t multicast_ip,
 		  struct switch_error **errp);
-
-/**
- * Create a new vtep
- *
- * @name:	the name
- * @west_max:	the maximum number of connections to the west
- * @east_max:	The maximum number of connections to the east
- * @ip:		the vtep ip
- * @mac:	the vtep mac
- * @errp:	an error pointer
- */
-struct brick *vtep_new(const char *name, uint32_t west_max,
-		       uint32_t east_max, enum side output,
-		       uint32_t ip, struct ether_addr mac,
-		       struct switch_error **errp);
 
 #endif
