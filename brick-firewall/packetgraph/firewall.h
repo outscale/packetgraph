@@ -30,8 +30,8 @@
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure, on success, 0 on error
  */
-struct brick *firewall_new(const char *name, uint32_t west_max,
-			uint32_t east_max, struct switch_error **errp);
+struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
+				 uint32_t east_max, struct pg_error **errp);
 
 /**
  * Add a new rule in the firewall.
@@ -48,8 +48,9 @@ struct brick *firewall_new(const char *name, uint32_t west_max,
  * @return	0 if the rule has been correctly built and added the the brick
  *		1 otherwise and errp is set.
  */
-int firewall_rule_add(struct brick *brick, const char *filter, enum side dir,
-		      int stateful, struct switch_error **errp);
+int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
+			 enum pg_side dir, int stateful,
+			 struct pg_error **errp);
 
 /**
  * Flush all rules of the firewall.
@@ -58,7 +59,7 @@ int firewall_rule_add(struct brick *brick, const char *filter, enum side dir,
  *
  * @param	brick pointer to the firewall brick
  */
-void firewall_rule_flush(struct brick *brick);
+void pg_firewall_rule_flush(struct pg_brick *brick);
 
 /**
  * Reload firewall rules.
@@ -70,6 +71,6 @@ void firewall_rule_flush(struct brick *brick);
  * @return	0 if the firewall has reloaded correctly
  *		1 otherwise and errp is set.
  */
-int firewall_reload(struct brick *brick, struct switch_error **errp);
+int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp);
 
 #endif  /* _BRICKS_BRICK_FIREWALL_H_ */

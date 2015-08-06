@@ -33,8 +33,8 @@
 
 struct ifnet;
 
-struct firewall_state {
-	struct brick brick;
+struct pg_firewall_state {
+	struct pg_brick brick;
 	npf_t *npf;
 	struct ifnet *ifp;
 	GList *rules;
@@ -61,7 +61,7 @@ static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)
 	return 0;
 }
 
-static inline int firewall_side_to_npf_rule(enum side side)
+static inline int firewall_side_to_npf_rule(enum pg_side side)
 {
 	switch (side) {
 	case WEST_SIDE: return NPF_RULE_OUT;
@@ -70,14 +70,14 @@ static inline int firewall_side_to_npf_rule(enum side side)
 	}
 }
 
-int firewall_rule_add(struct brick *brick, const char *filter, enum side dir,
-		      int stateful, struct switch_error **errp)
+int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
+			 enum pg_side dir, int stateful, struct pg_error **errp)
 {
-	struct firewall_state *state;
+	struct pg_firewall_state *state;
 	struct nl_rule *rule;
 	int options = 0;
 
-	state = brick_get_state(brick, struct firewall_state);
+	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	options |= firewall_side_to_npf_rule(dir);
 	if (stateful)
 		options |= NPF_RULE_STATEFUL;
@@ -85,19 +85,19 @@ int firewall_rule_add(struct brick *brick, const char *filter, enum side dir,
 	g_assert(rule);
 	npf_rule_setprio(rule, NPF_PRI_LAST);
 	if (filter && firewall_build_pcap_filter(rule, filter)) {
-		*errp = error_new("pcap filter build failed");
+		*errp = pg_error_new("pcap filter build failed");
 		return 1;
 	}
 	state->rules = g_list_append(state->rules, rule);
 	return 0;
 }
 
-void firewall_rule_flush(struct brick *brick)
+void pg_firewall_rule_flush(struct pg_brick *brick)
 {
-	struct firewall_state *state;
+	struct pg_firewall_state *state;
 	GList *it;
 
-	state = brick_get_state(brick, struct firewall_state);
+	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	/* clean all rules */
 	it = state->rules;
 	while (it) {
@@ -109,16 +109,16 @@ void firewall_rule_flush(struct brick *brick)
 	state->rules = NULL;
 }
 
-int firewall_reload(struct brick *brick, struct switch_error **errp)
+int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
 {
 	npf_error_t errinfo;
-	struct firewall_state *state;
+	struct pg_firewall_state *state;
 	struct nl_config *config;
 	void *config_build;
 	int ret;
 	GList *it;
 
-	state = brick_get_state(brick, struct firewall_state);
+	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	config = npf_config_create();
 
 	it = state->rules;
@@ -132,30 +132,30 @@ int firewall_reload(struct brick *brick, struct switch_error **errp)
 	npf_config_destroy(config);
 	if (ret != 0) {
 		ret = 1;
-		*errp = error_new("NPF failed to load configuration");
+		*errp = pg_error_new("NPF failed to load configuration");
 	}
 	return ret;
 }
 
-struct brick *firewall_new(const char *name, uint32_t west_max,
-			   uint32_t east_max, struct switch_error **errp)
+struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
+			   uint32_t east_max, struct pg_error **errp)
 {
-	struct brick_config *config;
-	struct brick *ret;
+	struct pg_brick_config *config;
+	struct pg_brick *ret;
 
-	config = brick_config_new(name, west_max, east_max);
-	ret = brick_new("firewall", config, errp);
-	brick_config_free(config);
+	config = pg_brick_config_new(name, west_max, east_max);
+	ret = pg_brick_new("firewall", config, errp);
+	pg_brick_config_free(config);
 	return ret;
 }
 
-static int firewall_burst(struct brick *brick, enum side side,
+static int firewall_burst(struct pg_brick *brick, enum pg_side side,
 			  uint16_t edge_index, struct rte_mbuf **pkts,
 			  uint16_t nb, uint64_t pkts_mask,
-			  struct switch_error **errp)
+			  struct pg_error **errp)
 {
-	struct brick_side *s;
-	struct firewall_state *state;
+	struct pg_brick_side *s;
+	struct pg_firewall_state *state;
 	int pf_side;
 	uint64_t it_mask;
 	uint64_t bit;
@@ -163,18 +163,18 @@ static int firewall_burst(struct brick *brick, enum side side,
 	int ret;
 	struct rte_mbuf *tmp;
 
-	s = &brick->sides[flip_side(side)];
-	state = brick_get_state(brick, struct firewall_state);
+	s = &brick->sides[pg_flip_side(side)];
+	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	pf_side = FIREWALL_SIDE_TO_NPF(side);
 
 	/* npf-dpdk free filtered packets, we want to keep them */
-	packets_incref(pkts, pkts_mask);
+	pg_packets_incref(pkts, pkts_mask);
 
 	it_mask = pkts_mask;
 	for (; it_mask;) {
 		struct ether_hdr *eth;
 
-		low_bit_iterate_full(it_mask, bit, i);
+		pg_low_bit_iterate_full(it_mask, bit, i);
 
 		/* Firewall only manage IPv4 or IPv6 filtering.
 		 * Let non-ip packets (like ARP) pass.
@@ -206,22 +206,23 @@ static int firewall_burst(struct brick *brick, enum side side,
 	}
 
 	/* decrement reference of packets which has not been free by npf-dpdk */
-	packets_free(pkts, pkts_mask);
+	pg_packets_free(pkts, pkts_mask);
 
-	ret = brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
+	ret = pg_brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
 	return ret;
 }
 
-static int firewall_init(struct brick *brick,
-			 struct brick_config *config,
-			 struct switch_error **errp)
+static int firewall_init(struct pg_brick *brick,
+			 struct pg_brick_config *config,
+			 struct pg_error **errp)
 {
 	/* Global counter for virtual interface. */
 	static uint32_t firewall_iface_cnt;
 
 	npf_t *npf;
-	struct firewall_state *state = brick_get_state(brick,
-						       struct firewall_state);
+	struct pg_firewall_state *state;
+
+	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	/* initialize fast path */
 	brick->burst = firewall_burst;
 	/* init NPF configuration */
@@ -235,26 +236,27 @@ static int firewall_init(struct brick *brick,
 	return 1;
 }
 
-static void firewall_destroy(struct brick *brick,
-			     struct switch_error **errp) {
-	struct firewall_state *state = brick_get_state(brick,
-						       struct firewall_state);
+static void firewall_destroy(struct pg_brick *brick,
+			     struct pg_error **errp) {
+	struct pg_firewall_state *state;
+
+	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	npf_dpdk_ifdetach(state->npf, state->ifp);
 	npf_destroy(state->npf);
-	firewall_rule_flush(brick);
+	pg_firewall_rule_flush(brick);
 	npf_sysfini();
 }
 
-static struct brick_ops firewall_ops = {
+static struct pg_brick_ops firewall_ops = {
 	.name		= "firewall",
-	.state_size	= sizeof(struct firewall_state),
+	.state_size	= sizeof(struct pg_firewall_state),
 
 	.init		= firewall_init,
 	.destroy	= firewall_destroy,
 
-	.unlink		= brick_generic_unlink,
+	.unlink		= pg_brick_generic_unlink,
 };
 
-brick_register(firewall, &firewall_ops);
+pg_brick_register(firewall, &firewall_ops);
 
 #undef NWORKERS
