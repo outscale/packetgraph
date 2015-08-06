@@ -24,22 +24,22 @@
 
 static void test_error_lifecycle(void)
 {
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 
-	error = error_new("Percolator overflow");
-	error_free(error);
+	error = pg_error_new("Percolator overflow");
+	pg_error_free(error);
 
-	error = error_new_errno(EIO, "Data lost");
-	error_free(error);
+	error = pg_error_new_errno(EIO, "Data lost");
+	pg_error_free(error);
 }
 
 static void test_error_vanilla(void)
 {
 	uint64_t line;
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 
 	line = __LINE__ + 1;
-	error = error_new("Trashcan overflow");
+	error = pg_error_new("Trashcan overflow");
 
 	g_assert(error->message);
 	g_assert_cmpstr(error->message, ==,
@@ -60,16 +60,16 @@ static void test_error_vanilla(void)
 	g_assert(error->context.has_line);
 	g_assert(error->context.line == line);
 
-	error_free(error);
+	pg_error_free(error);
 }
 
 static void test_error_errno(void)
 {
 	uint64_t line;
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 
 	line = __LINE__ + 1;
-	error = error_new_errno(EIO, "Bad write");
+	error = pg_error_new_errno(EIO, "Bad write");
 
 	g_assert(error->message);
 	g_assert_cmpstr(error->message, ==,
@@ -91,22 +91,22 @@ static void test_error_errno(void)
 	g_assert(error->context.has_line);
 	g_assert(error->context.line == line);
 
-	error_free(error);
+	pg_error_free(error);
 }
 
 static void test_error_format(void)
 {
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 
-	error = error_new_errno(EIO, "Bad write file=%s sector=%i", "foo", 5);
+	error = pg_error_new_errno(EIO, "Bad write file=%s sector=%i", "foo", 5);
 	g_assert(error->message);
 	g_assert_cmpstr(error->message, ==, "Bad write file=foo sector=5");
-	error_free(error);
+	pg_error_free(error);
 
-	error = error_new("Bad write file=%s sector=%i", "bar", 10);
+	error = pg_error_new("Bad write file=%s sector=%i", "bar", 10);
 	g_assert(error->message);
 	g_assert_cmpstr(error->message, ==, "Bad write file=bar sector=10");
-	error_free(error);
+	pg_error_free(error);
 }
 
 void test_error(void)

@@ -34,18 +34,18 @@
  * @param	errp is set in case of an error
  * @return	return where the program's parameters count starts
  */
-int packetgraph_start(int argc, char **argv, struct switch_error **errp);
+int pg_start(int argc, char **argv, struct pg_error **errp);
 
 /**
  * Uninitialize packetgraph.
  * This function should be called when the application exits.
  */
-void packetgraph_stop(void);
+void pg_stop(void);
 
 /**
  * Revert side: WEST_SIDE become EAST_SIDE and vice versa.
  */
-enum side flip_side(enum side side);
+enum pg_side pg_flip_side(enum pg_side side);
 
 /**
  * Link two bricks with each others.
@@ -57,11 +57,11 @@ enum side flip_side(enum side side);
  * @param	errp is set in case of an error
  * @return	1 on success, 0 on error
  */
-int brick_link(struct brick *west, struct brick *east,
-	       struct switch_error **errp);
+int pg_brick_link(struct pg_brick *west, struct pg_brick *east,
+		  struct pg_error **errp);
 
-#define brick_chained_links(errp, west, args...)	\
-	(brick_chained_links_int(errp, west, args, NULL))
+#define pg_brick_chained_links(errp, west, args...)	\
+	(pg_brick_chained_links_int(errp, west, args, NULL))
 
 /**
  * Link a serie of bricks together.
@@ -72,8 +72,8 @@ int brick_link(struct brick *west, struct brick *east,
  *		other brick.
  * @return	1 on success, 0 on error
  */
-int brick_chained_links_int(struct switch_error **errp,
-		struct brick *west, ...);
+int pg_brick_chained_links_int(struct pg_error **errp,
+			       struct pg_brick *west, ...);
 
 /**
  * Unlink a brick from all it's connected neighbours.
@@ -81,7 +81,7 @@ int brick_chained_links_int(struct switch_error **errp,
  * @param	brick brick which will be unlinked
  * @param	errp is set in case of an error
  */
-void brick_unlink(struct brick *brick, struct switch_error **errp);
+void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp);
 
 /**
  * Poll packets from a brick a let it flow through the graph.
@@ -92,8 +92,8 @@ void brick_unlink(struct brick *brick, struct switch_error **errp);
  * @param	errp is set in case of an error
  * @return	1 on success, 0 on error
  */
-int brick_poll(struct brick *brick, uint16_t *count,
-	       struct switch_error **errp);
+int pg_brick_poll(struct pg_brick *brick, uint16_t *count,
+		  struct pg_error **errp);
 
 /**
  * Number packets received by a specific side.
@@ -103,13 +103,13 @@ int brick_poll(struct brick *brick, uint16_t *count,
  * @param	errp is set in case of an error
  * @return	number of packets the brick got on the specified side.
  */
-uint64_t brick_pkts_count_get(struct brick *brick, enum side side);
+uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side);
 
 /**
  * Delete a brick.
  *
  * @param	brick brick pointer
  */
-void brick_destroy(struct brick *brick);
+void pg_brick_destroy(struct pg_brick *brick);
 
 #endif

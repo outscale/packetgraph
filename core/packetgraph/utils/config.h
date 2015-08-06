@@ -21,7 +21,7 @@
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
-struct brick_config {
+struct pg_brick_config {
 	/* The unique name of the brick brick in the graph */
 	char *name;
 	/* The maximum number of west edges */
@@ -34,14 +34,15 @@ struct brick_config {
 	void *brick_config;
 };
 
-struct brick_config *brick_config_init(struct brick_config *config,
-				       const char *name,
-				       uint32_t west_max,
-				       uint32_t east_max);
+struct pg_brick_config *pg_brick_config_init(struct pg_brick_config *config,
+					     const char *name,
+					     uint32_t west_max,
+					     uint32_t east_max);
 
-struct brick_config *brick_config_new(const char *name, uint32_t west_max,
-				      uint32_t east_max);
+struct pg_brick_config *pg_brick_config_new(const char *name,
+					    uint32_t west_max,
+					    uint32_t east_max);
 
-void brick_config_free(struct brick_config *config);
+void pg_brick_config_free(struct pg_brick_config *config);
 
 #endif

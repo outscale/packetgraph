@@ -21,12 +21,12 @@
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
-struct brick *packetsgen_new(const char *name,
-			     uint32_t west_max,
-			     uint32_t east_max,
-			     enum side output,
-			     struct rte_mbuf **packets,
-			     uint16_t packets_nb,
-			     struct switch_error **errp);
+struct pg_brick *pg_packetsgen_new(const char *name,
+				   uint32_t west_max,
+				   uint32_t east_max,
+				   enum pg_side output,
+				   struct rte_mbuf **packets,
+				   uint16_t packets_nb,
+				   struct pg_error **errp);
 
 #endif  /* _BRICKS_BRICK_PACKETSGEN_H_ */

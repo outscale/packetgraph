@@ -20,14 +20,14 @@
 
 #include <stdint.h>
 
-/* To use the error infrastructure pass a struct switch_error **errp with
+/* To use the error infrastructure pass a struct pg_error **errp with
  * *errp == NULL to the various functions.
  * Then when an error occurs the functions will do *errp = error_new_errno() or
  * *errp = error_new() and the caller will be able to check for *errp != NULL.
  * After consumption of the error free it with error_free().
  */
 
-struct error_context {
+struct pg_error_context {
 	char *file;
 	int has_line;
 	uint64_t line;
@@ -35,30 +35,31 @@ struct error_context {
 };
 
 
-struct switch_error {
-	struct error_context context;
+struct pg_error {
+	struct pg_error_context context;
 	char *message;
 	int has_err_no;
 	int32_t err_no;
 };
 
-/* NOTE: Do not pass an *errp != NULL to functions using struct switch_error. */
+/* NOTE: Do not pass an *errp != NULL to functions using struct pg_error. */
 
-#define error_new_errno(err_no, ...) __error_new(err_no,	\
-						      __FILE__,	\
-						      __LINE__,	\
-						      __func__, \
+#define pg_error_new_errno(err_no, ...) __pg_error_new(err_no,		\
+						       __FILE__,	\
+						       __LINE__,	\
+						       __func__,	\
 						       __VA_ARGS__)
 
-#define error_new(...) error_new_errno(0, __VA_ARGS__)
+#define pg_error_new(...) pg_error_new_errno(0, __VA_ARGS__)
 
-struct switch_error *__error_new(int err_no, const char *file, uint64_t line,
-				 const char *function, const char *format, ...);
+struct pg_error *__pg_error_new(int err_no, const char *file,
+				uint64_t line, const char *function,
+				const char *format, ...);
 
-void error_free(struct switch_error *error);
+void pg_error_free(struct pg_error *error);
 
-void error_print(struct switch_error *error);
+void pg_error_print(struct pg_error *error);
 
-int error_is_set(struct switch_error **error);
+int pg_error_is_set(struct pg_error **error);
 
 #endif

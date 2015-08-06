@@ -21,8 +21,8 @@
 
 #include <packetgraph/utils/errors.h>
 
-struct brick *collect_new(const char *name, uint32_t west_max,
-			  uint32_t east_max,
-			  struct switch_error **errp);
+struct pg_brick *pg_collect_new(const char *name, uint32_t west_max,
+				uint32_t east_max,
+				struct pg_error **errp);
 
 #endif  /* _BRICKS_BRICK_COLLECT_H_ */

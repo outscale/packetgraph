@@ -26,14 +26,14 @@
 
 static void test_brick_flow_west(void)
 {
-	struct brick_config *config = brick_config_new("mybrick", 4, 4);
-	struct brick *brick1, *brick2, *collect_west, *collect_east;
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
+	struct pg_brick *brick1, *brick2, *collect_west, *collect_east;
 	struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[NB_PKTS];
 	uint16_t i;
 	uint64_t pkts_mask;
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 
 	/* prepare the packets to send */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -42,95 +42,95 @@ static void test_brick_flow_west(void)
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
-	brick1 = brick_new("nop", config, &error);
+	brick1 = pg_brick_new("nop", config, &error);
 	g_assert(!error);
-	brick2 = brick_new("nop", config, &error);
+	brick2 = pg_brick_new("nop", config, &error);
 	g_assert(!error);
-	collect_west = brick_new("collect", config, &error);
+	collect_west = pg_brick_new("collect", config, &error);
 	g_assert(!error);
 	g_assert(collect_west);
-	collect_east = brick_new("collect", config, &error);
+	collect_east = pg_brick_new("collect", config, &error);
 	g_assert(!error);
 	g_assert(collect_east);
 
-	brick_link(collect_west, brick1, &error);
+	pg_brick_link(collect_west, brick1, &error);
 	g_assert(!error);
-	brick_link(brick1, brick2, &error);
+	pg_brick_link(brick1, brick2, &error);
 	g_assert(!error);
-	brick_link(brick2, collect_east, &error);
+	pg_brick_link(brick2, collect_east, &error);
 	g_assert(!error);
 
 	/* send a pkts to the west from the eastest nope brick */
-	brick_burst_to_west(brick2, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
-			    &error);
+	pg_brick_burst_to_west(brick2, 0, pkts, NB_PKTS,
+			       pg_mask_firsts(NB_PKTS), &error);
 	g_assert(!error);
 
 	/* check pkts counter */
-	g_assert(brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(collect_east, EAST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(collect_west, WEST_SIDE) == 3);
-	g_assert(brick_pkts_count_get(collect_west, EAST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(brick1, WEST_SIDE) == 3);
-	g_assert(brick_pkts_count_get(brick1, EAST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(brick2, WEST_SIDE) == 3);
-	g_assert(brick_pkts_count_get(brick2, EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_east, EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_west, WEST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(collect_west, EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick1, WEST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(brick1, EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick2, WEST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(brick2, EAST_SIDE) == 0);
 
 	/* check no packet ended on the east */
-	result_pkts = brick_west_burst_get(collect_east, &pkts_mask, &error);
+	result_pkts = pg_brick_west_burst_get(collect_east, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
-	result_pkts = brick_east_burst_get(collect_east, &pkts_mask, &error);
+	result_pkts = pg_brick_east_burst_get(collect_east, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* collect pkts on the west */
-	result_pkts = brick_west_burst_get(collect_west, &pkts_mask, &error);
+	result_pkts = pg_brick_west_burst_get(collect_west, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
-	result_pkts = brick_east_burst_get(collect_west, &pkts_mask, &error);
+	result_pkts = pg_brick_east_burst_get(collect_west, &pkts_mask, &error);
 	g_assert(!error);
-	g_assert(pkts_mask == mask_firsts(NB_PKTS));
+	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	g_assert(result_pkts);
 	for (i = 0; i < NB_PKTS; i++)
 		g_assert(result_pkts[i]->udata64 == i);
 
 	/* break the chain */
-	brick_unlink(brick1, &error);
+	pg_brick_unlink(brick1, &error);
 	g_assert(!error);
-	brick_unlink(brick2, &error);
+	pg_brick_unlink(brick2, &error);
 	g_assert(!error);
-	brick_unlink(collect_west, &error);
+	pg_brick_unlink(collect_west, &error);
 	g_assert(!error);
-	brick_unlink(collect_east, &error);
+	pg_brick_unlink(collect_east, &error);
 	g_assert(!error);
 
 	/* destroy */
-	brick_decref(brick1, &error);
+	pg_brick_decref(brick1, &error);
 	g_assert(!error);
-	brick_decref(brick2, &error);
+	pg_brick_decref(brick2, &error);
 	g_assert(!error);
-	brick_decref(collect_west, &error);
+	pg_brick_decref(collect_west, &error);
 	g_assert(!error);
-	brick_decref(collect_east, &error);
+	pg_brick_decref(collect_east, &error);
 	g_assert(!error);
 
-	brick_config_free(config);
+	pg_brick_config_free(config);
 }
 
 static void test_brick_flow_east(void)
 {
-	struct brick_config *config = brick_config_new("mybrick", 4, 4);
-	struct brick *brick1, *brick2, *collect_west, *collect_east;
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
+	struct pg_brick *brick1, *brick2, *collect_west, *collect_east;
 	struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[NB_PKTS];
 	uint16_t i;
 	uint64_t pkts_mask;
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 
 	/* prepare the packets to send */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -139,83 +139,83 @@ static void test_brick_flow_east(void)
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
-	brick1 = brick_new("nop", config, &error);
+	brick1 = pg_brick_new("nop", config, &error);
 	g_assert(!error);
-	brick2 = brick_new("nop", config, &error);
+	brick2 = pg_brick_new("nop", config, &error);
 	g_assert(!error);
-	collect_west = brick_new("collect", config, &error);
+	collect_west = pg_brick_new("collect", config, &error);
 	g_assert(!error);
 	g_assert(collect_west);
-	collect_east = brick_new("collect", config, &error);
+	collect_east = pg_brick_new("collect", config, &error);
 	g_assert(!error);
 	g_assert(collect_east);
 
-	brick_link(collect_west, brick1, &error);
+	pg_brick_link(collect_west, brick1, &error);
 	g_assert(!error);
-	brick_link(brick1, brick2, &error);
+	pg_brick_link(brick1, brick2, &error);
 	g_assert(!error);
-	brick_link(brick2, collect_east, &error);
+	pg_brick_link(brick2, collect_east, &error);
 	g_assert(!error);
 
 	/* send a pkts to the east from the westest nope brick */
-	brick_burst_to_east(brick1, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
-			    &error);
+	pg_brick_burst_to_east(brick1, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+			       &error);
 	g_assert(!error);
 
 	/* check pkts counter */
-	g_assert(brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(collect_east, EAST_SIDE) == 3);
-	g_assert(brick_pkts_count_get(collect_west, WEST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(collect_west, EAST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(brick1, WEST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(brick1, EAST_SIDE) == 3);
-	g_assert(brick_pkts_count_get(brick2, WEST_SIDE) == 0);
-	g_assert(brick_pkts_count_get(brick2, EAST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_east, EAST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(collect_west, WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_west, EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick1, WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick1, EAST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(brick2, WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick2, EAST_SIDE) == 3);
 
 
 	/* check no packet ended on the west */
-	result_pkts = brick_west_burst_get(collect_west, &pkts_mask, &error);
+	result_pkts = pg_brick_west_burst_get(collect_west, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
-	result_pkts = brick_east_burst_get(collect_west, &pkts_mask, &error);
+	result_pkts = pg_brick_east_burst_get(collect_west, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* collect pkts on the east */
-	result_pkts = brick_east_burst_get(collect_east, &pkts_mask, &error);
+	result_pkts = pg_brick_east_burst_get(collect_east, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
-	result_pkts = brick_west_burst_get(collect_east, &pkts_mask, &error);
+	result_pkts = pg_brick_west_burst_get(collect_east, &pkts_mask, &error);
 	g_assert(!error);
-	g_assert(pkts_mask == mask_firsts(NB_PKTS));
+	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	g_assert(result_pkts);
 	for (i = 0; i < NB_PKTS; i++)
 		g_assert(result_pkts[i]->udata64 == i);
 
 	/* break the chain */
-	brick_unlink(brick1, &error);
+	pg_brick_unlink(brick1, &error);
 	g_assert(!error);
-	brick_unlink(brick2, &error);
+	pg_brick_unlink(brick2, &error);
 	g_assert(!error);
-	brick_unlink(collect_west, &error);
+	pg_brick_unlink(collect_west, &error);
 	g_assert(!error);
-	brick_unlink(collect_east, &error);
+	pg_brick_unlink(collect_east, &error);
 	g_assert(!error);
 
 	/* destroy */
-	brick_decref(brick1, &error);
+	pg_brick_decref(brick1, &error);
 	g_assert(!error);
-	brick_decref(brick2, &error);
+	pg_brick_decref(brick2, &error);
 	g_assert(!error);
-	brick_decref(collect_west, &error);
+	pg_brick_decref(collect_west, &error);
 	g_assert(!error);
-	brick_decref(collect_east, &error);
+	pg_brick_decref(collect_east, &error);
 	g_assert(!error);
 
-	brick_config_free(config);
+	pg_brick_config_free(config);
 }
 
 void test_brick_flow(void)

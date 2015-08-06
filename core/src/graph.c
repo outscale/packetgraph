@@ -18,7 +18,7 @@
 #include <packetgraph/brick.h>
 #include <packetgraph/graph.h>
 
-int graph_dot(struct brick *brick, FILE *fd, struct switch_error **errp)
+int pg_graph_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 {
 	GList *todo = NULL;
 	GList *done = NULL;
@@ -32,12 +32,13 @@ int graph_dot(struct brick *brick, FILE *fd, struct switch_error **errp)
 
 	while (todo != NULL) {
 		/* Take the first brick to analyse. */
-		struct brick *b = todo->data;
+		struct pg_brick *b = todo->data;
 
 		todo = g_list_remove(todo, b);
 
 		/* declare node */
-		fprintf(fd, "  \"%s:%s\" [ label=\"{ <west> | %s&#92;n%s |<east> }\"];\n",
+		fprintf(fd,
+		"  \"%s:%s\" [ label=\"{ <west> | %s&#92;n%s |<east> }\"];\n",
 			b->ops->name,
 			b->name,
 			b->ops->name,
@@ -46,14 +47,14 @@ int graph_dot(struct brick *brick, FILE *fd, struct switch_error **errp)
 		/* populate all connected bricks */
 		for (i = 0; i < 2; i++)	{
 			for (j = 0; j < b->sides[i].max; j++) {
-				struct brick *n = b->sides[i].edges[j].link;
+				struct pg_brick *n = b->sides[i].edges[j].link;
 
 				if (!n)
 					continue;
 				/* A new brick appears */
 				if (!g_list_find(todo, n) &&
 				    !g_list_find(done, n)) {
-					todo = g_list_append (todo, n);
+					todo = g_list_append(todo, n);
 				}
 				fprintf(fd, "  \"%s:%s\":%s -- \"%s:%s\":%s\n",
 					b->ops->name,
@@ -68,6 +69,6 @@ int graph_dot(struct brick *brick, FILE *fd, struct switch_error **errp)
 		done = g_list_append(done, b);
 	}
 	fprintf(fd, "}\n");
-
 	return 1;
 }
+

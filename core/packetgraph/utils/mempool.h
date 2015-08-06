@@ -21,6 +21,6 @@
 #include <rte_config.h>
 #include <rte_mempool.h>
 
-struct rte_mempool *get_mempool(void);
+struct rte_mempool *pg_get_mempool(void);
 
 #endif

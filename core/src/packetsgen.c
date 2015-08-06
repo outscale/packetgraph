@@ -31,44 +31,45 @@
 #define PACKETSGEN_POLL_NB_PKTS 3
 #endif
 
-struct packetsgen_config {
-	enum side output;
+struct pg_packetsgen_config {
+	enum pg_side output;
 	struct rte_mbuf **packets;
 	uint16_t packets_nb;
 };
 
-struct packetsgen_state {
-	struct brick brick;
-	enum side output;
+struct pg_packetsgen_state {
+	struct pg_brick brick;
+	enum pg_side output;
 	struct rte_mbuf **packets;
 	uint16_t packets_nb;
 };
 
 /* The fastpath data function of the packetsgen_brick just forward the bursts */
 
-static int packetsgen_burst(struct brick *brick, enum side side,
+static int packetsgen_burst(struct pg_brick *brick, enum pg_side side,
 			    uint16_t edge_index,
 			    struct rte_mbuf **pkts, uint16_t nb,
 			    uint64_t pkts_mask,
-			    struct switch_error **errp)
+			    struct pg_error **errp)
 {
-	struct brick_side *s = &brick->sides[flip_side(side)];
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(side)];
 
-	return brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
+	return pg_brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
 }
 
-static int packetsgen_poll(struct brick *brick, uint16_t *pkts_cnt,
-			   struct switch_error **errp)
+static int packetsgen_poll(struct pg_brick *brick,
+			   uint16_t *pkts_cnt,
+			   struct pg_error **errp)
 {
-	struct packetsgen_state *state;
-	struct rte_mempool *mp = get_mempool();
+	struct pg_packetsgen_state *state;
+	struct rte_mempool *mp = pg_get_mempool();
 	struct rte_mbuf **pkts;
-	struct brick_side *s;
+	struct pg_brick_side *s;
 	uint64_t pkts_mask;
 	int ret;
 	uint16_t i;
 
-	state = brick_get_state(brick, struct packetsgen_state);
+	state = pg_brick_get_state(brick, struct pg_packetsgen_state);
 	s = &brick->sides[state->output];
 
 	if (state->packets == NULL) {
@@ -80,47 +81,49 @@ static int packetsgen_poll(struct brick *brick, uint16_t *pkts_cnt,
 			g_assert(pkts[i]);
 			pkts[i]->udata64 = i;
 		}
-		pkts_mask = mask_firsts(PACKETSGEN_POLL_NB_PKTS);
+		pkts_mask = pg_mask_firsts(PACKETSGEN_POLL_NB_PKTS);
 		*pkts_cnt = PACKETSGEN_POLL_NB_PKTS;
-		ret = brick_side_forward(s, flip_side(state->output),
-					 pkts, PACKETSGEN_POLL_NB_PKTS,
-					 pkts_mask, errp);
+		ret = pg_brick_side_forward(s, pg_flip_side(state->output),
+					    pkts, PACKETSGEN_POLL_NB_PKTS,
+					    pkts_mask, errp);
 	} else {
 		pkts = g_new0(struct rte_mbuf*, state->packets_nb);
 		for (i = 0; i < state->packets_nb; i++)
 			pkts[i] = rte_pktmbuf_clone(state->packets[i], mp);
-		pkts_mask = mask_firsts(state->packets_nb);
+		pkts_mask = pg_mask_firsts(state->packets_nb);
 		*pkts_cnt = state->packets_nb;
-		ret = brick_side_forward(s, flip_side(state->output),
-					 pkts, state->packets_nb,
-					 pkts_mask, errp);
+		ret = pg_brick_side_forward(s, pg_flip_side(state->output),
+					    pkts, state->packets_nb,
+					    pkts_mask, errp);
 	}
-	packets_free(pkts, pkts_mask);
+	pg_packets_free(pkts, pkts_mask);
 	g_free(pkts);
 	return ret;
 }
 
 #undef PACKETSGEN_POLL_NB_PKTS
 
-static int packetsgen_init(struct brick *brick, struct brick_config *config,
-			   struct switch_error **errp)
+static int packetsgen_init(struct pg_brick *brick,
+			   struct pg_brick_config *config,
+			   struct pg_error **errp)
 {
-	struct packetsgen_state *state;
-	struct packetsgen_config *packetsgen_config;
+	struct pg_packetsgen_state *state;
+	struct pg_packetsgen_config *packetsgen_config;
 
-	state = brick_get_state(brick, struct packetsgen_state);
+	state = pg_brick_get_state(brick, struct pg_packetsgen_state);
 
 	if (!config->brick_config) {
-		*errp = error_new("config->brick_config is NULL");
+		*errp = pg_error_new("config->brick_config is NULL");
 		return 0;
 	}
 
-	packetsgen_config = (struct packetsgen_config *) config->brick_config;
+	packetsgen_config = (struct pg_packetsgen_config *)
+		config->brick_config;
 	state->output = packetsgen_config->output;
 	state->packets = packetsgen_config->packets;
 	state->packets_nb = packetsgen_config->packets_nb;
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return 0;
 
 	/* Initialize fast path */
@@ -130,51 +133,54 @@ static int packetsgen_init(struct brick *brick, struct brick_config *config,
 	return 1;
 }
 
-static struct brick_config *packetsgen_config_new(const char *name,
-						  uint32_t west_max,
-						  uint32_t east_max,
-						  struct rte_mbuf **packets,
-						  uint16_t packets_nb,
-						  enum side output)
+static struct pg_brick_config *packetsgen_config_new(const char *name,
+						     uint32_t west_max,
+						     uint32_t east_max,
+						     struct rte_mbuf **packets,
+						     uint16_t packets_nb,
+						     enum pg_side output)
 {
-	struct brick_config *config = g_new0(struct brick_config, 1);
-	struct packetsgen_config *packetsgen_config =
-		g_new0(struct packetsgen_config, 1);
+	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
+	struct pg_packetsgen_config *packetsgen_config =
+		g_new0(struct pg_packetsgen_config, 1);
 
 	packetsgen_config->output = output;
 	packetsgen_config->packets = packets;
 	packetsgen_config->packets_nb = packets_nb;
 	config->brick_config = (void *) packetsgen_config;
-	return brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max, east_max);
 }
 
 
-struct brick *packetsgen_new(const char *name,
-			     uint32_t west_max,
-			     uint32_t east_max,
-			     enum side output,
-			     struct rte_mbuf **packets,
-			     uint16_t packets_nb,
-			     struct switch_error **errp)
+struct pg_brick *pg_packetsgen_new(const char *name,
+				   uint32_t west_max,
+				   uint32_t east_max,
+				   enum pg_side output,
+				   struct rte_mbuf **packets,
+				   uint16_t packets_nb,
+				   struct pg_error **errp)
 {
-	struct brick_config *config = packetsgen_config_new(name, west_max,
-							    east_max,
-							    packets,
-							    packets_nb,
-							    output);
-	struct brick *ret = brick_new("packetsgen", config, errp);
+	struct pg_brick_config *config;
 
-	brick_config_free(config);
+	config = packetsgen_config_new(name,
+				       west_max,
+				       east_max,
+				       packets,
+				       packets_nb,
+				       output);
+	struct pg_brick *ret = pg_brick_new("packetsgen", config, errp);
+
+	pg_brick_config_free(config);
 	return ret;
 }
 
-static struct brick_ops packetsgen_ops = {
+static struct pg_brick_ops packetsgen_ops = {
 	.name		= "packetsgen",
-	.state_size	= sizeof(struct packetsgen_state),
+	.state_size	= sizeof(struct pg_packetsgen_state),
 
 	.init		= packetsgen_init,
 
-	.unlink		= brick_generic_unlink,
+	.unlink		= pg_brick_generic_unlink,
 };
 
-brick_register(packetsgen, &packetsgen_ops);
+pg_brick_register(packetsgen, &packetsgen_ops);

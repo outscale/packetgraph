@@ -40,22 +40,22 @@
 #define src_key_ptr(pkt)						\
 	((struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt, HASH_KEY_SIZE))
 
-int packets_pack(struct rte_mbuf **dst,
-		 struct rte_mbuf **src,
-		 uint64_t pkts_mask);
+int pg_packets_pack(struct rte_mbuf **dst,
+		    struct rte_mbuf **src,
+		    uint64_t pkts_mask);
 
-void packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask);
+void pg_packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
-void packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask);
+void pg_packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
-void packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask);
+void pg_packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
-void packets_prefetch(struct rte_mbuf **pkts, uint64_t pkts_mask);
+void pg_packets_prefetch(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
-int packets_prepare_hash_keys(struct rte_mbuf **pkts,
-			      uint64_t pkts_mask,
-			      struct switch_error **errp);
+int pg_packets_prepare_hash_keys(struct rte_mbuf **pkts,
+				 uint64_t pkts_mask,
+				 struct pg_error **errp);
 
-void packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask);
+void pg_packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
 #endif

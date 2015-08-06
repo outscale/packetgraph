@@ -25,10 +25,10 @@
 #include <packetgraph/utils/bitmask.h>
 
 /* All registred bricks. */
-GList *packetgraph_all_bricks = NULL;
+GList *pg_all_bricks = NULL;
 
 /* return the oposite side */
-enum side flip_side(enum side side)
+enum pg_side pg_flip_side(enum pg_side side)
 {
 	if (side == WEST_SIDE)
 		return EAST_SIDE;
@@ -38,9 +38,9 @@ enum side flip_side(enum side side)
 	return 0;
 }
 
-static void assert_brick_callback(struct brick *brick)
+static void assert_brick_callback(struct pg_brick *brick)
 {
-	enum side i;
+	enum pg_side i;
 
 	/* the init constructor should set these */
 	for (i = 0; i < MAX_SIDE; i++)
@@ -53,45 +53,46 @@ static void assert_brick_callback(struct brick *brick)
 /**
  * This function is used to allocate the edges arrays
  *
- * @brick: the struct brick we are initializing
+ * @brick: the struct pg_brick we are initializing
  */
-static void alloc_edges(struct brick *brick)
+static void alloc_edges(struct pg_brick *brick)
 {
-	enum side i;
+	enum pg_side i;
 
 	for (i = 0; i < MAX_SIDE; i++) {
-		struct brick_side *side = &brick->sides[i];
+		struct pg_brick_side *side = &brick->sides[i];
 
 		side->nb = 0;
 		g_assert(side->max);
-		side->edges = g_new0(struct brick_edge, side->max);
+		side->edges = g_new0(struct pg_brick_edge, side->max);
 	}
 }
 
 /**
  * This should be called by the init constructor so brick_new can alloc arrays
  *
- * @param	brick the struct brick we are constructing
+ * @param	brick the struct pg_brick we are constructing
  * @param	west_edges the size of the west array
  * @param	east_edges the size of the east array
  */
-void brick_set_max_edges(struct brick *brick,
-			   uint16_t west_edges, uint16_t east_edges)
+void pg_brick_set_max_edges(struct pg_brick *brick,
+			    uint16_t west_edges,
+			    uint16_t east_edges)
 {
 	brick->sides[WEST_SIDE].max = west_edges;
 	brick->sides[EAST_SIDE].max = east_edges;
 }
 
-static void zero_brick_counters(struct brick *brick)
+static void zero_brick_counters(struct pg_brick *brick)
 {
-	enum side i;
+	enum pg_side i;
 
 	for (i = 0; i < MAX_SIDE; ++i)
 		rte_atomic64_set(&brick->sides[i].packet_count, 0);
 }
 
 /* Convenient macro to get a pointer to brick ops */
-#define brick_get(it) ((struct brick_ops *)(it->data))
+#define pg_brick_get(it) ((struct pg_brick_ops *)(it->data))
 
 /**
  * This function instantiates a brick by its brick_ops name
@@ -101,60 +102,61 @@ static void zero_brick_counters(struct brick *brick)
  * @param	errp a return pointer for an error message
  * @return	the instantiated brick
  */
-struct brick *brick_new(const char *name, struct brick_config *config,
-			 struct switch_error **errp)
+struct pg_brick *pg_brick_new(const char *name,
+			      struct pg_brick_config *config,
+			      struct pg_error **errp)
 {
-	struct brick *brick;
+	struct pg_brick *brick;
 	size_t ret;
 	GList *it;
 
 	if (!name) {
-		*errp = error_new("Brick name not set");
+		*errp = pg_error_new("Brick name not set");
 		return NULL;
 	}
 
-	for (it = packetgraph_all_bricks; it; it = it->next) {
+	for (it = pg_all_bricks; it; it = it->next) {
 		/* the east brick_ops is found */
-		if (!g_strcmp0(name, brick_get(it)->name))
+		if (!g_strcmp0(name, pg_brick_get(it)->name))
 			break;
 	}
 
 	/* correct brick_ops not found -> fail */
 	if (it == NULL) {
-		*errp = error_new("Brick '%s' not found", name);
+		*errp = pg_error_new("Brick '%s' not found", name);
 		return NULL;
 	}
 
-	if (brick_get(it)->state_size <= 0) {
-		*errp = error_new("Brick state size is not positive");
+	if (pg_brick_get(it)->state_size <= 0) {
+		*errp = pg_error_new("Brick state size is not positive");
 		return NULL;
 	}
 
 	/* The brick struct is be the first member of the state. */
-	brick = g_malloc0(brick_get(it)->state_size);
-	brick->ops = brick_get(it);
+	brick = g_malloc0(pg_brick_get(it)->state_size);
+	brick->ops = pg_brick_get(it);
 	brick->refcount = 1;
 
 	zero_brick_counters(brick);
 
 	if (config->west_max >= UINT16_MAX) {
-		*errp = error_new("Supports UINT16_MAX west neigbourghs");
+		*errp = pg_error_new("Supports UINT16_MAX west neigbourghs");
 		goto fail_exit;
 	}
 
 	if (config->east_max >= UINT16_MAX) {
-		*errp = error_new("Supports UINT16_MAX east neigbourghs");
+		*errp = pg_error_new("Supports UINT16_MAX east neigbourghs");
 		goto fail_exit;
 	}
 
-	brick_set_max_edges(brick, config->west_max, config->east_max);
+	pg_brick_set_max_edges(brick, config->west_max, config->east_max);
 	brick->name = g_strdup(config->name);
 
 	ret = brick->ops->init(brick, config, errp);
 
 	if (!ret) {
-		if (!error_is_set(errp))
-			*errp = error_new("Failed to init '%s' brick", name);
+		if (!pg_error_is_set(errp))
+			*errp = pg_error_new("Failed to init '%s' brick", name);
 		goto fail_exit;
 	}
 
@@ -171,12 +173,12 @@ fail_exit:
 
 #undef brick_get
 
-void brick_incref(struct brick *brick)
+void pg_brick_incref(struct pg_brick *brick)
 {
 	brick->refcount++;
 }
 
-static int is_brick_valid(struct brick *brick)
+static int is_brick_valid(struct pg_brick *brick)
 {
 	if (!brick)
 		return 0;
@@ -187,12 +189,12 @@ static int is_brick_valid(struct brick *brick)
 	return 1;
 }
 
-void brick_destroy(struct brick *brick)
+void pg_brick_destroy(struct pg_brick *brick)
 {
-	struct switch_error *errp = NULL;
+	struct pg_error *errp = NULL;
 
-	brick_unlink(brick, &errp);
-	brick_decref(brick, &errp);
+	pg_brick_unlink(brick, &errp);
+	pg_brick_decref(brick, &errp);
 }
 
 /**
@@ -202,12 +204,12 @@ void brick_destroy(struct brick *brick)
  * @param	errp a return pointer for an error message
  * @return	the brick if refcount >= or NULL if it has been destroyed
  */
-struct brick *brick_decref(struct brick *brick, struct switch_error **errp)
+struct pg_brick *pg_brick_decref(struct pg_brick *brick, struct pg_error **errp)
 {
-	enum side i;
+	enum pg_side i;
 
 	if (!brick) {
-		*errp = error_new("NULL brick");
+		*errp = pg_error_new("NULL brick");
 		return NULL;
 	}
 
@@ -238,10 +240,10 @@ struct brick *brick_decref(struct brick *brick, struct switch_error **errp)
  * @param	errp a return pointer for an error message
  * @return	1 on success, 0 on error
  */
-int brick_reset(struct brick *brick, struct switch_error **errp)
+int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp)
 {
 	if (!brick) {
-		*errp = error_new("brick is NULL");
+		*errp = pg_error_new("brick is NULL");
 		return 0;
 	}
 
@@ -257,13 +259,14 @@ int brick_reset(struct brick *brick, struct switch_error **errp)
  * @param	brick the brick to get the refcount from
  * @return	the refcount
  */
-int64_t brick_refcount(struct brick *brick)
+int64_t pg_brick_refcount(struct pg_brick *brick)
 {
 	g_assert(brick->refcount > 0);
 	return brick->refcount;
 }
 
-static uint16_t count_side(struct brick_side *side, struct brick *target)
+static uint16_t count_side(struct pg_brick_side *side,
+			   struct pg_brick *target)
 {
 	uint16_t j, count = 0;
 
@@ -281,14 +284,15 @@ static uint16_t count_side(struct brick_side *side, struct brick *target)
  * @param	errp a return pointer for an error message
  * @return	the total number of link from the brick to the target
  */
-uint32_t brick_links_count_get(struct brick *brick,
-			   struct brick *target, struct switch_error **errp)
+uint32_t pg_brick_links_count_get(struct pg_brick *brick,
+				  struct pg_brick *target,
+				  struct pg_error **errp)
 {
 	uint32_t count = 0;
-	enum side i;
+	enum pg_side i;
 
 	if (!brick) {
-		*errp = error_new("brick is NULL");
+		*errp = pg_error_new("brick is NULL");
 		return 0;
 	}
 
@@ -304,15 +308,15 @@ uint32_t brick_links_count_get(struct brick *brick,
  * @param	brick the brick brick to unlink
  * @param	errp a return pointer for an error message
  */
-void brick_unlink(struct brick *brick, struct switch_error **errp)
+void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp)
 {
 	if (!is_brick_valid(brick)) {
-		*errp = error_new("Node is not valid");
+		*errp = pg_error_new("Node is not valid");
 		return;
 	}
 
 	if (!brick->ops->unlink) {
-		*errp = error_new("Node unlink callback not set");
+		*errp = pg_error_new("Node unlink callback not set");
 		return;
 	}
 
@@ -327,7 +331,8 @@ void brick_unlink(struct brick *brick, struct switch_error **errp)
  * @return	the insertion index in the array
  *
  */
-static uint16_t insert_link(struct brick_side *side, struct brick *brick)
+static uint16_t insert_link(struct pg_brick_side *side,
+			    struct pg_brick *brick)
 {
 	uint16_t i;
 
@@ -336,7 +341,7 @@ static uint16_t insert_link(struct brick_side *side, struct brick *brick)
 	for (i = 0; i < side->max; i++)
 		if (!side->edges[i].link) {
 			side->nb++;
-			brick_incref(brick);
+			pg_brick_incref(brick);
 			side->edges[i].link = brick;
 			return i;
 		}
@@ -346,23 +351,24 @@ static uint16_t insert_link(struct brick_side *side, struct brick *brick)
 }
 
 
-int brick_link(struct brick *west, struct brick *east,
-			    struct switch_error **errp)
+int pg_brick_link(struct pg_brick *west,
+		  struct pg_brick *east,
+		  struct pg_error **errp)
 {
 	uint16_t west_index, east_index;
 
 	if (!is_brick_valid(east) || !is_brick_valid(west)) {
-		*errp = error_new("Node is not valid");
+		*errp = pg_error_new("Node is not valid");
 		return 0;
 	}
 
 	if (west == east) {
-		*errp = error_new("Can not link a brick to herself");
+		*errp = pg_error_new("Can not link a brick to herself");
 		return 0;
 	}
 	if (east->sides[WEST_SIDE].nb == east->sides[WEST_SIDE].max ||
 	    west->sides[EAST_SIDE].nb == west->sides[EAST_SIDE].max) {
-		*errp = error_new("Side full");
+		*errp = pg_error_new("Side full");
 		return 0;
 	}
 
@@ -376,16 +382,16 @@ int brick_link(struct brick *west, struct brick *east,
 	return 1;
 }
 
-int brick_chained_links_int(struct switch_error **errp,
-		struct brick *west, ...)
+int pg_brick_chained_links_int(struct pg_error **errp,
+			       struct pg_brick *west, ...)
 {
 	va_list ap;
-	struct brick *east;
+	struct pg_brick *east;
 	int ret = 1;
 
 	va_start(ap, west);
-	while ((east = va_arg(ap, struct brick *)) != NULL) {
-		ret = brick_link(west, east, errp);
+	while ((east = va_arg(ap, struct pg_brick *)) != NULL) {
+		ret = pg_brick_link(west, east, errp);
 		if (!ret)
 			goto exit;
 		west = east;
@@ -395,7 +401,7 @@ exit:
 	return ret;
 }
 
-static void reset_edge(struct brick_edge *edge)
+static void reset_edge(struct pg_brick_edge *edge)
 {
 	edge->link = NULL;
 	edge->pair_index = 0;
@@ -405,10 +411,10 @@ static void reset_edge(struct brick_edge *edge)
  *
  * @edge: the edge we are unlinking with
  */
-static void unlink_notify(struct brick_edge *edge, enum side array_side,
-			  struct switch_error **errp)
+static void unlink_notify(struct pg_brick_edge *edge, enum pg_side array_side,
+			  struct pg_error **errp)
 {
-	struct brick *brick = edge->link;
+	struct pg_brick *brick = edge->link;
 
 	if (!brick)
 		return;
@@ -417,33 +423,34 @@ static void unlink_notify(struct brick_edge *edge, enum side array_side,
 		return;
 
 	brick->ops->unlink_notify(brick,
-				  flip_side(array_side),
+				  pg_flip_side(array_side),
 				  edge->pair_index, errp);
 }
 
-static void do_unlink(struct brick *brick, enum side side, uint16_t index,
-		      struct switch_error **errp)
+static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
+		      struct pg_error **errp)
 {
-	struct brick_edge *edge = &brick->sides[side].edges[index];
-	struct brick_edge *pair_edge;
+	struct pg_brick_edge *edge = &brick->sides[side].edges[index];
+	struct pg_brick_edge *pair_edge;
 
 	if (!edge->link)
 		return;
 
-	pair_edge = &edge->link->sides[flip_side(side)].edges[edge->pair_index];
+	pair_edge =
+		&edge->link->sides[pg_flip_side(side)].edges[edge->pair_index];
 
 	unlink_notify(edge, side, errp);
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return;
 
-	brick_decref(brick, errp);
+	pg_brick_decref(brick, errp);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return;
 
-	brick_decref(edge->link, errp);
+	pg_brick_decref(edge->link, errp);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return;
 
 	reset_edge(pair_edge);
@@ -458,16 +465,16 @@ static void do_unlink(struct brick *brick, enum side side, uint16_t index,
  * @param	brick the brick brick to unlink
  * @param	errp a return pointer for an error message
  */
-void brick_generic_unlink(struct brick *brick, struct switch_error **errp)
+void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp)
 {
-	enum side i;
+	enum pg_side i;
 	uint16_t j;
 
 	for (i = 0; i < MAX_SIDE; i++)
 		for (j = 0; j < brick->sides[i].max; j++) {
 			do_unlink(brick, i, j, errp);
 
-			if (error_is_set(errp))
+			if (pg_error_is_set(errp))
 				return;
 		}
 }
@@ -481,43 +488,44 @@ void brick_generic_unlink(struct brick *brick, struct switch_error **errp)
  * function.
  */
 
-inline int brick_burst(struct brick *brick, enum side from,
-		       uint16_t edge_index, struct rte_mbuf **pkts, uint16_t nb,
-		       uint64_t pkts_mask, struct switch_error **errp)
+inline int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
+			  uint16_t edge_index, struct rte_mbuf **pkts,
+			  uint16_t nb, uint64_t pkts_mask,
+			  struct pg_error **errp)
 {
 	/* @side is the opposite side of the direction on which
 	 * we send the packets, so we flip it */
-	rte_atomic64_add(&brick->sides[flip_side(from)].packet_count,
-			 mask_count(pkts_mask));
+	rte_atomic64_add(&brick->sides[pg_flip_side(from)].packet_count,
+			 pg_mask_count(pkts_mask));
 	return brick->burst(brick, from, edge_index, pkts, nb, pkts_mask, errp);
 }
 
-inline int brick_burst_to_east(struct brick *brick, uint16_t edge_index,
-			       struct rte_mbuf **pkts, uint16_t nb,
-			       uint64_t pkts_mask, struct switch_error **errp)
+inline int pg_brick_burst_to_east(struct pg_brick *brick, uint16_t edge_index,
+				  struct rte_mbuf **pkts, uint16_t nb,
+				  uint64_t pkts_mask, struct pg_error **errp)
 {
-	return brick_burst(brick, WEST_SIDE, edge_index,
-			   pkts, nb, pkts_mask, errp);
+	return pg_brick_burst(brick, WEST_SIDE, edge_index,
+			      pkts, nb, pkts_mask, errp);
 }
 
-inline int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
-			       struct rte_mbuf **pkts, uint16_t nb,
-			       uint64_t pkts_mask, struct switch_error **errp)
+inline int pg_brick_burst_to_west(struct pg_brick *brick, uint16_t edge_index,
+				  struct rte_mbuf **pkts, uint16_t nb,
+				  uint64_t pkts_mask, struct pg_error **errp)
 {
-	return brick_burst(brick, EAST_SIDE, edge_index,
-			   pkts, nb, pkts_mask, errp);
+	return pg_brick_burst(brick, EAST_SIDE, edge_index,
+			      pkts, nb, pkts_mask, errp);
 }
 
-int brick_poll(struct brick *brick,
-		      uint16_t *count, struct switch_error **errp)
+int pg_brick_poll(struct pg_brick *brick,
+		  uint16_t *count, struct pg_error **errp)
 {
 	if (!brick) {
-		*errp = error_new("Brick is NULL");
+		*errp = pg_error_new("Brick is NULL");
 		return 0;
 	}
 
 	if (!brick->poll) {
-		*errp = error_new("No poll callback");
+		*errp = pg_error_new("No poll callback");
 		return 0;
 	}
 
@@ -525,52 +533,52 @@ int brick_poll(struct brick *brick,
 }
 
 /* These functions are are for automated testing purpose */
-struct rte_mbuf **brick_west_burst_get(struct brick *brick,
-				       uint64_t *pkts_mask,
-				       struct switch_error **errp)
+struct rte_mbuf **pg_brick_west_burst_get(struct pg_brick *brick,
+					  uint64_t *pkts_mask,
+					  struct pg_error **errp)
 {
 	if (!brick) {
-		*errp = error_new("NULL brick");
+		*errp = pg_error_new("NULL brick");
 		return NULL;
 	}
 
 	if (!brick->burst_get) {
-		*errp = error_new("No burst_get callback");
+		*errp = pg_error_new("No burst_get callback");
 		return NULL;
 	}
 
 	return brick->burst_get(brick, WEST_SIDE, pkts_mask);
 }
 
-struct rte_mbuf **brick_east_burst_get(struct brick *brick,
-				       uint64_t *pkts_mask,
-				       struct switch_error **errp)
+struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
+					  uint64_t *pkts_mask,
+					  struct pg_error **errp)
 {
 	if (!brick) {
-		*errp = error_new("NULL brick");
+		*errp = pg_error_new("NULL brick");
 		return NULL;
 	}
 
 	if (!brick->burst_get) {
-		*errp = error_new("No burst_get callback");
+		*errp = pg_error_new("No burst_get callback");
 		return NULL;
 	}
 
 	return brick->burst_get(brick, EAST_SIDE, pkts_mask);
 }
 
-int brick_side_forward(struct brick_side *brick_side, enum side from,
-		       struct rte_mbuf **pkts, uint16_t nb,
-		       uint64_t pkts_mask, struct switch_error **errp)
+int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
+			  struct rte_mbuf **pkts, uint16_t nb,
+			  uint64_t pkts_mask, struct pg_error **errp)
 {
 	int ret = 1;
 	uint16_t i;
 
 	for (i = 0; i < brick_side->max; i++) {
 		if (brick_side->edges[i].link)
-			ret = brick_burst(brick_side->edges[i].link, from,
-					  brick_side->edges[i].pair_index,
-					  pkts, nb, pkts_mask, errp);
+			ret = pg_brick_burst(brick_side->edges[i].link, from,
+					     brick_side->edges[i].pair_index,
+					     pkts, nb, pkts_mask, errp);
 		if (unlikely(!ret))
 			return 0;
 	}
@@ -578,20 +586,20 @@ int brick_side_forward(struct brick_side *brick_side, enum side from,
 	return 1;
 }
 
-char *brick_handle_dup(struct brick *brick, struct switch_error **errp)
+char *pg_brick_handle_dup(struct pg_brick *brick, struct pg_error **errp)
 {
 	if (!brick) {
-		*errp = error_new("Brick is NULL");
+		*errp = pg_error_new("Brick is NULL");
 		return 0;
 	}
 
 	if (!brick->ops) {
-		*errp = error_new("Brick has no ops");
+		*errp = pg_error_new("Brick has no ops");
 		return 0;
 	}
 
 	if (!brick->ops->handle_dup) {
-		*errp = error_new("No handle_dup callback");
+		*errp = pg_error_new("No handle_dup callback");
 		return 0;
 	}
 
@@ -599,7 +607,7 @@ char *brick_handle_dup(struct brick *brick, struct switch_error **errp)
 }
 
 
-uint64_t brick_pkts_count_get(struct brick *brick, enum side side)
+uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 {
 	if (!brick)
 		return 0;

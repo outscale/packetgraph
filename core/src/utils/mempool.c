@@ -27,7 +27,7 @@
 
 static struct rte_mempool *mp;
 
-static void alloc_mempool(void)
+static void pg_alloc_mempool(void)
 {
 	mp = rte_mempool_create("test_mempool", NUM_MBUFS, MBUF_SIZE,
 				MBUF_CACHE_SIZE,
@@ -38,9 +38,9 @@ static void alloc_mempool(void)
 	g_assert(mp);
 }
 
-struct rte_mempool *get_mempool(void)
+struct rte_mempool *pg_get_mempool(void)
 {
 	if (!mp)
-		alloc_mempool();
+		pg_alloc_mempool();
 	return mp;
 }

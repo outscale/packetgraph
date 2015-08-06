@@ -17,7 +17,7 @@
 
 #include <packetgraph/utils/bitmask.h>
 
-uint64_t mask_firsts(uint8_t count)
+uint64_t pg_mask_firsts(uint8_t count)
 {
 	uint8_t i;
 	uint64_t result = 0;
@@ -30,7 +30,7 @@ uint64_t mask_firsts(uint8_t count)
 	return result;
 }
 
-int mask_count(uint64_t pkts_mask)
+int pg_mask_count(uint64_t pkts_mask)
 {
 	return __builtin_popcountll(pkts_mask);
 }

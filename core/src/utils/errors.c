@@ -29,13 +29,13 @@
  * @param	line the line of the file where the error is happening
  * @param	function the function where the error is happening
  * @param	format the message format
- * @return	the newly allocated struct switch_error
+ * @return	the newly allocated struct pg_error
  */
-struct switch_error *__error_new(int err_no, const char *file, uint64_t line,
-				 const char *function, const char *format, ...)
+struct pg_error *__pg_error_new(int err_no, const char *file, uint64_t line,
+				const char *function, const char *format, ...)
 {
 	va_list args;
-	struct switch_error *error = g_new0(struct switch_error, 1);
+	struct pg_error *error = g_new0(struct pg_error, 1);
 
 	error->context.file = g_strdup(file);
 	error->context.has_line = 1;
@@ -57,7 +57,7 @@ struct switch_error *__error_new(int err_no, const char *file, uint64_t line,
  *
  * @param	error the error to free
  */
-void error_free(struct switch_error *error)
+void pg_error_free(struct pg_error *error)
 {
 	if (!error)
 		return;
@@ -73,7 +73,7 @@ void error_free(struct switch_error *error)
  *
  * @param	the error to print
  */
-void error_print(struct switch_error *error)
+void pg_error_print(struct pg_error *error)
 {
 	if (!error) {
 		fprintf(stderr, "Error is NULL\n");
@@ -95,7 +95,7 @@ void error_print(struct switch_error *error)
  * @param	errp an error pointer
  * @return	1 if the error is set else 0
  */
-int error_is_set(struct switch_error **errp)
+int pg_error_is_set(struct pg_error **errp)
 {
 	return !!*errp;
 }

@@ -25,5 +25,6 @@
  * @param	errp is set in case of an error
  * @return	1 on success, 0 on error
  */
-int graph_dot(struct brick *brick, FILE *fd, struct switch_error **errp);
+int pg_graph_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp);
+
 

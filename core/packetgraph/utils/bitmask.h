@@ -20,21 +20,21 @@
 
 #include <stdint.h>
 
-uint64_t mask_firsts(uint8_t count);
+uint64_t pg_mask_firsts(uint8_t count);
 
-int mask_count(uint64_t pkts_mask);
+int pg_mask_count(uint64_t pkts_mask);
 
 /**
  * Made as a macro for performance reason since a function would imply a 10%
  * performance hit and a function in a separate module would not be inlined.
  */
-#define low_bit_iterate_full(mask, bit, index) do {	\
+#define pg_low_bit_iterate_full(mask, bit, index) do {	\
 	index =  __builtin_ctzll(mask);			\
 	bit = 1LLU << index;				\
 	mask &= ~bit;					\
 	} while (0)
 
-#define low_bit_iterate(mask, index) do {	\
+#define pg_low_bit_iterate(mask, index) do {	\
 	uint64_t bit;				\
 	index =  __builtin_ctzll(mask);		\
 	bit = 1LLU << index;			\

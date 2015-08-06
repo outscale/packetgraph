@@ -22,55 +22,62 @@
 #include <packetgraph/brick-int.h>
 #include <packetgraph/utils/errors.h>
 
-void brick_set_max_edges(struct brick *brick,
+void pg_brick_set_max_edges(struct pg_brick *brick,
 			   uint16_t west_edges, uint16_t east_edges);
 
  /* lifecycle */
-struct brick *brick_new(const char *name, struct brick_config *config,
-			 struct switch_error **errp);
-void brick_incref(struct brick *brick);
-struct brick *brick_decref(struct brick *brick, struct switch_error **errp);
-int brick_reset(struct brick *brick, struct switch_error **errp);
+struct pg_brick *pg_brick_new(const char *name,
+			      struct pg_brick_config *config,
+			      struct pg_error **errp);
+void pg_brick_incref(struct pg_brick *brick);
+struct pg_brick *pg_brick_decref(struct pg_brick *brick,
+				 struct pg_error **errp);
+int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp);
 
 /* testing */
-uint32_t brick_links_count_get(struct brick *brick,
-			   struct brick *target, struct switch_error **errp);
+uint32_t pg_brick_links_count_get(struct pg_brick *brick,
+				  struct pg_brick *target,
+				  struct pg_error **errp);
 
 /* generic functions used to factorize code */
 
 /* these are generic brick_ops callbacks */
-int brick_generic_west_link(struct brick *target,
-			    struct brick *brick, struct switch_error **errp);
-int brick_generic_east_link(struct brick *target,
-			    struct brick *brick, struct switch_error **errp);
-void brick_generic_unlink(struct brick *brick, struct switch_error **errp);
+int pg_brick_generic_west_link(struct pg_brick *target,
+			       struct pg_brick *brick,
+			       struct pg_error **errp);
+int pg_brick_generic_east_link(struct pg_brick *target,
+			       struct pg_brick *brick,
+			       struct pg_error **errp);
+void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp);
 
 /* data flow */
-int brick_burst(struct brick *brick, enum side from, uint16_t edge_index,
-		struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
-		struct switch_error **errp);
+int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
+		   uint16_t edge_index,
+		   struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
+		   struct pg_error **errp);
 
 /* data flow commodity functions */
-int brick_burst_to_east(struct brick *brick, uint16_t edge_index,
+int pg_brick_burst_to_east(struct pg_brick *brick, uint16_t edge_index,
 			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
-			struct switch_error **errp);
+			struct pg_error **errp);
 
-int brick_burst_to_west(struct brick *brick, uint16_t edge_index,
-			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
-			struct switch_error **errp);
+int pg_brick_burst_to_west(struct pg_brick *brick, uint16_t edge_index,
+			   struct rte_mbuf **pkts, uint16_t nb,
+			   uint64_t pkts_mask, struct pg_error **errp);
 
 /* used for testing */
-struct rte_mbuf **brick_west_burst_get(struct brick *brick,
-				       uint64_t *pkts_mask,
-				       struct switch_error **errp);
-struct rte_mbuf **brick_east_burst_get(struct brick *brick,
-				       uint64_t *pkts_mask,
-				       struct switch_error **errp);
+struct rte_mbuf **pg_brick_west_burst_get(struct pg_brick *brick,
+					  uint64_t *pkts_mask,
+					  struct pg_error **errp);
 
-int brick_side_forward(struct brick_side *brick_side, enum side from,
-		       struct rte_mbuf **pkts, uint16_t nb,
-		       uint64_t pkts_mask, struct switch_error **errp);
+struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
+					  uint64_t *pkts_mask,
+					  struct pg_error **errp);
 
-char *brick_handle_dup(struct brick *brick, struct switch_error **errp);
+int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
+			  struct rte_mbuf **pkts, uint16_t nb,
+			  uint64_t pkts_mask, struct pg_error **errp);
+
+char *pg_brick_handle_dup(struct pg_brick *brick, struct pg_error **errp);
 
 #endif

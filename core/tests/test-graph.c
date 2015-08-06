@@ -41,49 +41,49 @@ static void test_brick_core_graph(void)
 	 *
 	 */
 	int ret;
-	struct brick *a, *b, *c, *d, *e, *f, *g, *h, *i, *j, *k;
-	struct switch_error *error = NULL;
+	struct pg_brick *a, *b, *c, *d, *e, *f, *g, *h, *i, *j, *k;
+	struct pg_error *error = NULL;
 	char result[10000];
 	FILE *fd;
 
-	a = nop_new("a", 5, 5, &error);
+	a = pg_nop_new("a", 5, 5, &error);
 	g_assert(!error);
-	b = nop_new("b", 5, 5, &error);
+	b = pg_nop_new("b", 5, 5, &error);
 	g_assert(!error);
-	c = nop_new("c", 5, 5, &error);
+	c = pg_nop_new("c", 5, 5, &error);
 	g_assert(!error);
-	d = nop_new("d", 5, 5, &error);
+	d = pg_nop_new("d", 5, 5, &error);
 	g_assert(!error);
-	e = nop_new("e", 5, 5, &error);
+	e = pg_nop_new("e", 5, 5, &error);
 	g_assert(!error);
-	f = nop_new("f", 5, 5, &error);
+	f = pg_nop_new("f", 5, 5, &error);
 	g_assert(!error);
-	g = nop_new("g", 5, 5, &error);
+	g = pg_nop_new("g", 5, 5, &error);
 	g_assert(!error);
-	h = nop_new("h", 5, 5, &error);
+	h = pg_nop_new("h", 5, 5, &error);
 	g_assert(!error);
-	i = nop_new("i", 5, 5, &error);
+	i = pg_nop_new("i", 5, 5, &error);
 	g_assert(!error);
-	j = nop_new("j", 5, 5, &error);
+	j = pg_nop_new("j", 5, 5, &error);
 	g_assert(!error);
-	k = nop_new("k", 5, 5, &error);
+	k = pg_nop_new("k", 5, 5, &error);
 	g_assert(!error);
 
-	brick_chained_links(&error, a, b, c);
+	pg_brick_chained_links(&error, a, b, c);
 	g_assert(!error);
-	brick_chained_links(&error, g, d, e, f, c);
+	pg_brick_chained_links(&error, g, d, e, f, c);
 	g_assert(!error);
-	brick_chained_links(&error, a, e);
+	pg_brick_chained_links(&error, a, e);
 	g_assert(!error);
-	brick_chained_links(&error, g, h, i);
+	pg_brick_chained_links(&error, g, h, i);
 	g_assert(!error);
-	brick_chained_links(&error, j, k);
+	pg_brick_chained_links(&error, j, k);
 	g_assert(!error);
-	brick_chained_links(&error, j, h);
+	pg_brick_chained_links(&error, j, h);
 	g_assert(!error);
 
 	fd = fmemopen(result, 10000, "w+");
-	ret = graph_dot(k, fd, &error);
+	ret = pg_graph_dot(k, fd, &error);
 	fclose(fd);
 	g_assert(!error);
 	g_assert(ret);
@@ -99,17 +99,17 @@ static void test_brick_core_graph(void)
 
 	g_assert(memcmp(compare, result, strlen(compare)) == 0);
 
-	brick_destroy(a);
-	brick_destroy(b);
-	brick_destroy(c);
-	brick_destroy(d);
-	brick_destroy(e);
-	brick_destroy(f);
-	brick_destroy(g);
-	brick_destroy(h);
-	brick_destroy(i);
-	brick_destroy(j);
-	brick_destroy(k);
+	pg_brick_destroy(a);
+	pg_brick_destroy(b);
+	pg_brick_destroy(c);
+	pg_brick_destroy(d);
+	pg_brick_destroy(e);
+	pg_brick_destroy(f);
+	pg_brick_destroy(g);
+	pg_brick_destroy(h);
+	pg_brick_destroy(i);
+	pg_brick_destroy(j);
+	pg_brick_destroy(k);
 }
 
 void test_brick_graph(void)

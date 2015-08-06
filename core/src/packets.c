@@ -36,20 +36,18 @@
  * @param	pkts_mask the packing mask
  * @return	the number of packed packets
  */
-int packets_pack(struct rte_mbuf **dst,
-		 struct rte_mbuf **src,
-		 uint64_t pkts_mask)
+int pg_packets_pack(struct rte_mbuf **dst,
+		    struct rte_mbuf **src,
+		    uint64_t pkts_mask)
 {
 	int i;
 
 	for (i = 0; pkts_mask; i++) {
 		uint16_t j;
 
-		low_bit_iterate(pkts_mask, j);
-
+		pg_low_bit_iterate(pkts_mask, j);
 		dst[i] = src[j];
 	}
-
 	return i;
 }
 
@@ -59,13 +57,12 @@ int packets_pack(struct rte_mbuf **dst,
  * @param	pkts the packet array
  * @param	pkts_mask mask of packet to increment refcount of
  */
-void packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask)
+void pg_packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for (; pkts_mask;) {
 		uint16_t i;
 
-		low_bit_iterate(pkts_mask, i);
-
+		pg_low_bit_iterate(pkts_mask, i);
 		rte_mbuf_refcnt_update(pkts[i], 1);
 	}
 }
@@ -76,13 +73,12 @@ void packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask)
  * @param	pkts the packet array
  * @param	pkts_mask mask of packet to free
  */
-void packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask)
+void pg_packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for (; pkts_mask;) {
 		uint16_t i;
 
-		low_bit_iterate(pkts_mask, i);
-
+		pg_low_bit_iterate(pkts_mask, i);
 		rte_pktmbuf_free(pkts[i]);
 	}
 }
@@ -93,20 +89,18 @@ void packets_free(struct rte_mbuf **pkts, uint64_t pkts_mask)
  * @param	pkts the packet array
  * @param	pkts_mask mask of packet to forget
  */
-void packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask)
+void pg_packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for (; pkts_mask;) {
 		uint16_t i;
 
-		low_bit_iterate(pkts_mask, i);
-
+		pg_low_bit_iterate(pkts_mask, i);
 		pkts[i] = NULL;
 	}
 }
 
 
-void packets_prefetch(struct rte_mbuf **pkts,
-		      uint64_t pkts_mask)
+void pg_packets_prefetch(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	uint64_t mask;
 
@@ -114,43 +108,40 @@ void packets_prefetch(struct rte_mbuf **pkts,
 		struct rte_mbuf *pkt;
 		uint16_t i;
 
-		low_bit_iterate(mask, i);
-
+		pg_low_bit_iterate(mask, i);
 		pkt = pkts[i];
 		rte_prefetch0(pkt);
-
 	}
 	for (mask = pkts_mask; mask; ) {
 		struct ether_hdr *eth_hdr;
 		struct rte_mbuf *pkt;
 		uint16_t i;
 
-		low_bit_iterate(mask, i);
+		pg_low_bit_iterate(mask, i);
 
 		pkt = pkts[i];
 		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 		rte_prefetch0(eth_hdr);
-
 	}
 }
 
-int packets_prepare_hash_keys(struct rte_mbuf **pkts,
-			     uint64_t pkts_mask,
-			     struct switch_error **errp)
+int pg_packets_prepare_hash_keys(struct rte_mbuf **pkts,
+				 uint64_t pkts_mask,
+				 struct pg_error **errp)
 {
 	for ( ; pkts_mask; ) {
 		struct ether_hdr *eth_hdr;
 		struct rte_mbuf *pkt;
 		uint16_t i;
 
-		low_bit_iterate(pkts_mask, i);
+		pg_low_bit_iterate(pkts_mask, i);
 
 		pkt = pkts[i];
 
 		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 
 		if (unlikely(pkt->data_off < HASH_KEY_SIZE * 2)) {
-			*errp = error_new("Not enough headroom space");
+			*errp = pg_error_new("Not enough headroom space");
 			return 0;
 		}
 
@@ -163,13 +154,13 @@ int packets_prepare_hash_keys(struct rte_mbuf **pkts,
 	return 1;
 }
 
-void packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask)
+void pg_packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	for ( ; pkts_mask; ) {
 		struct rte_mbuf *pkt;
 		uint16_t i;
 
-		low_bit_iterate(pkts_mask, i);
+		pg_low_bit_iterate(pkts_mask, i);
 
 		pkt = pkts[i];
 

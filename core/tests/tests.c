@@ -55,12 +55,12 @@ int main(int argc, char **argv)
 {
 	int ret;
 	uint64_t test_flags;
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	ret = packetgraph_start(argc, argv, &error);
+	ret = pg_start(argc, argv, &error);
 	g_assert(ret >= 0);
 	g_assert(!error);
 

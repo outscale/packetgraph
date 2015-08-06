@@ -20,10 +20,10 @@
 #include <packetgraph/utils/config.h>
 #include <packetgraph/brick-int.h>
 
-struct brick_config *brick_config_init(struct brick_config *config,
-				       const char *name,
-				       uint32_t west_max,
-				       uint32_t east_max)
+struct pg_brick_config *pg_brick_config_init(struct pg_brick_config *config,
+					  const char *name,
+					  uint32_t west_max,
+					  uint32_t east_max)
 {
 	config->name = g_strdup(name);
 	config->west_max = west_max;
@@ -32,15 +32,16 @@ struct brick_config *brick_config_init(struct brick_config *config,
 	return config;
 }
 
-struct brick_config *brick_config_new(const char *name, uint32_t west_max,
-				      uint32_t east_max)
+struct pg_brick_config *pg_brick_config_new(const char *name,
+					    uint32_t west_max,
+					    uint32_t east_max)
 {
-	struct brick_config *config = g_new0(struct brick_config, 1);
+	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 
-	return brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max, east_max);
 }
 
-void brick_config_free(struct brick_config *config)
+void pg_brick_config_free(struct pg_brick_config *config)
 {
 	if (config->brick_config_free)
 		config->brick_config_free(config->brick_config);

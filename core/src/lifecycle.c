@@ -21,18 +21,17 @@
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/brick-int.h>
 
-int packetgraph_start(int argc, char **argv,
-		      struct switch_error **errp)
+int pg_start(int argc, char **argv, struct pg_error **errp)
 {
 	int r = rte_eal_init(argc, argv);
 
 	if (r < 0)
-		*errp = error_new("error durring eal initialisation");
+		*errp = pg_error_new("error durring eal initialisation");
 	return r;
 }
 
-void packetgraph_stop(void)
+void pg_stop(void)
 {
-	g_list_free(packetgraph_all_bricks);
-	packetgraph_all_bricks = NULL;
+	g_list_free(pg_all_bricks);
+	pg_all_bricks = NULL;
 }
