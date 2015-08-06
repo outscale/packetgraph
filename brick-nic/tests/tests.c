@@ -55,14 +55,13 @@ int main(int argc, char **argv)
 {
 	int ret;
 	uint64_t test_flags;
-	struct switch_error **err = NULL;
+	struct pg_error **err = NULL;
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
-	/* initialize DPDK */
-	ret = packetgraph_start(argc, argv, err);
+	ret = pg_start(argc, argv, err);
 	g_assert(!err);
-	nic_start();
+	pg_nic_start();
 	/* accounting program name */
 	ret += + 1;
 	argc -= ret;

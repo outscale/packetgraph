@@ -24,7 +24,7 @@
 /**
  * Start brick-nic library, must be call before any usage of this lib
  */
-void nic_start(void);
+void pg_nic_start(void);
 
 /**
  * Create a new nic brick
@@ -36,11 +36,11 @@ void nic_start(void);
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure, on success, 0 on error
  */
-struct brick *nic_new(const char *name, uint32_t west_max,
-		      uint32_t east_max,
-		      enum side output,
-		      const char *ifname,
-		      struct switch_error **errp);
+struct pg_brick *pg_nic_new(const char *name, uint32_t west_max,
+			 uint32_t east_max,
+			 enum pg_side output,
+			 const char *ifname,
+			 struct pg_error **errp);
 
 /**
  * Create a new nic brick
@@ -53,11 +53,11 @@ struct brick *nic_new(const char *name, uint32_t west_max,
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure, on success, 0 on error
  */
-struct brick *nic_new_by_id(const char *name, uint32_t west_max,
-			    uint32_t east_max,
-			    enum side output,
-			    uint8_t portid,
-			    struct switch_error **errp);
+struct pg_brick *pg_nic_new_by_id(const char *name, uint32_t west_max,
+				  uint32_t east_max,
+				  enum pg_side output,
+				  uint8_t portid,
+				  struct pg_error **errp);
 
 /**
  * A structure used to retrieve statistics for an Ethernet port.
@@ -65,7 +65,7 @@ struct brick *nic_new_by_id(const char *name, uint32_t west_max,
  * TODO: handly copy fiel instead of memcpy.
  * this will assur us futur dpdk versions compatibility.
  */
-struct nic_stats {
+struct pg_nic_stats {
 	/**< Total number of successfully received packets. */
 	uint64_t ipackets;
 	/**< Total number of successfully transmitted packets.*/
@@ -135,7 +135,7 @@ struct nic_stats {
  *   - *oerrors*  with the total of failed transmitted packets.
  * @return:	nothig, this function should alway work
  */
-void nic_get_stats(struct brick *nic,
-		   struct nic_stats *stats);
+void pg_nic_get_stats(struct pg_brick *nic,
+		      struct pg_nic_stats *stats);
 
 #endif  /* _BRICKS_BRICK_NIC_H_ */
