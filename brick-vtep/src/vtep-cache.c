@@ -45,7 +45,7 @@ void mac_cache_add(struct cache *cache, uint64_t *mac,
 
 int mac_cache_find(struct cache *cache, uint64_t *mac)
 {
-	/* the first idx can not be out of bound, so we didn't use 
+	/* the first idx can not be out of bound, so we didn't use
 	 * cb_get, because it's slover than a direct call to
 	 * cache->buff[cache->start] */
 	if (cache->buff[cache->start].key == *mac)
@@ -62,7 +62,7 @@ int mac_cache_find(struct cache *cache, uint64_t *mac)
 struct dest_addresses *mac_cache_get(struct cache *cache,
 				     uint64_t *mac)
 {
-	/* the first idx can not be out of bound, so we didn't use 
+	/* the first idx can not be out of bound, so we didn't use
 	 * cb_get, because it's slover than a direct call to
 	 * cache->buff[cache->start] */
 	if (cache->buff[cache->start].key == *mac)

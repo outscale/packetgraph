@@ -17,7 +17,7 @@ endif()
 set(CMAKE_C_FLAGS "-g -O3 -std=gnu11 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -D RTE_MAX_LCORE=128 -D RTE_PKTMBUF_HEADROOM=128")
 
 add_library(${PROJECT_NAME}-objects OBJECT 
-	./src/vtep.c)
+	./src/vtep-cache.c ./src/vtep.c)
 
 target_include_directories(${PROJECT_NAME}-objects PUBLIC
 	.
