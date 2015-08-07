@@ -34,7 +34,7 @@
 
 #define CHECK_ERROR(error) do {			\
 		if (error)			\
-			error_print(error);	\
+			pg_error_print(error);	\
 		g_assert(!error);		\
 	} while (0)
 
@@ -42,9 +42,9 @@
 
 int main(int argc, char **argv)
 {
-	struct switch_error *error = NULL;
-	struct brick *fw;
-	struct brick *nic_west, *nic_east;
+	struct pg_error *error = NULL;
+	struct pg_brick *fw;
+	struct pg_brick *nic_west, *nic_east;
 	uint16_t nb_send_pkts;
 	struct timeval start, end;
 	int i;
@@ -56,36 +56,40 @@ int main(int argc, char **argv)
 	sched_setscheduler(getpid(),
 			   SCHED_POLICY | SCHED_RESET_ON_FORK,
 			   &param);
-	packetgraph_start(argc, argv, &error);
+	pg_start(argc, argv, &error);
 	CHECK_ERROR(error);
 	g_assert(rte_eth_dev_count() >= 2);
 
-	nic_west = nic_new_by_id("port 0", 1, 1, WEST_SIDE, 0, &error);
+	nic_west = pg_nic_new_by_id("port 0", 1, 1, WEST_SIDE, 0, &error);
 	CHECK_ERROR(error);
-	fw = firewall_new("fw", 1, 1, &error);
+	fw = pg_firewall_new("fw", 1, 1, &error);
 	CHECK_ERROR(error);
-	nic_east = nic_new_by_id("port 1", 1, 1, EAST_SIDE, 1, &error);
-	CHECK_ERROR(error);
-
-	brick_link(nic_west, fw, &error);
-	CHECK_ERROR(error);
-	brick_link(fw, nic_east, &error);
+	nic_east = pg_nic_new_by_id("port 1", 1, 1, EAST_SIDE, 1, &error);
 	CHECK_ERROR(error);
 
-	g_assert(!firewall_rule_add(fw, "tcp portrange 50-60", MAX_SIDE, 1,
-				    &error));
+	pg_brick_link(nic_west, fw, &error);
 	CHECK_ERROR(error);
-	g_assert(!firewall_rule_add(fw, "icmp", MAX_SIDE, 1, &error));
+	pg_brick_link(fw, nic_east, &error);
 	CHECK_ERROR(error);
-	g_assert(!firewall_reload(fw, &error));
+
+	g_assert(!pg_firewall_rule_add(fw, "tcp portrange 50-60", MAX_SIDE, 1,
+				       &error));
+	CHECK_ERROR(error);
+	g_assert(!pg_firewall_rule_add(fw, "icmp", MAX_SIDE, 1, &error));
+	CHECK_ERROR(error);
+	g_assert(!pg_firewall_reload(fw, &error));
 	CHECK_ERROR(error);
 
 	for (;;) {
 		gettimeofday(&start, 0);
 		for (i = 0; i < LOOPS; i++) {
-			g_assert(brick_poll(nic_west, &nb_send_pkts, &error));
+			g_assert(pg_brick_poll(nic_west,
+					       &nb_send_pkts,
+					       &error));
 			usleep(5);
-			g_assert(brick_poll(nic_east, &nb_send_pkts, &error));
+			g_assert(pg_brick_poll(nic_east,
+					       &nb_send_pkts,
+					       &error));
 			usleep(5);
 		}
 		gettimeofday(&end, 0);
@@ -94,7 +98,7 @@ int main(int argc, char **argv)
 		       (start.tv_sec * 1000000 + start.tv_usec));
 	}
 
-	packetgraph_stop();
+	pg_stop();
 	return 0;
 }
 
