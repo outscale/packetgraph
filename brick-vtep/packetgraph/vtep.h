@@ -24,7 +24,7 @@
 struct ether_addr;
 #endif
 
-enum vtep_flags {
+enum pg_vtep_flags {
 	NONE = 0,
 	/* modify the packets instead of copy it */
 	NO_COPY = 1,
@@ -42,7 +42,7 @@ enum vtep_flags {
  * @param	brick a pointer to a vtep brick
  * @return	mac address of the vtep
  */
-struct ether_addr *vtep_get_mac(struct brick *brick);
+struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick);
 
 /**
  * Add a VNI to the VTEP
@@ -56,10 +56,10 @@ struct ether_addr *vtep_get_mac(struct brick *brick);
  * @param	multicast_ip the multicast ip to associate to the VNI
  * @param	errp an error pointer
  */
-void vtep_add_vni(struct brick *brick,
-		  struct brick *neighbor,
+void pg_vtep_add_vni(struct pg_brick *brick,
+		  struct pg_brick *neighbor,
 		  uint32_t vni, uint32_t multicast_ip,
-		  struct switch_error **errp);
+		  struct pg_error **errp);
 
 /**
  * Create a new vtep
@@ -71,10 +71,10 @@ void vtep_add_vni(struct brick *brick,
  * @mac:	the vtep mac
  * @errp:	an error pointer
  */
-struct brick *vtep_new(const char *name, uint32_t west_max,
-		       uint32_t east_max, enum side output,
+struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
+		       uint32_t east_max, enum pg_side output,
 		       uint32_t ip, struct ether_addr mac,
-		       int no_copy, struct switch_error **errp);
+		       int no_copy, struct pg_error **errp);
 
 
 #endif

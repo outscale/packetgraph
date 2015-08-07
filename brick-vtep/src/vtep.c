@@ -45,7 +45,7 @@
 #include <packetgraph/vtep-cache.h>
 
 struct vtep_config {
-	enum side output;
+	enum pg_side output;
 	int32_t ip;
 	struct ether_addr mac;
 	int flags;
@@ -95,10 +95,10 @@ struct vtep_port {
 };
 
 struct vtep_state {
-	struct brick brick;
+	struct pg_brick brick;
 	uint32_t ip;			/* IP of the VTEP */
 	uint64_t *masks;		/* internal port packet masks */
-	enum side output;		/* the side the VTEP packets will go */
+	enum pg_side output;		/* the side the VTEP packets will go */
 	uint16_t dst_port;		/* the UDP destination port */
 	void *vni_to_port;		/* map VNIs to vtep_port pointers */
 	struct ether_addr mac;		/* MAC address of the VTEP */
@@ -109,9 +109,9 @@ struct vtep_state {
 	struct rte_mbuf *pkts[64];
 };
 
-inline struct ether_addr *vtep_get_mac(struct brick *brick)
+inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
 {
-	return brick ? &brick_get_state(brick, struct vtep_state)->mac : NULL;
+	return brick ? &pg_brick_get_state(brick, struct vtep_state)->mac : NULL;
 }
 
 static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac);
@@ -155,7 +155,7 @@ static inline void multicast_filter(struct vtep_state *state,
 		uint64_t bit;
 		uint16_t i;
 
-		low_bit_iterate_full(pkts_mask, bit, i);
+		pg_low_bit_iterate_full(pkts_mask, bit, i);
 
 		pkt = pkts[i];
 
@@ -335,7 +335,7 @@ static inline uint16_t ip_overhead(void)
 static inline int vtep_header_prepend(struct vtep_state *state,
 				 struct rte_mbuf *pkt, struct vtep_port *port,
 				 struct dest_addresses *entry, int unicast,
-				 struct switch_error **errp)
+				 struct pg_error **errp)
 {
 	struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 	uint16_t packet_len = rte_pktmbuf_data_len(pkt);
@@ -348,7 +348,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	headers = (struct headers *) rte_pktmbuf_prepend(pkt, HEADERS_LENGTH);
 
 	if (unlikely(!headers)) {
-		*errp = error_new("No enough headroom to add VTEP headers");
+		*errp = pg_error_new("No enough headroom to add VTEP headers");
 		return 0;
 	}
 
@@ -369,7 +369,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	} else {
 		if ((!(state->flags & NO_INNERMAC_CKECK)) &&
 		    !do_add_mac(port, &eth_hdr->s_addr)) {
-			*errp = error_new("Failed to add mac for brick'%s'",
+			*errp = pg_error_new("Failed to add mac for brick'%s'",
 					  state->brick.name);
 			return 0;
 		}
@@ -389,18 +389,18 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 				   struct vtep_port *port,
 				   struct rte_mbuf **pkts, uint64_t pkts_mask,
 				   uint64_t unicast_mask,
-				   struct switch_error **errp)
+				   struct pg_error **errp)
 {
 	uint64_t lookup_mask = 0, ip_masks = 0;
 	struct dest_addresses *entries[64];
 	int ret;
-	struct rte_mempool *mp = get_mempool();
+	struct rte_mempool *mp = pg_get_mempool();
 
 	/* lookup for known destination IPs */
 	for (uint64_t mask = unicast_mask; mask;) {
 		uint16_t i;
 
-		low_bit_iterate(mask, i);
+		pg_low_bit_iterate(mask, i);
 		entries[i] = mac_cache_get(state->cache,
 					   (uint64_t *)dst_key_ptr(pkts[i]));
 		if (entries[i])
@@ -419,7 +419,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 								 entries);
 
 		if (unlikely(ret)) {
-			*errp = error_new_errno(-ret,
+			*errp = pg_error_new_errno(-ret,
 						"Fail to lookup dest address");
 			return 0;
 		}
@@ -437,7 +437,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		uint16_t i;
 		struct rte_mbuf *tmp;
 
-		low_bit_iterate_full(pkts_mask, bit, i);
+		pg_low_bit_iterate_full(pkts_mask, bit, i);
 
 		/* must we encapsulate in an unicast VTEP header */
 		unicast = bit & ip_masks;
@@ -467,13 +467,13 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 	return 1;
 }
 
-static inline int to_vtep(struct brick *brick, enum side from,
+static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 		    uint16_t edge_index, struct rte_mbuf **pkts,
 		    uint16_t nb, uint64_t pkts_mask,
-		    struct switch_error **errp)
+		    struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
-	struct brick_side *s = &brick->sides[flip_side(from)];
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	struct vtep_port *port = &state->ports[edge_index];
 	/* TODO do we really need to initialise the variable here ? */
 	uint64_t unicast_mask = 0;
@@ -483,10 +483,10 @@ static inline int to_vtep(struct brick *brick, enum side from,
 	if (!unlikely(port->multicast_ip))
 		return 1;
 
-	packets_prefetch(pkts, pkts_mask);
+	pg_packets_prefetch(pkts, pkts_mask);
 
 	/* TODO: account the size of the VTEP header in prepare hash keys */
-	ret = packets_prepare_hash_keys(pkts, pkts_mask, errp);
+	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
 
 	if (unlikely(!ret))
 		return 0;
@@ -501,16 +501,16 @@ static inline int to_vtep(struct brick *brick, enum side from,
 	if (unlikely(!ret))
 		goto no_forward;
 
-	packets_clear_hash_keys(state->pkts, pkts_mask);
+	pg_packets_clear_hash_keys(state->pkts, pkts_mask);
 
-	ret =  brick_side_forward(s, from, state->pkts, nb, pkts_mask, errp);
+	ret =  pg_brick_side_forward(s, from, state->pkts, nb, pkts_mask, errp);
 	if (!(state->flags & NO_COPY))
-		packets_free(state->pkts, pkts_mask);
+		pg_packets_free(state->pkts, pkts_mask);
 	return ret;
 
 no_forward:
 	if (!(state->flags & NO_PACKETS_CLEANUP))
-		packets_clear_hash_keys(state->pkts, pkts_mask);
+		pg_packets_clear_hash_keys(state->pkts, pkts_mask);
 	return 0;
 }
 
@@ -547,7 +547,7 @@ static inline int add_dst_iner_macs(struct vtep_state *state,
 	for (mask = multicast_mask; mask;) {
 		int i;
 
-		low_bit_iterate_full(mask, bit, i);
+		pg_low_bit_iterate_full(mask, bit, i);
 		if (multicast_mask & (1 << i)) {
 			struct dest_addresses dst;
 			struct ether_hdr *pkt_addr;
@@ -571,14 +571,14 @@ static inline int from_vtep_failure_no_clear(struct rte_mbuf **pkts,
 					     int no_copy)
 {
 	if (!no_copy)
-		packets_free(pkts, pkts_mask);
+		pg_packets_free(pkts, pkts_mask);
 	return 0;
 }
 
 static inline int from_vtep_failure(struct rte_mbuf **pkts, uint64_t pkts_mask,
 				    int no_copy)
 {
-	packets_clear_hash_keys(pkts, pkts_mask);
+	pg_packets_clear_hash_keys(pkts, pkts_mask);
 	return from_vtep_failure_no_clear(pkts, pkts_mask, no_copy);
 }
 
@@ -590,7 +590,7 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 	for (*multicast_mask = 0, *computed_mask = 0; mask;) {
 		int i;
 
-		low_bit_iterate(mask, i);
+		pg_low_bit_iterate(mask, i);
 		hdrs[i] = rte_pktmbuf_mtod(pkts[i], struct headers *);
 		/* This should not hapen */
 		if (unlikely(hdrs[i]->ethernet.ether_type !=
@@ -616,12 +616,12 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 	for (; mask;) {
 		int j;
 
-		low_bit_iterate(mask, j);
+		pg_low_bit_iterate(mask, j);
 		if (hdrs[j]->vxlan.vx_vni == port->vni) {
 			struct rte_mbuf *tmp;
 
 			if (unlikely(!(state->flags & NO_COPY))) {
-				struct rte_mempool *mp = get_mempool();
+				struct rte_mempool *mp = pg_get_mempool();
 
 				tmp = rte_pktmbuf_clone(pkts[j], mp);
 			} else {
@@ -639,13 +639,13 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 	return vni_mask;
 }
 
-static inline int from_vtep(struct brick *brick, enum side from,
+static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		      uint16_t edge_index, struct rte_mbuf **pkts,
 		      uint16_t nb, uint64_t pkts_mask,
-		      struct switch_error **errp)
+		      struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
-	struct brick_side *s = &brick->sides[flip_side(from)];
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	int i;
 	struct headers *hdrs[64];
 	struct rte_mbuf **out_pkts = state->pkts;
@@ -682,7 +682,7 @@ static inline int from_vtep(struct brick *brick, enum side from,
 								  state->flags &
 								  NO_COPY);
 
-			if (unlikely(!brick_burst(s->edges[i].link,
+			if (unlikely(!pg_brick_burst(s->edges[i].link,
 						  from,
 						  i, out_pkts, nb,
 						  vni_mask,
@@ -692,12 +692,12 @@ static inline int from_vtep(struct brick *brick, enum side from,
 								  state->flags &
 								  NO_COPY);
 			if (unlikely(!(state->flags & NO_COPY)))
-				packets_free(out_pkts, vni_mask);
+				pg_packets_free(out_pkts, vni_mask);
 
 			continue;
 		}
-		packets_prefetch(out_pkts, vni_mask);
-		if (unlikely(!packets_prepare_hash_keys(out_pkts,
+		pg_packets_prefetch(out_pkts, vni_mask);
+		if (unlikely(!pg_packets_prepare_hash_keys(out_pkts,
 							vni_mask,
 							errp)))
 			return 0;
@@ -710,7 +710,7 @@ static inline int from_vtep(struct brick *brick, enum side from,
 								 (void **)
 								 entries);
 		if (unlikely(ret)) {
-			*errp = error_new_errno(-ret,
+			*errp = pg_error_new_errno(-ret,
 						"Fail to lookup dest address");
 			return from_vtep_failure(out_pkts, vni_mask,
 						 state->flags & NO_COPY);
@@ -723,9 +723,9 @@ static inline int from_vtep(struct brick *brick, enum side from,
 				return from_vtep_failure(out_pkts, vni_mask,
 					state->flags & NO_COPY);
 		}
-		packets_clear_hash_keys(out_pkts, vni_mask);
+		pg_packets_clear_hash_keys(out_pkts, vni_mask);
 		if (hitted_mask) {
-			if (unlikely(!brick_burst(s->edges[i].link,
+			if (unlikely(!pg_brick_burst(s->edges[i].link,
 						  from,
 						  i, out_pkts, nb,
 						  hitted_mask,
@@ -737,17 +737,17 @@ static inline int from_vtep(struct brick *brick, enum side from,
 		}
 
 		if (unlikely(!(state->flags & NO_COPY)))
-			packets_free(out_pkts, vni_mask);
+			pg_packets_free(out_pkts, vni_mask);
 	}
 	return 1;
 }
 
-static int vtep_burst(struct brick *brick, enum side from,
+static int vtep_burst(struct pg_brick *brick, enum pg_side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
 			uint16_t nb, uint64_t pkts_mask,
-			struct switch_error **errp)
+			struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
 	/* if pkts come from the outside,
 	 * so the pkts are entering in the vtep */
@@ -765,10 +765,10 @@ static int vtep_burst(struct brick *brick, enum side from,
  * @param	the brick we are working with
  * @param	an error pointer
  */
-static void vtep_init_hashes(struct brick *brick,
-			      struct switch_error **errp)
+static void vtep_init_hashes(struct pg_brick *brick,
+			      struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
 	struct rte_table_hash_lru_params vni_hash_params = {
 		.key_size = 4,
@@ -786,26 +786,26 @@ static void vtep_init_hashes(struct brick *brick,
 		sizeof(struct vtep_port *));
 
 	if (!state->vni_to_port) {
-		*errp = error_new("Failed to create hash for brick '%s'",
+		*errp = pg_error_new("Failed to create hash for brick '%s'",
 				  brick->name);
 		return;
 	}
 }
 
-static int vtep_init(struct brick *brick,
-		      struct brick_config *config, struct switch_error **errp)
+static int vtep_init(struct pg_brick *brick,
+		      struct pg_brick_config *config, struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct vtep_config *vtep_config;
 	uint16_t max;
 
 	if (!config) {
-		*errp = error_new("config is NULL");
+		*errp = pg_error_new("config is NULL");
 		return 0;
 	}
 
 	if (!config->brick_config) {
-		*errp = error_new("config->brick_config is NULL");
+		*errp = pg_error_new("config->brick_config is NULL");
 		return 0;
 	}
 
@@ -813,7 +813,7 @@ static int vtep_init(struct brick *brick,
 
 	state->output = vtep_config->output;
 	if (brick->sides[state->output].max != 1) {
-		*errp = error_new("brick %s Number of output port is not one",
+		*errp = pg_error_new("brick %s Number of output port is not one",
 				  brick->name);
 		return 0;
 	}
@@ -824,18 +824,18 @@ static int vtep_init(struct brick *brick,
 
 	rte_atomic16_set(&state->packet_id, 0);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return 0;
 
 	vtep_init_hashes(brick, errp);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return 0;
 
 	/* do a lazy allocation of the VTEP ports: the code will init them
 	 * at VNI port add
 	 */
-	max = brick->sides[flip_side(state->output)].max;
+	max = brick->sides[pg_flip_side(state->output)].max;
 	state->ports = g_new0(struct vtep_port, max);
 	state->masks = g_new0(uint64_t, max);
 
@@ -844,12 +844,12 @@ static int vtep_init(struct brick *brick,
 	return 1;
 }
 
-static struct brick_config *vtep_config_new(const char *name, uint32_t west_max,
-					    uint32_t east_max, enum side output,
+static struct pg_brick_config *vtep_config_new(const char *name, uint32_t west_max,
+					    uint32_t east_max, enum pg_side output,
 					    uint32_t ip, struct ether_addr mac,
 					    int flags)
 {
-	struct brick_config *config = g_new0(struct brick_config, 1);
+	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 	struct vtep_config *vtep_config = g_new0(struct vtep_config, 1);
 
 	vtep_config->output = output;
@@ -857,25 +857,25 @@ static struct brick_config *vtep_config_new(const char *name, uint32_t west_max,
 	vtep_config->flags = flags;
 	ether_addr_copy(&mac, &vtep_config->mac);
 	config->brick_config = vtep_config;
-	return brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max, east_max);
 }
 
-struct brick *vtep_new(const char *name, uint32_t west_max,
-		       uint32_t east_max, enum side output,
+struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
+		       uint32_t east_max, enum pg_side output,
 		       uint32_t ip, struct ether_addr mac,
-		       int flags, struct switch_error **errp)
+		       int flags, struct pg_error **errp)
 {
-	struct brick_config *config = vtep_config_new(name, west_max, east_max,
+	struct pg_brick_config *config = vtep_config_new(name, west_max, east_max,
 						      output, ip, mac, flags);
-	struct brick *ret = brick_new("vtep", config, errp);
+	struct pg_brick *ret = pg_brick_new("vtep", config, errp);
 
-	brick_config_free(config);
+	pg_brick_config_free(config);
 	return ret;
 }
 
-static void vtep_destroy(struct brick *brick, struct switch_error **errp)
+static void vtep_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
 	g_free(state->masks);
 	g_free(state->ports);
@@ -907,7 +907,7 @@ static int is_vni_valid(uint32_t vni)
  * @param	errp an error pointer
  */
 static void vni_map(struct vtep_state *state, uint32_t vni,
-		    struct vtep_port *port, struct switch_error **errp)
+		    struct vtep_port *port, struct pg_error **errp)
 {
 	void *entry = NULL;
 	int key_found;
@@ -917,7 +917,7 @@ static void vni_map(struct vtep_state *state, uint32_t vni,
 						 &vni, port,
 						 &key_found, &entry);
 	if (unlikely(ret)) {
-		*errp = error_new_errno(-ret,
+		*errp = pg_error_new_errno(-ret,
 			"Fail to learn associate VNI to port");
 		return;
 	}
@@ -936,9 +936,9 @@ static inline uint16_t igmp_checksum(struct igmp_hdr *msg, size_t size)
 static void multicast_subscribe(struct vtep_state *state,
 				struct vtep_port *port,
 				uint32_t multicast_ip,
-				struct switch_error **errp)
+				struct pg_error **errp)
 {
-	struct rte_mempool *mp = get_mempool();
+	struct rte_mempool *mp = pg_get_mempool();
 	struct rte_mbuf *pkt[1];
 	struct multicast_pkt *hdr;
 	struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
@@ -954,7 +954,7 @@ static void multicast_subscribe(struct vtep_state *state,
 	/* Allocate a memory buffer to hold an IGMP message */
 	pkt[0] = rte_pktmbuf_alloc(mp);
 	if (!pkt[0]) {
-		error_new("Packet allocation faild");
+		pg_error_new("Packet allocation faild");
 		return;
 	}
 
@@ -993,9 +993,9 @@ static void multicast_subscribe(struct vtep_state *state,
 	hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
 
 	/* The Membership Report message is sent to the group being reported */
-	if (!brick_side_forward(&state->brick.sides[state->output],
-				flip_side(state->output),
-				pkt, 1, mask_firsts(1), errp)) {
+	if (!pg_brick_side_forward(&state->brick.sides[state->output],
+				pg_flip_side(state->output),
+				pkt, 1, pg_mask_firsts(1), errp)) {
 		rte_pktmbuf_free(pkt[0]);
 		/* let's admit the error is set */
 		return;
@@ -1004,15 +1004,15 @@ static void multicast_subscribe(struct vtep_state *state,
 	rte_pktmbuf_free(pkt[0]);
 	return;
 error_invalid_address:
-	error_new("invalide multicast adress");
+	pg_error_new("invalide multicast adress");
 }
 
 static void multicast_unsubscribe(struct vtep_state *state,
 				  struct vtep_port *port,
 				  uint32_t multicast_ip,
-				  struct switch_error **errp)
+				  struct pg_error **errp)
 {
-	struct rte_mempool *mp = get_mempool();
+	struct rte_mempool *mp = pg_get_mempool();
 	struct rte_mbuf *pkt[1];
 	struct multicast_pkt *hdr;
 	struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
@@ -1028,7 +1028,7 @@ static void multicast_unsubscribe(struct vtep_state *state,
 	/* Allocate a memory buffer to hold an IGMP message */
 	pkt[0] = rte_pktmbuf_alloc(mp);
 	if (!pkt[0]) {
-		error_new("Packet allocation faild");
+		pg_error_new("Packet allocation faild");
 		return;
 	}
 
@@ -1068,9 +1068,9 @@ static void multicast_unsubscribe(struct vtep_state *state,
 	hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
 
 	/* The Membership Report message is sent to the group being reported */
-	if (brick_side_forward(&state->brick.sides[state->output],
-			       flip_side(state->output),
-			       pkt, 1, mask_firsts(1), errp)) {
+	if (pg_brick_side_forward(&state->brick.sides[state->output],
+			       pg_flip_side(state->output),
+			       pkt, 1, pg_mask_firsts(1), errp)) {
 		/* let's admit the error is set */
 		return;
 	}
@@ -1078,14 +1078,14 @@ static void multicast_unsubscribe(struct vtep_state *state,
 	rte_pktmbuf_free(pkt[0]);
 	return;
 error_invalid_address:
-	error_new("invalide multicast adress");
+	pg_error_new("invalide multicast adress");
 }
 
 #undef UINT64_TO_MAC
 
 static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 		       int32_t vni, uint32_t multicast_ip,
-		       struct switch_error **errp)
+		       struct pg_error **errp)
 {
 	struct vtep_port *port = &state->ports[edge_index];
 
@@ -1113,7 +1113,7 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 
 	port->original = port->mac_to_dst;
 	if (!port->mac_to_dst) {
-		*errp = error_new("Failed to create hash for vtep brick '%s'",
+		*errp = pg_error_new("Failed to create hash for vtep brick '%s'",
 				  state->brick.name);
 		return;
 	}
@@ -1124,18 +1124,18 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 		sizeof(int)); /* 1 or 0 */
 
 	if (!port->known_mac) {
-		*errp = error_new("Failed to create hash for vtep brick '%s'",
+		*errp = pg_error_new("Failed to create hash for vtep brick '%s'",
 				  state->brick.name);
 		goto known_error_exit;
 	}
 	vni_map(state, vni, port, errp);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		goto map_error_exit;
 
 	multicast_subscribe(state, port, multicast_ip, errp);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		goto map_error_exit;
 
 	return;
@@ -1145,35 +1145,35 @@ known_error_exit:
 	rte_table_hash_key8_lru_dosig_ops.f_free(port->mac_to_dst);
 }
 
-void vtep_add_vni(struct brick *brick,
-		   struct brick *neighbor,
+void pg_vtep_add_vni(struct pg_brick *brick,
+		   struct pg_brick *neighbor,
 		   uint32_t vni, uint32_t multicast_ip,
-		   struct switch_error **errp)
+		   struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
-	enum side side = flip_side(state->output);
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+	enum pg_side side = pg_flip_side(state->output);
 	uint16_t i;
 	int found;
 	struct ether_addr mac = {{0xff, 0xff, 0xff,
 				  0xff, 0xff, 0xff} };
 
 	if (!brick) {
-		*errp = error_new("brick is NULL");
+		*errp = pg_error_new("brick is NULL");
 		return;
 	}
 
 	if (!neighbor) {
-		*errp = error_new("VTEP brick is NULL");
+		*errp = pg_error_new("VTEP brick is NULL");
 		return;
 	}
 
 	if (!is_vni_valid(vni)) {
-		*errp = error_new("Invalid VNI");
+		*errp = pg_error_new("Invalid VNI");
 		return;
 	}
 
 	if (!is_multicast_ip(multicast_ip)) {
-		*errp = error_new("Provided IP is not in the multicast range");
+		*errp = pg_error_new("Provided IP is not in the multicast range");
 		return;
 	}
 
@@ -1186,13 +1186,13 @@ void vtep_add_vni(struct brick *brick,
 		}
 
 	if (!found) {
-		*errp = error_new("VTEP brick index not found");
+		*errp = pg_error_new("VTEP brick index not found");
 		return;
 	}
 
 	do_add_vni(state, i, vni, multicast_ip, errp);
 	if (!do_add_mac(&state->ports[i], &mac)) {
-		*errp = error_new("Failed to add mac for brick'%s'",
+		*errp = pg_error_new("Failed to add mac for brick'%s'",
 				  state->brick.name);
 	}
 
@@ -1210,7 +1210,7 @@ void vtep_add_vni(struct brick *brick,
  * @param	errp and error pointer
  */
 static void vni_unmap(struct vtep_state *state,
-		      uint32_t vni, struct switch_error **errp)
+		      uint32_t vni, struct pg_error **errp)
 {
 	void *entry = NULL;
 	int key_found;
@@ -1219,25 +1219,25 @@ static void vni_unmap(struct vtep_state *state,
 	ret = rte_table_hash_lru_dosig_ops.f_delete(state->vni_to_port,
 						    &vni, &key_found, &entry);
 	if (unlikely(ret)) {
-		*errp = error_new_errno(-ret,
+		*errp = pg_error_new_errno(-ret,
 			"Fail to deassociate VNI from port");
 		return;
 	}
 }
 
 static void do_remove_vni(struct vtep_state *state,
-		   uint16_t edge_index, struct switch_error **errp)
+		   uint16_t edge_index, struct pg_error **errp)
 {
 	struct vtep_port *port = &state->ports[edge_index];
 
 	multicast_unsubscribe(state, port, port->multicast_ip, errp);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return;
 
 	vni_unmap(state, port->vni, errp);
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return;
 
 	/* Do the hash destroy at the end since it's the less idempotent */
@@ -1262,11 +1262,11 @@ static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac)
 							&entry);
 }
 
-static void vtep_unlink_notify(struct brick *brick,
-				enum side side, uint16_t edge_index,
-				struct switch_error **errp)
+static void vtep_unlink_notify(struct pg_brick *brick,
+				enum pg_side side, uint16_t edge_index,
+				struct pg_error **errp)
 {
-	struct vtep_state *state = brick_get_state(brick, struct vtep_state);
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
 	if (side == state->output)
 		return;
@@ -1274,18 +1274,18 @@ static void vtep_unlink_notify(struct brick *brick,
 	do_remove_vni(state, edge_index, errp);
 }
 
-static struct brick_ops vtep_ops = {
+static struct pg_brick_ops vtep_ops = {
 	.name		= "vtep",
 	.state_size	= sizeof(struct vtep_state),
 
 	.init		= vtep_init,
 	.destroy	= vtep_destroy,
 
-	.unlink		= brick_generic_unlink,
+	.unlink		= pg_brick_generic_unlink,
 
 	.unlink_notify  = vtep_unlink_notify,
 };
 
 #undef HEADERS_LENGTH
 
-brick_register(vtep, &vtep_ops);
+pg_brick_register(vtep, &vtep_ops);
