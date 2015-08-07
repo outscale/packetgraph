@@ -60,17 +60,27 @@ enum pg_side pg_flip_side(enum pg_side side);
 int pg_brick_link(struct pg_brick *west, struct pg_brick *east,
 		  struct pg_error **errp);
 
+/**
+ * Link a serie of bricks together.
+ * If you call brick_chained_links(errp, a, b, c)
+ * you will get this graph:
+ * [a] -- [b] -- [c]
+ *
+ * @param	errp is set in case of an error
+ * @param	west the brick on the wester side
+ * @param	args the other bricks
+ * @return	1 on success, 0 on error
+ */
 #define pg_brick_chained_links(errp, west, args...)	\
 	(pg_brick_chained_links_int(errp, west, args, NULL))
 
 /**
- * Link a serie of bricks together.
- * You should use brick_chained_links macro.
+ * Internal function for brick_chained_links
  *
- * @param	errp is set in case of an error
- * @param	west the brick wich will be linked to it's east side to the
- *		other brick.
- * @return	1 on success, 0 on error
+ * Same as the macro brick_chained_links, but don't add
+ * NULL automatically in the last parameter.
+ * Therefore this function should not be call,
+ * Call brick_chained_links instead.
  */
 int pg_brick_chained_links_int(struct pg_error **errp,
 			       struct pg_brick *west, ...);
