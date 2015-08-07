@@ -40,7 +40,7 @@ directories=$PACKETGRAPH_ROOT/{core,brick-*}/{src,packetgraph}
 
 # checkpatch tests
 
-$PACKETGRAPH_ROOT/tools/checkpatch.pl --no-tree -q -f $c_filelist $h_filelist
+$PACKETGRAPH_ROOT/tools/checkpatch.pl --ignore TRAILING_SEMICOLON --show-types --no-tree -q -f $c_filelist $h_filelist
 if [ $? != 0 ]; then
     echo "checkpatch tests failed"
     exit 1
