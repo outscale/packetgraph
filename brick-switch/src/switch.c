@@ -34,22 +34,22 @@
 #include <packetgraph/packets.h>
 
 /* this tell from where a given source mac address came */
-struct address_source {
+struct pg_address_source {
 	uint64_t unlink;	/* hot plugging unlink */
 	uint16_t edge_index;    /* index of the port the packet came from */
-	enum side from;		/* side of the switch the packet came from */
+	enum pg_side from;	/* side of the switch the packet came from */
 };
 
 /* structure used to describe a side (EAST_SIDE/WEST_SIDE) of the switch */
-struct switch_side {
+struct pg_switch_side {
 	uint64_t *masks;	/* outgoing packet masks (one per port) */
 	uint64_t *unlinks;	/* hot plugging unlink  (one per port) */
 };
 
-struct switch_state {
-	struct brick brick;
+struct pg_switch_state {
+	struct pg_brick brick;
 	void *table;				/* mac addy lookup table */
-	struct switch_side sides[MAX_SIDE];	/* sides of the switch */
+	struct pg_switch_side sides[MAX_SIDE];	/* sides of the switch */
 };
 
 static inline uint64_t ether_hash(void *key, uint32_t key_size, uint64_t seed)
@@ -57,12 +57,12 @@ static inline uint64_t ether_hash(void *key, uint32_t key_size, uint64_t seed)
 	return _mm_crc32_u64(seed, *((uint64_t *) key));
 }
 
-static inline void flood(struct switch_state *state,
-			 struct address_source *source,
+static inline void flood(struct pg_switch_state *state,
+			 struct pg_address_source *source,
 			 uint64_t mask)
 {
-	struct switch_side *switch_side;
-	enum side i;
+	struct pg_switch_side *switch_side;
+	enum pg_side i;
 	uint16_t j;
 
 	if (!mask)
@@ -75,21 +75,21 @@ static inline void flood(struct switch_state *state,
 	}
 }
 
-static inline void zero_masks(struct switch_state *state)
+static inline void zero_masks(struct pg_switch_state *state)
 {
-	enum side i;
+	enum pg_side i;
 
 	for (i = 0; i < MAX_SIDE; i++)
 		memset(state->sides[i].masks, 0,
-			state->brick.sides[i].max * sizeof(uint64_t));
+		       state->brick.sides[i].max * sizeof(uint64_t));
 }
 
-static inline int forward(struct switch_state *state, enum side to,
+static inline int forward(struct pg_switch_state *state, enum pg_side to,
 			  uint16_t index, struct rte_mbuf **pkts, uint16_t nb,
-			  struct switch_error **errp)
+			  struct pg_error **errp)
 {
-	struct brick_edge *edge =  &state->brick.sides[to].edges[index];
-	struct switch_side *switch_side = &state->sides[to];
+	struct pg_brick_edge *edge =  &state->brick.sides[to].edges[index];
+	struct pg_switch_side *switch_side = &state->sides[to];
 
 	if (!switch_side->masks[index])
 		return 1;
@@ -97,17 +97,17 @@ static inline int forward(struct switch_state *state, enum side to,
 	if (!edge->link)
 		return 1;
 
-	return brick_burst(edge->link, flip_side(to), edge->pair_index,
-			   pkts, nb, switch_side->masks[index], errp);
+	return pg_brick_burst(edge->link, pg_flip_side(to), edge->pair_index,
+			      pkts, nb, switch_side->masks[index], errp);
 }
 
-static int forward_bursts(struct switch_state *state,
-			  struct address_source *source,
+static int forward_bursts(struct pg_switch_state *state,
+			  struct pg_address_source *source,
 			  struct rte_mbuf **pkts, uint16_t nb,
-			  struct switch_error **errp)
+			  struct pg_error **errp)
 {
-	struct switch_side *switch_side = &state->sides[source->from];
-	enum side i;
+	struct pg_switch_side *switch_side = &state->sides[source->from];
+	enum pg_side i;
 	uint16_t j;
 	int ret;
 
@@ -128,17 +128,17 @@ static int forward_bursts(struct switch_state *state,
 static inline int is_filtered(struct ether_addr *eth_addr)
 {
 	return eth_addr->addr_bytes[0] == 0x01 &&
-	       eth_addr->addr_bytes[1] == 0x80 &&
-	       eth_addr->addr_bytes[2] == 0xC2 &&
-	       eth_addr->addr_bytes[3] == 0x00 &&
-	       eth_addr->addr_bytes[4] == 0x00 &&
-	       eth_addr->addr_bytes[5] <= 0x0F;
+		eth_addr->addr_bytes[1] == 0x80 &&
+		eth_addr->addr_bytes[2] == 0xC2 &&
+		eth_addr->addr_bytes[3] == 0x00 &&
+		eth_addr->addr_bytes[4] == 0x00 &&
+		eth_addr->addr_bytes[5] <= 0x0F;
 }
 
-static inline int learn_addr(struct switch_state *state,
+static inline int learn_addr(struct pg_switch_state *state,
 			     uint8_t *key,
-			     struct address_source *source,
-			     struct switch_error **errp)
+			     struct pg_address_source *source,
+			     struct pg_error **errp)
 {
 	void *entry = NULL;
 	int key_found;
@@ -146,19 +146,20 @@ static inline int learn_addr(struct switch_state *state,
 
 	/* memorize from where this address_source mac address come from */
 	ret = rte_table_hash_key8_lru_dosig_ops.f_add(state->table, key, source,
-						 &key_found, &entry);
+						      &key_found, &entry);
 	if (unlikely(ret))
-		*errp = error_new_errno(-ret, "Fail to learn source address");
+		*errp = pg_error_new_errno(-ret,
+					   "Fail to learn source address");
 
 	return !ret;
 }
 
-static int do_learn_filter_multicast(struct switch_state *state,
-				     struct address_source *source,
+static int do_learn_filter_multicast(struct pg_switch_state *state,
+				     struct pg_address_source *source,
 				     struct rte_mbuf **pkts,
 				     uint64_t pkts_mask,
 				     uint64_t *unicast_mask,
-				     struct switch_error **errp)
+				     struct pg_error **errp)
 {
 	uint64_t filtered_mask = 0, flood_mask = 0, mask;
 
@@ -169,7 +170,7 @@ static int do_learn_filter_multicast(struct switch_state *state,
 		uint16_t i;
 		int ret;
 
-		low_bit_iterate_full(mask, bit, i);
+		pg_low_bit_iterate_full(mask, bit, i);
 
 		pkt = pkts[i];
 
@@ -202,23 +203,23 @@ static int do_learn_filter_multicast(struct switch_state *state,
 	return 1;
 }
 
-static void do_switch(struct switch_state *state,
-		      struct address_source *source,
+static void do_switch(struct pg_switch_state *state,
+		      struct pg_address_source *source,
 		      uint64_t pkts_mask,
 		      uint64_t lookup_hit_mask,
-		      struct address_source **entries)
+		      struct pg_address_source **entries)
 {
 	uint64_t flood_mask = pkts_mask & ~lookup_hit_mask;
 
 	for ( ; lookup_hit_mask; ) {
-		struct switch_side *switch_side;
-		struct address_source *entry;
+		struct pg_switch_side *switch_side;
+		struct pg_address_source *entry;
 		uint16_t edge_index;
-		enum side from;
+		enum pg_side from;
 		uint64_t bit;
 		uint16_t i;
 
-		low_bit_iterate_full(lookup_hit_mask, bit, i);
+		pg_low_bit_iterate_full(lookup_hit_mask, bit, i);
 
 		entry = entries[i];
 
@@ -240,27 +241,27 @@ static void do_switch(struct switch_state *state,
 	flood(state, source, flood_mask);
 }
 
-static int switch_burst(struct brick *brick, enum side from,
+static int switch_burst(struct pg_brick *brick, enum pg_side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
 			uint16_t nb, uint64_t pkts_mask,
-			struct switch_error **errp)
+			struct pg_error **errp)
 {
-	struct switch_state *state =
-		brick_get_state(brick, struct switch_state);
+	struct pg_switch_state *state =
+		pg_brick_get_state(brick, struct pg_switch_state);
 	uint64_t unicast_mask = 0, lookup_hit_mask = 0;
-	struct address_source *entries[64];
-	struct address_source source;
+	struct pg_address_source *entries[64];
+	struct pg_address_source source;
 	int ret;
 
 	source.from = from;
 	source.edge_index = edge_index;
 	source.unlink = state->sides[from].unlinks[edge_index];
 
-	packets_prefetch(pkts, pkts_mask);
+	pg_packets_prefetch(pkts, pkts_mask);
 
 	zero_masks(state);
 
-	ret = packets_prepare_hash_keys(pkts, pkts_mask, errp);
+	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
 	if (unlikely(!ret))
 		return 0;
 
@@ -275,26 +276,26 @@ static int switch_burst(struct brick *brick, enum side from,
 							 (void **) entries);
 
 	if (unlikely(ret)) {
-		*errp = error_new_errno(-ret, "Fail to lookup dest address");
+		*errp = pg_error_new_errno(-ret, "Fail to lookup dest address");
 		goto no_forward;
 	}
 
 	do_switch(state, &source, unicast_mask, lookup_hit_mask,
-		  (struct address_source **) entries);
+		  (struct pg_address_source **) entries);
 
-	packets_clear_hash_keys(pkts, pkts_mask);
+	pg_packets_clear_hash_keys(pkts, pkts_mask);
 	return forward_bursts(state, &source, pkts, nb, errp);
 no_forward:
-	packets_clear_hash_keys(pkts, pkts_mask);
+	pg_packets_clear_hash_keys(pkts, pkts_mask);
 	return 0;
 }
 
-static int switch_init(struct brick *brick,
-		       struct brick_config *config, struct switch_error **errp)
+static int switch_init(struct pg_brick *brick,
+		       struct pg_brick_config *config, struct pg_error **errp)
 {
-	struct switch_state *state =
-		brick_get_state(brick, struct switch_state);
-	enum side i;
+	struct pg_switch_state *state =
+		pg_brick_get_state(brick, struct pg_switch_state);
+	enum pg_side i;
 
 	struct rte_table_hash_key8_lru_params hash_params = {
 		.n_entries		= HASH_ENTRIES,
@@ -307,12 +308,13 @@ static int switch_init(struct brick *brick,
 	brick->burst = switch_burst;
 
 	state->table = rte_table_hash_key8_lru_dosig_ops.f_create(&hash_params,
-		rte_socket_id(),
-		sizeof(struct address_source));
+			rte_socket_id(),
+			sizeof(struct pg_address_source));
 
 	if (!state->table) {
-		*errp = error_new("Failed to create hash for switch brick '%s'",
-				  brick->name);
+		*errp = pg_error_new(
+				"Failed to create hash for switch brick '%s'",
+				brick->name);
 		return 0;
 	}
 
@@ -326,24 +328,25 @@ static int switch_init(struct brick *brick,
 	return 1;
 }
 
-struct brick *switch_new(const char *name, uint32_t west_max,
-			uint32_t east_max,
-			struct switch_error **errp)
+struct pg_brick *pg_switch_new(const char *name,
+			       uint32_t west_max,
+			       uint32_t east_max,
+			       struct pg_error **errp)
 {
-	struct brick_config *config = brick_config_new(name, west_max,
-						       east_max);
-	struct brick *ret = brick_new("switch", config, errp);
+	struct pg_brick_config *config = pg_brick_config_new(name, west_max,
+							     east_max);
+	struct pg_brick *ret = pg_brick_new("switch", config, errp);
 
-	brick_config_free(config);
+	pg_brick_config_free(config);
 	return ret;
 }
 
 
-static void switch_destroy(struct brick *brick, struct switch_error **errp)
+static void switch_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
-	struct switch_state *state =
-		brick_get_state(brick, struct switch_state);
-	enum side i;
+	struct pg_switch_state *state =
+		pg_brick_get_state(brick, struct pg_switch_state);
+	enum pg_side i;
 
 	for (i = 0; i < MAX_SIDE; i++) {
 		g_free(state->sides[i].masks);
@@ -353,25 +356,25 @@ static void switch_destroy(struct brick *brick, struct switch_error **errp)
 	rte_table_hash_key8_lru_dosig_ops.f_free(state->table);
 }
 
-static void switch_unlink_notify(struct brick *brick,
-				 enum side side, uint16_t edge_index,
-				 struct switch_error **errp)
+static void switch_unlink_notify(struct pg_brick *brick,
+				 enum pg_side side, uint16_t edge_index,
+				 struct pg_error **errp)
 {
-	struct switch_state *state =
-		brick_get_state(brick, struct switch_state);
+	struct pg_switch_state *state =
+		pg_brick_get_state(brick, struct pg_switch_state);
 	state->sides[side].unlinks[edge_index]++;
 }
 
-static struct brick_ops switch_ops = {
+static struct pg_brick_ops switch_ops = {
 	.name		= "switch",
-	.state_size	= sizeof(struct switch_state),
+	.state_size	= sizeof(struct pg_switch_state),
 
 	.init		= switch_init,
 	.destroy	= switch_destroy,
 
-	.unlink		= brick_generic_unlink,
+	.unlink		= pg_brick_generic_unlink,
 
 	.unlink_notify  = switch_unlink_notify,
 };
 
-brick_register(switch, &switch_ops);
+pg_brick_register(switch, &switch_ops);
