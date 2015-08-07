@@ -25,7 +25,7 @@
 #include <packetgraph/utils/bitmask.h>
 
 /* All registred bricks. */
-GList *pg_all_bricks = NULL;
+GList *pg_all_bricks;
 
 /* return the oposite side */
 enum pg_side pg_flip_side(enum pg_side side)

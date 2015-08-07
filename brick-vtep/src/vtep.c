@@ -111,7 +111,8 @@ struct vtep_state {
 
 inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
 {
-	return brick ? &pg_brick_get_state(brick, struct vtep_state)->mac : NULL;
+	return brick ? &pg_brick_get_state(brick, struct vtep_state)->mac :
+		NULL;
 }
 
 static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac);
@@ -813,7 +814,7 @@ static int vtep_init(struct pg_brick *brick,
 
 	state->output = vtep_config->output;
 	if (brick->sides[state->output].max != 1) {
-		*errp = pg_error_new("brick %s Number of output port is not one",
+		*errp = pg_error_new("brick %s number of output port is not 1",
 				  brick->name);
 		return 0;
 	}
@@ -844,10 +845,13 @@ static int vtep_init(struct pg_brick *brick,
 	return 1;
 }
 
-static struct pg_brick_config *vtep_config_new(const char *name, uint32_t west_max,
-					    uint32_t east_max, enum pg_side output,
-					    uint32_t ip, struct ether_addr mac,
-					    int flags)
+static struct pg_brick_config *vtep_config_new(const char *name,
+					       uint32_t west_max,
+					       uint32_t east_max,
+					       enum pg_side output,
+					       uint32_t ip,
+					       struct ether_addr mac,
+					       int flags)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 	struct vtep_config *vtep_config = g_new0(struct vtep_config, 1);
@@ -865,8 +869,9 @@ struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
 		       uint32_t ip, struct ether_addr mac,
 		       int flags, struct pg_error **errp)
 {
-	struct pg_brick_config *config = vtep_config_new(name, west_max, east_max,
-						      output, ip, mac, flags);
+	struct pg_brick_config *config = vtep_config_new(name, west_max,
+							 east_max, output,
+							 ip, mac, flags);
 	struct pg_brick *ret = pg_brick_new("vtep", config, errp);
 
 	pg_brick_config_free(config);
@@ -1113,7 +1118,7 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 
 	port->original = port->mac_to_dst;
 	if (!port->mac_to_dst) {
-		*errp = pg_error_new("Failed to create hash for vtep brick '%s'",
+		*errp = pg_error_new("Failed to create hash for vtep :'%s'",
 				  state->brick.name);
 		return;
 	}
@@ -1124,7 +1129,7 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 		sizeof(int)); /* 1 or 0 */
 
 	if (!port->known_mac) {
-		*errp = pg_error_new("Failed to create hash for vtep brick '%s'",
+		*errp = pg_error_new("Failed to create hash for vtep :'%s'",
 				  state->brick.name);
 		goto known_error_exit;
 	}
@@ -1173,7 +1178,8 @@ void pg_vtep_add_vni(struct pg_brick *brick,
 	}
 
 	if (!is_multicast_ip(multicast_ip)) {
-		*errp = pg_error_new("Provided IP is not in the multicast range");
+		*errp = pg_error_new(
+			"Provided IP is not in the multicast range");
 		return;
 	}
 

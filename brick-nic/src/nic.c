@@ -199,11 +199,16 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 	static const struct rte_eth_conf port_conf = {
 		.rxmode = {
 			.split_hdr_size = 0,
-			.header_split   = 0, /**< Header Split disabled */
-			.hw_ip_checksum = 0, /**< IP checksum offload disabled */
-			.hw_vlan_filter = 0, /**< VLAN filtering disabled */
-			.jumbo_frame    = 0, /**< Jumbo Frame Support disabled */
-			.hw_strip_crc   = 0, /**< CRC stripped by hardware */
+			/**< Header Split disabled */
+			.header_split   = 0,
+			/**< IP checksum offload disabled */
+			.hw_ip_checksum = 0,
+			/**< VLAN filtering disabled */
+			.hw_vlan_filter = 0,
+			/**< Jumbo Frame Support disabled */
+			.jumbo_frame    = 0,
+			/**< CRC stripped by hardware */
+			.hw_strip_crc   = 0,
 		},
 		.txmode = {
 			.mq_mode = ETH_MQ_TX_NONE,

@@ -24,12 +24,12 @@
 /**
  * Create a new diode brick
  *
- * @param	name name of the brick
- * @param	west_max maximum of links you can connect on the west side
- * @param	east_max maximum of links you can connect on the east side
- * @param	output side where packets can exit (they come from the opposite side)
- * @param	errp is set in case of an error
- * @return	a pointer to a brick structure, on success, 0 on error
+ * @name:	name of the brick
+ * @west_max:	maximum of links you can connect on the west side
+ * @east_max:	maximum of links you can connect on the east side
+ * @output:	side where packets can exit (they come from the opposite side)
+ * @errp:	is set in case of an error
+ * @return:	a pointer to a brick structure, on success, 0 on error
  */
 struct pg_brick *pg_diode_new(const char *name,
 			      uint32_t west_max,
