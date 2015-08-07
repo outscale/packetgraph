@@ -26,36 +26,37 @@
 #include <packetgraph/print.h>
 #include "printer.h"
 
-struct print_config {
+struct pg_print_config {
 	FILE *output;
 	uint16_t *type_filter;
 	int flags;
 };
 
-struct print_state {
-	struct brick brick;
+struct pg_print_state {
+	struct pg_brick brick;
 	FILE *output;
 	uint16_t *type_filter;
 	int flags;
 	struct timeval start_date;
 };
 
-static struct brick_config *print_config_new(const char *name,
-					     uint32_t west_max,
-					     uint32_t east_max,
-					     FILE *output,
-					     int flags,
-					     uint16_t *type_filter)
+static struct pg_brick_config *pg_print_config_new(const char *name,
+						   uint32_t west_max,
+						   uint32_t east_max,
+						   FILE *output,
+						   int flags,
+						   uint16_t *type_filter)
 {
-	struct brick_config *config = g_new0(struct brick_config, 1);
-	struct print_config *print_config = g_new0(struct print_config, 1);
+	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
+	struct pg_print_config *print_config = g_new0(struct pg_print_config,
+						      1);
 
 	print_config->output = output;
 	print_config->flags = flags;
 	print_config->type_filter = type_filter;
-	
+
 	config->brick_config = (void *) print_config;
-	return brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max, east_max);
 }
 
 static int should_skip(uint16_t *type_filter, struct ether_hdr *eth)
@@ -67,13 +68,15 @@ static int should_skip(uint16_t *type_filter, struct ether_hdr *eth)
 	return 0;
 }
 
-static int print_burst(struct brick *brick, enum side from, uint16_t edge_index,
-		       struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
-		       struct switch_error **errp)
+static int print_burst(struct pg_brick *brick, enum pg_side from,
+		       uint16_t edge_index, struct rte_mbuf **pkts,
+		       uint16_t nb, uint64_t pkts_mask, struct pg_error **errp)
 {
 
-	struct print_state *state = brick_get_state(brick, struct print_state);
-	struct brick_side *s = &brick->sides[flip_side(from)];
+	struct pg_print_state *state;
+
+	state = pg_brick_get_state(brick, struct pg_print_state);
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	uint16_t *type_filter = state->type_filter;
 	uint64_t it_mask;
 	uint64_t bit;
@@ -84,7 +87,7 @@ static int print_burst(struct brick *brick, enum side from, uint16_t edge_index,
 	struct timeval cur;
 	uint64_t diff;
 
-	if (state->flags | PRINT_FLAG_TIMESTAMP) {
+	if (state->flags | PG_PRINT_FLAG_TIMESTAMP) {
 		gettimeofday(&cur, 0);
 		diff = (cur.tv_sec * 1000000 + cur.tv_usec) -
 			(state->start_date.tv_sec * 1000000 +
@@ -95,7 +98,7 @@ static int print_burst(struct brick *brick, enum side from, uint16_t edge_index,
 	for (; it_mask;) {
 		struct ether_hdr *eth;
 
-		low_bit_iterate_full(it_mask, bit, i);
+		pg_low_bit_iterate_full(it_mask, bit, i);
 
 		/*could be separete in a diferente function*/
 		data = rte_pktmbuf_mtod(pkts[i], void*);
@@ -104,43 +107,46 @@ static int print_burst(struct brick *brick, enum side from, uint16_t edge_index,
 
 		if (should_skip(type_filter, eth))
 			continue;
-		
-		if (state->flags | PRINT_FLAG_BRICK) {
+
+		if (state->flags | PG_PRINT_FLAG_BRICK) {
 			if (from == WEST_SIDE)
 				fprintf(o, "-->[%s]", brick->name);
 			else
 				fprintf(o, "[%s]<--", brick->name);
 		}
 
-		if (state->flags | PRINT_FLAG_TIMESTAMP)
+		if (state->flags | PG_PRINT_FLAG_TIMESTAMP)
 			fprintf(o, " [time=%"PRIu64"]", diff);
 
-		if (state->flags | PRINT_FLAG_SIZE)
+		if (state->flags | PG_PRINT_FLAG_SIZE)
 			fprintf(o, " [size=%"PRIu64"]", size);
 
-		if (state->flags | PRINT_FLAG_SUMMARY)
+		if (state->flags | PG_PRINT_FLAG_SUMMARY)
 			print_summary(data, size, o);
 
-		if (state->flags | PRINT_FLAG_RAW)
+		if (state->flags | PG_PRINT_FLAG_RAW)
 			print_raw(data, size, o);
 
 		fprintf(o, "\n");
 	}
-	return brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
+	return pg_brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
 }
 
-static int print_init(struct brick *brick,
-		      struct brick_config *config, struct switch_error **errp)
+static int print_init(struct pg_brick *brick,
+		      struct pg_brick_config *config,
+		      struct pg_error **errp)
 {
-	struct print_state *state = brick_get_state(brick, struct print_state);
-	struct print_config *print_config;
+	struct pg_print_state *state;
+
+	state = pg_brick_get_state(brick, struct pg_print_state);
+	struct pg_print_config *print_config;
 
 	if (!config->brick_config) {
-		*errp = error_new("config->brick_config is NULL");
+		*errp = pg_error_new("config->brick_config is NULL");
 		return 0;
 	}
 
-	print_config = (struct print_config *) config->brick_config;
+	print_config = (struct pg_print_config *) config->brick_config;
 
 	brick->burst = print_burst;
 
@@ -155,58 +161,64 @@ static int print_init(struct brick *brick,
 	} else {
 		int i;
 
-		for (i = 0; print_config->type_filter[i]; ++i);
+		for (i = 0; print_config->type_filter[i]; ++i)
+			;
 		/* Allocate len + 1 for the end */
 		state->type_filter = g_new0(uint16_t, i + 1);
 		for (i = 0; print_config->type_filter[i]; ++i)
 			state->type_filter[i] = print_config->type_filter[i];
 	}
 
-	if (error_is_set(errp))
+	if (pg_error_is_set(errp))
 		return 0;
 
 	return 1;
 }
 
-struct brick *print_new(const char *name,
-			uint32_t west_max,
-			uint32_t east_max,
-			FILE *output,
-			int flags,
-			uint16_t *type_filter,
-			struct switch_error **errp)
+struct pg_brick *pg_print_new(const char *name,
+			      uint32_t west_max,
+			      uint32_t east_max,
+			      FILE *output,
+			      int flags,
+			      uint16_t *type_filter,
+			      struct pg_error **errp)
 {
-	struct brick_config *config = print_config_new(name, west_max,
-						       east_max, output,
-						       flags, type_filter);
-	struct brick *ret = brick_new("print", config, errp);
+	struct pg_brick_config *config;
+	struct pg_brick *ret;
 
-	brick_config_free(config);
+	config = pg_print_config_new(name, west_max,
+				     east_max, output,
+				     flags, type_filter);
+	ret = pg_brick_new("print", config, errp);
+
+	pg_brick_config_free(config);
 	return ret;
 }
 
-void print_set_flags(struct brick *brick, int flags)
+void pg_print_set_flags(struct pg_brick *brick, int flags)
 {
-	struct print_state *state = brick_get_state(brick, struct print_state);
+	struct pg_print_state *state;
 
+	state = pg_brick_get_state(brick, struct pg_print_state);
 	state->flags = flags;
 }
 
-static void print_destroy(struct brick *brick, struct switch_error **errp)
+static void print_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
-	struct print_state *state = brick_get_state(brick, struct print_state);
+	struct pg_print_state *state;
 
+	state = pg_brick_get_state(brick, struct pg_print_state);
 	g_free(state->type_filter);
 }
 
-static struct brick_ops print_ops = {
+static struct pg_brick_ops print_ops = {
 	.name		= "print",
-	.state_size	= sizeof(struct print_state),
+	.state_size	= sizeof(struct pg_print_state),
 
 	.init		= print_init,
 	.destroy	= print_destroy,
-	
-	.unlink		= brick_generic_unlink,
+
+	.unlink		= pg_brick_generic_unlink,
 };
 
-brick_register(print, &print_ops);
+pg_brick_register(print, &print_ops);

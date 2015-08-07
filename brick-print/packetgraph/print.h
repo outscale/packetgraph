@@ -22,22 +22,22 @@
 #include <packetgraph/utils/errors.h>
 
 /* Print flags. */
-enum print_flags {
+enum pg_print_flags {
 	/* Print a summary of the packet (size, protocols, etc..). */
-	PRINT_FLAG_SUMMARY = 1,
+	PG_PRINT_FLAG_SUMMARY = 1,
 	/* Show timestamp when printing. */
-	PRINT_FLAG_TIMESTAMP = 2,
+	PG_PRINT_FLAG_TIMESTAMP = 2,
 	/* Show packet size when printing. */
-	PRINT_FLAG_SIZE = 4,
+	PG_PRINT_FLAG_SIZE = 4,
 	/* Print brick name and direction. */
-	PRINT_FLAG_BRICK = 8,
+	PG_PRINT_FLAG_BRICK = 8,
 	/* Print raw packet data. */
-	PRINT_FLAG_RAW = 16,
+	PG_PRINT_FLAG_RAW = 16,
 };
 
-#define PRINT_FLAG_MAX (PRINT_FLAG_SUMMARY | PRINT_FLAG_TIMESTAMP | \
-			PRINT_FLAG_SIZE | PRINT_FLAG_BRICK | \
-			PRINT_FLAG_RAW)
+#define PG_PRINT_FLAG_MAX (PG_PRINT_FLAG_SUMMARY | PG_PRINT_FLAG_TIMESTAMP | \
+			   PG_PRINT_FLAG_SIZE | PG_PRINT_FLAG_BRICK | \
+			   PG_PRINT_FLAG_RAW)
 
 /**
  * Create a new print brick
@@ -47,25 +47,25 @@ enum print_flags {
  * @param	east_max maximum of links you can connect on the east side
  * @param	output file descriptor where to write packets informations
  *		NULL means to use the standard output (stdout).
- * @param	flags print flags from enum print_flags.
+ * @param	flags print flags from enum pg_print_flags.
  * @param	type_filter ethernet type skiped at printing.
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure, on success, 0 on error
  */
-struct brick *print_new(const char *name,
-			uint32_t west_max,
-			uint32_t east_max,
-			FILE *output,
-			int flags,
-			uint16_t *type_filter,
-			struct switch_error **errp);
+struct pg_brick *pg_print_new(const char *name,
+			      uint32_t west_max,
+			      uint32_t east_max,
+			      FILE *output,
+			      int flags,
+			      uint16_t *type_filter,
+			      struct pg_error **errp);
 
 /**
  * Set print flags of a print brick.
  *
  * @param	brick pointer to a print brick
- * @param	flags print flags from enum print_flags.
+ * @param	flags print flags from enum pg_print_flags.
  */
-void print_set_flags(struct brick *brick, int flags);
+void pg_print_set_flags(struct pg_brick *brick, int flags);
 
 #endif  /* _BRICKS_BRICK_PRINT_H_ */

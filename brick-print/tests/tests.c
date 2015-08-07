@@ -36,7 +36,7 @@
 
 static struct rte_mbuf *build_ip_packet(void)
 {
-	struct rte_mempool *mp = get_mempool();
+	struct rte_mempool *mp = pg_get_mempool();
 	struct rte_mbuf *pkt = rte_pktmbuf_alloc(mp);
 	uint16_t len = sizeof(struct ether_hdr) + sizeof(struct ip) + 6;
 	struct ether_hdr *eth;
@@ -88,62 +88,64 @@ static void build_packets(struct rte_mbuf *packets[NB_PKTS])
 static void test_print_simple(void)
 {
 	int i;
-	struct brick *gen, *print, *col;
-	struct switch_error *error = NULL;
+	struct pg_brick *gen, *print, *col;
+	struct pg_error *error = NULL;
 	struct rte_mbuf *packets[NB_PKTS];
 	struct rte_mbuf **pkts;
 	uint64_t pkts_mask;
 
 	build_packets(packets);
-	gen = packetsgen_new("gen", 1, 1, EAST_SIDE, packets, NB_PKTS, &error);
+	gen = pg_packetsgen_new("gen", 1, 1, EAST_SIDE, packets, NB_PKTS,
+				&error);
 	g_assert(!error);
-	print = print_new("My print", 1, 1, NULL, PRINT_FLAG_MAX, NULL, &error);
+	print = pg_print_new("My print", 1, 1, NULL, PG_PRINT_FLAG_MAX, NULL,
+			     &error);
 	g_assert(!error);
-	col = collect_new("col", 1, 1, &error);
-	g_assert(!error);
-
-	brick_link(gen, print, &error);
-	g_assert(!error);
-	brick_link(print, col, &error);
+	col = pg_collect_new("col", 1, 1, &error);
 	g_assert(!error);
 
-	brick_burst_to_east(gen, 0, packets, NB_PKTS, mask_firsts(NB_PKTS),
-			    &error);
+	pg_brick_link(gen, print, &error);
+	g_assert(!error);
+	pg_brick_link(print, col, &error);
 	g_assert(!error);
 
-	pkts = brick_west_burst_get(col, &pkts_mask, &error);
+	pg_brick_burst_to_east(gen, 0, packets,
+			       NB_PKTS, pg_mask_firsts(NB_PKTS), &error);
 	g_assert(!error);
-	packets_free(pkts, mask_firsts(NB_PKTS));
 
-	brick_unlink(gen, &error);
+	pkts = pg_brick_west_burst_get(col, &pkts_mask, &error);
 	g_assert(!error);
-	brick_unlink(print, &error);
+	pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));
+
+	pg_brick_unlink(gen, &error);
 	g_assert(!error);
-	brick_unlink(col, &error);
+	pg_brick_unlink(print, &error);
 	g_assert(!error);
-	brick_destroy(gen);
-	brick_destroy(print);
-	brick_destroy(col);
+	pg_brick_unlink(col, &error);
+	g_assert(!error);
+	pg_brick_destroy(gen);
+	pg_brick_destroy(print);
+	pg_brick_destroy(col);
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(packets[i]);
 }
 
 int main(int argc, char **argv)
 {
-	struct switch_error *error;
+	struct pg_error *error;
 	int r;
 
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	packetgraph_start(argc, argv, &error);
+	pg_start(argc, argv, &error);
 	g_assert(!error);
 
 	g_test_add_func("/brick/print/simple", test_print_simple);
 
 	r = g_test_run();
 
-	packetgraph_stop();
+	pg_stop();
 	return r;
 }
