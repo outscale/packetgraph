@@ -45,7 +45,7 @@ static int is_ready(char *str)
 	return !strncmp(str, "Ready", strlen("Ready"));
 }
 
-static int spawn_qemu(char *socket_path_0,
+static int pg_spawn_qemu(char *socket_path_0,
 		      char *socket_path_1,
 		      const char *mac_0,
 		      const char *mac_1)
@@ -152,46 +152,46 @@ static void test_vhost_flow(void)
 {
 	const char mac_addr_0[18] = "52:54:00:12:34:11";
 	const char mac_addr_1[18] = "52:54:00:12:34:12";
-	struct rte_mempool *mbuf_pool = get_mempool();
-	struct brick *vhost_0, *vhost_1, *collect;
-	struct rte_mbuf *pkts[MAX_PKTS_BURST];
+	struct rte_mempool *mbuf_pool = pg_get_mempool();
+	struct pg_brick *vhost_0, *vhost_1, *collect;
+	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	char *socket_path_0, *socket_path_1;
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 	struct rte_mbuf **result_pkts;
 	int ret, qemu_pid, i;
 	uint64_t pkts_mask;
 	int exit_status;
 
 	/* start vhost */
-	ret = vhost_start("/tmp", &error);
+	ret = pg_vhost_start("/tmp", &error);
 	g_assert(ret);
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_0 = vhost_new("vhost-0", 1, 1, EAST_SIDE, &error);
+	vhost_0 = pg_vhost_new("vhost-0", 1, 1, EAST_SIDE, &error);
 	g_assert(!error);
 	g_assert(vhost_0);
 
-	vhost_1 = vhost_new("vhost-1", 1, 1, EAST_SIDE, &error);
+	vhost_1 = pg_vhost_new("vhost-1", 1, 1, EAST_SIDE, &error);
 	g_assert(!error);
 	g_assert(vhost_1);
 
-	collect = collect_new("collect", 1, 1, &error);
+	collect = pg_collect_new("collect", 1, 1, &error);
 	g_assert(!error);
 	g_assert(collect);
 
 	/* build the graph */
-	brick_link(collect, vhost_1, &error);
+	pg_brick_link(collect, vhost_1, &error);
 	g_assert(!error);
 
 	/* spawn first QEMU */
-	socket_path_0 = brick_handle_dup(vhost_0, &error);
+	socket_path_0 = pg_brick_handle_dup(vhost_0, &error);
 	g_assert(!error);
 	g_assert(socket_path_0);
-	socket_path_1 = brick_handle_dup(vhost_1, &error);
+	socket_path_1 = pg_brick_handle_dup(vhost_1, &error);
 	g_assert(!error);
 	g_assert(socket_path_1);
-	qemu_pid = spawn_qemu(socket_path_0, socket_path_1,
+	qemu_pid = pg_spawn_qemu(socket_path_0, socket_path_1,
 			      mac_addr_0, mac_addr_1);
 	g_assert(qemu_pid);
 	g_free(socket_path_0);
@@ -205,14 +205,14 @@ static void test_vhost_flow(void)
 		/* set random dst/src mac address so the linux guest bridge
 		 * will not filter them
 		 */
-		set_mac_addrs(pkts[i],
+		pg_set_mac_addrs(pkts[i],
 			      "52:54:00:12:34:15", "52:54:00:12:34:16");
 		/* set size */
-		set_ether_type(pkts[i], ETHER_MIN_LEN - ETHER_HDR_LEN - 4);
+		pg_set_ether_type(pkts[i], ETHER_MIN_LEN - ETHER_HDR_LEN - 4);
 	}
 
 	/* send packet to the guest via one interface */
-	brick_burst_to_east(vhost_0, 0, pkts, NB_PKTS, mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(vhost_0, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			    &error);
 	g_assert(!error);
 
@@ -221,7 +221,7 @@ static void test_vhost_flow(void)
 		uint16_t count = 0;
 
 		usleep(100000);
-		brick_poll(vhost_1, &count, &error);
+		pg_brick_poll(vhost_1, &count, &error);
 		g_assert(!error);
 		if (count)
 			break;
@@ -232,31 +232,31 @@ static void test_vhost_flow(void)
 	waitpid(qemu_pid, &exit_status, 0);
 	g_spawn_close_pid(qemu_pid);
 
-	result_pkts = brick_east_burst_get(collect, &pkts_mask, &error);
+	result_pkts = pg_brick_east_burst_get(collect, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(result_pkts);
 
 	/* free result packets */
-	packets_free(result_pkts, pkts_mask);
+	pg_packets_free(result_pkts, pkts_mask);
 
 	/* free sent packet */
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
 
 	/* break the graph */
-	brick_unlink(collect, &error);
+	pg_brick_unlink(collect, &error);
 	g_assert(!error);
 
 	/* clean up */
-	brick_decref(vhost_0, &error);
+	pg_brick_decref(vhost_0, &error);
 	g_assert(!error);
-	brick_decref(vhost_1, &error);
+	pg_brick_decref(vhost_1, &error);
 	g_assert(!error);
-	brick_decref(collect, &error);
+	pg_brick_decref(collect, &error);
 	g_assert(!error);
 
 	/* stop vhost */
-	vhost_stop();
+	pg_vhost_stop();
 }
 
 void test_vhost(void)

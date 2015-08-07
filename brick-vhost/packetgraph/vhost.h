@@ -30,9 +30,9 @@
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure, on success, 0 on error
  */
-struct brick *vhost_new(const char *name, uint32_t west_max,
-			uint32_t east_max, enum side output,
-			struct switch_error **errp);
+struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
+			      uint32_t east_max, enum pg_side output,
+			      struct pg_error **errp);
 
 /**
  * Initialize vhost-user at program startup
@@ -44,8 +44,8 @@ struct brick *vhost_new(const char *name, uint32_t west_max,
  * @param: an error pointer
  * @return: 1 on success, 0 on error
  */
-int vhost_start(const char *base_dir, struct switch_error **errp);
+int pg_vhost_start(const char *base_dir, struct pg_error **errp);
 
-void vhost_stop(void);
+void pg_vhost_stop(void);
 
 #endif  /* _BRICKS_BRICK_VHOST_H_ */
