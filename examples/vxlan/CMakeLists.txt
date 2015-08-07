@@ -8,6 +8,7 @@ find_package(PCAP REQUIRED)
 find_package(packetgraph-core REQUIRED)
 find_package(packetgraph-nic REQUIRED)
 find_package(packetgraph-vtep REQUIRED)
+find_package(packetgraph-print REQUIRED)
 
 set(RTE_SDK_ROOT $ENV{RTE_SDK})
 if("${RTE_SDK_ROOT}" STREQUAL "")
@@ -32,12 +33,14 @@ target_include_directories(vxlan PUBLIC
   ${LIBNPF_INCLUDE_DIR}
   ${LIBPACKETGRAPH-CORE_INCLUDE_DIR}
   ${LIBPACKETGRAPH-NIC_INCLUDE_DIR}
-  ${LIBPACKETGRAPH-VTEP_INCLUDE_DIR})
+  ${LIBPACKETGRAPH-VTEP_INCLUDE_DIR}
+  ${LIBPACKETGRAPH-PRINT_INCLUDE_DIR})
 
 target_link_libraries(vxlan
-	${LIBPACKETGRAPH-CORE_LIBRARY}
 	${LIBPACKETGRAPH-NIC_LIBRARY}
+	${LIBPACKETGRAPH-PRINT_LIBRARY}
 	${LIBPACKETGRAPH-VTEP_LIBRARY}
+	${LIBPACKETGRAPH-CORE_LIBRARY}
 	${PCAP_LIBRARY}
 	pthread
 	dl

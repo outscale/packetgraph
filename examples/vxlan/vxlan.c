@@ -29,9 +29,16 @@
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/nic.h>
 #include <packetgraph/vtep.h>
-#include <packetgraph/packetsgen.h>
+#include <packetgraph/print.h>
 #include <packetgraph/utils/mempool.h>
 #include <packetgraph/utils/bitmask.h>
+#include <packetgraph/utils/mac.h>
+
+#define CHECK_ERROR(error) do {			\
+		if (error)			\
+			error_print(error);	\
+		g_assert(!error);		\
+	} while (0)
 
 struct vtep_opts {
 	const char *ip;
@@ -64,96 +71,76 @@ static void sig_handler(int signo)
 		quit = 1;
 }
 
+static void inverse_mac(struct ether_addr *mac)
+{
+	for (int i = 0; i < 6; ++i) {
+		mac->addr_bytes[i] = ~mac->addr_bytes[i];
+	}
+}
+
 static int start_loop(uint32_t vtep_ip, struct ether_addr *vtep_mac,
 		      struct ether_addr *inner_mac,
 		      GList *neighbor_macs)
 {
-	struct switch_error *error = NULL;
-	struct rte_mbuf *pkts[64];
-	struct brick *nic, *pktgen, *vtep;
-	struct rte_mempool *mp = get_mempool();
-	struct timeval start, end;
-	uint16_t nb_pkts = g_list_length(neighbor_macs);
-
-	if (nb_pkts > 64)
-		return -1;
-
-	for (int i = 0; i < nb_pkts && neighbor_macs; ++i) {
-		struct headers *hdr;
-		struct ether_addr *data;
-
-		data = neighbor_macs->data;
-		pkts[i] = rte_pktmbuf_alloc(mp);
-		g_assert(pkts[i]);
-		hdr = (struct headers *) rte_pktmbuf_append(pkts[i],
-							    sizeof(struct headers));
-		hdr->ethernet.ether_type = rte_cpu_to_be_16(0xCAFE);
-		ether_addr_copy(data, &hdr->ethernet.d_addr);
-		ether_addr_copy(inner_mac, &hdr->ethernet.s_addr);
-		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
-
-		char buf[40];
-
-		ether_format_addr(buf, 40, &hdr->ethernet.s_addr);
-		printf("pkt src %s\n", buf);
-		ether_format_addr(buf, 40, &hdr->ethernet.d_addr);
-		printf("pkt dst %s\n", buf);
-		neighbor_macs = neighbor_macs->next;
-	}
+ 	struct switch_error *error = NULL;
+	struct brick *nic_east, *nic_west, *vtep_east, *vtep_west;
+	struct brick *print_east, *print_west, *print_middle;
+	/* struct rte_mempool *mp = get_mempool(); */
+	/* uint16_t filter[] = {0x2600, 0}; */
 
 	/*
 	 * Here is an ascii graph of the links:
-	 * GEN = packetsgen
 	 * NIC = nic
 	 * VT = vtep
 	 *
-	 * [NIC] -- [VT] -- [GEN]
+	 * [NIC] - [PRINT] - [VT] -- [PRINT] -- [VT] -- [PRINT] -- [NIC]
 	 */
-	nic = nic_new_by_id("nic", 1, 1, WEST_SIDE, 0, &error);
-	g_assert(!error);
-	pktgen = packetsgen_new("gen", 1, 1, WEST_SIDE, pkts, nb_pkts, &error);
-	g_assert(!error);
-	vtep = vtep_new("vt", 1, 1, WEST_SIDE, vtep_ip, *vtep_mac, &error);
+	nic_east = nic_new_by_id("nic-e", 1, 1, EAST_SIDE, 0, &error);
+	CHECK_ERROR(error);
+	nic_west = nic_new_by_id("nic-w", 1, 1, WEST_SIDE, 1, &error);
+	CHECK_ERROR(error);
+	vtep_east = vtep_new("vt-e", 1, 1, WEST_SIDE,
+			     vtep_ip, *vtep_mac, 1, &error);
+	CHECK_ERROR(error);
+	inverse_mac(vtep_mac);
+	print_mac(vtep_mac); printf("\n");
+	vtep_west = vtep_new("vt-w", 1, 1, EAST_SIDE,
+			     ~vtep_ip, *vtep_mac, 1, &error);
+	CHECK_ERROR(error);
+	print_west = print_new("west", 1, 1, NULL, PRINT_FLAG_MAX, NULL,
+			       &error);
+	CHECK_ERROR(error);
+	print_east = print_new("east", 1, 1, NULL, PRINT_FLAG_MAX, NULL,
+			       &error);
+	CHECK_ERROR(error);	
+	print_middle = print_new("middle", 1, 1, NULL, PRINT_FLAG_MAX, NULL,
+			       &error);
+	CHECK_ERROR(error);
 
-	brick_link(nic, vtep, &error);
-	g_assert(!error);
-	brick_link(vtep, pktgen, &error);
-	g_assert(!error);
-
-	vtep_add_vni(vtep, pktgen, 0,
-		     inet_addr("225.0.0.43"), &error);
-	if (error) {
-		error_print(error);
-	}
-	g_assert(!error);
-	gettimeofday(&start, 0);
+	/* brick_chained_links(&error, nic_west, print_west, */
+	/* 		    vtep_west, print_middle, vtep_east, */
+	/* 		    print_east, nic_east); */
+	brick_chained_links(&error, nic_west, vtep_west, vtep_east, nic_east);
+	CHECK_ERROR(error);
+	vtep_add_vni(vtep_west, nic_west, 0, inet_addr("225.0.0.43"), &error);
+	CHECK_ERROR(error);
+	vtep_add_vni(vtep_east, nic_east, 0, inet_addr("225.0.0.43"), &error);
+	CHECK_ERROR(error);
 	while (!quit) {
 		uint16_t nb_send_pkts;
-		uint64_t tot_pkts = 0;
 
-		g_assert(brick_poll(nic, &nb_send_pkts, &error));
-
-		if (nb_send_pkts) {
-			printf("nb pkts poll: %d\n"
-			       "nb pkts recive in packetsgen: %lu\n",
-			       nb_send_pkts,
-			       brick_pkts_count_get(pktgen, WEST_SIDE) -
-			       tot_pkts);
-		}
-		gettimeofday(&end, 0);
-		if ((end.tv_sec) -
-		    (start.tv_sec) > 1) {
-			uint16_t nb_gen_pkts;
-
-			g_assert(brick_poll(pktgen, &nb_gen_pkts, &error));
-			gettimeofday(&start, 0);
-			printf("genere %d pkts\n", nb_gen_pkts);
-		}
-
+		g_assert(brick_poll(nic_west, &nb_send_pkts, &error));
+		usleep(1);
+		g_assert(brick_poll(nic_east, &nb_send_pkts, &error));
+		usleep(1);
 	}
-	brick_destroy(pktgen);
-	brick_destroy(vtep);
-	brick_destroy(nic);
+	brick_destroy(nic_west);
+	brick_destroy(print_west);
+	brick_destroy(vtep_west);
+	brick_destroy(print_middle);
+	brick_destroy(vtep_east);
+	brick_destroy(print_east);
+	brick_destroy(nic_east);
 
 	return 0;
 }
@@ -166,7 +153,6 @@ static void print_usage(void)
 	       "              -m choose ethernet addr of the vtep\n"
 	       "              -n neighbor inner macs\n"
 	       "              -s self inner mac\n"
-	       "              -m choose ethernet addr of the vtep\n"
 	       "              -i choose ip of the vtep\n");
 	exit(0);
 }
@@ -210,26 +196,6 @@ static uint64_t parse_args(int argc, char **argv, struct vtep_opts *opt)
 	return ret;
 }
 
-inline int scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
-{
-	int ret;
-
-	/* is the input string long enough */
-	if (strlen(buf) < 17)
-		return 0;
-
-	ret = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
-		     &eth_addr->addr_bytes[0],
-		     &eth_addr->addr_bytes[1],
-		     &eth_addr->addr_bytes[2],
-		     &eth_addr->addr_bytes[3],
-		     &eth_addr->addr_bytes[4],
-		     &eth_addr->addr_bytes[5]);
-
-	/* where the 6 bytes parsed ? */
-	return ret == 6;
-}
-
 static void destroy_ether_addr(void *data)
 {
 	g_free(data);
@@ -248,7 +214,7 @@ int main(int argc, char **argv)
 
 	ret = packetgraph_start(argc, argv, &error);
 	g_assert(ret != -1);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	if (signal(SIGINT, sig_handler) == SIG_ERR)
 		return -errno;
