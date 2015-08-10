@@ -494,6 +494,7 @@ static void test_vtep_speed(void)
 
 	pg_brick_chained_links(&error, pktgen_west , vtep_west,
 			    vtep_east, nop_east);
+	CHECK_ERROR(error);
 
 	pg_vtep_add_vni(vtep_west, pktgen_west, 0,
 		     inet_addr("225.0.0.43"), &error);
@@ -527,7 +528,7 @@ static void test_vtep_speed(void)
 
 		for (int i = 0; i < 100; ++i) {
 			g_assert(pg_brick_poll(pktgen_west,
-					    &nb_send_pkts, &error));
+					       &nb_send_pkts, &error));
 			tot_send_pkts += nb_send_pkts;
 		}
 		gettimeofday(&end, 0);
@@ -556,7 +557,7 @@ static void test_vtep_vxlanise(void)
 	for (int i = 0; i < NB_PKTS; ++i) {
 		struct speed_test_headers *hdr;
 		struct ether_addr src = {{0,0,0,0,0,1}};
-		struct ether_addr dst = {{0xf0,0xf0,0xf0,0xf0,0xf0,0xf0}};
+		struct ether_addr dst = {{0xf,0xf,0xf,0xf,0xf,0xf}};
 
 		pkts[i] = rte_pktmbuf_alloc(pg_get_mempool());
 		g_assert(pkts[i]);
@@ -571,7 +572,7 @@ static void test_vtep_vxlanise(void)
 	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
 
 	vtep_west = pg_vtep_new("vt-w", 1, 1, EAST_SIDE,
-			     15, multicast_mac1, 1, &error);
+			     15, multicast_mac1, ALL_OPTI, &error);
 	CHECK_ERROR(error);
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
@@ -581,6 +582,7 @@ static void test_vtep_vxlanise(void)
 
 	pg_brick_chained_links(&error, pktgen_west , vtep_west,
 			    nop_east);
+	CHECK_ERROR(error);
 
 	pg_vtep_add_vni(vtep_west, pktgen_west, 0,
 		     inet_addr("225.0.0.43"), &error);
@@ -593,7 +595,7 @@ static void test_vtep_vxlanise(void)
 	do {
 		struct rte_mbuf *tmp = rte_pktmbuf_alloc(pg_get_mempool());
 		struct speed_test_headers *hdr;
-		struct ether_addr src = {{0xf0,0xf0,0xf0,0xf0,0xf0,0xf0}};
+		struct ether_addr src = {{0xf,0xf,0xf,0xf,0xf,0xf}};
 		struct ether_addr dst = {{0,0,0,0,0,1}};
 
 		hdr = (struct speed_test_headers *) rte_pktmbuf_append(tmp,
@@ -606,12 +608,12 @@ static void test_vtep_vxlanise(void)
 		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, 1, &error);
 	} while (0);
 
-	while (end.tv_sec - start.tv_sec < 1) {
+	while (end.tv_sec - start.tv_sec < 5) {
 		uint16_t nb_send_pkts;
 
 		for (int i = 0; i < 100; ++i) {
 			g_assert(pg_brick_poll(pktgen_west,
-					    &nb_send_pkts, &error));
+					       &nb_send_pkts, &error));
 			tot_send_pkts += nb_send_pkts;
 		}
 		gettimeofday(&end, 0);
@@ -634,9 +636,8 @@ static void test_vtep(int quick)
 	if (!quick) {
 		g_test_add_func("/brick/nop/speed",
 				test_nop_speed);
-		(void)test_vtep_vxlanise;
-		/* g_test_add_func("/brick/vtep/vxlanise/speed", */
-		/* 		test_vtep_vxlanise); */
+		g_test_add_func("/brick/vtep/vxlanise/speed",
+				test_vtep_vxlanise);
 		g_test_add_func("/brick/vtep/both/speed",
 				test_vtep_speed);
 
