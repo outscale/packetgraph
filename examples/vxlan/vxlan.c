@@ -36,7 +36,7 @@
 
 #define CHECK_ERROR(error) do {			\
 		if (error)			\
-			error_print(error);	\
+			pg_error_print(error);	\
 		g_assert(!error);		\
 	} while (0)
 
@@ -58,8 +58,6 @@ enum test_flags {
 
 struct headers {
 	struct ether_hdr ethernet; /* define in rte_ether.h */
-	/* struct ipv4_hdr	 ipv4; */
-	/* struct udp_hdr	 udp; */
 	char *data;
 } __attribute__((__packed__));
 
@@ -82,11 +80,9 @@ static int start_loop(uint32_t vtep_ip, struct ether_addr *vtep_mac,
 		      struct ether_addr *inner_mac,
 		      GList *neighbor_macs)
 {
- 	struct switch_error *error = NULL;
-	struct brick *nic_east, *nic_west, *vtep_east, *vtep_west;
-	struct brick *print_east, *print_west, *print_middle;
-	/* struct rte_mempool *mp = get_mempool(); */
-	/* uint16_t filter[] = {0x2600, 0}; */
+ 	struct pg_error *error = NULL;
+	struct pg_brick *nic_east, *nic_west, *vtep_east, *vtep_west;
+	struct pg_brick *print_east, *print_west, *print_middle;
 
 	/*
 	 * Here is an ascii graph of the links:
@@ -95,52 +91,55 @@ static int start_loop(uint32_t vtep_ip, struct ether_addr *vtep_mac,
 	 *
 	 * [NIC] - [PRINT] - [VT] -- [PRINT] -- [VT] -- [PRINT] -- [NIC]
 	 */
-	nic_east = nic_new_by_id("nic-e", 1, 1, EAST_SIDE, 0, &error);
+	nic_east = pg_nic_new_by_id("nic-e", 1, 1, EAST_SIDE, 0, &error);
 	CHECK_ERROR(error);
-	nic_west = nic_new_by_id("nic-w", 1, 1, WEST_SIDE, 1, &error);
+	nic_west = pg_nic_new_by_id("nic-w", 1, 1, WEST_SIDE, 1, &error);
 	CHECK_ERROR(error);
-	vtep_east = vtep_new("vt-e", 1, 1, WEST_SIDE,
+	vtep_east = pg_vtep_new("vt-e", 1, 1, WEST_SIDE,
 			     vtep_ip, *vtep_mac, 1, &error);
 	CHECK_ERROR(error);
 	inverse_mac(vtep_mac);
-	print_mac(vtep_mac); printf("\n");
-	vtep_west = vtep_new("vt-w", 1, 1, EAST_SIDE,
+	pg_print_mac(vtep_mac); printf("\n");
+	vtep_west = pg_vtep_new("vt-w", 1, 1, EAST_SIDE,
 			     ~vtep_ip, *vtep_mac, 1, &error);
 	CHECK_ERROR(error);
-	print_west = print_new("west", 1, 1, NULL, PRINT_FLAG_MAX, NULL,
+	print_west = pg_print_new("west", 1, 1, NULL, PG_PRINT_FLAG_MAX, NULL,
 			       &error);
 	CHECK_ERROR(error);
-	print_east = print_new("east", 1, 1, NULL, PRINT_FLAG_MAX, NULL,
+	print_east = pg_print_new("east", 1, 1, NULL, PG_PRINT_FLAG_MAX, NULL,
 			       &error);
 	CHECK_ERROR(error);	
-	print_middle = print_new("middle", 1, 1, NULL, PRINT_FLAG_MAX, NULL,
-			       &error);
+	print_middle = pg_print_new("middle", 1, 1, NULL, PG_PRINT_FLAG_MAX,
+				    NULL, &error);
 	CHECK_ERROR(error);
 
-	/* brick_chained_links(&error, nic_west, print_west, */
+	/* If you want to print transmiting pkts uncomment this and coment 
+	 * the bellow pg_brick_chained_links
+	 * Attention: this may slow down the transmition */
+	/* pg_brick_chained_links(&error, nic_west, print_west, */
 	/* 		    vtep_west, print_middle, vtep_east, */
 	/* 		    print_east, nic_east); */
-	brick_chained_links(&error, nic_west, vtep_west, vtep_east, nic_east);
+	pg_brick_chained_links(&error, nic_west, vtep_west, vtep_east, nic_east);
 	CHECK_ERROR(error);
-	vtep_add_vni(vtep_west, nic_west, 0, inet_addr("225.0.0.43"), &error);
+	pg_vtep_add_vni(vtep_west, nic_west, 0, inet_addr("225.0.0.43"), &error);
 	CHECK_ERROR(error);
-	vtep_add_vni(vtep_east, nic_east, 0, inet_addr("225.0.0.43"), &error);
+	pg_vtep_add_vni(vtep_east, nic_east, 0, inet_addr("225.0.0.43"), &error);
 	CHECK_ERROR(error);
 	while (!quit) {
 		uint16_t nb_send_pkts;
 
-		g_assert(brick_poll(nic_west, &nb_send_pkts, &error));
+		g_assert(pg_brick_poll(nic_west, &nb_send_pkts, &error));
 		usleep(1);
-		g_assert(brick_poll(nic_east, &nb_send_pkts, &error));
+		g_assert(pg_brick_poll(nic_east, &nb_send_pkts, &error));
 		usleep(1);
 	}
-	brick_destroy(nic_west);
-	brick_destroy(print_west);
-	brick_destroy(vtep_west);
-	brick_destroy(print_middle);
-	brick_destroy(vtep_east);
-	brick_destroy(print_east);
-	brick_destroy(nic_east);
+	pg_brick_destroy(nic_west);
+	pg_brick_destroy(print_west);
+	pg_brick_destroy(vtep_west);
+	pg_brick_destroy(print_middle);
+	pg_brick_destroy(vtep_east);
+	pg_brick_destroy(print_east);
+	pg_brick_destroy(nic_east);
 
 	return 0;
 }
@@ -203,7 +202,7 @@ static void destroy_ether_addr(void *data)
 
 int main(int argc, char **argv)
 {
-	struct switch_error *error = NULL;
+	struct pg_error *error = NULL;
 	int ret;
 	uint64_t args_flags;
 	struct vtep_opts opt = {NULL, NULL, NULL, NULL};
@@ -212,7 +211,7 @@ int main(int argc, char **argv)
 	struct ether_addr inner_addr;
 	GList *neighbor_addrs = NULL;
 
-	ret = packetgraph_start(argc, argv, &error);
+	ret = pg_start(argc, argv, &error);
 	g_assert(ret != -1);
 	CHECK_ERROR(error);
 
@@ -232,7 +231,7 @@ int main(int argc, char **argv)
 		goto exit;
 	}
 
-	if (!scan_ether_addr(&eth_addr, opt.mac) ||
+	if (!pg_scan_ether_addr(&eth_addr, opt.mac) ||
 	    !is_valid_assigned_ether_addr(&eth_addr)) {
 		char buf[40];
 
@@ -244,7 +243,7 @@ int main(int argc, char **argv)
 		goto exit;
 	}
 
-	if (!scan_ether_addr(&inner_addr, opt.inner_mac) ||
+	if (!pg_scan_ether_addr(&inner_addr, opt.inner_mac) ||
 	    !is_valid_assigned_ether_addr(&inner_addr)) {
 		char buf[40];
 
@@ -261,7 +260,7 @@ int main(int argc, char **argv)
 		const char *data = lst->data;
 		struct ether_addr *tmp = g_new0(struct ether_addr, 1);
 
-		if (!scan_ether_addr(tmp, data) ||
+		if (!pg_scan_ether_addr(tmp, data) ||
 		    !is_valid_assigned_ether_addr(tmp)) {
 			char buf[40];
 
@@ -286,5 +285,6 @@ int main(int argc, char **argv)
 exit:
 	g_list_free(opt.neighbor_macs);
 	g_list_free_full(neighbor_addrs, destroy_ether_addr);
+	pg_stop();
 	return ret;
 }
