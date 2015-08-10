@@ -21,6 +21,12 @@
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
+#ifndef __cplusplus
+#include <rte_ether.h>
+#else
+struct ether_addr;
+#endif
+
 /**
  * Start brick-nic library, must be call before any usage of this lib
  */
@@ -123,7 +129,7 @@ struct pg_nic_stats {
 /**
  * get the stats of a nic
  *
- * @brick:	the brick
+ * @param nic	the brick nic
  * @param stats
  *   A pointer to a structure of type *nic_stats* to be filled with
  *   the values of device counters for the following set of statistics:
@@ -137,5 +143,13 @@ struct pg_nic_stats {
  */
 void pg_nic_get_stats(struct pg_brick *nic,
 		      struct pg_nic_stats *stats);
+
+/** get the mac address of the nic brick
+ *
+ * @param nic	a pointer to a nic brick
+ * @param addr	a pointer to a ether_addr structure to to filled with the
+ *		Ethernet address
+ */
+void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr);
 
 #endif  /* _BRICKS_BRICK_NIC_H_ */

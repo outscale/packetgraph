@@ -60,6 +60,13 @@ void pg_nic_start(void)
 #endif
 }
 
+void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr)
+{
+	struct pg_nic_state *state;
+	state = pg_brick_get_state(nic, struct pg_nic_state);
+	rte_eth_macaddr_get(state->portid, addr);
+}
+
 static struct pg_brick_config *nic_config_new(const char *name,
 					      uint32_t west_max,
 					      uint32_t east_max,
