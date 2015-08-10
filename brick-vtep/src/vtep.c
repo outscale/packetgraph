@@ -143,35 +143,6 @@ static inline struct ether_addr multicast_get_dst_addr(uint32_t ip)
 	return dst;
 }
 
-static inline void multicast_filter(struct vtep_state *state,
-			     struct rte_mbuf **pkts,
-			     uint64_t pkts_mask,
-			     uint64_t *result_mask)
-{
-	uint64_t unicast_mask = 0;
-
-	for (; pkts_mask;) {
-		struct ether_hdr *eth_hdr;
-		struct rte_mbuf *pkt;
-		uint64_t bit;
-		uint16_t i;
-
-		pg_low_bit_iterate_full(pkts_mask, bit, i);
-
-		pkt = pkts[i];
-
-		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
-
-		/* if the packet is multicast or broadcast flood it */
-		if (unlikely(is_multicast_ether_addr(&eth_hdr->d_addr)))
-			continue;
-
-		unicast_mask |= bit;
-	}
-
-	*result_mask = unicast_mask;
-}
-
 /**
  * Is the given IP in the multicast range ?
  *
@@ -371,7 +342,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		if ((!(state->flags & NO_INNERMAC_CKECK)) &&
 		    !do_add_mac(port, &eth_hdr->s_addr)) {
 			*errp = pg_error_new("Failed to add mac for brick'%s'",
-					  state->brick.name);
+					     state->brick.name);
 			return 0;
 		}
 
@@ -389,26 +360,29 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 static inline int vtep_encapsulate(struct vtep_state *state,
 				   struct vtep_port *port,
 				   struct rte_mbuf **pkts, uint64_t pkts_mask,
-				   uint64_t unicast_mask,
 				   struct pg_error **errp)
 {
-	uint64_t lookup_mask = 0, ip_masks = 0;
+	uint64_t lookup_mask = 0, ip_mask = 0, unicast_mask = 0;
 	struct dest_addresses *entries[64];
 	int ret;
 	struct rte_mempool *mp = pg_get_mempool();
 
-	/* lookup for known destination IPs */
-	for (uint64_t mask = unicast_mask; mask;) {
+	/* check multicast pkts and lookup for known destination mac in cache */
+	for (uint64_t mask = pkts_mask; mask;) {
 		uint16_t i;
+		struct rte_mbuf *pkt;
 
 		pg_low_bit_iterate(mask, i);
+		pkt = pkts[i];
+		if (unlikely(is_multicast_ether_addr(dst_key_ptr(pkt))))
+			continue;
 		entries[i] = mac_cache_get(state->cache,
-					   (uint64_t *)dst_key_ptr(pkts[i]));
+					   (uint64_t *)dst_key_ptr(pkt));
 		if (entries[i])
-			ip_masks |= 1LLU << i;
+			ip_mask |= 1LLU << i;
+		else
+			unicast_mask |= 1LLU << i;
 	}
-
-	unicast_mask = unicast_mask & (~ip_masks);
 
 	if (unicast_mask) {
 		ret = rte_table_hash_key8_lru_dosig_ops.f_lookup(port->
@@ -426,7 +400,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		}
 	}
 
-	ip_masks |= unicast_mask & lookup_mask;
+	unicast_mask = ip_mask | lookup_mask;
 
 	/* do the encapsulation */
 	for (; pkts_mask;) {
@@ -441,7 +415,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		pg_low_bit_iterate_full(pkts_mask, bit, i);
 
 		/* must we encapsulate in an unicast VTEP header */
-		unicast = bit & ip_masks;
+		unicast = bit & unicast_mask;
 
 		/* pick up the right destination ip */
 		if (likely(unicast))
@@ -476,28 +450,25 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	struct vtep_port *port = &state->ports[edge_index];
-	/* TODO do we really need to initialise the variable here ? */
-	uint64_t unicast_mask = 0;
 	int ret;
 
 	/* if the port VNI is not set up ignore the packets */
 	if (!unlikely(port->multicast_ip))
 		return 1;
 
+	/* TODO: pg_packets_prefetch and pg_packets_prepare_hash_keys should
+	 * have been made and clean in switch, so we should add option in
+	 * The switch brick to stop cleaning this and add option in
+	 * vtep to ensure that the prepare_hash_keys has been made
+	 * in the previous brick */
 	pg_packets_prefetch(pkts, pkts_mask);
-
 	/* TODO: account the size of the VTEP header in prepare hash keys */
 	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
 
 	if (unlikely(!ret))
 		return 0;
 
-	/* TODO: maybe we can merge this with vtep_encapsulate
-	 * if we do that we will have one less loop :) */
-	multicast_filter(state, pkts, pkts_mask, &unicast_mask);
-
-	ret = vtep_encapsulate(state, port, pkts, pkts_mask,
-				unicast_mask, errp);
+	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
 
 	if (unlikely(!ret))
 		goto no_forward;
