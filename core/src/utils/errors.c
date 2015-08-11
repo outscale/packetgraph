@@ -81,7 +81,7 @@ void pg_error_print(struct pg_error *error)
 	}
 
 	fprintf(stderr,
-		"Error:  file='%s' function='%s' line=%lui errno=%i:\n\t'%s'",
+		"Error:  file='%s' function='%s' line=%lu errno=%i:\n\t'%s'",
 		error->context.file, error->context.function,
 		error->context.line, error->err_no,
 		error->message);
