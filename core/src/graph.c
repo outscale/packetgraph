@@ -25,7 +25,7 @@ int pg_graph_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 	int i, j;
 
 	fprintf(fd, "strict graph G {\n");
-	fprintf(fd, "  rankdir=RL\n");
+	fprintf(fd, "  rankdir=LR\n");
 	fprintf(fd, "  nodesep=1\n");
 	fprintf(fd, "  node [shape=record];\n");
 	todo = g_list_append(todo, brick);
