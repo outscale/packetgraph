@@ -19,7 +19,7 @@
 #include <rte_ether.h>
 #include <glib.h>
 #include <packetgraph/utils/circular-buffer.h>
-#include <packetgraph/vtep-cache.h>
+#include "vtep-cache.h"
 
 #define CACHE_SIZE 8
 

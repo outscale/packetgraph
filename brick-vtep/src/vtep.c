@@ -42,7 +42,7 @@
 #include <packetgraph/packets.h>
 #include <packetgraph/vtep.h>
 #include <packetgraph/utils/mempool.h>
-#include <packetgraph/vtep-cache.h>
+#include "vtep-cache.h"
 
 struct vtep_config {
 	enum pg_side output;
