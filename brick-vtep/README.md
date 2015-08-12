@@ -15,7 +15,6 @@ header
 This implementation expects that the IP checksum will be offloaded to
 the NIC
 
-
 # Building
 
 ## Prerequisites
@@ -46,9 +45,13 @@ to package packetgraph-firewall into an rpm, simply run ```make package```.
 
 # Usage
 
-To create a vtep brick, call vtep_new().
+To create a vtep brick, call pg_vtep_new().
 
-To tell the vtep than a neibough brick correspond to a VNI, you need to call
-vtep_add_vni.
+To tell the vtep than a neibough brick correspond to a VNI, you need to:
+- Link brick with the vtep
+- use pg_vtep_add_vni to register the brick to a VNI
+
+To remove a brick from a VNI, just unkink the connect brick.
+Note that you can't add two bricks on the same VNI.
 
 If you want to get the vtep mac, you can call vtep_get_mac().
