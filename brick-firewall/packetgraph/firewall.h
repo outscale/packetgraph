@@ -21,6 +21,14 @@
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
+#define PG_NONE 0
+
+#ifdef NPF_CONN_NO_THREADS
+#define PG_NO_CONN_WORKER NPF_CONN_NO_THREADS
+#else
+#define PG_NO_CONN_WORKER 1 /* that sould not be usefull anyway */
+#endif
+
 /**
  * Create a new firewall brick
  *
@@ -31,7 +39,8 @@
  * @return	a pointer to a brick structure, on success, 0 on error
  */
 struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
-				 uint32_t east_max, struct pg_error **errp);
+				 uint32_t east_max, uint64_t flags,
+				 struct pg_error **errp);
 
 /**
  * Add a new rule in the firewall.

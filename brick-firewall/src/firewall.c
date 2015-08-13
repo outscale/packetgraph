@@ -24,7 +24,7 @@
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/packets.h>
 #include <packetgraph/firewall.h>
-#include "npf_dpdk.h"
+#include "firewall-wrapper.h"
 
 #define FIREWALL_SIDE_TO_NPF(side) \
 	((side) == WEST_SIDE ? PFIL_OUT : PFIL_IN)
@@ -40,7 +40,32 @@ struct pg_firewall_state {
 	GList *rules;
 };
 
+struct pg_firewall_config {
+	uint64_t flags;
+};
+
+
 static uint64_t nb_firewall = 0;
+
+
+static struct pg_brick_config *firewall_config_new(const char *name,
+						   uint32_t west_max,
+						   uint32_t east_max,
+						   uint64_t flags)
+{
+	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
+	struct pg_firewall_config *firewall_config =
+		g_new0(struct pg_firewall_config, 1);
+
+	firewall_config->flags = flags;
+	config->brick_config = (void *) firewall_config;
+	return pg_brick_config_init(config, name, west_max, east_max);
+}
+
+void pg_firewall_call_gc(struct pg_brick *brick)
+{
+	pg_firewall_call_gc_internal(brick);
+}
 
 static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)
 {
@@ -94,15 +119,6 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 	return 0;
 }
 
-void pg_firewall_call_gc(struct pg_brick *brick)
-{
-	struct pg_firewall_state *state;
-
-	state = pg_brick_get_state(brick,
-				   struct pg_firewall_state);
-	npf_conn_call_gc(state->npf);
-}
-
 void pg_firewall_rule_flush(struct pg_brick *brick)
 {
 	struct pg_firewall_state *state;
@@ -149,12 +165,13 @@ int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
 }
 
 struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
-			   uint32_t east_max, struct pg_error **errp)
+				 uint32_t east_max, uint64_t flags,
+				 struct pg_error **errp)
 {
 	struct pg_brick_config *config;
 	struct pg_brick *ret;
 
-	config = pg_brick_config_new(name, west_max, east_max);
+	config = firewall_config_new(name, west_max, east_max, flags);
 	ret = pg_brick_new("firewall", config, errp);
 	pg_brick_config_free(config);
 	return ret;
@@ -232,14 +249,21 @@ static int firewall_init(struct pg_brick *brick,
 
 	npf_t *npf;
 	struct pg_firewall_state *state;
+	struct pg_firewall_config *fw_config;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
+	if (!config->brick_config) {
+		*errp = pg_error_new("config->brick_config is NULL");
+		return 0;
+	}
+
+	fw_config = (struct pg_firewall_config *) config->brick_config;
 	/* initialize fast path */
 	brick->burst = firewall_burst;
 	/* init NPF configuration */
         if (!nb_firewall)
 		npf_sysinit(NWORKERS);
-	npf = npf_dpdk_create();
+	npf = firewall_create(fw_config->flags);
 	npf_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
 	state->npf = npf;

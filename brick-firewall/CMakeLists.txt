@@ -89,6 +89,7 @@ target_include_directories(packetgraph-firewall-tests PUBLIC
 	${RTE_SDK_ROOT}/lib
 	${GLIB2_INCLUDE_DIR}
 	${GLIB2_INTERNAL_INCLUDE_DIR}
+	${LIBNPF_INCLUDE_DIR}
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-firewall-tests
