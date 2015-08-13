@@ -40,6 +40,8 @@ struct pg_firewall_state {
 	GList *rules;
 };
 
+static uint64_t nb_firewall = 0;
+
 static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)
 {
 	const size_t maxsnaplen = 64 * 1024;
@@ -235,12 +237,14 @@ static int firewall_init(struct pg_brick *brick,
 	/* initialize fast path */
 	brick->burst = firewall_burst;
 	/* init NPF configuration */
-	npf_sysinit(NWORKERS);
+        if (!nb_firewall)
+		npf_sysinit(NWORKERS);
 	npf = npf_dpdk_create();
 	npf_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
 	state->npf = npf;
 	state->rules = NULL;
+	++nb_firewall;
 
 	return 1;
 }
@@ -253,7 +257,9 @@ static void firewall_destroy(struct pg_brick *brick,
 	npf_dpdk_ifdetach(state->npf, state->ifp);
 	npf_destroy(state->npf);
 	pg_firewall_rule_flush(brick);
-	npf_sysfini();
+        --nb_firewall;
+	if (!nb_firewall)
+		npf_sysfini();
 }
 
 static struct pg_brick_ops firewall_ops = {
