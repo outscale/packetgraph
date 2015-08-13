@@ -53,6 +53,15 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 			 struct pg_error **errp);
 
 /**
+ * Call maually the garbage collector.
+ * Work only with the patched version of NPF
+ *
+ * @param	brick pointer to the firewall brick
+ */
+void pg_firewall_call_gc(struct pg_brick *brick);
+
+
+/**
  * Flush all rules of the firewall.
  * Note that the flush won't be effective, you will need to call
  * girewall_reload() before.

@@ -92,6 +92,15 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 	return 0;
 }
 
+void pg_firewall_call_gc(struct pg_brick *brick)
+{
+	struct pg_firewall_state *state;
+
+	state = pg_brick_get_state(brick,
+				   struct pg_firewall_state);
+	npf_conn_call_gc(state->npf);
+}
+
 void pg_firewall_rule_flush(struct pg_brick *brick)
 {
 	struct pg_firewall_state *state;
