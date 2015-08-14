@@ -72,7 +72,7 @@ static struct rte_mbuf *build_ip_packet(const char *src_ip,
 	ip->ip_len = htons(sizeof(struct ip) + 1);
 	ip->ip_src.s_addr = inet_addr(src_ip);
 	ip->ip_dst.s_addr = inet_addr(dst_ip);
-
+	
 	/* write some data */
 	payload_ip = (uint16_t *)(ip + 1);
 	*payload_ip = data;
@@ -202,7 +202,6 @@ static void firewall_filter_rules(enum pg_side dir)
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
 	}
-	pg_packets_free(filtered_pkts, pg_mask_firsts(nb));
 
 	/* now allow packets from 10.0.0.2 */
 	ret = pg_firewall_rule_add(fw, "src host 10.0.0.2", dir, 0, &error);
@@ -234,7 +233,6 @@ static void firewall_filter_rules(enum pg_side dir)
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1") ||
 			 ip->ip_src.s_addr == inet_addr("10.0.0.2"));
 	}
-	pg_packets_free(filtered_pkts, pg_mask_firsts(nb));
 
 	/* test that flush really blocks */
 	pg_firewall_rule_flush(fw);
@@ -287,7 +285,6 @@ static void firewall_filter_rules(enum pg_side dir)
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.2"));
 	}
-	pg_packets_free(filtered_pkts, pg_mask_firsts(nb));
 
 	/* flush and make two rules in one */
 	pg_firewall_rule_flush(fw);
@@ -321,7 +318,6 @@ static void firewall_filter_rules(enum pg_side dir)
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1") ||
 			 ip->ip_src.s_addr == inet_addr("10.0.0.2"));
 	}
-	pg_packets_free(filtered_pkts, pg_mask_firsts(nb));
 
 	/* flush and revert rules, packets should not pass */
 	pg_firewall_rule_flush(fw);
@@ -377,7 +373,6 @@ static void firewall_filter_rules(enum pg_side dir)
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
 	}
-	pg_packets_free(filtered_pkts, pg_mask_firsts(nb));
 
 	/* inverse generator and collector to test both sides */
 	pg_brick_unlink(fw, &error);
@@ -414,7 +409,6 @@ static void firewall_filter_rules(enum pg_side dir)
 		ip = (struct ip *)(eth + 1);
 		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
 	}
-	pg_packets_free(filtered_pkts, pg_mask_firsts(nb));
 
 	/* clean */
 	for (i = 0; i < nb; i++)
@@ -519,7 +513,6 @@ static void firewall_replay(const unsigned char *pkts[],
 		} else
 			g_assert(0);
 
-		pg_packets_free(filtered_pkts, pg_mask_firsts(1));
 		rte_pktmbuf_free(packet);
 		/* ensure that connexion is tracked even when reloading */
 		ret = pg_firewall_rule_add(fw, "src host 6.6.6.6", WEST_SIDE, 0,
@@ -549,7 +542,6 @@ static void firewall_noip(enum pg_side dir)
 	static uint16_t nb = 30;
 	struct rte_mbuf *packets[nb];
 	uint64_t filtered_pkts_mask;
-	struct rte_mbuf **filtered_pkts;
 	uint16_t packet_count;
 
 	/* create and connect 3 bricks: generator -> firewall -> collector */
@@ -583,14 +575,13 @@ static void firewall_noip(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
+		pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
+		pg_brick_east_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb);
-	pg_packets_free(filtered_pkts, pg_mask_firsts(nb));
 
 	/* clean */
 	for (i = 0; i < nb; i++)
