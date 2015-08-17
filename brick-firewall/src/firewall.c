@@ -62,9 +62,9 @@ static struct pg_brick_config *firewall_config_new(const char *name,
 	return pg_brick_config_init(config, name, west_max, east_max);
 }
 
-void pg_firewall_call_gc(struct pg_brick *brick)
+void pg_firewall_gc(struct pg_brick *brick)
 {
-	pg_firewall_call_gc_internal(brick);
+	pg_firewall_gc_internal(brick);
 }
 
 static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)

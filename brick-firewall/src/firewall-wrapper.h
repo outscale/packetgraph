@@ -28,7 +28,7 @@
 #define PG_NO_CONN_WORKER 1 /* that sould not be usefull anyway */
 #endif
 
-static inline void pg_firewall_call_gc_internal(struct pg_brick *brick)
+static inline void pg_firewall_gc_internal(struct pg_brick *brick)
 {
 	struct pg_firewall_state *state;
 
@@ -45,7 +45,7 @@ static inline void pg_firewall_call_gc_internal(struct pg_brick *brick)
 
 #define NO_CONN_WORKER NPF_CONN_NO_THREADS
 
-#define pg_firewall_call_gc_internal(firewall)	\
+#define pg_firewall_gc_internal(firewall)	\
 	(void)(firewall)
 
 static inline npf_t *firewall_create(uint64_t flags)

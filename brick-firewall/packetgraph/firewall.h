@@ -35,6 +35,10 @@
  * @param	name name of the brick
  * @param	west_max maximum of links you can connect on the west side
  * @param	east_max maximum of links you can connect on the east side
+ * @param	flags pass PG_NO_CONN_WORKER if you don't want NPF to spawn a
+ *          separated thread to run garbage collector to clean old connexions.
+ *          If you pass this flag, then you will responsible of calling
+ *          pg_firewall_gc.
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure, on success, 0 on error
  */
@@ -67,8 +71,7 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
  *
  * @param	brick pointer to the firewall brick
  */
-void pg_firewall_call_gc(struct pg_brick *brick);
-
+void pg_firewall_gc(struct pg_brick *brick);
 
 /**
  * Flush all rules of the firewall.
