@@ -35,13 +35,13 @@ if [ -z $RTE_SDK ]; then
 	exit 1
 fi
 
-for n in build-core build-brick-diode build-brick-print build-brick-firewall build-brick-hub build-brick-nic build-brick-switch build-brick-vhost build-brick-vtep build-brick-antispoof; do
+for n in build-core build-diode build-print build-firewall build-hub build-nic build-switch build-vhost build-vtep build-antispoof; do
 	build=$p/$n
 	mkdir $build | true
 	cd $build
 	d=$(echo $n | sed -e 's/build-//')
 	export PG_CORE="$p/build-core"
-	export PG_HUB="$p/build-brick-hub"
+	export PG_HUB="$p/build-hub"
 	cmake ${PACKETGRAPH_ROOT}/$d
 	make
 done
