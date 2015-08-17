@@ -18,8 +18,13 @@
 #ifndef _BRICK_ANTISPOOF_H_
 #define _BRICK_ANTISPOOF_H_
 
+#ifndef __cplusplus
 #include <rte_config.h>
 #include <rte_ether.h>
+#else
+struct ether_addr;
+#endif
+
 #include <netinet/in.h>
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
