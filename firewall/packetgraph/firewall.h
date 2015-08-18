@@ -22,12 +22,7 @@
 #include <packetgraph/utils/errors.h>
 
 #define PG_NONE 0
-
-#ifdef NPF_CONN_NO_THREADS
-#define PG_NO_CONN_WORKER NPF_CONN_NO_THREADS
-#else
-#define PG_NO_CONN_WORKER 1 /* that sould not be usefull anyway */
-#endif
+#define PG_NO_CONN_WORKER 0x00000001
 
 /**
  * Create a new firewall brick

@@ -41,7 +41,7 @@ struct pg_firewall_state {
 };
 
 struct pg_firewall_config {
-	uint64_t flags;
+	int flags;
 };
 
 static uint64_t nb_firewall;
@@ -49,7 +49,7 @@ static uint64_t nb_firewall;
 static struct pg_brick_config *firewall_config_new(const char *name,
 						   uint32_t west_max,
 						   uint32_t east_max,
-						   uint64_t flags)
+						   int flags)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 	struct pg_firewall_config *firewall_config =
