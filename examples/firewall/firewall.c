@@ -72,20 +72,25 @@ int main(int argc, char **argv)
 
 	for (;;) {
 		gettimeofday(&start, 0);
+		total = 0;
 		for (i = 0; i < LOOPS; i++) {
 			g_assert(pg_brick_poll(nic_west,
 					       &nb_send_pkts,
 					       &error));
-			usleep(5);
+			usleep(1);
+			total += nb_send_pkts;
 			g_assert(pg_brick_poll(nic_east,
 					       &nb_send_pkts,
 					       &error));
-			usleep(5);
+			total += nb_send_pkts;
+			usleep(1);
 		}
 		gettimeofday(&end, 0);
-		printf("time in us: for %i loops: %lu\n", LOOPS,
+		printf("time in us: for %i loops: %lu\ntotal %"PRIu64"\n",
+		       LOOPS,
 		       (end.tv_sec * 1000000 + end.tv_usec) -
-		       (start.tv_sec * 1000000 + start.tv_usec));
+		       (start.tv_sec * 1000000 + start.tv_usec), total);
+		pg_firewall_gc(fw);
 	}
 
 	pg_stop();
