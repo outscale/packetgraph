@@ -39,7 +39,7 @@
  * XXX/TODO: The API should allow this to be per some instance.
  */
 
-static LIST_HEAD(, ifnet) dpdk_ifnet_list;
+static LIST_HEAD(, ifnet)  dpdk_ifnet_list;
 static struct rte_mempool *dpdk_mbuf_mempool;
 
 void
@@ -185,26 +185,27 @@ dpdk_mbuf_ensure_something(struct mbuf **m, size_t len)
  */
 
 static const npf_mbufops_t npf_mbufops = {
-	.alloc			= dpdk_mbuf_alloc,
-	.free			= dpdk_mbuf_free,
-	.getdata		= dpdk_mbuf_getdata,
-	.getnext		= dpdk_mbuf_getnext,
-	.getlen			= dpdk_mbuf_getlen,
-	.getchainlen		= dpdk_mbuf_getchainlen,
-	.ensure_contig		= dpdk_mbuf_ensure_something,
-	.ensure_writable	= dpdk_mbuf_ensure_something,
+	.alloc          = dpdk_mbuf_alloc,
+	.free           = dpdk_mbuf_free,
+	.getdata        = dpdk_mbuf_getdata,
+	.getnext        = dpdk_mbuf_getnext,
+	.getlen         = dpdk_mbuf_getlen,
+	.getchainlen        = dpdk_mbuf_getchainlen,
+	.ensure_contig      = dpdk_mbuf_ensure_something,
+	.ensure_writable    = dpdk_mbuf_ensure_something,
 };
 
 static const npf_ifops_t npf_ifops = {
-	.getname		= dpdk_ifop_getname,
-	.lookup			= dpdk_ifop_lookup,
-	.flush			= dpdk_ifop_flush,
-	.getmeta		= dpdk_ifop_getmeta,
-	.setmeta		= dpdk_ifop_setname,
+	.getname        = dpdk_ifop_getname,
+	.lookup         = dpdk_ifop_lookup,
+	.flush          = dpdk_ifop_flush,
+	.getmeta        = dpdk_ifop_getmeta,
+	.setmeta        = dpdk_ifop_setname,
 };
 
 npf_t *
-npf_dpdk_create(void)
+npf_dpdk_create(int flags)
 {
-	return npf_create(&npf_mbufops, &npf_ifops);
+	return npf_create(&npf_mbufops, &npf_ifops, flags);
 }
+

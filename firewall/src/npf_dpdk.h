@@ -32,14 +32,6 @@
 #include <net/if.h>
 #include <npf.h>
 
-struct ifnet;
-struct rte_mempool;
-
-void npf_dpdk_init(struct rte_mempool *);
-npf_t *npf_dpdk_create(void);
-struct ifnet *npf_dpdk_ifattach(npf_t *, const char *, unsigned);
-void npf_dpdk_ifdetach(npf_t *, struct ifnet *);
-
 #define CONCAT(X, Y) X##Y
 #define TYPEDEF CONCAT(type, def)
 
@@ -53,4 +45,12 @@ TYPEDEF struct ifnet {
 #undef CONCAT
 #undef TYPEDEF
 
+struct rte_mempool;
+
+void npf_dpdk_init(struct rte_mempool *);
+npf_t *npf_dpdk_create(int);
+struct ifnet *npf_dpdk_ifattach(npf_t *, const char *, unsigned);
+void npf_dpdk_ifdetach(npf_t *, struct ifnet *);
+
 #endif
+

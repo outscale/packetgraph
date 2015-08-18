@@ -24,7 +24,7 @@
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/packets.h>
 #include <packetgraph/firewall.h>
-#include "firewall-wrapper.h"
+#include "npf_dpdk.h"
 
 #define FIREWALL_SIDE_TO_NPF(side) \
 	((side) == WEST_SIDE ? PFIL_OUT : PFIL_IN)
@@ -44,9 +44,7 @@ struct pg_firewall_config {
 	uint64_t flags;
 };
 
-
-static uint64_t nb_firewall = 0;
-
+static uint64_t nb_firewall;
 
 static struct pg_brick_config *firewall_config_new(const char *name,
 						   uint32_t west_max,
@@ -64,7 +62,11 @@ static struct pg_brick_config *firewall_config_new(const char *name,
 
 void pg_firewall_gc(struct pg_brick *brick)
 {
-	pg_firewall_gc_internal(brick);
+	struct pg_firewall_state *state;
+
+	state = pg_brick_get_state(brick,
+				   struct pg_firewall_state);
+	npf_conn_call_gc(state->npf);
 }
 
 static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)
@@ -261,9 +263,9 @@ static int firewall_init(struct pg_brick *brick,
 	/* initialize fast path */
 	brick->burst = firewall_burst;
 	/* init NPF configuration */
-        if (!nb_firewall)
+	if (!nb_firewall)
 		npf_sysinit(NWORKERS);
-	npf = firewall_create(fw_config->flags);
+	npf = npf_dpdk_create(fw_config->flags);
 	npf_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
 	state->npf = npf;
@@ -281,7 +283,7 @@ static void firewall_destroy(struct pg_brick *brick,
 	npf_dpdk_ifdetach(state->npf, state->ifp);
 	npf_destroy(state->npf);
 	pg_firewall_rule_flush(brick);
-        --nb_firewall;
+	--nb_firewall;
 	if (!nb_firewall)
 		npf_sysfini();
 }
