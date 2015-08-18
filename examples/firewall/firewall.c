@@ -15,7 +15,6 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
 #include <glib.h>
 #include <sys/time.h>
 #include <time.h>
@@ -24,13 +23,10 @@
 #include <rte_cycles.h>
 #include <rte_eth_ring.h>
 #include <unistd.h>
-#include <sched.h>
 
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/nic.h>
 #include <packetgraph/firewall.h>
-
-#define SCHED_POLICY SCHED_RR
 
 #define CHECK_ERROR(error) do {			\
 		if (error)			\
@@ -46,16 +42,10 @@ int main(int argc, char **argv)
 	struct pg_brick *fw;
 	struct pg_brick *nic_west, *nic_east;
 	uint16_t nb_send_pkts;
+	uint64_t total;
 	struct timeval start, end;
 	int i;
 
-	const struct sched_param param = {
-		.sched_priority = sched_get_priority_min(SCHED_POLICY)
-	};
-
-	sched_setscheduler(getpid(),
-			   SCHED_POLICY | SCHED_RESET_ON_FORK,
-			   &param);
 	pg_start(argc, argv, &error);
 	CHECK_ERROR(error);
 	g_assert(rte_eth_dev_count() >= 2);
