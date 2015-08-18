@@ -34,9 +34,9 @@ if [ ! -d $PACKETGRAPH_ROOT ]; then
 fi
 
 # directories and files to scan
-c_filelist=$(find $PACKETGRAPH_ROOT/{core,brick-*}/src/ -type f -name "*.c" -printf %p\ )
-h_filelist=$(find $PACKETGRAPH_ROOT/{core,brick-*}/{src,packetgraph} -type f -name "*.h" -printf %p\ )
-directories=$PACKETGRAPH_ROOT/{core,brick-*}/{src,packetgraph}
+c_filelist=$(find $PACKETGRAPH_ROOT/*/src/ -type f -name "*.c" -printf %p\ )
+h_filelist=$(find $PACKETGRAPH_ROOT/*/{src,packetgraph} -type f -name "*.h" -printf %p\ )
+directories=$PACKETGRAPH_ROOT/*/{src,packetgraph}
 
 # checkpatch tests
 
