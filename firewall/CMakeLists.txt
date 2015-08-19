@@ -93,7 +93,7 @@ target_include_directories(packetgraph-firewall-tests PUBLIC
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-firewall-tests
-	packetgraph-firewall-shared
+	packetgraph-firewall-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	${LIBNPF_LIBRARY}
 	${LIBNPFKERN_LIBRARY}
