@@ -30,6 +30,12 @@
 #include <packetgraph/nic.h>
 #include "tests.h"
 
+#define CHECK_ERROR(error) do {			\
+		if (error)			\
+			pg_error_print(error);	\
+		g_assert(!error);		\
+	} while (0)
+
 #define NB_PKTS 128
 
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
@@ -53,19 +59,19 @@ static void test_nic_simple_flow(void)
 	 * [col_west] -------/
 	 */
 	nic_west = pg_nic_new("nic", 4, 4, WEST_SIDE, "eth_pcap0", &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	nic_ring = pg_nic_new_by_id("nic", 4, 4, EAST_SIDE, 1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	collect_east = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	collect_west = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(nic_west, nic_ring, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(nic_west, collect_east, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect_west, nic_ring, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < nb_iteration * 6; ++i) {
 		/* max pkts is the maximum nbr of packets
@@ -76,12 +82,12 @@ static void test_nic_simple_flow(void)
 		struct rte_mbuf **result_pkts;
 		/*poll packets to east*/
 		pg_brick_poll(nic_west, &nb_send_pkts, &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 		pkts_mask = 0;
 		/* collect pkts on the east */
 		result_pkts = pg_brick_west_burst_get(collect_east,
 						      &pkts_mask, &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 		if (nb_send_pkts) {
 			g_assert(result_pkts);
 			g_assert(pkts_mask);
@@ -91,11 +97,11 @@ static void test_nic_simple_flow(void)
 		/* check no pkts end here */
 		result_pkts = pg_brick_east_burst_get(collect_east,
 						      &pkts_mask, &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 		g_assert(!pkts_mask);
 		g_assert(!result_pkts);
 		pg_brick_reset(collect_east, &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 	pg_nic_get_stats(nic_ring, &info);
 	max_pkts = 64;
@@ -103,7 +109,7 @@ static void test_nic_simple_flow(void)
 	for (i = 0; i < nb_iteration; ++i) {
 		/* poll packet to the west */
 		pg_brick_poll(nic_ring, &nb_send_pkts, &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 		total_get_pkts += nb_send_pkts;
 		pg_brick_east_burst_get(collect_west, &pkts_mask, &error);
 		g_assert(pkts_mask);
@@ -125,6 +131,7 @@ static void test_nic_simple_flow(void)
 }
 
 #undef NB_PKTS
+#undef CHECK_ERROR
 
 void test_nic(void)
 {
