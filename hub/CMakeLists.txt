@@ -86,7 +86,7 @@ target_include_directories(packetgraph-hub-tests PUBLIC
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-hub-tests
-	packetgraph-hub-shared
+	packetgraph-hub-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
 	dl
