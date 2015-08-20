@@ -22,7 +22,7 @@
 #include <packetgraph/utils/mempool.h>
 
 #define NUM_MBUFS 8191
-#define MBUF_SIZE (RTE_MBUF_DEFAULT_BUF_SIZE +  sizeof(struct rte_mbuf))
+#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf))
 #define MBUF_CACHE_SIZE 250
 
 static struct rte_mempool *mp;
