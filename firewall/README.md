@@ -71,8 +71,9 @@ Finally, get the standalone version of npf and build it:
 ```
 $ git clone https://github.com/rmind/npf.git
 $ cd npf/pkg
-$ make rpm
-$ rpm -ihv RPMS/x86_64/npf-*
+$ make clean
+$ make npf
+$ rpm -hvi RPMS/x86_64/npf-*
 ```
 
 ## Build
