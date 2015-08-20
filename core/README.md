@@ -20,9 +20,11 @@ If you don't have DPDK, get it and build it:
 $ git clone http://dpdk.org/git/dpdk
 $ cd dpdk
 $ export RTE_SDK=$(pwd)
-$ make config T=x86_64-native-linuxapp-gcc CONFIG_RTE_LIBRTE_VHOST=y CONFIG_RTE_LIBRTE_PMD_PCAP=y
-$ make
+$ make config T=x86_64-native-linuxapp-gcc
+$ make CONFIG_RTE_LIBRTE_VHOST=y CONFIG_RTE_LIBRTE_PMD_PCAP=y
 ```
+
+The last tested version is tag v2.0.0
 
 ## packetgraph-core build:
 
