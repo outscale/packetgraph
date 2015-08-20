@@ -86,6 +86,7 @@ int main(int argc, char **argv)
 			usleep(1);
 		}
 		gettimeofday(&end, 0);
+		usleep(100);
 		printf("time in us: for %i loops: %lu\ntotal %"PRIu64"\n",
 		       LOOPS,
 		       (end.tv_sec * 1000000 + end.tv_usec) -
