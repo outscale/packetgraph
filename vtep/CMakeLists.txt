@@ -90,7 +90,7 @@ target_include_directories(${PROJECT_NAME}-tests PUBLIC
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(${PROJECT_NAME}-tests
-	${PROJECT_NAME}-shared
+	${PROJECT_NAME}-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	${LIBPACKETGRAPH-HUB_LIBRARY}
 	${PCAP_LIBRARY}
