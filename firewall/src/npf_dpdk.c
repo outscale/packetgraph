@@ -131,9 +131,10 @@ dpdk_mbuf_alloc(int type, int flags)
 static void
 dpdk_mbuf_free(struct mbuf *m0)
 {
-	struct rte_mbuf *m = (void *)m0;
+	(void)m0;
+	/* struct rte_mbuf *m = (void *)m0; */
 
-	rte_pktmbuf_free(m);
+	/* rte_pktmbuf_free(m); */
 }
 
 static void *

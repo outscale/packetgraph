@@ -197,19 +197,17 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side side,
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	pf_side = FIREWALL_SIDE_TO_NPF(side);
 
-	/* npf-dpdk free filtered packets, we want to keep them */
-	pg_packets_incref(pkts, pkts_mask);
-
 	it_mask = pkts_mask;
 	for (; it_mask;) {
 		struct ether_hdr *eth;
 
 		pg_low_bit_iterate_full(it_mask, bit, i);
+		tmp = pkts[i];
 
 		/* Firewall only manage IPv4 or IPv6 filtering.
 		 * Let non-ip packets (like ARP) pass.
 		 */
-		eth = rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
+		eth = rte_pktmbuf_mtod(tmp, struct ether_hdr *);
 		if (eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv4) &&
 		    eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv6)) {
 			continue;
@@ -220,10 +218,9 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side side,
 		 * have to clone packets just for filtering and will have to
 		 * restroy cloned packets after handling them in NPF.
 		 */
-		rte_pktmbuf_adj(pkts[i], sizeof(struct ether_hdr));
+		rte_pktmbuf_adj(tmp, sizeof(struct ether_hdr));
 
 		/* filter packet */
-		tmp = pkts[i];
 		ret = npf_packet_handler(state->npf,
 					 (struct mbuf **) &tmp,
 					 state->ifp,
@@ -234,9 +231,6 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side side,
 		/* set back layer 2 */
 		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
 	}
-
-	/* decrement reference of packets which has not been free by npf-dpdk */
-	pg_packets_free(pkts, pkts_mask);
 
 	ret = pg_brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
 	return ret;
