@@ -6,7 +6,9 @@
 
 # Check if user has set a env variable to get it's own build of core
 # If variable is not found, let's get packetgraph-core in the system.
-set (PG_USER_CORE_BUILD $ENV{PG_CORE})
+if ("${PG_USER_CORE_BUILD}" STREQUAL "")
+  set (PG_USER_CORE_BUILD $ENV{PG_CORE})
+endif()
 if ("${PG_USER_CORE_BUILD}" STREQUAL "")
 	message ("PG_CORE global variable not set, searching packetgraph-core on the system ...")
 
