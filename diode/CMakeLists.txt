@@ -86,7 +86,7 @@ target_include_directories(packetgraph-diode-tests PUBLIC
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-diode-tests
-	packetgraph-diode-shared
+	packetgraph-diode-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
 	dl
