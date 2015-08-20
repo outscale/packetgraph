@@ -86,7 +86,7 @@ target_include_directories(packetgraph-antispoof-tests PUBLIC
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-antispoof-tests
-	packetgraph-antispoof-shared
+	packetgraph-antispoof-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
 	dl
