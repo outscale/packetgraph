@@ -25,6 +25,9 @@
 
 struct pg_brick;
 
+/* testing */
+int64_t pg_brick_refcount(struct pg_brick *brick);
+
 /**
  * Initialize packetgraph.
  * This function should be called before any other packetgraph function.

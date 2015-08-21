@@ -30,9 +30,6 @@
 
 struct pg_brick;
 
-/* testing */
-int64_t pg_brick_refcount(struct pg_brick *brick);
-
 
 /**
  * Each step in the pipeline from the physical network card to the guest vm
