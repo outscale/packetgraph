@@ -107,15 +107,15 @@ struct pg_nic_stats {
 	/**< Total nb. of XOFF pause frame received. */
 	uint64_t rx_pause_xoff;
 	/**< Total number of queue RX packets. */
-	uint64_t q_ipackets[RTE_ETHDEV_QUEUE_STAT_CNTRS];
+	uint64_t *q_ipackets;
 	/**< Total number of queue TX packets. */
-	uint64_t q_opackets[RTE_ETHDEV_QUEUE_STAT_CNTRS];
+	uint64_t *q_opackets;
 	/**< Total number of successfully received queue bytes. */
-	uint64_t q_ibytes[RTE_ETHDEV_QUEUE_STAT_CNTRS];
+	uint64_t *q_ibytes;
 	/**< Total number of successfully transmitted queue bytes. */
-	uint64_t q_obytes[RTE_ETHDEV_QUEUE_STAT_CNTRS];
+	uint64_t *q_obytes;
 	/**< Total number of queue packets received that are dropped. */
-	uint64_t q_errors[RTE_ETHDEV_QUEUE_STAT_CNTRS];
+	uint64_t *q_errors;
 	/**< Total number of good packets received from loopback,VF Only */
 	uint64_t ilbpackets;
 	/**< Total number of good packets transmitted to loopback,VF Only */
