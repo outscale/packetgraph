@@ -18,7 +18,9 @@
 #ifndef _BRICKS_BRICK_VHOST_H_
 #define _BRICKS_BRICK_VHOST_H_
 
-#include <packetgraph/brick.h>
+#include <packetgraph/utils/errors.h>
+
+struct pg_brick;
 
 /**
  * Create a new nic brick
