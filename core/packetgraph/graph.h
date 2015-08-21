@@ -15,7 +15,10 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <packetgraph/brick.h>
+#include <stdio.h>
+#include <packetgraph/utils/errors.h>
+
+struct pg_brick;
 
 /**
  * Write a dot (graphviz) graph to a file descriptor.
