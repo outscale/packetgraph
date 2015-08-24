@@ -25,7 +25,6 @@
 struct ether_addr;
 #endif
 
-#include <netinet/in.h>
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
