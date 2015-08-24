@@ -7,7 +7,7 @@
 # Check if user has set a env variable to get it's own build of hub
 # If variable is not found, let's get packetgraph-hub in the system.
 if ("${PG_USER_HUB_BUILD}" STREQUAL "")
-  set (PG_USER_HUB_BUILD $ENV{PG_CORE})
+  set (PG_USER_HUB_BUILD $ENV{PG_HUB})
 endif()
 if ("${PG_USER_HUB_BUILD}" STREQUAL "")
 	message ("PG_HUB global variable not set, searching packetgraph-hub on the system ...")
