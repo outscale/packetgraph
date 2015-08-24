@@ -92,10 +92,15 @@ static struct pg_brick_config *nic_config_new(const char *name,
 void pg_nic_get_stats(struct pg_brick *nic,
 		      struct pg_nic_stats *stats)
 {
+	struct rte_eth_stats tmp;
 	struct pg_nic_state *state = pg_brick_get_state(nic,
 							struct pg_nic_state);
 
-	rte_eth_stats_get(state->portid, (struct rte_eth_stats *)stats);
+	rte_eth_stats_get(state->portid, &tmp);
+	stats->ipackets = tmp.ipackets;
+	stats->opackets = tmp.opackets;
+	stats->ibytes = tmp.ibytes;
+	stats->obytes = tmp.obytes;
 }
 
 /* The fastpath data function of the nic_brick just forward the bursts */

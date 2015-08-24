@@ -80,50 +80,6 @@ struct pg_nic_stats {
 	uint64_t ibytes;
 	/**< Total number of successfully transmitted bytes. */
 	uint64_t obytes;
-	/**< Total of RX missed packets (e.g full FIFO). */
-	uint64_t imissed;
-	/**< Total of RX packets with CRC error. */
-	uint64_t ibadcrc;
-	/**< Total of RX packets with bad length. */
-	uint64_t ibadlen;
-	/**< Total number of erroneous received packets. */
-	uint64_t ierrors;
-	/**< Total number of failed transmitted packets. */
-	uint64_t oerrors;
-	/**< Total number of multicast received packets. */
-	uint64_t imcasts;
-	/**< Total number of RX mbuf allocation failures. */
-	uint64_t rx_nombuf;
-	/**< Total number of RX packets matching a filter. */
-	uint64_t fdirmatch;
-	/**< Total number of RX packets not matching any filter. */
-	uint64_t fdirmiss;
-	/**< Total nb. of XON pause frame sent. */
-	uint64_t tx_pause_xon;
-	/**< Total nb. of XON pause frame received. */
-	uint64_t rx_pause_xon;
-	/**< Total nb. of XOFF pause frame sent. */
-	uint64_t tx_pause_xoff;
-	/**< Total nb. of XOFF pause frame received. */
-	uint64_t rx_pause_xoff;
-	/**< Total number of queue RX packets. */
-	uint64_t *q_ipackets;
-	/**< Total number of queue TX packets. */
-	uint64_t *q_opackets;
-	/**< Total number of successfully received queue bytes. */
-	uint64_t *q_ibytes;
-	/**< Total number of successfully transmitted queue bytes. */
-	uint64_t *q_obytes;
-	/**< Total number of queue packets received that are dropped. */
-	uint64_t *q_errors;
-	/**< Total number of good packets received from loopback,VF Only */
-	uint64_t ilbpackets;
-	/**< Total number of good packets transmitted to loopback,VF Only */
-	uint64_t olbpackets;
-	/**< Total number of good bytes received from loopback,VF Only */
-	uint64_t ilbbytes;
-	/**< Total number of good bytes transmitted to loopback,VF Only */
-	uint64_t olbbytes;
 };
 
 /**

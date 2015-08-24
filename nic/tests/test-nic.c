@@ -104,8 +104,8 @@ static void test_nic_simple_flow(void)
 		CHECK_ERROR(error);
 	}
 	pg_nic_get_stats(nic_ring, &info);
-	max_pkts = 64;
 	g_assert(info.opackets == total_send_pkts);
+	max_pkts = 64;
 	for (i = 0; i < nb_iteration; ++i) {
 		/* poll packet to the west */
 		pg_brick_poll(nic_ring, &nb_send_pkts, &error);

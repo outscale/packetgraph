@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	struct pg_error **err = NULL;
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
-
+	
 	ret = pg_start(argc, argv, err);
 	g_assert(!err);
 	pg_nic_start();
