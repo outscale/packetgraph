@@ -76,7 +76,7 @@ include(CPack)
 
 # Tests
 
-add_executable(packetgraph-vhost-tests 
+add_executable(packetgraph-vhost-tests EXCLUDE_FROM_ALL
 		tests/test-vhost.c
 		tests/tests.c)
 
@@ -110,3 +110,5 @@ target_link_libraries(packetgraph-vhost-tests
 add_custom_target(tests
 		COMMAND ./test.sh ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-static)
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-tests)

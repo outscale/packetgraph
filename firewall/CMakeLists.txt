@@ -80,7 +80,7 @@ include(CPack)
 
 # Tests
 
-add_executable(packetgraph-firewall-tests 
+add_executable(packetgraph-firewall-tests EXCLUDE_FROM_ALL
 		tests/tests.c)
 
 target_include_directories(packetgraph-firewall-tests PUBLIC
@@ -114,3 +114,5 @@ target_link_libraries(packetgraph-firewall-tests
 add_custom_target(tests
 		COMMAND packetgraph-firewall-tests -c1 -n1 --socket-mem 64
 		WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-static)
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-tests)

@@ -77,7 +77,7 @@ include(CPack)
 
 # Tests
 
-add_executable(${PROJECT_NAME}-tests
+add_executable(${PROJECT_NAME}-tests EXCLUDE_FROM_ALL
 		tests/tests.c)
 
 target_include_directories(${PROJECT_NAME}-tests PUBLIC
@@ -110,3 +110,5 @@ target_link_libraries(${PROJECT_NAME}-tests
 add_custom_target(tests
 		COMMAND ${PROJECT_NAME}-tests -c1 -n1 --socket-mem 64
 		WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-static)
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-tests)

@@ -99,7 +99,7 @@ include(CPack)
 
 # Tests
 
-add_executable(packetgraph-core-tests 
+add_executable(packetgraph-core-tests EXCLUDE_FROM_ALL
 		tests/test-core.c
 		tests/test-graph.c
 		tests/test-flow.c
@@ -132,3 +132,5 @@ target_link_libraries(packetgraph-core-tests
 add_custom_target(tests
 		COMMAND packetgraph-core-tests -c1 -n1 --socket-mem 64 
 		WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-static)
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-tests)

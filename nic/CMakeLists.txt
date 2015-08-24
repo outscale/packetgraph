@@ -77,7 +77,7 @@ include(CPack)
 # We recompile nic.c with _BRICKS_BRICK_NIC_STUB_H_ in order
 # to test even without a real NIC.
 
-add_executable(packetgraph-nic-tests 
+add_executable(packetgraph-nic-tests EXCLUDE_FROM_ALL
 		src/nic.c
 		tests/test-nic.c
 		tests/tests.c)
@@ -119,3 +119,5 @@ target_link_libraries(packetgraph-nic-tests
 add_custom_target(tests
 		COMMAND packetgraph-nic-tests -c1 -n1 --socket-mem 64 --vdev=eth_pcap0,rx_pcap=${CMAKE_CURRENT_SOURCE_DIR}/tests/enter.pcap,tx_pcap=out.pcap --vdev=eth_ring0
 		WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-static)
+add_dependencies(tests ${CMAKE_PROJECT_NAME}-tests)
