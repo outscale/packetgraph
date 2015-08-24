@@ -81,8 +81,6 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 	uint64_t it_mask;
 	uint64_t bit;
 	int i;
-	void *data;
-	size_t size;
 	FILE *o = state->output;
 	struct timeval cur;
 	uint64_t diff;
@@ -97,6 +95,8 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 	it_mask = pkts_mask;
 	for (; it_mask;) {
 		struct ether_hdr *eth;
+		void *data;
+		size_t size;
 
 		pg_low_bit_iterate_full(it_mask, bit, i);
 
