@@ -25,6 +25,7 @@
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/utils/mac.h>
 #include <packetgraph/collect.h>
+#include <packetgraph/nop.h>
 
 #define NB_PKTS          3
 
@@ -35,51 +36,54 @@
 #define TEST_PKTS_COUNT (200 * 1000 * 1000)
 #define PKTS_BURST	3
 
+#define CHECK_ERROR(error) do {			\
+		if (error)			\
+			pg_error_print(error);	\
+		g_assert(!error);		\
+	} while (0)
+
 struct rte_mempool *mbuf_pool;
 
 static void test_switch_lifecycle(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick;
-	struct pg_brick_config *config = pg_brick_config_new("switchbrick", 20, 20);
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", 20, 20, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_decref(brick, &error);
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 }
 
 static void test_switch_learn(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *collect1, *collect2, *collect3;
-	struct pg_brick_config *config = pg_brick_config_new("switchbrick", 4, 4);
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", 4, 4, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
-	collect1 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect1 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect2 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect2 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect3 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect3 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect2, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++) {
 		pkts[i] = rte_pktmbuf_alloc(mbuf_pool);
@@ -94,17 +98,17 @@ static void test_switch_learn(void)
 	 */
 	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have been forwarded to collect2 */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -113,7 +117,7 @@ static void test_switch_learn(void)
 
 	/* and collect3 */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -122,11 +126,11 @@ static void test_switch_learn(void)
 
 	/* reset the collectors bricks to prepare for next burst */
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* Now send responses packets (source and dest mac address swapped) */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -137,23 +141,23 @@ static void test_switch_learn(void)
 	/* through port 0 of east side of the switch */
 	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the switch should not mass learn forward */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have ended in collect 1 (port 0 of west side) */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -162,11 +166,11 @@ static void test_switch_learn(void)
 
 	/* reset the collectors bricks to prepare for next burst */
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -176,23 +180,23 @@ static void test_switch_learn(void)
 
 	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the switch should not mass learn forward */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have ended in collect 3 (port 0 of east side) */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -200,68 +204,66 @@ static void test_switch_learn(void)
 	}
 
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
 
 	/* break the chain */
 	pg_brick_unlink(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_decref(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(brick, &error);
 
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 }
 
 static void test_switch_switching(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *collect1, *collect2, *collect3, *collect4;
-	struct pg_brick_config *config = pg_brick_config_new("switchbrick", 4, 4);
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", 4, 4, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
-	collect1 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect1 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect2 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect2 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect3 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect3 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect4 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect4 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect2, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* we will first exercise the learning abilities of the switch by
 	 * sending multiple packets bursts with different source addresses
@@ -276,16 +278,16 @@ static void test_switch_switching(void)
 	/* west port 0 == collect 1 */
 	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++) {
 		pg_set_mac_addrs(pkts[i],
@@ -294,16 +296,16 @@ static void test_switch_switching(void)
 	/* west port 1 == collect 2 */
 	pg_brick_burst_to_east(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++) {
 		pg_set_mac_addrs(pkts[i],
@@ -313,16 +315,16 @@ static void test_switch_switching(void)
 	/* east port 0 == collect 3 */
 	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_set_mac_addrs(pkts[0], "AA:AA:AA:AA:AA:AA",
 			 "10:10:10:10:10:10");
@@ -334,46 +336,46 @@ static void test_switch_switching(void)
 	/* east port 1 == collect 4 */
 	pg_brick_burst_to_west(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == 0x1);
 	g_assert(result_pkts[0]);
 	g_assert(result_pkts[0]->udata64 == 0);
 
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == 0x2);
 	g_assert(result_pkts[1]);
 	g_assert(result_pkts[1]->udata64 == 1);
 
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == 0x4);
 	g_assert(result_pkts[2]);
 	g_assert(result_pkts[2]->udata64 == 2);
 
 	result_pkts = pg_brick_west_burst_get(collect4, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* potentially badly addressed packets */
 	result_pkts = pg_brick_west_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 	result_pkts = pg_brick_west_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 	result_pkts = pg_brick_east_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 	result_pkts = pg_brick_east_burst_get(collect4, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
@@ -381,62 +383,58 @@ static void test_switch_switching(void)
 		rte_pktmbuf_free(pkts[i]);
 
 	pg_brick_unlink(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_decref(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(brick, &error);
-	g_assert(!error);
-
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 }
 
 static void test_switch_unlink(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *collect1, *collect2, *collect3, *collect4;
-	struct pg_brick_config *config = pg_brick_config_new("switchbrick", 4, 4);
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", 4, 4, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
-	collect1 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect1 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect2 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect2 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect3 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect3 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect4 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect4 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect2, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* we will first exercise the learning abilities of the switch by
 	 * a packets bursts with a given source address
@@ -451,17 +449,17 @@ static void test_switch_unlink(void)
 	/* west port 1 == collect 2 */
 	pg_brick_burst_to_east(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have been forwarded to collect1 */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -470,7 +468,7 @@ static void test_switch_unlink(void)
 
 	/* collect3 */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -479,7 +477,7 @@ static void test_switch_unlink(void)
 
 	/* and collect4 */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -487,13 +485,13 @@ static void test_switch_unlink(void)
 	}
 
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* mac address "10:10:10:10:10:10" is now associated with west port 1
 	 * brick which is collect2.
@@ -502,9 +500,9 @@ static void test_switch_unlink(void)
 	 */
 
 	pg_brick_unlink(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect2, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* now we send a packet burst to "10:10:10:10:10:10"" and make sure
 	 * that the switch unlearned it during the unlink by checking that the
@@ -519,13 +517,13 @@ static void test_switch_unlink(void)
 	/* east port 1 == collect 4 */
 	pg_brick_burst_to_west(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* check the burst has been forwarded to all port excepted the source
 	 * one
 	 */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -533,7 +531,7 @@ static void test_switch_unlink(void)
 	}
 
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -541,7 +539,7 @@ static void test_switch_unlink(void)
 	}
 
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -549,25 +547,25 @@ static void test_switch_unlink(void)
 	}
 
 	result_pkts = pg_brick_west_burst_get(collect4, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* potentially badly addressed packets */
 	result_pkts = pg_brick_west_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 	result_pkts = pg_brick_west_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 	result_pkts = pg_brick_east_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 	result_pkts = pg_brick_east_burst_get(collect4, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
@@ -575,26 +573,25 @@ static void test_switch_unlink(void)
 		rte_pktmbuf_free(pkts[i]);
 
 	pg_brick_unlink(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_decref(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect4, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(brick, &error);
 
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 }
 
 /* due to the multicast bit the multicast test also cover the broadcast case */
@@ -602,30 +599,29 @@ static void test_switch_multicast_destination(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *collect1, *collect2, *collect3;
-	struct pg_brick_config *config = pg_brick_config_new("switchbrick", 4, 4);
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", 4, 4, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
-	collect1 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect1 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect2 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect2 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect3 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect3 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect2, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* take care of sending multicast as source address to make sure the
 	 * switch don't learn them
@@ -643,17 +639,17 @@ static void test_switch_multicast_destination(void)
 	 */
 	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have been forwarded to collect2 */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -662,7 +658,7 @@ static void test_switch_multicast_destination(void)
 
 	/* and collect3 */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -671,11 +667,11 @@ static void test_switch_multicast_destination(void)
 
 	/* reset the collectors bricks to prepare for next burst */
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* Now send responses packets (source and dest mac address swapped).
 	 * The switch should forward to only one port
@@ -687,23 +683,23 @@ static void test_switch_multicast_destination(void)
 	/* through port 0 of east side of the switch */
 	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet hould not have been forwarded to collect2 */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* and collect1 */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -712,11 +708,11 @@ static void test_switch_multicast_destination(void)
 
 	/* reset the collectors bricks to prepare for next burst */
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -726,17 +722,17 @@ static void test_switch_multicast_destination(void)
 
 	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have been forwarded to collect2 */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -745,7 +741,7 @@ static void test_switch_multicast_destination(void)
 
 	/* and collect3 */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -753,63 +749,61 @@ static void test_switch_multicast_destination(void)
 	}
 
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
 
 	/* break the chain */
 	pg_brick_unlink(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_decref(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(brick, &error);
 
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 }
 /* due to the multicast bit the multicast test also cover the broadcast case */
 static void test_switch_multicast_both(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *collect1, *collect2, *collect3;
-	struct pg_brick_config *config = pg_brick_config_new("switchbrick", 4, 4);
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", 4, 4, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
-	collect1 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect1 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect2 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect2 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect3 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect3 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect2, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* take care of sending multicast as source address to make sure the
 	 * switch don't learn them
@@ -826,17 +820,17 @@ static void test_switch_multicast_both(void)
 	 */
 	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have been forwarded to collect2 */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -845,7 +839,7 @@ static void test_switch_multicast_both(void)
 
 	/* and collect3 */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -854,11 +848,11 @@ static void test_switch_multicast_both(void)
 
 	/* reset the collectors bricks to prepare for next burst */
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* Now send responses packets (source and dest mac address swapped).
 	 * The switch should flood
@@ -870,17 +864,17 @@ static void test_switch_multicast_both(void)
 	/* through port 0 of east side of the switch */
 	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have been forwarded to collect2 */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -889,7 +883,7 @@ static void test_switch_multicast_both(void)
 
 	/* and collect1 */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -898,11 +892,11 @@ static void test_switch_multicast_both(void)
 
 	/* reset the collectors bricks to prepare for next burst */
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -912,17 +906,17 @@ static void test_switch_multicast_both(void)
 
 	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
 			       &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	/* the packet should have been forwarded to collect2 */
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -931,7 +925,7 @@ static void test_switch_multicast_both(void)
 
 	/* and collect3 */
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
 	for (i = 0; i < NB_PKTS; i++) {
 		g_assert(result_pkts[i]);
@@ -939,33 +933,31 @@ static void test_switch_multicast_both(void)
 	}
 
 	pg_brick_reset(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_reset(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
 
 	/* break the chain */
 	pg_brick_unlink(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_decref(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(brick, &error);
-
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 }
 
 static void test_switch_filtered(void)
@@ -973,30 +965,29 @@ static void test_switch_filtered(void)
 #define FILTERED_COUNT 16
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *collect1, *collect2, *collect3;
-	struct pg_brick_config *config = pg_brick_config_new("switchbrick", 4, 4);
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", 4, 4, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
-	collect1 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect1 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect2 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect2 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
-	collect3 = pg_brick_new("collect", config, &error);
-	g_assert(!error);
+	collect3 = pg_collect_new("collect", 4, 4, &error);
+	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(collect2, brick, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_link(brick, collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* take care of sending multicast as source address to make sure the
 	 * switch don't learn them
@@ -1017,21 +1008,21 @@ static void test_switch_filtered(void)
 	 */
 	pg_brick_burst_to_east(brick, 0, pkts, FILTERED_COUNT,
 			       pg_mask_firsts(FILTERED_COUNT), &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	/* the switch should not do source forward */
 	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
 	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	g_assert(!pkts_mask);
 	g_assert(!result_pkts);
 
@@ -1040,22 +1031,21 @@ static void test_switch_filtered(void)
 
 	/* break the chain */
 	pg_brick_unlink(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_unlink(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	pg_brick_decref(collect1, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect2, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(collect3, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 	pg_brick_decref(brick, &error);
 
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 #undef FILTERED_COUNT
 }
@@ -1064,32 +1054,28 @@ static void test_switch_perf_learn(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *nops[TEST_PORTS];
-	struct pg_brick_config *config =
-		pg_brick_config_new("switchbrick",
-				    TEST_PORTS / 2, TEST_PORTS / 2);
-	struct pg_brick_config *nop_config = pg_brick_config_new("nop", 1, 1);
 	struct rte_mbuf *pkts[TEST_PKTS];
 	uint64_t begin, delta;
 	uint16_t i;
 	uint32_t j;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", TEST_PORTS / 2, TEST_PORTS / 2, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < TEST_PORTS; i++) {
-		nops[i] = pg_brick_new("nop", nop_config, &error);
-		g_assert(!error);
+		nops[i] = pg_nop_new("nop", 1, 1, &error);
+		CHECK_ERROR(error);
 	}
 
 	for (i = 0; i < TEST_PORTS / 2; i++) {
 		pg_brick_link(nops[i], brick, &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	for (i = 0; i < TEST_PORTS / 2; i++) {
 		pg_brick_link(brick, nops[i + TEST_PORTS / 2], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	/* take care of sending multicast as source address to make sure the
@@ -1117,7 +1103,7 @@ static void test_switch_perf_learn(void)
 		pg_brick_burst_to_east(brick, 0,
 				       to_burst, PKTS_BURST,
 				       pg_mask_firsts(PKTS_BURST), &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 	delta = g_get_real_time() - begin;
 
@@ -1130,58 +1116,49 @@ static void test_switch_perf_learn(void)
 
 	for (i = 0; i < TEST_PORTS / 2; i++) {
 		pg_brick_unlink(nops[i + TEST_PORTS / 2], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 	for (i = 0; i < TEST_PORTS / 2; i++) {
 		pg_brick_unlink(nops[i], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	for (i = 0; i < TEST_PORTS; i++) {
 		pg_brick_decref(nops[i], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	pg_brick_decref(brick, &error);
-	g_assert(!error);
-
-	pg_brick_config_free(nop_config);
-	pg_brick_config_free(config);
-	g_assert(!error);
-
+	CHECK_ERROR(error);
 }
 
 static void test_switch_perf_switch(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick, *nops[TEST_PORTS];
-	struct pg_brick_config *config =
-		pg_brick_config_new("switchbrick",
-				    TEST_PORTS / 2, TEST_PORTS / 2);
-	struct pg_brick_config *nop_config = pg_brick_config_new("nop", 1, 1);
 	struct rte_mbuf *pkts[TEST_PKTS];
 	uint64_t begin, delta;
 	struct rte_mbuf **to_burst;
 	uint16_t i;
 	uint32_t j;
 
-	brick = pg_brick_new("switch", config, &error);
+	brick = pg_switch_new("switch", TEST_PORTS / 2, TEST_PORTS / 2, &error);
 	g_assert(brick);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	for (i = 0; i < TEST_PORTS; i++) {
-		nops[i] = pg_brick_new("nop", nop_config, &error);
-		g_assert(!error);
+		nops[i] = pg_nop_new("nop", 1, 1, &error);
+		CHECK_ERROR(error);
 	}
 
 	for (i = 0; i < SIDE_PORTS; i++) {
 		pg_brick_link(nops[i], brick, &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	for (i = 0; i < SIDE_PORTS; i++) {
 		pg_brick_link(brick, nops[i + TEST_PORTS / 2], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	/* take care of sending multicast as source address to make sure the
@@ -1206,12 +1183,12 @@ static void test_switch_perf_switch(void)
 		to_burst = &pkts[j];
 		pg_brick_burst_to_east(brick, j % SIDE_PORTS, to_burst, 1,
 				       pg_mask_firsts(1), &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 
 		to_burst = &pkts[j + 1];
 		pg_brick_burst_to_west(brick, j % SIDE_PORTS, to_burst, 1,
 				       pg_mask_firsts(1), &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	for (i = 0; i < TEST_PKTS; i++) {
@@ -1236,12 +1213,12 @@ static void test_switch_perf_switch(void)
 		pg_brick_burst_to_east(brick, SIDE_PORTS - (j % SIDE_PORTS) - 1,
 				       to_burst, PKTS_BURST,
 				       pg_mask_firsts(PKTS_BURST), &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 		to_burst = &pkts[(j + PKTS_BURST) % TEST_MOD];
 		pg_brick_burst_to_east(brick, SIDE_PORTS - (j % SIDE_PORTS) - 1,
 				       to_burst, PKTS_BURST,
 				       pg_mask_firsts(PKTS_BURST), &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 	delta = g_get_real_time() - begin;
 
@@ -1254,24 +1231,20 @@ static void test_switch_perf_switch(void)
 
 	for (i = 0; i < TEST_PORTS / 2; i++) {
 		pg_brick_unlink(nops[i + TEST_PORTS / 2], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 	for (i = 0; i < TEST_PORTS / 2; i++) {
 		pg_brick_unlink(nops[i], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	for (i = 0; i < TEST_PORTS; i++) {
 		pg_brick_decref(nops[i], &error);
-		g_assert(!error);
+		CHECK_ERROR(error);
 	}
 
 	pg_brick_decref(brick, &error);
-	g_assert(!error);
-
-	pg_brick_config_free(nop_config);
-	pg_brick_config_free(config);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 #undef TEST_PORTS
 #undef TEST_PKTS
@@ -1303,7 +1276,7 @@ int main(int argc, char **argv)
 
 	/* initialize packetgraph */
 	pg_start(argc, argv, &error);
-	g_assert(!error);
+	CHECK_ERROR(error);
 
 	test_switch();
 	r = g_test_run();
