@@ -27,6 +27,7 @@
 #include <packetgraph/utils/config.h>
 #include <packetgraph/utils/errors.h>
 #include <packetgraph/brick.h>
+#include <packetgraph/collect.h>
 #include <packetgraph/nic.h>
 #include "tests.h"
 
@@ -42,7 +43,6 @@ uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 static void test_nic_simple_flow(void)
 {
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
 	struct pg_brick *nic_west, *collect_west, *collect_east, *nic_ring;
 	uint64_t pkts_mask;
 	int i = 0;
@@ -62,9 +62,9 @@ static void test_nic_simple_flow(void)
 	CHECK_ERROR(error);
 	nic_ring = pg_nic_new_by_id("nic", 4, 4, EAST_SIDE, 1, &error);
 	CHECK_ERROR(error);
-	collect_east = pg_brick_new("collect", config, &error);
+	collect_east = pg_collect_new("collect 1", 1, 1, &error);
 	CHECK_ERROR(error);
-	collect_west = pg_brick_new("collect", config, &error);
+	collect_west = pg_collect_new("collect 2", 1, 1, &error);
 	CHECK_ERROR(error);
 	pg_brick_link(nic_west, nic_ring, &error);
 	CHECK_ERROR(error);
@@ -126,8 +126,6 @@ static void test_nic_simple_flow(void)
 	pg_brick_destroy(collect_east);
 	pg_brick_destroy(collect_west);
 	pg_brick_destroy(nic_ring);
-
-	pg_brick_config_free(config);
 }
 
 #undef NB_PKTS
@@ -135,6 +133,5 @@ static void test_nic_simple_flow(void)
 
 void test_nic(void)
 {
-	g_test_add_func("/brick/pcap/nic-pcap",
-			test_nic_simple_flow);
+	g_test_add_func("/brick/pcap/nic-pcap", test_nic_simple_flow);
 }
