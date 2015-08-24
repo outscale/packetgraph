@@ -46,7 +46,16 @@ In order to reduce dependencies, the project has been splitted in several libs:
 - A "core" library on which all bricks relies on.
 - Each brick is a library.
 
-Check each libraries to build them :)
+A global cmake script is available in the root dir to ease building of all
+packetgraph libraries but you may check each libraries to build them :)
+
+If you have all dependencies of all bricks installed, you can just:
+```
+$ mkdir build
+$ export RTE_SDK=/your/path/to/dpdk
+$ cmake ..
+$ make
+```
 
 # Question ? Contact us !
 
