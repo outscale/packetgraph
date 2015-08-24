@@ -22,9 +22,6 @@ Here are current developped bricks available in packetgraph:
 - nic: allow to pass packets to a NIC of the system (accelerated by DPDK)
 - print: a basic print brick to show packets flowing through it
 - antispoof: a basic mac and arp anti-spoofing brick
-
-Comming soon:
-
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs
 
 # Examples
