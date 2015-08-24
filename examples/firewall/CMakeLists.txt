@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(packetgraph-firewall)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/cmake")
 find_package(GLIB2 REQUIRED)
 find_package(PCAP REQUIRED)
 find_package(NPF REQUIRED)
