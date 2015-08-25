@@ -36,8 +36,7 @@ fi
 # directories and files to scan
 c_filelist=$(find $PACKETGRAPH_ROOT/*/src/ -type f -name "*.c" -printf %p\ )
 h_filelist=$(find $PACKETGRAPH_ROOT/*/{src,packetgraph} -type f -name "*.h" -printf %p\ )
-directories=$PACKETGRAPH_ROOT/*/{src,packetgraph}
-
+directories=$(find $PACKETGRAPH_ROOT -maxdepth 2 -type d -name "src" -o -name "packetgraph" -printf %p\ )
 # checkpatch tests
 
 $PACKETGRAPH_ROOT/tools/checkpatch.pl --ignore TRAILING_SEMICOLON --show-types --no-tree -q -f $c_filelist $h_filelist
@@ -65,11 +64,12 @@ fi
 
 # cppcheck tests
 
-cppcheck &> /dev/null
+cppcheck -h &> /dev/null
 if [ $? != 0 ]; then
     echo "cppcheck is not installed, some tests will be skipped"
 else
-    cppcheck -q  -f -I $directories --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
+    cppcheck_directories="$(find $PACKETGRAPH_ROOT -maxdepth 2 -type d -name "src" -o -name "packetgraph" -printf -I%p\ ) -I$PACKETGRAPH_ROOT/antispoof -I$PACKETGRAPH_ROOT/core -I$PACKETGRAPH_ROOT/diode -I$PACKETGRAPH_ROOT/firewall -I$PACKETGRAPH_ROOT/hub -I$PACKETGRAPH_ROOT/nic -I$PACKETGRAPH_ROOT/print -I$PACKETGRAPH_ROOT/switch -I$PACKETGRAPH_ROOT/vhost -I$PACKETGRAPH_ROOT/vtep"
+    cppcheck -q  -f -I $directories --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning -i $PACKETGRAPH_ROOT/switch/src/switch.c $c_filelist 
     if [ $? != 0 ]; then
 	echo "cppcheck tests failed"
 	exit 1
