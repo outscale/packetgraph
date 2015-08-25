@@ -126,4 +126,7 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side);
  */
 void pg_brick_destroy(struct pg_brick *brick);
 
+const char *pg_brick_name(struct pg_brick *brick);
+const char *pg_brick_type(struct pg_brick *brick);
+
 #endif

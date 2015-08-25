@@ -613,3 +613,13 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 		return 0;
 	return rte_atomic64_read(&brick->sides[side].packet_count);
 }
+
+const char *pg_brick_name(struct pg_brick *brick)
+{
+	return brick->name;
+}
+
+const char *pg_brick_type(struct pg_brick *brick)
+{
+	return brick->ops->name;
+}
