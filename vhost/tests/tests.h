@@ -28,8 +28,8 @@ enum test_flags {
 
 void test_vhost(void);
 
-extern char *bzimage_path;
-extern char *cpio_path;
-extern char *hugepages_path;
+extern char *glob_bzimage_path;
+extern char *glob_cpio_path;
+extern char *glob_hugepages_path;
 
 #endif

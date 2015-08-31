@@ -57,6 +57,8 @@ fi
 # Clean old sockets
 sudo rm /tmp/qemu-vhost-* | true
 
+echo $BUILD_ROOT/
+file $BUILD_ROOT/packetgraph-vhost-tests
 # Launch test
 sudo $BUILD_ROOT/packetgraph-vhost-tests -c1 -n1 --socket-mem 64 -- -bzimage $BUILD_ROOT/buildroot/output/images/bzImage -cpio $BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge
 

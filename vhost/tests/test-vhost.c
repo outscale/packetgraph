@@ -33,116 +33,10 @@
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/brick.h>
 #include <packetgraph/utils/mac.h>
+#include <packetgraph/utils/qemu.h>
 #include "tests.h"
 
 #define NB_PKTS	1
-
-static int is_ready(char *str)
-{
-	if (!str)
-		return 0;
-
-	return !strncmp(str, "Ready", strlen("Ready"));
-}
-
-static int pg_spawn_qemu(char *socket_path_0,
-		      char *socket_path_1,
-		      const char *mac_0,
-		      const char *mac_1)
-{
-	GIOChannel *stdout_gio;
-	GError *error = NULL;
-	gsize terminator_pos;
-	gchar *str_stdout;
-	int  child_pid;
-	gint stdout_fd;
-	gint stderr_fd;
-	gsize length;
-	gchar **argv;
-
-	argv     = g_new(gchar *, 33);
-	argv[0]  = g_strdup("qemu-system-x86_64");
-	argv[1]  = g_strdup("-m");
-	argv[2]  = g_strdup("1G");
-	argv[3]  = g_strdup("-enable-kvm");
-	argv[4]  = g_strdup("-kernel");
-	argv[5]  = g_strdup(bzimage_path);
-	argv[6]  = g_strdup("-initrd");
-	argv[7]  = g_strdup(cpio_path);
-	argv[8]  = g_strdup("-append");
-	argv[9]  = g_strdup("console=ttyS0 rdinit=/sbin/init noapic");
-	argv[10] = g_strdup("-serial");
-	argv[11] = g_strdup("stdio");
-	argv[12] = g_strdup("-monitor");
-	argv[13] = g_strdup("/dev/null");
-	argv[14] = g_strdup("-nographic");
-
-	argv[15] = g_strdup("-chardev");
-	argv[16] = g_strdup_printf("socket,id=char0,path=%s", socket_path_0);
-	argv[17] = g_strdup("-netdev");
-	argv[18] =
-		g_strdup("type=vhost-user,id=mynet1,chardev=char0,vhostforce");
-	argv[19] = g_strdup("-device");
-	argv[20] = g_strdup_printf("virtio-net-pci,mac=%s,netdev=mynet1",
-				   mac_0);
-	argv[21] = g_strdup("-chardev");
-	argv[22] = g_strdup_printf("socket,id=char1,path=%s", socket_path_1);
-	argv[23] = g_strdup("-netdev");
-	argv[24] =
-		g_strdup("type=vhost-user,id=mynet2,chardev=char1,vhostforce");
-	argv[25] = g_strdup("-device");
-	argv[26] = g_strdup_printf("virtio-net-pci,mac=%s,netdev=mynet2",
-				   mac_1);
-	argv[27] = g_strdup("-object");
-	argv[28] =
-		g_strdup_printf("memory-backend-file,id=mem,size=1G,mem-path=%s,share=on",
-				hugepages_path);
-	argv[29] = g_strdup("-numa");
-	argv[30] = g_strdup("node,memdev=mem");
-	argv[31] = g_strdup("-mem-prealloc");
-
-	argv[32] = NULL;
-
-	if (!g_spawn_async_with_pipes(NULL,
-				      argv,
-				      NULL,
-				      (GSpawnFlags) G_SPAWN_SEARCH_PATH |
-						    G_SPAWN_DO_NOT_REAP_CHILD,
-				      (GSpawnChildSetupFunc) NULL,
-				      NULL,
-				      &child_pid,
-				      NULL,
-				      &stdout_fd,
-				      &stderr_fd,
-				      &error))
-		g_assert(0);
-	g_assert(!error);
-	g_strfreev(argv);
-
-	stdout_gio = g_io_channel_unix_new(stdout_fd);
-
-	g_io_channel_read_line(stdout_gio,
-				&str_stdout,
-				&length,
-				&terminator_pos,
-				&error);
-
-	g_assert(!error);
-	while (!is_ready(str_stdout)) {
-		g_free(str_stdout);
-		g_io_channel_read_line(stdout_gio,
-					&str_stdout,
-					&length,
-					&terminator_pos,
-					&error);
-	}
-	g_free(str_stdout);
-
-	g_io_channel_shutdown(stdout_gio, TRUE, &error);
-	g_io_channel_unref(stdout_gio);
-
-	return child_pid;
-}
 
 /* this test harness a Linux guest to check that packet are send and received
  * by the vhost brick. An ethernet bridge inside the guest will forward packets
@@ -192,7 +86,8 @@ static void test_vhost_flow(void)
 	g_assert(!error);
 	g_assert(socket_path_1);
 	qemu_pid = pg_spawn_qemu(socket_path_0, socket_path_1,
-			      mac_addr_0, mac_addr_1);
+				 mac_addr_0, mac_addr_1, glob_bzimage_path,
+				 glob_cpio_path, glob_hugepages_path);
 	g_assert(qemu_pid);
 	g_free(socket_path_0);
 	g_free(socket_path_1);
@@ -248,9 +143,11 @@ static void test_vhost_flow(void)
 	g_assert(!error);
 
 	/* clean up */
-	pg_brick_decref(vhost_0, &error);
+	/* pg_brick_decref(vhost_0, &error); */
+	pg_brick_destroy(vhost_0);
 	g_assert(!error);
-	pg_brick_decref(vhost_1, &error);
+	pg_brick_destroy(vhost_1);
+	/* pg_brick_decref(vhost_1, &error); */
 	g_assert(!error);
 	pg_brick_decref(collect, &error);
 	g_assert(!error);

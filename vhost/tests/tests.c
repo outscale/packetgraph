@@ -28,9 +28,9 @@
 #include <packetgraph/packetgraph.h>
 #include "tests.h"
 
-char *cpio_path;
-char *bzimage_path;
-char *hugepages_path;
+char *glob_bzimage_path;
+char *glob_cpio_path;
+char *glob_hugepages_path;
 
 static void print_usage(void)
 {
@@ -47,15 +47,15 @@ static uint64_t parse_args(int argc, char **argv)
 		if (!strcmp("-help", argv[i])) {
 			ret |= PRINT_USAGE;
 		} else if (!strcmp("-bzimage", argv[i]) && i + 1 < argc) {
-			bzimage_path = argv[i + 1];
+			glob_bzimage_path = argv[i + 1];
 			ret |= BZIMAGE;
 			i++;
 		} else if (!strcmp("-cpio", argv[i]) && i + 1 < argc) {
-			cpio_path = argv[i + 1];
+			glob_cpio_path = argv[i + 1];
 			ret |= CPIO;
 			i++;
 		} else if (!strcmp("-hugepages", argv[i]) && i + 1 < argc) {
-			hugepages_path = argv[i + 1];
+			glob_hugepages_path = argv[i + 1];
 			ret |= HUGEPAGES;
 			i++;
 		} else {

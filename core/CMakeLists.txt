@@ -16,6 +16,7 @@ add_library(packetgraph-core-objects OBJECT
 	./src/utils/bitmask.c
 	./src/utils/config.c
 	./src/utils/errors.c
+	./src/utils/qemu.c
 	./src/lifecycle.c
 	./src/utils/mempool.c
 	./src/utils/mac.c
