@@ -57,6 +57,20 @@ fi
 # Clean old sockets
 sudo rm /tmp/qemu-vhost-* | true
 
+# Check hugepages
+NB_HUGE=`grep HugePages_Free /proc/meminfo | awk -F':' '{ print $2 }'`
+
+echo -----------
+echo nb free huge page $NB_HUGE
+echo -----------
+
+if [  $NB_HUGE -lt 50 ]; then
+   tput setaf 1
+   echo not enouth free hugepage, should have more than 500
+   tput setaf 7
+   exit 1
+fi
+
 echo $BUILD_ROOT/
 file $BUILD_ROOT/packetgraph-vhost-tests
 # Launch test
