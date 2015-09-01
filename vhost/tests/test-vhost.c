@@ -156,7 +156,174 @@ static void test_vhost_flow(void)
 	pg_vhost_stop();
 }
 
+/* this test harness a Linux guest to check that packet are send and received
+ * by the vhost brick. An ethernet bridge inside the guest will forward packets
+ * between the two vhost-user virtio interfaces.
+ */
+static void test_vhost_multivm(void)
+{
+	const char mac_addr_00[18] = "52:54:00:12:34:11";
+	const char mac_addr_01[18] = "52:54:00:12:34:12";
+	const char mac_addr_10[18] = "52:54:00:12:34:21";
+	const char mac_addr_11[18] = "52:54:00:12:34:22";
+	struct rte_mempool *mbuf_pool = pg_get_mempool();
+	struct pg_brick *vhost_00, *vhost_01, *collect0;
+	struct pg_brick *vhost_10, *vhost_11, *collect1;
+	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
+	char *socket_path_00, *socket_path_01;
+	char *socket_path_10, *socket_path_11;
+	struct pg_error *error = NULL;
+	struct rte_mbuf **result_pkts;
+	int ret, qemu_pid0, qemu_pid1, i;
+	uint64_t pkts_mask;
+	int exit_status;
+
+	/* start vhost */
+	ret = pg_vhost_start("/tmp", &error);
+	g_assert(ret);
+	g_assert(!error);
+
+	/* instanciate brick */
+	vhost_00 = pg_vhost_new("vhost-00", 1, 1, EAST_SIDE, &error);
+	g_assert(!error);
+	g_assert(vhost_00);
+
+	vhost_01 = pg_vhost_new("vhost-01", 1, 1, EAST_SIDE, &error);
+	g_assert(!error);
+	g_assert(vhost_01);
+
+	vhost_10 = pg_vhost_new("vhost-10", 1, 1, EAST_SIDE, &error);
+	g_assert(!error);
+	g_assert(vhost_10);
+
+	vhost_11 = pg_vhost_new("vhost-11", 1, 1, EAST_SIDE, &error);
+	g_assert(!error);
+	g_assert(vhost_11);
+
+	collect0 = pg_collect_new("collect0", 1, 1, &error);
+	g_assert(!error);
+	g_assert(collect0);
+
+	collect1 = pg_collect_new("collect1", 1, 1, &error);
+	g_assert(!error);
+	g_assert(collect1);
+
+	/* build the graph */
+	pg_brick_link(collect0, vhost_01, &error);
+	g_assert(!error);
+
+	pg_brick_link(collect1, vhost_11, &error);
+	g_assert(!error);
+
+	/* spawn QEMU */
+	socket_path_00 = pg_brick_handle_dup(vhost_00, &error);
+	g_assert(!error);
+	g_assert(socket_path_00);
+	socket_path_01 = pg_brick_handle_dup(vhost_01, &error);
+	g_assert(!error);
+	socket_path_10 = pg_brick_handle_dup(vhost_10, &error);
+	g_assert(!error);
+	g_assert(socket_path_10);
+	socket_path_11 = pg_brick_handle_dup(vhost_11, &error);
+	g_assert(!error);
+	g_assert(socket_path_11);
+	qemu_pid0 = pg_spawn_qemu(socket_path_00, socket_path_01,
+				  mac_addr_00, mac_addr_01, glob_bzimage_path,
+				  glob_cpio_path, glob_hugepages_path);
+	g_assert(qemu_pid0);
+	qemu_pid1 = pg_spawn_qemu(socket_path_10, socket_path_11,
+				  mac_addr_10, mac_addr_11, glob_bzimage_path,
+				  glob_cpio_path, glob_hugepages_path);
+	g_assert(qemu_pid1);
+	g_free(socket_path_10);
+	g_free(socket_path_11);
+
+	/* prepare packet to send */
+	for (i = 0; i < NB_PKTS; i++) {
+		pkts[i] = rte_pktmbuf_alloc(mbuf_pool);
+		g_assert(pkts[i]);
+		rte_pktmbuf_append(pkts[i], ETHER_MIN_LEN);
+		/* set random dst/src mac address so the linux guest bridge
+		 * will not filter them
+		 */
+		pg_set_mac_addrs(pkts[i],
+			      "52:54:00:12:34:15", "52:54:00:12:34:16");
+		/* set size */
+		pg_set_ether_type(pkts[i], ETHER_MIN_LEN - ETHER_HDR_LEN - 4);
+	}
+
+	/* send packet to the guest via one interface */
+	pg_brick_burst_to_east(vhost_00, 0, pkts, NB_PKTS,
+			       pg_mask_firsts(NB_PKTS),
+			       &error);
+	g_assert(!error);
+	pg_brick_burst_to_east(vhost_10, 0, pkts, NB_PKTS,
+			       pg_mask_firsts(NB_PKTS),
+			       &error);
+	g_assert(!error);
+
+	/* let the packet propagate and flow */
+	for (i = 0; i < 10; i++) {
+		uint16_t count0 = 0;
+		uint16_t count1 = 0;
+
+		usleep(100000);
+		pg_brick_poll(vhost_01, &count0, &error);
+		g_assert(!error);
+		pg_brick_poll(vhost_11, &count1, &error);
+		g_assert(!error);
+		if (count0 && count1)
+			break;
+	}
+
+	/* kill QEMU */
+	kill(qemu_pid0, SIGKILL);
+	waitpid(qemu_pid0, &exit_status, 0);
+	kill(qemu_pid1, SIGKILL);
+	waitpid(qemu_pid1, &exit_status, 0);
+	g_spawn_close_pid(qemu_pid0);
+	g_spawn_close_pid(qemu_pid1);
+
+	result_pkts = pg_brick_east_burst_get(collect0, &pkts_mask, &error);
+	g_assert(!error);
+	g_assert(result_pkts);
+	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
+	g_assert(!error);
+	g_assert(result_pkts);
+
+	/* free result packets */
+	pg_packets_free(result_pkts, pkts_mask);
+
+	/* free sent packet */
+	for (i = 0; i < NB_PKTS; i++)
+		rte_pktmbuf_free(pkts[i]);
+
+	/* break the graph */
+	pg_brick_unlink(collect0, &error);
+	g_assert(!error);
+	pg_brick_unlink(collect1, &error);
+	g_assert(!error);
+
+	/* clean up */
+	pg_brick_destroy(vhost_00);
+	g_assert(!error);
+	pg_brick_destroy(vhost_01);
+	g_assert(!error);
+	pg_brick_destroy(vhost_10);
+	g_assert(!error);
+	pg_brick_destroy(vhost_11);
+	g_assert(!error);
+	pg_brick_decref(collect0, &error);
+	g_assert(!error);
+	pg_brick_decref(collect1, &error);
+	g_assert(!error);
+
+	/* stop vhost */
+	pg_vhost_stop();
+}
+
 void test_vhost(void)
 {
 	g_test_add_func("/vhost/flow", test_vhost_flow);
+	g_test_add_func("/vhost/multivm", test_vhost_multivm);
 }
