@@ -66,7 +66,7 @@ void pg_firewall_gc(struct pg_brick *brick)
 
 	state = pg_brick_get_state(brick,
 				   struct pg_firewall_state);
-	npf_conn_call_gc(state->npf);
+	npf_gc(state->npf);
 }
 
 static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)

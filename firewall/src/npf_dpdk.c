@@ -207,6 +207,6 @@ static const npf_ifops_t npf_ifops = {
 npf_t *
 npf_dpdk_create(int flags)
 {
-	return npf_create(&npf_mbufops, &npf_ifops, flags);
+	return npf_create(flags, &npf_mbufops, &npf_ifops);
 }
 

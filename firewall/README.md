@@ -4,12 +4,6 @@ This packetgraph's brick is firewall IP.
 It uses [NPF](http://www.netbsd.org/~rmind/npf/) firewall which has been
 especially patched by Mindaugas to be compatible with DPDK.
 
-We use a [patched version](https://github.com/outscale/npf) of
-[npf-dpdk](https://github.com/rmind/npf) repository on github.
-Our patch only permits the user to call the garbage collector of NPF to free
-old connections or use de default behavior (let NPF start a thread who calls the
-gc).
-
 The firewall can be used to inject rules in a pcap-filter expression and
 can be statefull if desired.
 Note that:
