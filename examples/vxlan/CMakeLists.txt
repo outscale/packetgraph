@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(example-vxlan)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/cmake")
 find_package(GLIB2 REQUIRED)
 find_package(PCAP REQUIRED)
 find_package(packetgraph-core REQUIRED)
