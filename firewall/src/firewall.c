@@ -69,6 +69,15 @@ void pg_firewall_gc(struct pg_brick *brick)
 	npf_gc(state->npf);
 }
 
+void pg_firewall_thread_register(struct pg_brick *brick) {
+	struct pg_firewall_state *state;
+
+	state = pg_brick_get_state(brick,
+				   struct pg_firewall_state);
+
+	npf_thread_register(state->npf);
+}
+
 static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)
 {
 	const size_t maxsnaplen = 64 * 1024;

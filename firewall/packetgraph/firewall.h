@@ -42,6 +42,15 @@ struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
 				 struct pg_error **errp);
 
 /**
+ * Register the firewall in the current thread.
+ * If you plan to run the firewall in a different thread than the one who
+ * created the brick, you will need to call this.
+ *
+ * @param	brick pointer to the firewall brick
+ */
+void pg_firewall_thread_register(struct pg_brick *brick);
+
+/**
  * Add a new rule in the firewall.
  * Note that the rule won't be effective, you will need to call
  * firewall_reload() before. Offcourse, you can call firewall_rule_add
