@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	nic_west = pg_nic_new_by_id("port 0", 1, 1, WEST_SIDE, 0, &error);
 	CHECK_ERROR(error);
 	fw = pg_firewall_new("fw", 1, 1, PG_NO_CONN_WORKER, &error);
+	pg_firewall_thread_register(fw);
 	CHECK_ERROR(error);
 	nic_east = pg_nic_new_by_id("port 1", 1, 1, EAST_SIDE, 1, &error);
 	CHECK_ERROR(error);
