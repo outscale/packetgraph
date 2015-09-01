@@ -25,7 +25,9 @@
 #define PG_NO_CONN_WORKER 0x00000001
 
 /**
- * Create a new firewall brick
+ * Create a new firewall brick.
+ * Don't forget to call pg_firewall_thread_register where you want to run
+ * the firewall.
  *
  * @param	name name of the brick
  * @param	west_max maximum of links you can connect on the west side
@@ -43,8 +45,6 @@ struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
 
 /**
  * Register the firewall in the current thread.
- * If you plan to run the firewall in a different thread than the one who
- * created the brick, you will need to call this.
  *
  * @param	brick pointer to the firewall brick
  */

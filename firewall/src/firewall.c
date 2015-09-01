@@ -269,7 +269,6 @@ static int firewall_init(struct pg_brick *brick,
 	if (!nb_firewall)
 		npf_sysinit(NWORKERS);
 	npf = npf_dpdk_create(fw_config->flags);
-	npf_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
 	state->npf = npf;
 	state->rules = NULL;
