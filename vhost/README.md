@@ -46,8 +46,7 @@ vhost_start with the name of the brick.
 So if your socket path is "/tmp" and you socket name "joe" your path will be:
 /tmp/joe
 
-You can get the socket path create by your brick with brick_handle_dup,
-which will return a newly-allocated char * contening the path to the socket.
+You can get the socket path create by your brick with pg_vhost_socket_path.
 
 Once you have your socket path and your brick you just need to spam your VM
 using the socket path from the brick, then you can start polling packets with

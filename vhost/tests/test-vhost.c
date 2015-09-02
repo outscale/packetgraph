@@ -49,7 +49,7 @@ static void test_vhost_flow(void)
 	struct rte_mempool *mbuf_pool = pg_get_mempool();
 	struct pg_brick *vhost_0, *vhost_1, *collect;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
-	char *socket_path_0, *socket_path_1;
+	const char *socket_path_0, *socket_path_1;
 	struct pg_error *error = NULL;
 	struct rte_mbuf **result_pkts;
 	int ret, qemu_pid, i;
@@ -79,18 +79,16 @@ static void test_vhost_flow(void)
 	g_assert(!error);
 
 	/* spawn first QEMU */
-	socket_path_0 = pg_brick_handle_dup(vhost_0, &error);
+	socket_path_0 = pg_vhost_socket_path(vhost_0, &error);
 	g_assert(!error);
 	g_assert(socket_path_0);
-	socket_path_1 = pg_brick_handle_dup(vhost_1, &error);
+	socket_path_1 = pg_vhost_socket_path(vhost_1, &error);
 	g_assert(!error);
 	g_assert(socket_path_1);
 	qemu_pid = pg_spawn_qemu(socket_path_0, socket_path_1,
 				 mac_addr_0, mac_addr_1, glob_bzimage_path,
 				 glob_cpio_path, glob_hugepages_path);
 	g_assert(qemu_pid);
-	g_free(socket_path_0);
-	g_free(socket_path_1);
 
 	/* prepare packet to send */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -170,8 +168,8 @@ static void test_vhost_multivm(void)
 	struct pg_brick *vhost_00, *vhost_01, *collect0;
 	struct pg_brick *vhost_10, *vhost_11, *collect1;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
-	char *socket_path_00, *socket_path_01;
-	char *socket_path_10, *socket_path_11;
+	const char *socket_path_00, *socket_path_01;
+	const char *socket_path_10, *socket_path_11;
 	struct pg_error *error = NULL;
 	struct rte_mbuf **result_pkts;
 	int ret, qemu_pid0, qemu_pid1, i;
@@ -216,15 +214,15 @@ static void test_vhost_multivm(void)
 	g_assert(!error);
 
 	/* spawn QEMU */
-	socket_path_00 = pg_brick_handle_dup(vhost_00, &error);
+	socket_path_00 = pg_vhost_socket_path(vhost_00, &error);
 	g_assert(!error);
 	g_assert(socket_path_00);
-	socket_path_01 = pg_brick_handle_dup(vhost_01, &error);
+	socket_path_01 = pg_vhost_socket_path(vhost_01, &error);
 	g_assert(!error);
-	socket_path_10 = pg_brick_handle_dup(vhost_10, &error);
+	socket_path_10 = pg_vhost_socket_path(vhost_10, &error);
 	g_assert(!error);
 	g_assert(socket_path_10);
-	socket_path_11 = pg_brick_handle_dup(vhost_11, &error);
+	socket_path_11 = pg_vhost_socket_path(vhost_11, &error);
 	g_assert(!error);
 	g_assert(socket_path_11);
 	qemu_pid0 = pg_spawn_qemu(socket_path_00, socket_path_01,
@@ -235,8 +233,6 @@ static void test_vhost_multivm(void)
 				  mac_addr_10, mac_addr_11, glob_bzimage_path,
 				  glob_cpio_path, glob_hugepages_path);
 	g_assert(qemu_pid1);
-	g_free(socket_path_10);
-	g_free(socket_path_11);
 
 	/* prepare packet to send */
 	for (i = 0; i < NB_PKTS; i++) {

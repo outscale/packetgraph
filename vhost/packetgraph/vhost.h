@@ -48,6 +48,16 @@ struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
  */
 int pg_vhost_start(const char *base_dir, struct pg_error **errp);
 
+/**
+ * Get path to the unix socket path.
+ * @param: brick pointer to the vhost brick
+ * @param: an error pointer
+ * @param: errp is set in case of an error
+ * @return: string containing the socket path or NULL in case of error
+ */
+const char *pg_vhost_socket_path(struct pg_brick *brick,
+				 struct pg_error **errp);
+
 void pg_vhost_stop(void);
 
 #endif  /* _BRICKS_BRICK_VHOST_H_ */

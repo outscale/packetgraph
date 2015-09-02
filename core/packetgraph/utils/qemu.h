@@ -18,7 +18,7 @@
 #ifndef _UTILS_QEMU_H_
 #define _UTILS_QEMU_H_
 
-int pg_spawn_qemu(char *socket_path_0, char *socket_path_1,
+int pg_spawn_qemu(const char *socket_path_0, const char *socket_path_1,
 		  const char *mac_0, const char *mac_1,
 		  const char *bzimage_path,
 		  const char *cpio_path,

@@ -27,8 +27,8 @@ static int is_ready(char *str)
 	return !strncmp(str, "Ready", strlen("Ready"));
 }
 
-int pg_spawn_qemu(char *socket_path_0,
-		  char *socket_path_1,
+int pg_spawn_qemu(const char *socket_path_0,
+		  const char *socket_path_1,
 		  const char *mac_0,
 		  const char *mac_1,
 		  const char *bzimage_path,

@@ -260,12 +260,13 @@ static void vhost_destroy(struct pg_brick *brick, struct pg_error **errp)
 	pthread_mutex_unlock(&mutex);
 }
 
-static char *vhost_handle_dup(struct pg_brick *brick, struct pg_error **errp)
+const char *pg_vhost_socket_path(struct pg_brick *brick,
+				 struct pg_error **errp)
 {
 	struct pg_vhost_state *state;
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
-	return g_strdup(state->socket->path);
+	return state->socket->path;
 }
 
 static int new_vm(struct virtio_net *dev)
@@ -436,8 +437,6 @@ static struct pg_brick_ops vhost_ops = {
 	.destroy	= vhost_destroy,
 
 	.unlink		= pg_brick_generic_unlink,
-
-	.handle_dup	= vhost_handle_dup,
 };
 
 pg_brick_register(vhost, &vhost_ops);
