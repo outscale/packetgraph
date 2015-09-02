@@ -72,30 +72,18 @@ static int packetsgen_poll(struct pg_brick *brick,
 	state = pg_brick_get_state(brick, struct pg_packetsgen_state);
 	s = &brick->sides[state->output];
 
-	if (state->packets == NULL) {
-		pkts = g_new0(struct rte_mbuf*, PACKETSGEN_POLL_NB_PKTS);
-		memset(pkts, 0, PACKETSGEN_POLL_NB_PKTS *
-		       sizeof(struct rte_mbuf *));
-		for (i = 0; i < PACKETSGEN_POLL_NB_PKTS; i++) {
-			pkts[i] = rte_pktmbuf_alloc(mp);
-			g_assert(pkts[i]);
-			pkts[i]->udata64 = i;
-		}
-		pkts_mask = pg_mask_firsts(PACKETSGEN_POLL_NB_PKTS);
-		*pkts_cnt = PACKETSGEN_POLL_NB_PKTS;
-		ret = pg_brick_side_forward(s, pg_flip_side(state->output),
-					    pkts, PACKETSGEN_POLL_NB_PKTS,
-					    pkts_mask, errp);
-	} else {
-		pkts = g_new0(struct rte_mbuf*, state->packets_nb);
-		for (i = 0; i < state->packets_nb; i++)
-			pkts[i] = rte_pktmbuf_clone(state->packets[i], mp);
-		pkts_mask = pg_mask_firsts(state->packets_nb);
-		*pkts_cnt = state->packets_nb;
-		ret = pg_brick_side_forward(s, pg_flip_side(state->output),
-					    pkts, state->packets_nb,
-					    pkts_mask, errp);
+
+	pkts = g_new0(struct rte_mbuf*, state->packets_nb);
+	for (i = 0; i < state->packets_nb; i++) {
+		pkts[i] = rte_pktmbuf_clone(state->packets[i], mp);
+		pkts[i]->udata64 = i;
 	}
+
+	pkts_mask = pg_mask_firsts(state->packets_nb);
+	*pkts_cnt = state->packets_nb;
+	ret = pg_brick_side_forward(s, pg_flip_side(state->output),
+				    pkts, state->packets_nb,
+				    pkts_mask, errp);
 	pg_packets_free(pkts, pkts_mask);
 	g_free(pkts);
 	return ret;
@@ -114,6 +102,16 @@ static int packetsgen_init(struct pg_brick *brick,
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
+		return 0;
+	}
+
+	if (state->packets == NULL) {
+		*errp = pg_error_new("packets argument is NULL");
+		return 0;
+	}
+
+	if (state->packets_nb == 0) {
+		*errp = pg_error_new("packet number must be positive");
 		return 0;
 	}
 

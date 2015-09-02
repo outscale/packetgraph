@@ -21,6 +21,23 @@
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
+/**
+ * Create a new packetsgen brick, a packet generator brick.
+ * This is not a common brick as it is mainly used for testing and debuging.
+ * Note that all packets provided here are cloned before being burst.
+ * Your will need to free provided packets once the brick is destroyed.
+ * Bursted packets contains a growing counter in it's user data (used for
+ * testing purposes).
+ *
+ * @param	name name of the brick
+ * @param	west_max maximum of links you can connect on the west side
+ * @param	east_max maximum of links you can connect on the east side
+ * @param	output direction where packets are generated
+ * @param	packets a pointer to a packet array
+ * @param	packets_nb size of packet array
+ * @param	errp is set in case of an error
+ * @return	a pointer to a brick structure, on success, NULL on error
+ */
 struct pg_brick *pg_packetsgen_new(const char *name,
 				   uint32_t west_max,
 				   uint32_t east_max,
