@@ -85,6 +85,13 @@ static void test_vhost_flow(void)
 	socket_path_1 = pg_vhost_socket_path(vhost_1, &error);
 	g_assert(!error);
 	g_assert(socket_path_1);
+
+	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(socket_path_1, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(glob_bzimage_path, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(glob_cpio_path, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(glob_hugepages_path, G_FILE_TEST_EXISTS));
+
 	qemu_pid = pg_spawn_qemu(socket_path_0, socket_path_1,
 				 mac_addr_0, mac_addr_1, glob_bzimage_path,
 				 glob_cpio_path, glob_hugepages_path, &error);
