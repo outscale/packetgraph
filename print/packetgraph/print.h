@@ -48,7 +48,8 @@ enum pg_print_flags {
  * @param	output file descriptor where to write packets informations
  *		NULL means to use the standard output (stdout).
  * @param	flags print flags from enum pg_print_flags.
- * @param	type_filter ethernet type skiped at printing.
+ * @param	type_filter ethernet type skiped at printing,
+ *		NULL to skip none.
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure, on success, 0 on error
  */
