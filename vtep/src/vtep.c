@@ -51,8 +51,9 @@ struct vtep_config {
 	int flags;
 };
 
-#define VTEP_I_FLAG		(1 << 4)
-#define VTEP_DST_PORT		4789
+			/* 0000 1000 0000 ... */
+#define VTEP_I_FLAG	0x08000000
+#define VTEP_DST_PORT	4789
 
 #define UDP_MIN_PORT 49152
 #define UDP_PORT_RANGE 16383
@@ -172,13 +173,13 @@ static inline int is_multicast_ip(uint32_t ip)
 static inline void vxlan_build(struct vxlan_hdr *header, uint32_t vni)
 {
 	/* mark the VNI as valid */
-	header->vx_flags |= VTEP_I_FLAG;
+	header->vx_flags = rte_cpu_to_be_32(VTEP_I_FLAG);
 
 	/**
 	 * We have checked the VNI validity at VNI setup so reserved byte will
 	 * be zero.
 	 */
-	header->vx_vni = rte_cpu_to_be_32(vni);
+	header->vx_vni = vni;
 }
 
 /**
@@ -281,8 +282,8 @@ static inline void ip_build(struct vtep_state *state, struct ipv4_hdr *ip_hdr,
  * @param	dst_mac destination MAC address
  */
 static inline void ethernet_build(struct ether_hdr *eth_hdr,
-			   struct ether_addr *src_mac,
-			   struct ether_addr *dst_mac)
+				  struct ether_addr *src_mac,
+				  struct ether_addr *dst_mac)
 {
 	/* copy mac addresses */
 	ether_addr_copy(src_mac, &eth_hdr->s_addr);
@@ -568,7 +569,7 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 		if (unlikely(hdrs[i]->ethernet.ether_type !=
 			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
 			     hdrs[i]->ipv4.next_proto_id != 17 ||
-			     hdrs[i]->vxlan.vx_flags != VTEP_I_FLAG))
+			     hdrs[i]->vxlan.vx_flags != rte_cpu_to_be_32(VTEP_I_FLAG)))
 			continue;
 		if (is_multicast_ip(hdrs[i]->ipv4.dst_addr))
 			*multicast_mask |= (1LLU << i);
@@ -1079,7 +1080,7 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	g_assert(!port->mac_to_dst);
 	g_assert(!port->known_mac);
 
-	port->vni = vni;
+	port->vni = rte_cpu_to_be_32(vni);
 	port->multicast_ip = multicast_ip;
 
 	port->mac_to_dst =

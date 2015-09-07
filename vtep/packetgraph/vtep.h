@@ -69,12 +69,13 @@ void pg_vtep_add_vni(struct pg_brick *brick,
  * @east_max:	The maximum number of connections to the east
  * @ip:		the vtep ip
  * @mac:	the vtep mac
+ * @flag:	the vtep flag options(see pg_vtep_flags)
  * @errp:	an error pointer
  */
 struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
 		       uint32_t east_max, enum pg_side output,
 		       uint32_t ip, struct ether_addr mac,
-		       int no_copy, struct pg_error **errp);
+		       int flag, struct pg_error **errp);
 
 
 #endif
