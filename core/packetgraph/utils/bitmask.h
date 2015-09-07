@@ -41,4 +41,10 @@ int pg_mask_count(uint64_t pkts_mask);
 	mask &= ~bit;				\
 	} while (0)
 
+#define pg_foreach_bit(mask, it)					\
+	for (uint64_t tmpmask = mask, it;				\
+	     ((it = __builtin_ctzl(tmpmask)) || 1) &&			\
+		     tmpmask;						\
+	     tmpmask &= ~(1LLU << it))
+
 #endif
