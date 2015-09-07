@@ -66,7 +66,7 @@ echo -----------
 
 if [  $NB_HUGE -lt 50 ]; then
    tput setaf 1
-   echo not enouth free hugepage, should have more than 500
+   echo not enouth free hugepage, should have more than 50
    tput setaf 7
    exit 1
 fi

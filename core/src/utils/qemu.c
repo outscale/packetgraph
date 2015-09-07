@@ -17,13 +17,15 @@
 
 #include <glib.h>
 #include <string.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include <packetgraph/utils/qemu.h>
 
 static int is_ready(char *str)
 {
 	if (!str)
 		return 0;
-
 	return !strncmp(str, "Ready", strlen("Ready"));
 }
 
@@ -33,18 +35,19 @@ int pg_spawn_qemu(const char *socket_path_0,
 		  const char *mac_1,
 		  const char *bzimage_path,
 		  const char *cpio_path,
-		  const char *hugepages_path)
+		  const char *hugepages_path,
+		  struct pg_error **errp)
 {
 	GIOChannel *stdout_gio;
 	GError *error = NULL;
-	gsize terminator_pos;
 	gchar *str_stdout;
+	/* gchar *str_stderr; */
 	int  child_pid;
 	gint stdout_fd;
-	gint stderr_fd;
-	gsize length;
 	gchar **argv;
-
+	int readiness = 1;
+	struct timeval start, end;
+	
 	argv     = g_new(gchar *, 33);
 	argv[0]  = g_strdup("qemu-system-x86_64");
 	argv[1]  = g_strdup("-m");
@@ -98,29 +101,42 @@ int pg_spawn_qemu(const char *socket_path_0,
 				      &child_pid,
 				      NULL,
 				      &stdout_fd,
-				      &stderr_fd,
+				      NULL,
 				      &error))
 		g_assert(0);
 	g_assert(!error);
 	g_strfreev(argv);
 
 	stdout_gio = g_io_channel_unix_new(stdout_fd);
-
+	
 	g_io_channel_read_line(stdout_gio,
 			       &str_stdout,
-			       &length,
-			       &terminator_pos,
+			       NULL,
+			       NULL,
 			       &error);
 
+
 	g_assert(!error);
+	gettimeofday(&start, 0);
 	while (!is_ready(str_stdout)) {
 		g_free(str_stdout);
 		g_io_channel_read_line(stdout_gio,
 				       &str_stdout,
-				       &length,
-				       &terminator_pos,
+				       NULL,
+				       NULL,
 				       &error);
+
+		g_assert(!error);
+		gettimeofday(&end, 0);
+		if ((end.tv_sec - start.tv_sec) > 30) {
+			readiness = 0;
+			break;
+		}
 	}
+
+	if (!readiness)
+		*errp = pg_error_new("qemu spawming timeout");
+
 	g_free(str_stdout);
 
 	g_io_channel_shutdown(stdout_gio, TRUE, &error);

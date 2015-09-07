@@ -87,7 +87,8 @@ static void test_vhost_flow(void)
 	g_assert(socket_path_1);
 	qemu_pid = pg_spawn_qemu(socket_path_0, socket_path_1,
 				 mac_addr_0, mac_addr_1, glob_bzimage_path,
-				 glob_cpio_path, glob_hugepages_path);
+				 glob_cpio_path, glob_hugepages_path, &error);
+	g_assert(!error);
 	g_assert(qemu_pid);
 
 	/* prepare packet to send */
@@ -105,8 +106,8 @@ static void test_vhost_flow(void)
 	}
 
 	/* send packet to the guest via one interface */
-	pg_brick_burst_to_east(vhost_0, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
-			    &error);
+	pg_brick_burst_to_east(vhost_0, 0, pkts, NB_PKTS,
+			       pg_mask_firsts(NB_PKTS), &error);
 	g_assert(!error);
 
 	/* let the packet propagate and flow */
@@ -227,12 +228,14 @@ static void test_vhost_multivm(void)
 	g_assert(socket_path_11);
 	qemu_pid0 = pg_spawn_qemu(socket_path_00, socket_path_01,
 				  mac_addr_00, mac_addr_01, glob_bzimage_path,
-				  glob_cpio_path, glob_hugepages_path);
+				  glob_cpio_path, glob_hugepages_path, &error);
 	g_assert(qemu_pid0);
+	g_assert(!error);
 	qemu_pid1 = pg_spawn_qemu(socket_path_10, socket_path_11,
 				  mac_addr_10, mac_addr_11, glob_bzimage_path,
-				  glob_cpio_path, glob_hugepages_path);
+				  glob_cpio_path, glob_hugepages_path, &error);
 	g_assert(qemu_pid1);
+	g_assert(!error);
 
 	/* prepare packet to send */
 	for (i = 0; i < NB_PKTS; i++) {
