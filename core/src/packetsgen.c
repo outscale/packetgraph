@@ -105,18 +105,19 @@ static int packetsgen_init(struct pg_brick *brick,
 		return 0;
 	}
 
-	if (state->packets == NULL) {
+	packetsgen_config = ((struct pg_packetsgen_config *)
+			     config->brick_config);
+
+	if (packetsgen_config->packets == NULL) {
 		*errp = pg_error_new("packets argument is NULL");
 		return 0;
 	}
 
-	if (state->packets_nb == 0) {
+	if (packetsgen_config->packets_nb == 0) {
 		*errp = pg_error_new("packet number must be positive");
 		return 0;
 	}
 
-	packetsgen_config = (struct pg_packetsgen_config *)
-		config->brick_config;
 	state->output = packetsgen_config->output;
 	state->packets = packetsgen_config->packets;
 	state->packets_nb = packetsgen_config->packets_nb;
