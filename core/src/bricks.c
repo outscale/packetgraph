@@ -586,27 +586,6 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 	return 1;
 }
 
-char *pg_brick_handle_dup(struct pg_brick *brick, struct pg_error **errp)
-{
-	if (!brick) {
-		*errp = pg_error_new("Brick is NULL");
-		return 0;
-	}
-
-	if (!brick->ops) {
-		*errp = pg_error_new("Brick has no ops");
-		return 0;
-	}
-
-	if (!brick->ops->handle_dup) {
-		*errp = pg_error_new("No handle_dup callback");
-		return 0;
-	}
-
-	return brick->ops->handle_dup(brick, errp);
-}
-
-
 uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 {
 	if (!brick)

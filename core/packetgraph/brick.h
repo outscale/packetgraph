@@ -78,6 +78,4 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 			  struct rte_mbuf **pkts, uint16_t nb,
 			  uint64_t pkts_mask, struct pg_error **errp);
 
-char *pg_brick_handle_dup(struct pg_brick *brick, struct pg_error **errp);
-
 #endif
