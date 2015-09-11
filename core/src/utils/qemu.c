@@ -1,4 +1,4 @@
-/* Copyright 2015 Outscale SAS
+/* Copyright 2015 Nodalink EURL
  *
  * This file is part of Butterfly.
  *
