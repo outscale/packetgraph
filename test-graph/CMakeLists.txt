@@ -80,5 +80,5 @@ target_link_libraries(${PROJECT_NAME}
 	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
 
 add_custom_target(tests
-		COMMAND ${PROJECT_NAME} -c1 -n1 --socket-mem 64
+		COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests.sh ${LIBPACKETGRAPH-VHOST_INCLUDE_DIR} ${PG_USER_VHOST_BUILD}  ${CMAKE_BINARY_DIR}
 		WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
