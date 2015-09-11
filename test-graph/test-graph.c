@@ -261,13 +261,13 @@ static void test_graph_type1(void)
 	CHECK_ERROR(error);
 
 	/* Get socket paths */
-	socket_path1 = pg_brick_handle_dup(vhost1, &error);
+	socket_path1 = pg_vhost_socket_path(vhost1, &error);
 	g_assert(!error);
-	socket_output_path1 = pg_brick_handle_dup(vhost1_reader, &error);
+	socket_output_path1 = pg_vhost_socket_path(vhost1_reader, &error);
 	g_assert(!error);
-	socket_path2 = pg_brick_handle_dup(vhost2, &error);
+	socket_path2 = pg_vhost_socket_path(vhost2, &error);
 	g_assert(!error);
-	socket_output_path2 = pg_brick_handle_dup(vhost2_reader, &error);
+	socket_output_path2 = pg_vhost_socket_path(vhost2_reader, &error);
 	g_assert(!error);
 
 	/* Translate MAC to strings */
