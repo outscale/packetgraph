@@ -1084,8 +1084,9 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	g_assert(!port->multicast_ip);
 	g_assert(!port->mac_to_dst);
 	g_assert(!port->known_mac);
-
-	port->vni = rte_cpu_to_be_32(vni);
+	vni = rte_cpu_to_be_32(vni);
+	
+	port->vni = vni;
 	port->multicast_ip = multicast_ip;
 
 	port->mac_to_dst =
