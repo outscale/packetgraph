@@ -13,6 +13,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The multicast_subscribe and multicast_unsubscribe functions
+ * are modifications of igmpSendReportMessage/igmpSendLeaveGroupMessage from
+ * CycloneTCP Open project.
+ * Copyright 2010-2015 Oryx Embedded SARL.(www.oryx-embedded.com)
  */
 
 /**
