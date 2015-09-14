@@ -424,9 +424,12 @@ void pg_vhost_stop(void)
 {
 	void *ret;
 
+	if (!vhost_start_ok)
+		return;
 	pthread_cancel(vhost_session_thread);
 	pthread_join(vhost_session_thread, &ret);
 	rcu_unregister_thread();
+	vhost_start_ok = 0;
 }
 
 static struct pg_brick_ops vhost_ops = {
