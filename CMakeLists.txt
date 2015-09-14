@@ -17,7 +17,7 @@ add_custom_target(packages)
 add_custom_target(style
                   COMMAND ${CMAKE_SOURCE_DIR}/tools/check_style.sh ${CMAKE_SOURCE_DIR})
 
-foreach(brick hub switch nic diode print vhost vtep firewall antispoof)
+foreach(brick hub switch nic diode print vhost vtep firewall antispoof test-graph)
 
 ExternalProject_Add(${brick}
                     DEPENDS core
