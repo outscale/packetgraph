@@ -48,7 +48,7 @@ struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					const char *str)
 {
 	char *tmp;
-	
+
 	pg_foreach_bit(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
@@ -66,7 +66,7 @@ struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
 {
 	struct ipv4_hdr	ip_hdr;
 	char *tmp;
-	
+
 	pg_foreach_bit(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
@@ -93,10 +93,10 @@ struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
 {
 	struct udp_hdr udp_hdr;
 	char *tmp;
-	
+
 	pg_foreach_bit(pkts_mask, j) {
 		if (!pkts[j])
-			continue;	
+			continue;
 		udp_hdr.src_port = rte_cpu_to_be_16(src_port);
 		udp_hdr.dst_port = rte_cpu_to_be_16(dst_port);
 		udp_hdr.dgram_len = rte_cpu_to_be_16(datagram_len);
@@ -115,7 +115,7 @@ struct rte_mbuf **pg_packets_append_vxlan(struct rte_mbuf **pkts,
 {
 	struct vxlan_hdr vx_hdr;
 	char *tmp;
-	
+
 	pg_foreach_bit(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
@@ -139,7 +139,7 @@ struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
 {
 	struct ether_hdr eth_hdr;
 	char *tmp;
-	
+
 	pg_foreach_bit(pkts_mask, j) {
 		if (!pkts[j])
 			continue;

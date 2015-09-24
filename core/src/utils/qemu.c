@@ -47,7 +47,7 @@ int pg_spawn_qemu(const char *socket_path_0,
 	gchar **argv;
 	int readiness = 1;
 	struct timeval start, end;
-	
+
 	argv     = g_new(gchar *, 33);
 	argv[0]  = g_strdup("qemu-system-x86_64");
 	argv[1]  = g_strdup("-m");
@@ -82,9 +82,11 @@ int pg_spawn_qemu(const char *socket_path_0,
 	argv[26] = g_strdup_printf("virtio-net-pci,mac=%s,netdev=mynet2",
 				   mac_1);
 	argv[27] = g_strdup("-object");
+#define OBJECT_ARGS "memory-backend-file,id=mem,size=124M,mem-path=%s,share=on"
 	argv[28] =
-		g_strdup_printf("memory-backend-file,id=mem,size=124M,mem-path=%s,share=on",
+		g_strdup_printf(OBJECT_ARGS,
 				hugepages_path);
+#undef OBJECT_ARGS
 	argv[29] = g_strdup("-numa");
 	argv[30] = g_strdup("node,memdev=mem");
 	argv[31] = g_strdup("-mem-prealloc");
@@ -108,7 +110,6 @@ int pg_spawn_qemu(const char *socket_path_0,
 	g_strfreev(argv);
 
 	stdout_gio = g_io_channel_unix_new(stdout_fd);
-	
 	g_io_channel_read_line(stdout_gio,
 			       &str_stdout,
 			       NULL,

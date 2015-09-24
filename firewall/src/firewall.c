@@ -69,7 +69,8 @@ void pg_firewall_gc(struct pg_brick *brick)
 	npf_gc(state->npf);
 }
 
-void pg_firewall_thread_register(struct pg_brick *brick) {
+void pg_firewall_thread_register(struct pg_brick *brick)
+{
 	struct pg_firewall_state *state;
 
 	state = pg_brick_get_state(brick,

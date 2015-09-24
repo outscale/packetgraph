@@ -574,7 +574,8 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 		if (unlikely(hdrs[i]->ethernet.ether_type !=
 			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
 			     hdrs[i]->ipv4.next_proto_id != 17 ||
-			     hdrs[i]->vxlan.vx_flags != rte_cpu_to_be_32(VTEP_I_FLAG)))
+			     hdrs[i]->vxlan.vx_flags !=
+			     rte_cpu_to_be_32(VTEP_I_FLAG)))
 			continue;
 		if (is_multicast_ip(hdrs[i]->ipv4.dst_addr))
 			*multicast_mask |= (1LLU << i);
@@ -1085,7 +1086,7 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	g_assert(!port->mac_to_dst);
 	g_assert(!port->known_mac);
 	vni = rte_cpu_to_be_32(vni);
-	
+
 	port->vni = vni;
 	port->multicast_ip = multicast_ip;
 
