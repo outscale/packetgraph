@@ -132,6 +132,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 
 	rcu_read_lock();
 	virtio_net = rcu_dereference(state->virtio_net);
+	*pkts_cnt = 0;
 
 	if (unlikely(!virtio_net)) {
 		rcu_read_unlock();
