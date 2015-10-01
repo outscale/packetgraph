@@ -56,16 +56,23 @@ enum test_flags {
 	HUGEPAGES = 16
 };
 
+struct branch {
+	struct pg_brick *vhost;
+	struct pg_brick *collect;
+	struct pg_brick *vhost_reader;
+	struct pg_brick *print;
+	struct pg_brick *firewall;
+	struct pg_brick *antispoof;
+	GList *collector;
+	uint32_t id;
+};
+
 #define VNI_1	1
 #define VNI_2	2
 
 static char *glob_bzimage_path;
 static char *glob_cpio_path;
 static char *glob_hugepages_path;
-
-#define PG_GC_INIT(name)			\
-	GList *name = NULL			\
-
 
 #define PG_GC_ADD(name, brick)				\
 	(name = g_list_append(name, brick))
@@ -163,11 +170,88 @@ static int ring_port(void)
 	return port1;
 }
 
+static void rm_graph_branch(struct branch *branch)
+{
+	PG_GC_DESTROY(branch->collector);
+}
+
+static int add_graph_branch(struct branch *branch, uint32_t id,
+			    struct ether_addr mac,
+			    int antispoof, int print)
+{
+	struct pg_error *error = NULL;
+	GString *tmp = g_string_new(NULL);
+
+	branch->collector = NULL;
+	branch->id = id;
+	g_string_printf(tmp, "fw-%d", id);
+	branch->firewall = pg_firewall_new(tmp->str, 1, 1,
+					   PG_NO_CONN_WORKER, &error);
+	CHECK_ERROR(error);
+
+	g_string_printf(tmp, "antispoof-%d", id);
+	branch->antispoof = pg_antispoof_new(tmp->str,
+					     1, 1, EAST_SIDE,
+					     mac, &error);
+	CHECK_ERROR(error);
+
+	g_string_printf(tmp, "vhost-%d", id);
+	branch->vhost = pg_vhost_new(tmp->str, 1, 1, EAST_SIDE, &error);
+	CHECK_ERROR(error);
+
+	g_string_printf(tmp, "vhost-reader-%d", id);
+	branch->vhost_reader = pg_vhost_new(tmp->str, 1, 1, WEST_SIDE,
+					    &error);
+	CHECK_ERROR(error);
+
+	g_string_printf(tmp, "collect-reader-%d", id);
+	branch->collect = pg_collect_new(tmp->str, 1, 1, &error);
+	CHECK_ERROR(error);
+
+	g_string_printf(tmp, "print-%d", id);
+	branch->print = pg_print_new(tmp->str, 1, 1, NULL, PG_PRINT_FLAG_MAX,
+			     NULL, &error);
+	CHECK_ERROR(error);
+
+	PG_GC_CHAINED_ADD(branch->collector, branch->firewall, branch->antispoof,
+			  branch->vhost, branch->vhost_reader, branch->collect,
+			  branch->print);
+
+	if (print && antispoof) {
+		pg_brick_chained_links(&error, branch->firewall,
+				       branch->antispoof, branch->print,
+				       branch->vhost);
+	} else if (print) {
+		pg_brick_chained_links(&error, branch->firewall,
+				       branch->print, branch->vhost);
+	} else if (antispoof) {
+		pg_brick_chained_links(&error, branch->firewall,
+				       branch->antispoof,
+				       branch->vhost);
+	} else {
+		pg_brick_chained_links(&error, branch->firewall,
+				       branch->vhost);
+	}
+	CHECK_ERROR(error);
+	pg_brick_chained_links(&error, branch->vhost_reader,
+			       branch->collect);
+	CHECK_ERROR(error);
+	g_string_free(tmp, 1);
+	return 1;
+}
+static int link_graph_branch(struct branch *branch, struct pg_brick *west_brick)
+{
+	struct pg_error *error = NULL;
+
+	pg_brick_chained_links(&error, west_brick, branch->firewall);
+	CHECK_ERROR(error);
+	return 1;
+}
+
+
 static void test_graph_type1(void)
 {
-	struct pg_brick *vhost1, *vhost2, *antispoof1, *antispoof2, *fw1, *fw2;
 	struct pg_brick *nic, *vtep, *print;
-	struct pg_brick *vhost1_reader, *vhost2_reader, *collect1, *collect2;
 	struct pg_error *error = NULL;
 	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
 				       0xb3, 0xb4, 0xb5}};
@@ -175,6 +259,7 @@ static void test_graph_type1(void)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	const char mac_reader_1[18] = "52:54:00:12:34:12";
 	const char mac_reader_2[18] = "52:54:00:12:34:22";
+	struct branch branch1, branch2;
 	char tmp_mac1[20];
 	char tmp_mac2[20];
 	const char *socket_path1, *socket_output_path1;
@@ -188,8 +273,7 @@ static void test_graph_type1(void)
 	int ret = -1;
 	int exit_status;
 	uint32_t len;
-
-	PG_GC_INIT(brick_gc);
+	GList *brick_gc = NULL;
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
@@ -199,38 +283,16 @@ static void test_graph_type1(void)
 	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
 			   0x000000EE, mac_vtep, ALL_OPTI, &error);
 	CHECK_ERROR(error);
-	fw1 = pg_firewall_new("fw2", 1, 1, PG_NO_CONN_WORKER, &error);
-	CHECK_ERROR(error);
-	fw2 = pg_firewall_new("fw2", 1, 1, PG_NO_CONN_WORKER, &error);
-	CHECK_ERROR(error);
-	antispoof1 = pg_antispoof_new("antispoof1", 1, 1, EAST_SIDE,
-				     mac1, &error);
-	CHECK_ERROR(error);
-	antispoof2 = pg_antispoof_new("antispoof2", 1, 1, EAST_SIDE,
-				     mac2, &error);
-	CHECK_ERROR(error);
-	vhost1 = pg_vhost_new("vhost-1", 1, 1, EAST_SIDE, &error);
-	CHECK_ERROR(error);
-	vhost2 = pg_vhost_new("vhost-2", 1, 1, EAST_SIDE, &error);
-	CHECK_ERROR(error);
-
-	vhost1_reader = pg_vhost_new("vhost-1-reader", 1, 1, WEST_SIDE, &error);
-	CHECK_ERROR(error);
-	vhost2_reader = pg_vhost_new("vhost-2-reader", 1, 1, WEST_SIDE, &error);
-	CHECK_ERROR(error);
-
-	collect1 = pg_collect_new("collect-1-reader", 1, 1, &error);
-	CHECK_ERROR(error);
-	collect2 = pg_collect_new("collect-2-reader", 1, 1, &error);
-	CHECK_ERROR(error);
 
 	print = pg_print_new("print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
 			     NULL, &error);
 	CHECK_ERROR(error);
 	
-	PG_GC_CHAINED_ADD(brick_gc, vhost1, vhost2, antispoof1,
-			  antispoof2, fw1, fw2, nic, vtep, print,
-			  vhost1_reader, vhost2_reader, collect1, collect2);
+	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
+
+	g_assert(add_graph_branch(&branch1, 1, mac1, 0, 0));
+	g_assert(add_graph_branch(&branch2, 2, mac2, 0, 0));
+
 	/*
 	 * Our main graph:
 	 *	                FIREWALL1 -- ANTISPOOF1 -- VHOST1
@@ -238,36 +300,22 @@ static void test_graph_type1(void)
 	 * NIC -- PRINT-- VTEP
 	 *	              \ FIREWALL2 -- ANTISPOOF2 -- VHOST2
 	 */
-	/* For now, we're not going to use antispoof ...*/
-	pg_brick_chained_links(&error, nic, print, vtep, fw1, vhost1);
-	CHECK_ERROR(error);
-	pg_brick_chained_links(&error, vtep, fw2, vhost2);
+	pg_brick_chained_links(&error, nic, print, vtep);
 	CHECK_ERROR(error);
 
-	/*
-	 * graph use to read and write on vhost1:
-	 * 
-	 * VHOST1_READER -- COLLECT1
-	 */
-	pg_brick_chained_links(&error, vhost1_reader, collect1);
-	CHECK_ERROR(error);
-
-	/*
-	 * graph use to read and write on vhost2:
-	 *
-	 * VHOST2_READER -- COLLECT2
-	 */
-	pg_brick_chained_links(&error, vhost2_reader, collect2);
-	CHECK_ERROR(error);
+	g_assert(link_graph_branch(&branch1, vtep));
+	g_assert(link_graph_branch(&branch2, vtep));
 
 	/* Get socket paths */
-	socket_path1 = pg_vhost_socket_path(vhost1, &error);
+	socket_path1 = pg_vhost_socket_path(branch1.vhost, &error);
 	g_assert(!error);
-	socket_output_path1 = pg_vhost_socket_path(vhost1_reader, &error);
+	socket_output_path1 = pg_vhost_socket_path(branch1.vhost_reader,
+						   &error);
 	g_assert(!error);
-	socket_path2 = pg_vhost_socket_path(vhost2, &error);
+	socket_path2 = pg_vhost_socket_path(branch2.vhost, &error);
 	g_assert(!error);
-	socket_output_path2 = pg_vhost_socket_path(vhost2_reader, &error);
+	socket_output_path2 = pg_vhost_socket_path(branch2.vhost_reader,
+						   &error);
 	g_assert(!error);
 
 	/* Translate MAC to strings */
@@ -297,16 +345,18 @@ static void test_graph_type1(void)
 	/* Now we need to kill qemu before exit in case of error */
 	
 	/* Add VNI's */
-	pg_vtep_add_vni(vtep, fw1, VNI_1,
+	pg_vtep_add_vni(vtep, branch1.firewall, VNI_1,
 			inet_addr("225.0.0.1"), &error);
 	CHECK_ERROR_ASSERT(error);
-	pg_vtep_add_vni(vtep, fw2, VNI_2,
+	pg_vtep_add_vni(vtep, branch2.firewall, VNI_2,
 			inet_addr("225.0.0.2"), &error);
 	CHECK_ERROR_ASSERT(error);
 
 	/* Add firewall rule */
-	ASSERT(!pg_firewall_rule_add(fw1, "icmp", MAX_SIDE, 1, &error));
-	ASSERT(!pg_firewall_rule_add(fw2, "icmp", MAX_SIDE, 1, &error));
+	ASSERT(!pg_firewall_rule_add(branch1.firewall, "icmp",
+				     MAX_SIDE, 1, &error));
+	ASSERT(!pg_firewall_rule_add(branch2.firewall, "icmp",
+				     MAX_SIDE, 1, &error));
 
 	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) +
@@ -334,23 +384,26 @@ static void test_graph_type1(void)
 	/* Check all step of the transmition :) */
 	ASSERT(pg_brick_pkts_count_get(nic, WEST_SIDE));
 	ASSERT(pg_brick_pkts_count_get(vtep, EAST_SIDE));
-	ASSERT(pg_brick_pkts_count_get(fw1, EAST_SIDE));
+	ASSERT(pg_brick_pkts_count_get(branch1.firewall, EAST_SIDE));
 	/* ASSERT(pg_brick_pkts_count_get(antispoof1, EAST_SIDE)); */
-	ASSERT(pg_brick_pkts_count_get(vhost1, EAST_SIDE));
+	ASSERT(pg_brick_pkts_count_get(branch1.vhost, EAST_SIDE));
 	
 	/* check the collect1 */
 	for (int i = 0; i < 10; i++) {
 		usleep(100000);
-		pg_brick_poll(vhost1_reader, &count, &error);
-		g_assert(!error);
+		pg_brick_poll(branch1.vhost_reader, &count, &error);
+		CHECK_ERROR_ASSERT(error);
 		if (count)
 			break;
 	}
 
 	CHECK_ERROR_ASSERT(error);
+	ASSERT(pg_brick_pkts_count_get(branch1.collect,
+				       EAST_SIDE));
 	ASSERT(count);
 	/* same with VNI 2 */
-	result_pkts = pg_brick_west_burst_get(collect1, &pkts_mask, &error);
+	result_pkts = pg_brick_west_burst_get(branch1.collect, &pkts_mask,
+					      &error);
 	ASSERT(result_pkts);
 
 	/* Write in vhost2_reader */
@@ -378,6 +431,8 @@ exit:
 		g_free(pkts);
 	}
 	PG_GC_DESTROY(brick_gc);
+	rm_graph_branch(&branch1);
+	rm_graph_branch(&branch2);
 	pg_vhost_stop();
 	g_assert(!ret);
 }
