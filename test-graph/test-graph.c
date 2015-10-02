@@ -63,8 +63,9 @@ struct branch {
 	struct pg_brick *print;
 	struct pg_brick *firewall;
 	struct pg_brick *antispoof;
-	GList *collector;
+	struct ether_addr mac;
 	uint32_t id;
+	GList *collector;
 };
 
 #define VNI_1	1
@@ -115,6 +116,7 @@ static void pg_brick_destroy_wraper(void *arg)
 			pg_error_print(error);	\
 		g_assert(!error);		\
 	} while (0)
+
 
 #define CHECK_ERROR_ASSERT(error) do {		\
 		if (error) {			\
@@ -187,6 +189,23 @@ static inline const char *sock_read_path_graph(struct branch *branch,
 	return pg_vhost_socket_path(branch->vhost_reader, errp);
 }
 
+static inline int smap_qemu_graph(struct branch *branch,
+				  const char *mac_reader,
+				  struct pg_error **errp)
+{
+	char tmp_mac[20];
+
+	g_assert(pg_printable_mac(&branch->mac, tmp_mac));
+	int qemu_pid = pg_spawn_qemu(sock_path_graph(branch, errp),
+				     sock_read_path_graph(branch, errp),
+				     tmp_mac, mac_reader, glob_bzimage_path,
+				     glob_cpio_path,
+				     glob_hugepages_path, errp);
+
+	return qemu_pid;
+}
+
+
 static int add_graph_branch(struct branch *branch, uint32_t id,
 			    struct ether_addr mac,
 			    int antispoof, int print)
@@ -195,7 +214,8 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	GString *tmp = g_string_new(NULL);
 
 	branch->collector = NULL;
-	branch->id = id;
+	branch->id = id;	
+	branch->mac = mac;
 	g_string_printf(tmp, "fw-%d", id);
 	branch->firewall = pg_firewall_new(tmp->str, 1, 1,
 					   PG_NO_CONN_WORKER, &error);
@@ -272,8 +292,6 @@ static void test_graph_type1(void)
 	const char mac_reader_1[18] = "52:54:00:12:34:12";
 	const char mac_reader_2[18] = "52:54:00:12:34:22";
 	struct branch branch1, branch2;
-	char tmp_mac1[20];
-	char tmp_mac2[20];
 	int qemu1_pid = 0;
 	int qemu2_pid = 0;
 	struct rte_mbuf **pkts = NULL;
@@ -317,9 +335,6 @@ static void test_graph_type1(void)
 	g_assert(link_graph_branch(&branch2, vtep));
 
 	/* Translate MAC to strings */
-	g_assert(pg_printable_mac(&mac1, tmp_mac1));
-	g_assert(pg_printable_mac(&mac2, tmp_mac2));
-
 
 	g_assert(g_file_test(sock_path_graph(&branch1, &error),
 			     G_FILE_TEST_EXISTS));
@@ -333,17 +348,11 @@ static void test_graph_type1(void)
 	g_assert(g_file_test(glob_cpio_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_hugepages_path, G_FILE_TEST_EXISTS));
 	/* spawm time ! */
-	qemu1_pid = pg_spawn_qemu(sock_path_graph(&branch1, &error),
-				  sock_read_path_graph(&branch1, &error),
-				  tmp_mac1, mac_reader_1, glob_bzimage_path,
-				  glob_cpio_path, glob_hugepages_path, &error);
+	qemu1_pid = smap_qemu_graph(&branch1, mac_reader_1,  &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu1_pid);
 	printf("qemu1 has been started\n");
-	qemu2_pid = pg_spawn_qemu(sock_path_graph(&branch2, &error),
-				  sock_read_path_graph(&branch2, &error),
-				  tmp_mac2, mac_reader_2, glob_bzimage_path,
-				  glob_cpio_path, glob_hugepages_path, &error);
+	qemu2_pid = smap_qemu_graph(&branch2, mac_reader_2,  &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu2_pid);
 	printf("qemu2 has been started\n");
