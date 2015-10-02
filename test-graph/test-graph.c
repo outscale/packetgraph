@@ -175,6 +175,18 @@ static void rm_graph_branch(struct branch *branch)
 	PG_GC_DESTROY(branch->collector);
 }
 
+static inline const char *sock_path_graph(struct branch *branch,
+					  struct pg_error **errp)
+{
+	return pg_vhost_socket_path(branch->vhost, errp);
+}
+
+static inline const char *sock_read_path_graph(struct branch *branch,
+					       struct pg_error **errp)
+{
+	return pg_vhost_socket_path(branch->vhost_reader, errp);
+}
+
 static int add_graph_branch(struct branch *branch, uint32_t id,
 			    struct ether_addr mac,
 			    int antispoof, int print)
@@ -262,8 +274,6 @@ static void test_graph_type1(void)
 	struct branch branch1, branch2;
 	char tmp_mac1[20];
 	char tmp_mac2[20];
-	const char *socket_path1, *socket_output_path1;
-	const char *socket_path2, *socket_output_path2;
 	int qemu1_pid = 0;
 	int qemu2_pid = 0;
 	struct rte_mbuf **pkts = NULL;
@@ -306,36 +316,32 @@ static void test_graph_type1(void)
 	g_assert(link_graph_branch(&branch1, vtep));
 	g_assert(link_graph_branch(&branch2, vtep));
 
-	/* Get socket paths */
-	socket_path1 = pg_vhost_socket_path(branch1.vhost, &error);
-	g_assert(!error);
-	socket_output_path1 = pg_vhost_socket_path(branch1.vhost_reader,
-						   &error);
-	g_assert(!error);
-	socket_path2 = pg_vhost_socket_path(branch2.vhost, &error);
-	g_assert(!error);
-	socket_output_path2 = pg_vhost_socket_path(branch2.vhost_reader,
-						   &error);
-	g_assert(!error);
-
 	/* Translate MAC to strings */
 	g_assert(pg_printable_mac(&mac1, tmp_mac1));
 	g_assert(pg_printable_mac(&mac2, tmp_mac2));
 
 
-	g_assert(g_file_test(socket_path1, G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(socket_output_path1, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(sock_path_graph(&branch1, &error),
+			     G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(sock_read_path_graph(&branch1, &error),
+			     G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(sock_path_graph(&branch2, &error),
+			     G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(sock_read_path_graph(&branch2, &error),
+			     G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_bzimage_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_cpio_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_hugepages_path, G_FILE_TEST_EXISTS));
 	/* spawm time ! */
-	qemu1_pid = pg_spawn_qemu(socket_path1, socket_output_path1,
+	qemu1_pid = pg_spawn_qemu(sock_path_graph(&branch1, &error),
+				  sock_read_path_graph(&branch1, &error),
 				  tmp_mac1, mac_reader_1, glob_bzimage_path,
 				  glob_cpio_path, glob_hugepages_path, &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu1_pid);
 	printf("qemu1 has been started\n");
-	qemu2_pid = pg_spawn_qemu(socket_path2, socket_output_path2,
+	qemu2_pid = pg_spawn_qemu(sock_path_graph(&branch2, &error),
+				  sock_read_path_graph(&branch2, &error),
 				  tmp_mac2, mac_reader_2, glob_bzimage_path,
 				  glob_cpio_path, glob_hugepages_path, &error);
 	CHECK_ERROR_ASSERT(error);
