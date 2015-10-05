@@ -75,32 +75,31 @@ static char *glob_bzimage_path;
 static char *glob_cpio_path;
 static char *glob_hugepages_path;
 
-#define PG_GC_ADD(name, brick)				\
-	(name = g_list_append(name, brick))
-
-static inline void pg_gc_chained_add_int(GList *name, ...)
+static inline void pg_gc_chained_add_int(GList **name, ...)
 {
 	va_list ap;
 	struct pg_brick *cur;
 	
 	va_start(ap, name);
 	while ((cur = va_arg(ap, struct pg_brick *)) != NULL)
-		PG_GC_ADD(name, cur);
+		*name = g_list_append(*name, cur);
 	va_end(ap);
 }
 
 #define PG_GC_CHAINED_ADD(name, args...)		\
-	(pg_gc_chained_add_int(name, args, NULL))
+	(pg_gc_chained_add_int(&name, args, NULL))
 
 
-static void pg_brick_destroy_wraper(void *arg)
+static void pg_brick_destroy_wraper(void *arg, void *useless)
 {
 	pg_brick_destroy(arg);
 }
 
-#define PG_GC_DESTROY(name) do {					\
-		g_list_free_full(name, pg_brick_destroy_wraper);	\
-	} while (0)
+static void pg_gc_destroy(GList *graph)
+{
+	g_list_foreach(graph, pg_brick_destroy_wraper, NULL);
+	g_list_free(graph);
+}
 
 
 #define ASSERT(check) do {						\
@@ -174,7 +173,7 @@ static int ring_port(void)
 
 static void rm_graph_branch(struct branch *branch)
 {
-	PG_GC_DESTROY(branch->collector);
+	pg_gc_destroy(branch->collector);
 }
 
 static inline const char *sock_path_graph(struct branch *branch,
@@ -189,7 +188,7 @@ static inline const char *sock_read_path_graph(struct branch *branch,
 	return pg_vhost_socket_path(branch->vhost_reader, errp);
 }
 
-static inline int smap_qemu_graph(struct branch *branch,
+static inline int start_qemu_graph(struct branch *branch,
 				  const char *mac_reader,
 				  struct pg_error **errp)
 {
@@ -348,11 +347,11 @@ static void test_graph_type1(void)
 	g_assert(g_file_test(glob_cpio_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_hugepages_path, G_FILE_TEST_EXISTS));
 	/* spawm time ! */
-	qemu1_pid = smap_qemu_graph(&branch1, mac_reader_1,  &error);
+	qemu1_pid = start_qemu_graph(&branch1, mac_reader_1,  &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu1_pid);
 	printf("qemu1 has been started\n");
-	qemu2_pid = smap_qemu_graph(&branch2, mac_reader_2,  &error);
+	qemu2_pid = start_qemu_graph(&branch2, mac_reader_2,  &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu2_pid);
 	printf("qemu2 has been started\n");
@@ -445,11 +444,62 @@ exit:
 		pg_packets_free(pkts, 1);
 		g_free(pkts);
 	}
-	PG_GC_DESTROY(brick_gc);
 	rm_graph_branch(&branch1);
 	rm_graph_branch(&branch2);
+	pg_gc_destroy(brick_gc);
 	pg_vhost_stop();
 	g_assert(!ret);
+}
+
+static void test_graph_firewall_intense(void)
+{
+	struct pg_brick *nic, *vtep, *print;
+	struct pg_error *error = NULL;
+	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
+				       0xb3, 0xb4, 0xb5}};
+	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+	struct branch branch1;
+	int ret = -1;
+	GList *brick_gc = NULL;
+
+	pg_vhost_start("/tmp", &error);
+	CHECK_ERROR(error);
+	
+	nic = pg_nic_new_by_id("nic", 1, 1, WEST_SIDE, ring_port(), &error);
+	CHECK_ERROR(error);
+	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
+			   0x000000EE, mac_vtep, ALL_OPTI, &error);
+	CHECK_ERROR(error);
+
+	print = pg_print_new("main-print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
+			     NULL, &error);
+	CHECK_ERROR(error);
+	
+	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
+
+	pg_brick_chained_links(&error, nic, print, vtep);
+	CHECK_ERROR(error);
+
+	for (int i = 0; i < 100; ++i) {
+		g_assert(add_graph_branch(&branch1, 1, mac1, 0, 0));
+		g_assert(link_graph_branch(&branch1, vtep));	
+
+		/* Add firewall rule */
+		ASSERT(!pg_firewall_rule_add(branch1.firewall, "icmp",
+					     MAX_SIDE, 1, &error));
+		printf("vtep ref: %zu\n", vtep->refcount);
+		printf("vtep nb neighbour: %d\n", vtep->sides[EAST_SIDE].nb);
+		rm_graph_branch(&branch1);
+	}
+
+	CHECK_ERROR_ASSERT(error);
+
+	ret = 0;
+exit:
+	pg_gc_destroy(brick_gc);
+	rm_graph_branch(&branch1);
+	pg_vhost_stop();
+	g_assert(!ret);	
 }
 
 int main(int argc, char **argv)
@@ -476,6 +526,8 @@ int main(int argc, char **argv)
 
 	g_test_add_func("/brick/graph/type1",
 			test_graph_type1);
+	g_test_add_func("/brick/graph/firewall/intense",
+			test_graph_firewall_intense);
 	r = g_test_run();
 
 	pg_stop();
