@@ -267,9 +267,17 @@ static int firewall_init(struct pg_brick *brick,
 	/* initialize fast path */
 	brick->burst = firewall_burst;
 	/* init NPF configuration */
-	if (!nb_firewall)
-		npf_sysinit(NWORKERS);
+	if (!nb_firewall) {
+		if (unlikely(npf_sysinit(NWORKERS) < 0)) {
+			*errp = pg_error_new("fail during npf initialisation");
+			return 0;
+		}
+	}
 	npf = npf_dpdk_create(fw_config->flags);
+	if (unlikely(!npf)) {
+		*errp = pg_error_new("fail to create npf");
+		return 0;		
+	}
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
 	state->npf = npf;
 	state->rules = NULL;
