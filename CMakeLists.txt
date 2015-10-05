@@ -34,7 +34,7 @@ ExternalProject_Add(${brick}
 
 add_custom_target(tests-${brick}
                   DEPENDS ${brick}
-                  COMMAND make tests
+                  COMMAND RTE_SDK=$ENV{RTE_SDK}; make tests
                   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${brick}-prefix/src/${brick}-build)
 
 add_custom_target(packages-${brick}
