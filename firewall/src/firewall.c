@@ -276,7 +276,7 @@ static int firewall_init(struct pg_brick *brick,
 	npf = npf_dpdk_create(fw_config->flags);
 	if (unlikely(!npf)) {
 		*errp = pg_error_new("fail to create npf");
-		return 0;		
+		return 0;
 	}
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
 	state->npf = npf;
