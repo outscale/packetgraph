@@ -432,12 +432,13 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 {
 	struct pg_brick_edge *edge = &brick->sides[side].edges[index];
 	struct pg_brick_edge *pair_edge;
+	struct pg_brick_side *pair_side;
 
 	if (!edge->link)
 		return;
 
-	pair_edge =
-		&edge->link->sides[pg_flip_side(side)].edges[edge->pair_index];
+	pair_side = &edge->link->sides[pg_flip_side(side)];
+	pair_edge = &pair_side->edges[edge->pair_index];
 
 	unlink_notify(edge, side, errp);
 	if (pg_error_is_set(errp))
@@ -457,6 +458,7 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 	reset_edge(edge);
 
 	brick->sides[side].nb--;
+	pair_side->nb--;
 }
 
 /**
