@@ -37,7 +37,7 @@ struct rte_mbuf **pg_packets_create(uint64_t pkts_mask)
 
 	if (!ret)
 		return NULL;
-	pg_foreach_bit(pkts_mask, i) {
+	PG_FOREACH_BIT(pkts_mask, i) {
 		ret[i] = rte_pktmbuf_alloc(pg_get_mempool());
 	}
 	return ret;
@@ -49,7 +49,7 @@ struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 {
 	char *tmp;
 
-	pg_foreach_bit(pkts_mask, j) {
+	PG_FOREACH_BIT(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
 		tmp = rte_pktmbuf_append(pkts[j], strlen(str));
@@ -67,7 +67,7 @@ struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
 	struct ipv4_hdr	ip_hdr;
 	char *tmp;
 
-	pg_foreach_bit(pkts_mask, j) {
+	PG_FOREACH_BIT(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
 		ip_hdr.version_ihl = 0x45;
@@ -94,7 +94,7 @@ struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
 	struct udp_hdr udp_hdr;
 	char *tmp;
 
-	pg_foreach_bit(pkts_mask, j) {
+	PG_FOREACH_BIT(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
 		udp_hdr.src_port = rte_cpu_to_be_16(src_port);
@@ -116,7 +116,7 @@ struct rte_mbuf **pg_packets_append_vxlan(struct rte_mbuf **pkts,
 	struct vxlan_hdr vx_hdr;
 	char *tmp;
 
-	pg_foreach_bit(pkts_mask, j) {
+	PG_FOREACH_BIT(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
 
@@ -140,7 +140,7 @@ struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
 	struct ether_hdr eth_hdr;
 	char *tmp;
 
-	pg_foreach_bit(pkts_mask, j) {
+	PG_FOREACH_BIT(pkts_mask, j) {
 		if (!pkts[j])
 			continue;
 		ether_addr_copy(src_mac, &eth_hdr.s_addr);
