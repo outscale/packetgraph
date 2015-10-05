@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
-set(PROJECT_NAME test-graph)
+set(PROJECT_NAME tests-build)
+set(BIN_NAME tests-bin)
 
 project(${PROJECT_NAME})
 
@@ -25,10 +26,10 @@ endif()
 set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11")
 
 
-add_executable(${PROJECT_NAME}
+add_executable(${BIN_NAME}
 		test-graph.c)
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(${BIN_NAME} PUBLIC
 	.
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR}
 	${LIBPACKETGRAPH-NIC_INCLUDE_DIR}
@@ -44,7 +45,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GLIB2_INTERNAL_INCLUDE_DIR}
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${BIN_NAME}
 	${LIBPACKETGRAPH-NIC_LIBRARY}
 	${LIBPACKETGRAPH-VTEP_LIBRARY}	
 	${LIBPACKETGRAPH-VHOST_LIBRARY}	

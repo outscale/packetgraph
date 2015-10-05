@@ -40,8 +40,8 @@ if [ ! -d $VHOST_BUILD_ROOT/CMakeFiles ]; then
 fi
 
 # Test build root
-if [ ! -f $BUILD_ROOT/test-graph ]; then
-	echo can not found $BUILD_ROOT/test-graph
+if [ ! -f $BUILD_ROOT/tests-bin ]; then
+	echo can not found $BUILD_ROOT/tests-bin
 	echo $usage
 	exit 1
 fi
@@ -84,4 +84,4 @@ fi
 echo $VHOST_BUILD_ROOT/
 file $VHOST_BUILD_ROOT/packetgraph-vhost-tests
 # Launch test
-sudo $BUILD_ROOT/test-graph -c1 -n1 --socket-mem 64 -- -bzimage $VHOST_BUILD_ROOT/buildroot/output/images/bzImage -cpio $VHOST_BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge
+sudo $BUILD_ROOT/tests-bin -c1 -n1 --socket-mem 64 -- -bzimage $VHOST_BUILD_ROOT/buildroot/output/images/bzImage -cpio $VHOST_BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge
