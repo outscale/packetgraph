@@ -366,9 +366,12 @@ int pg_brick_link(struct pg_brick *west,
 		*errp = pg_error_new("Can not link a brick to herself");
 		return 0;
 	}
-	if (east->sides[WEST_SIDE].nb == east->sides[WEST_SIDE].max ||
-	    west->sides[EAST_SIDE].nb == west->sides[EAST_SIDE].max) {
-		*errp = pg_error_new("Side full");
+	if (east->sides[WEST_SIDE].nb == east->sides[WEST_SIDE].max) {
+		*errp = pg_error_new("%s: Side full", east->name);
+		return 0;
+	}
+	if (west->sides[EAST_SIDE].nb == west->sides[EAST_SIDE].max) {
+		*errp = pg_error_new("%s: Side full", west->name);
 		return 0;
 	}
 
