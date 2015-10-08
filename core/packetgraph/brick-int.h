@@ -96,7 +96,7 @@ struct pg_brick {
 				       enum pg_side side,
 				       uint64_t *pkts_mask);
 
-	struct pg_brick_side sides[2];	/* east and west sides */
+	struct pg_brick_side sides[MAX_SIDE];	/* east and west sides */
 
 	struct pg_brick_ops *ops;	/* management ops */
 	int64_t refcount;		/* reference count */
