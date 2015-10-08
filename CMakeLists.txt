@@ -11,6 +11,11 @@ ExternalProject_Add(core
 add_custom_target(core-package
                   COMMAND ${CMAKE_SOURCE_DIR}/tools/package.sh ${CMAKE_SOURCE_DIR}/core ${CMAKE_BINARY_DIR}/core-prefix/src/core-build core
                   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/core-prefix/src/core-build)
+
+add_custom_target(tests-core
+                  COMMAND RTE_SDK=$ENV{RTE_SDK}; make tests
+                  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/core-prefix/src/core-build)
+
 add_custom_target(tests-all)
 add_custom_target(packages)
 add_custom_target(style
@@ -42,7 +47,7 @@ add_custom_target(packages-${brick}
                   COMMAND RTE_SDK=$ENV{RTE_SDK}; ${CMAKE_SOURCE_DIR}/tools/package.sh ${CMAKE_SOURCE_DIR}/${brick} ${CMAKE_BINARY_DIR}/${brick}-prefix/src/${brick}-build ${brick}
                   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${brick}-prefix/src/${brick}-build)
 
-add_dependencies(tests-all tests-${brick})
+add_dependencies(tests-all tests-${brick} tests-core)
 add_dependencies(packages packages-${brick})
 
 endforeach(brick)
