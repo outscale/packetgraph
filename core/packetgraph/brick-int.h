@@ -134,11 +134,6 @@ struct pg_brick_ops {
 	struct rte_mbuf **(*burst_get)(struct pg_brick *brick,
 				       enum pg_side side,
 				       uint64_t *pkts_mask);
-
-	/* this return a copy of the brick handle:
-	 * the socket path for vhost-user.
-	 */
-	char *(*handle_dup)(struct pg_brick *brick, struct pg_error **errp);
 };
 
 extern GList *pg_all_bricks;
