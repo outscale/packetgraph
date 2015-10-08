@@ -77,7 +77,6 @@ static int collect_init(struct pg_brick *brick,
 			struct pg_error **errp)
 {
 	brick->burst = collect_burst;
-	brick->burst_get = collect_burst_get;
 
 	return 1;
 }
@@ -123,6 +122,7 @@ static struct pg_brick_ops collect_ops = {
 	.unlink		= pg_brick_generic_unlink,
 
 	.reset		= collect_reset,
+	.burst_get	= collect_burst_get,
 };
 
 pg_brick_register(collect, &collect_ops);
