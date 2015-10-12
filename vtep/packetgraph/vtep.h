@@ -67,6 +67,7 @@ void pg_vtep_add_vni(struct pg_brick *brick,
  * @name:	the name
  * @west_max:	the maximum number of connections to the west
  * @east_max:	The maximum number of connections to the east
+ * @output:	Side where packets are encapsuled in VXLAN
  * @ip:		the vtep ip
  * @mac:	the vtep mac
  * @flag:	the vtep flag options(see pg_vtep_flags)
