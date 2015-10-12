@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <net/if.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <endian.h>
@@ -37,6 +38,48 @@ static void print_proto_udp(void *data, size_t size, FILE *o)
 	fprintf(o, " [udp] ");
 }
 
+static void print_proto_icmp(void *data, size_t size, FILE *o)
+{
+	/* A lot more work TODO */
+	fprintf(o, " [icmp] ");
+}
+
+static void print_proto_icmpv6(void *data, size_t size, FILE *o)
+{
+	/* A lot more work TODO */
+	fprintf(o, " [icmpv6] ");
+}
+
+static void print_proto_igmp(void *data, size_t size, FILE *o)
+{
+	/* A lot more work TODO */
+	fprintf(o, " [igmp] ");
+}
+
+static void print_l4(uint8_t type, void *data, size_t size, FILE *o)
+{
+	switch (type) {
+	case IPPROTO_TCP:
+		print_proto_tcp(data, size, o);
+		break;
+	case IPPROTO_UDP:
+		print_proto_udp(data, size, o);
+		break;
+	case IPPROTO_ICMP:
+		print_proto_icmp(data, size, o);
+		break;
+	case IPPROTO_ICMPV6:
+		print_proto_icmpv6(data, size, o);
+		break;
+	case IPPROTO_IGMP:
+		print_proto_igmp(data, size, o);
+		break;
+	default:
+		fprintf(o, " [type=%02x]", type);
+		break;
+	}
+}
+
 static void print_proto_ip(void *data, size_t size, FILE *o)
 {
 	struct ip *ip = (struct ip *) data;
@@ -52,18 +95,51 @@ static void print_proto_ip(void *data, size_t size, FILE *o)
 		  INET_ADDRSTRLEN);
 	fprintf(o, " [ip src=%s dst=%s]", sip, dip);
 
-	if (payload_type == IPPROTO_TCP)
-		print_proto_tcp(payload, payload_size, o);
-	else if (payload_type == IPPROTO_UDP)
-		print_proto_udp(payload, payload_size, o);
-	else
-		fprintf(o, " [type=%x]", payload_type);
+	print_l4(payload_type, payload, payload_size, o);
+}
+
+static void print_proto_ipv6(void *data, size_t size, FILE *o)
+{
+	struct ip6_hdr *ip = (struct ip6_hdr *) data;
+	char sip[INET6_ADDRSTRLEN];
+	char dip[INET6_ADDRSTRLEN];
+	void *payload = (void *)(ip + 1);
+	size_t payload_size = size - sizeof(struct ip);
+	uint8_t payload_type = ip->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+
+	inet_ntop(AF_INET6, (const void *) &(ip->ip6_src), sip,
+		  INET6_ADDRSTRLEN);
+	inet_ntop(AF_INET6, (const void *) &(ip->ip6_dst), dip,
+		  INET6_ADDRSTRLEN);
+	fprintf(o, " [ipv6 src=%s dst=%s]", sip, dip);
+
+	print_l4(payload_type, payload, payload_size, o);
 }
 
 static void print_proto_arp(void *data, size_t size, FILE *o)
 {
 	/* A lot more work TODO */
 	fprintf(o, " [arp] ");
+}
+
+static void print_l3(uint16_t type, void *data, size_t size, FILE *o)
+{
+	uint16_t t = be16toh(type);
+
+	switch (t) {
+	case ETHERTYPE_IP:
+		print_proto_ip(data, size, o);
+		break;
+	case ETHERTYPE_IPV6:
+		print_proto_ipv6(data, size, o);
+		break;
+	case ETHERTYPE_ARP:
+		print_proto_arp(data, size, o);
+		break;
+	default:
+		fprintf(o, " [ethertype: %04x]", t);
+		break;
+	}
 }
 
 static void print_proto_eth(void *data, size_t size, FILE *o)
@@ -82,18 +158,13 @@ static void print_proto_eth(void *data, size_t size, FILE *o)
 		dm[0], dm[1], dm[2], dm[3], dm[4], dm[5]);
 	fprintf(o, "]");
 
-	if (payload_type == htobe16(ETHERTYPE_IP))
-		print_proto_ip(payload, payload_size, o);
-	else if (payload_type == htobe16(ETHERTYPE_ARP))
-		print_proto_arp(payload, payload_size, o);
-	else
-		fprintf(o, " [ethertype: %x]", (unsigned int) eth->ether_type);
-	fprintf(o, "\n");
+	print_l3(payload_type, payload, payload_size, o);
 }
 
 void print_summary(void *data, size_t size, FILE *o)
 {
 	print_proto_eth(data, size, o);
+	fprintf(o, "\n");
 }
 
 void print_raw(void *data, size_t size, FILE *o)
