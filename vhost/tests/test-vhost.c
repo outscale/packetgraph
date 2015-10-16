@@ -42,7 +42,7 @@
  * by the vhost brick. An ethernet bridge inside the guest will forward packets
  * between the two vhost-user virtio interfaces.
  */
-static void test_vhost_flow(void)
+static void test_vhost_flow_(int qemu_exit_signal)
 {
 	const char mac_addr_0[18] = "52:54:00:12:34:11";
 	const char mac_addr_1[18] = "52:54:00:12:34:12";
@@ -129,7 +129,7 @@ static void test_vhost_flow(void)
 	}
 
 	/* kill QEMU */
-	kill(qemu_pid, SIGKILL);
+	kill(qemu_pid, qemu_exit_signal);
 	waitpid(qemu_pid, &exit_status, 0);
 	g_spawn_close_pid(qemu_pid);
 
@@ -162,11 +162,17 @@ static void test_vhost_flow(void)
 	pg_vhost_stop();
 }
 
+static void test_vhost_flow(void)
+{
+	test_vhost_flow_(SIGKILL);
+	test_vhost_flow_(SIGINT);
+}
+
 /* this test harness a Linux guest to check that packet are send and received
  * by the vhost brick. An ethernet bridge inside the guest will forward packets
  * between the two vhost-user virtio interfaces.
  */
-static void test_vhost_multivm(void)
+static void test_vhost_multivm_(int qemu_exit_signal)
 {
 	const char mac_addr_00[18] = "52:54:00:12:34:11";
 	const char mac_addr_01[18] = "52:54:00:12:34:12";
@@ -283,9 +289,9 @@ static void test_vhost_multivm(void)
 	}
 
 	/* kill QEMU */
-	kill(qemu_pid0, SIGKILL);
+	kill(qemu_pid0, qemu_exit_signal);
 	waitpid(qemu_pid0, &exit_status, 0);
-	kill(qemu_pid1, SIGKILL);
+	kill(qemu_pid1, qemu_exit_signal);
 	waitpid(qemu_pid1, &exit_status, 0);
 	g_spawn_close_pid(qemu_pid0);
 	g_spawn_close_pid(qemu_pid1);
@@ -326,6 +332,12 @@ static void test_vhost_multivm(void)
 
 	/* stop vhost */
 	pg_vhost_stop();
+}
+
+static void test_vhost_multivm(void)
+{
+	test_vhost_multivm_(SIGKILL);
+	test_vhost_multivm_(SIGINT);
 }
 
 void test_vhost(void)
