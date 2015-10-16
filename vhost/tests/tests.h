@@ -31,6 +31,7 @@ void test_vhost(void);
 extern char *glob_vm_path;
 extern char *glob_vm_key_path;
 extern char *glob_hugepages_path;
+extern int glob_long_tests;
 
 void test_benchmark_vhost(void);
 

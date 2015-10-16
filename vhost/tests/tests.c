@@ -31,6 +31,7 @@
 char *glob_vm_path;
 char *glob_vm_key_path;
 char *glob_hugepages_path;
+int glob_long_tests = 0;
 
 static void print_usage(void)
 {
@@ -58,6 +59,8 @@ static uint64_t parse_args(int argc, char **argv)
 			glob_hugepages_path = argv[i + 1];
 			ret |= HUGEPAGES;
 			i++;
+		} else if (!strcmp("-long-tests", argv[i])) {
+			glob_long_tests = 1;
 		} else {
 			printf("tests: invalid option -- %s\n", argv[i]);
 			return FAIL | PRINT_USAGE;
