@@ -103,7 +103,6 @@ target_link_libraries(packetgraph-vhost-tests
 	${RTE_SDK_ROOT}/build/lib/librte_table.a
 	${RTE_SDK_ROOT}/build/lib/librte_ring.a
 	${RTE_SDK_ROOT}/build/lib/librte_eal.a
-	${RTE_SDK_ROOT}/build/lib/librte_malloc.a
 	${RTE_SDK_ROOT}/build/lib/librte_vhost.a
 	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
 

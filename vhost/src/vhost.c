@@ -24,6 +24,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <urcu.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include <rte_config.h>
 #include <linux/virtio_net.h>
@@ -164,6 +166,7 @@ static void vhost_create_socket(struct pg_vhost_state *state,
 	int ret;
 
 	path = g_strdup_printf("%s/qemu-%s", sockets_path, state->brick.name);
+	g_remove(path);
 
 	printf("New vhost-user socket: %s\n", path);
 
@@ -251,6 +254,7 @@ static void vhost_destroy(struct pg_brick *brick, struct pg_error **errp)
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
 	pthread_mutex_lock(&mutex);
 
+	g_remove(state->socket->path);
 	/* TODO: uncomment when implemented
 	 * rte_vhost_driver_unregister(state->socket->path);
 	 */
