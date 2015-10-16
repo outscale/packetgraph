@@ -47,51 +47,54 @@ int pg_spawn_qemu(const char *socket_path_0,
 	gchar **argv;
 	int readiness = 1;
 	struct timeval start, end;
+	uint a = 0;
 
 	argv     = g_new(gchar *, 33);
-	argv[0]  = g_strdup("qemu-system-x86_64");
-	argv[1]  = g_strdup("-m");
-	argv[2]  = g_strdup("124M");
-	argv[3]  = g_strdup("-enable-kvm");
-	argv[4]  = g_strdup("-kernel");
-	argv[5]  = g_strdup(bzimage_path);
-	argv[6]  = g_strdup("-initrd");
-	argv[7]  = g_strdup(cpio_path);
-	argv[8]  = g_strdup("-append");
-	argv[9]  = g_strdup("console=ttyS0 rdinit=/sbin/init noapic");
-	argv[10] = g_strdup("-serial");
-	argv[11] = g_strdup("stdio");
-	argv[12] = g_strdup("-monitor");
-	argv[13] = g_strdup("/dev/null");
-	argv[14] = g_strdup("-nographic");
+#	define add_arg(str) { argv[a] = g_strdup(str); a++; }
+#	define add_argp(str...) { argv[a] = g_strdup_printf(str); a++; }
+	add_arg("qemu-system-x86_64");
+	add_arg("-m");
+	add_arg("124M");
+	add_arg("-enable-kvm");
+	add_arg("-kernel");
+	add_arg(bzimage_path);
+	add_arg("-initrd");
+	add_arg(cpio_path);
+	add_arg("-append");
+	add_arg("console=ttyS0 rdinit=/sbin/init noapic");
+	add_arg("-serial");
+	add_arg("stdio");
+	add_arg("-monitor");
+	add_arg("/dev/null");
+	add_arg("-nographic");
 
-	argv[15] = g_strdup("-chardev");
-	argv[16] = g_strdup_printf("socket,id=char0,path=%s", socket_path_0);
-	argv[17] = g_strdup("-netdev");
-	argv[18] =
-		g_strdup("type=vhost-user,id=mynet1,chardev=char0,vhostforce");
-	argv[19] = g_strdup("-device");
-	argv[20] = g_strdup_printf("virtio-net-pci,mac=%s,netdev=mynet1",
-				   mac_0);
-	argv[21] = g_strdup("-chardev");
-	argv[22] = g_strdup_printf("socket,id=char1,path=%s", socket_path_1);
-	argv[23] = g_strdup("-netdev");
-	argv[24] =
-		g_strdup("type=vhost-user,id=mynet2,chardev=char1,vhostforce");
-	argv[25] = g_strdup("-device");
-	argv[26] = g_strdup_printf("virtio-net-pci,mac=%s,netdev=mynet2",
-				   mac_1);
-	argv[27] = g_strdup("-object");
-#define OBJECT_ARGS "memory-backend-file,id=mem,size=124M,mem-path=%s,share=on"
-	argv[28] =
-		g_strdup_printf(OBJECT_ARGS,
-				hugepages_path);
-#undef OBJECT_ARGS
-	argv[29] = g_strdup("-numa");
-	argv[30] = g_strdup("node,memdev=mem");
-	argv[31] = g_strdup("-mem-prealloc");
+	/* Add interface if given. */
+	if (socket_path_0) {
+		add_arg("-chardev");
+		add_argp("socket,id=char0,path=%s", socket_path_0);
+		add_arg("-netdev");
+		add_arg("type=vhost-user,id=mynet1,chardev=char0,vhostforce");
+		add_arg("-device");
+		add_argp("virtio-net-pci,mac=%s,netdev=mynet1", mac_0);
+	}
 
-	argv[32] = NULL;
+	if (socket_path_1) {
+		add_arg("-chardev");
+		add_argp("socket,id=char1,path=%s", socket_path_1);
+		add_arg("-netdev");
+		add_arg("type=vhost-user,id=mynet2,chardev=char1,vhostforce");
+		add_arg("-device");
+		add_argp("virtio-net-pci,mac=%s,netdev=mynet2", mac_1);
+	}
+	add_arg("-object");
+	add_argp("memory-backend-file,id=mem,size=124M,mem-path=%s,share=on",
+		 hugepages_path);
+	add_arg("-numa");
+	add_arg("node,memdev=mem");
+	add_arg("-mem-prealloc");
+
+#	undef add_arg
+	argv[a] = NULL;
 
 	if (!g_spawn_async_with_pipes(NULL,
 				      argv,
