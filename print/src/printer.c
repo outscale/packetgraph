@@ -26,6 +26,8 @@
 #include <endian.h>
 #include "printer.h"
 
+static void print_l4(uint8_t type, void *data, size_t size, FILE *o);
+
 static void print_proto_tcp(void *data, size_t size, FILE *o)
 {
 	/* A lot more work TODO */
@@ -56,6 +58,77 @@ static void print_proto_igmp(void *data, size_t size, FILE *o)
 	fprintf(o, " [igmp] ");
 }
 
+static void print_proto_ipv6_ext_hbh(void *data, size_t size, FILE *o)
+{
+	struct ip6_ext *ext = (struct ip6_ext *)data;
+	uint8_t header_size = (ext->ip6e_len + 1) * 8;
+
+	if (size < header_size)
+		return;
+	fprintf(o, " [ext Hop-by-Hop]");
+
+	data = &((uint8_t*)(data))[header_size];
+	print_l4(ext->ip6e_nxt, data, size - header_size, o);
+}
+
+static void print_proto_ipv6_ext_routing(void *data, size_t size, FILE *o)
+{
+	struct ip6_ext *ext = (struct ip6_ext *)data;
+	uint8_t header_size = (ext->ip6e_len + 1) * 8;
+
+	if (size < 16)
+		return;
+	fprintf(o, " [ext Routing]");
+	data = &((uint8_t*)(data))[header_size];
+	print_l4(ext->ip6e_nxt, data, size - header_size, o);
+}
+
+static void print_proto_ipv6_ext_fragment(void *data, size_t size, FILE *o)
+{
+	struct ip6_ext *ext = (struct ip6_ext *)data;
+	uint8_t header_size = 8;
+
+	if (size < header_size)
+		return;
+	fprintf(o, " [ext Fragment]");
+	data = &((uint8_t*)(data))[header_size];
+	print_l4(ext->ip6e_nxt, data, size - header_size, o);
+}
+
+static void print_proto_ipv6_ext_esp(void *data, size_t size, FILE *o)
+{
+	fprintf(o, " [ext ESP]");
+}
+
+static void print_proto_ipv6_ext_ah(void *data, size_t size, FILE *o)
+{
+	fprintf(o, " [ext AH]");
+}
+
+static void print_proto_ipv6_ext_destination(void *data, size_t size, FILE *o)
+{
+	struct ip6_ext *ext = (struct ip6_ext *)data;
+	uint8_t header_size = (ext->ip6e_len + 1) * 8;
+
+	if (size < header_size)
+		return;
+	fprintf(o, " [ext Destination]");
+	data = &((uint8_t*)(data))[header_size];
+	print_l4(ext->ip6e_nxt, data, size - header_size, o);
+}
+
+static void print_proto_ipv6_ext_mobility(void *data, size_t size, FILE *o)
+{
+	struct ip6_frag *ext = (struct ip6_frag *)data;
+	uint8_t header_size = sizeof(struct ip6_frag);
+
+	if (size < header_size)
+		return;
+	fprintf(o, " [ext Fragment]");
+	data = &((uint8_t*)(data))[header_size];
+	print_l4(ext->ip6f_nxt, data, size - header_size, o);
+}
+
 static void print_l4(uint8_t type, void *data, size_t size, FILE *o)
 {
 	switch (type) {
@@ -73,6 +146,27 @@ static void print_l4(uint8_t type, void *data, size_t size, FILE *o)
 		break;
 	case IPPROTO_IGMP:
 		print_proto_igmp(data, size, o);
+		break;
+	case 0x00:
+		print_proto_ipv6_ext_hbh(data, size, o);
+		break;
+	case 0x2b:
+		print_proto_ipv6_ext_routing(data, size, o);
+		break;
+	case 0x2c:
+		print_proto_ipv6_ext_fragment(data, size, o);
+		break;
+	case 0x32:
+		print_proto_ipv6_ext_esp(data, size, o);
+		break;
+	case 0x33:
+		print_proto_ipv6_ext_ah(data, size, o);
+		break;
+	case 0x3c:
+		print_proto_ipv6_ext_destination(data, size, o);
+		break;
+	case 0x87:
+		print_proto_ipv6_ext_mobility(data, size, o);
 		break;
 	default:
 		fprintf(o, " [type=%02x]", type);
@@ -104,7 +198,7 @@ static void print_proto_ipv6(void *data, size_t size, FILE *o)
 	char sip[INET6_ADDRSTRLEN];
 	char dip[INET6_ADDRSTRLEN];
 	void *payload = (void *)(ip + 1);
-	size_t payload_size = size - sizeof(struct ip);
+	size_t payload_size = size - sizeof(typeof(ip));
 	uint8_t payload_type = ip->ip6_ctlun.ip6_un1.ip6_un1_nxt;
 
 	inet_ntop(AF_INET6, (const void *) &(ip->ip6_src), sip,
@@ -112,7 +206,6 @@ static void print_proto_ipv6(void *data, size_t size, FILE *o)
 	inet_ntop(AF_INET6, (const void *) &(ip->ip6_dst), dip,
 		  INET6_ADDRSTRLEN);
 	fprintf(o, " [ipv6 src=%s dst=%s]", sip, dip);
-
 	print_l4(payload_type, payload, payload_size, o);
 }
 
