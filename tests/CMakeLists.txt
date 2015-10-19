@@ -72,7 +72,6 @@ target_link_libraries(${BIN_NAME}
 	${RTE_SDK_ROOT}/build/lib/librte_table.a
 	${RTE_SDK_ROOT}/build/lib/librte_ring.a
 	${RTE_SDK_ROOT}/build/lib/librte_eal.a
-	${RTE_SDK_ROOT}/build/lib/librte_malloc.a
 	${RTE_SDK_ROOT}/build/lib/libethdev.a
 	${RTE_SDK_ROOT}/build/lib/librte_pmd_pcap.a
 	${RTE_SDK_ROOT}/build/lib/librte_pmd_ring.a

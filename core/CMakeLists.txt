@@ -127,7 +127,6 @@ target_link_libraries(packetgraph-core-tests
 	${RTE_SDK_ROOT}/build/lib/librte_table.a
 	${RTE_SDK_ROOT}/build/lib/librte_ring.a
 	${RTE_SDK_ROOT}/build/lib/librte_eal.a
-	${RTE_SDK_ROOT}/build/lib/librte_malloc.a
 	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
 
 add_custom_target(tests
