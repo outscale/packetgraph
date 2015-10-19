@@ -21,6 +21,8 @@
 #include <net/if.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <endian.h>
@@ -30,14 +32,22 @@ static void print_l4(uint8_t type, void *data, size_t size, FILE *o);
 
 static void print_proto_tcp(void *data, size_t size, FILE *o)
 {
+	struct tcphdr *h = (struct tcphdr *)data;
+	if (size < sizeof(struct tcphdr))
+		return;
 	/* A lot more work TODO */
-	fprintf(o, " [tcp] ");
+	fprintf(o, " [tcp srcport=%u dstport=%u] ",
+		be16toh(h->source), be16toh(h->dest));
 }
 
 static void print_proto_udp(void *data, size_t size, FILE *o)
 {
+	struct udphdr *h = (struct udphdr *)data;
+	if (size < sizeof(struct udphdr))
+		return;
 	/* A lot more work TODO */
-	fprintf(o, " [udp] ");
+	fprintf(o, " [udp srcport=%u dstport=%u] ",
+		be16toh(h->source), be16toh(h->dest));
 }
 
 static void print_proto_icmp(void *data, size_t size, FILE *o)
@@ -198,7 +208,7 @@ static void print_proto_ipv6(void *data, size_t size, FILE *o)
 	char sip[INET6_ADDRSTRLEN];
 	char dip[INET6_ADDRSTRLEN];
 	void *payload = (void *)(ip + 1);
-	size_t payload_size = size - sizeof(typeof(ip));
+	size_t payload_size = size - sizeof(struct ip6_hdr);
 	uint8_t payload_type = ip->ip6_ctlun.ip6_un1.ip6_un1_nxt;
 
 	inet_ntop(AF_INET6, (const void *) &(ip->ip6_src), sip,
