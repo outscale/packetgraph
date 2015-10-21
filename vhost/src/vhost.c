@@ -108,6 +108,11 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		return 1;
 	}
 
+	if (unlikely(!(virtio_net->flags & VIRTIO_DEV_RUNNING))) {
+		rcu_read_unlock();
+		return 1;
+	}
+
 	pg_packets_incref(pkts, pkts_mask);
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
 	rte_vhost_enqueue_burst(virtio_net, VIRTIO_RXQ, state->out,
@@ -137,6 +142,11 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	*pkts_cnt = 0;
 
 	if (unlikely(!virtio_net)) {
+		rcu_read_unlock();
+		return 1;
+	}
+
+	if (unlikely(!(virtio_net->flags & VIRTIO_DEV_RUNNING))) {
 		rcu_read_unlock();
 		return 1;
 	}
