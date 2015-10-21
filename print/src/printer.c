@@ -33,6 +33,7 @@ static void print_l4(uint8_t type, void *data, size_t size, FILE *o);
 static void print_proto_tcp(void *data, size_t size, FILE *o)
 {
 	struct tcphdr *h = (struct tcphdr *)data;
+
 	if (size < sizeof(struct tcphdr))
 		return;
 	/* A lot more work TODO */
@@ -43,6 +44,7 @@ static void print_proto_tcp(void *data, size_t size, FILE *o)
 static void print_proto_udp(void *data, size_t size, FILE *o)
 {
 	struct udphdr *h = (struct udphdr *)data;
+
 	if (size < sizeof(struct udphdr))
 		return;
 	/* A lot more work TODO */
@@ -77,7 +79,7 @@ static void print_proto_ipv6_ext_hbh(void *data, size_t size, FILE *o)
 		return;
 	fprintf(o, " [ext Hop-by-Hop]");
 
-	data = &((uint8_t*)(data))[header_size];
+	data = &((uint8_t *)(data))[header_size];
 	print_l4(ext->ip6e_nxt, data, size - header_size, o);
 }
 
@@ -89,7 +91,7 @@ static void print_proto_ipv6_ext_routing(void *data, size_t size, FILE *o)
 	if (size < 16)
 		return;
 	fprintf(o, " [ext Routing]");
-	data = &((uint8_t*)(data))[header_size];
+	data = &((uint8_t *)(data))[header_size];
 	print_l4(ext->ip6e_nxt, data, size - header_size, o);
 }
 
@@ -101,7 +103,7 @@ static void print_proto_ipv6_ext_fragment(void *data, size_t size, FILE *o)
 	if (size < header_size)
 		return;
 	fprintf(o, " [ext Fragment]");
-	data = &((uint8_t*)(data))[header_size];
+	data = &((uint8_t *)(data))[header_size];
 	print_l4(ext->ip6e_nxt, data, size - header_size, o);
 }
 
@@ -123,7 +125,7 @@ static void print_proto_ipv6_ext_destination(void *data, size_t size, FILE *o)
 	if (size < header_size)
 		return;
 	fprintf(o, " [ext Destination]");
-	data = &((uint8_t*)(data))[header_size];
+	data = &((uint8_t *)(data))[header_size];
 	print_l4(ext->ip6e_nxt, data, size - header_size, o);
 }
 
@@ -135,7 +137,7 @@ static void print_proto_ipv6_ext_mobility(void *data, size_t size, FILE *o)
 	if (size < header_size)
 		return;
 	fprintf(o, " [ext Fragment]");
-	data = &((uint8_t*)(data))[header_size];
+	data = &((uint8_t *)(data))[header_size];
 	print_l4(ext->ip6f_nxt, data, size - header_size, o);
 }
 
