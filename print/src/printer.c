@@ -36,7 +36,7 @@ static void print_proto_tcp(void *data, size_t size, FILE *o)
 	if (size < sizeof(struct tcphdr))
 		return;
 	/* A lot more work TODO */
-	fprintf(o, " [tcp srcport=%u dstport=%u] ",
+	fprintf(o, " [tcp sport=%u dport=%u]",
 		be16toh(h->source), be16toh(h->dest));
 }
 
@@ -46,26 +46,26 @@ static void print_proto_udp(void *data, size_t size, FILE *o)
 	if (size < sizeof(struct udphdr))
 		return;
 	/* A lot more work TODO */
-	fprintf(o, " [udp srcport=%u dstport=%u] ",
+	fprintf(o, " [udp sport=%u dport=%u]",
 		be16toh(h->source), be16toh(h->dest));
 }
 
 static void print_proto_icmp(void *data, size_t size, FILE *o)
 {
 	/* A lot more work TODO */
-	fprintf(o, " [icmp] ");
+	fprintf(o, " [icmp]");
 }
 
 static void print_proto_icmpv6(void *data, size_t size, FILE *o)
 {
 	/* A lot more work TODO */
-	fprintf(o, " [icmpv6] ");
+	fprintf(o, " [icmpv6]");
 }
 
 static void print_proto_igmp(void *data, size_t size, FILE *o)
 {
 	/* A lot more work TODO */
-	fprintf(o, " [igmp] ");
+	fprintf(o, " [igmp]");
 }
 
 static void print_proto_ipv6_ext_hbh(void *data, size_t size, FILE *o)
@@ -222,7 +222,7 @@ static void print_proto_ipv6(void *data, size_t size, FILE *o)
 static void print_proto_arp(void *data, size_t size, FILE *o)
 {
 	/* A lot more work TODO */
-	fprintf(o, " [arp] ");
+	fprintf(o, " [arp]");
 }
 
 static void print_l3(uint16_t type, void *data, size_t size, FILE *o)
