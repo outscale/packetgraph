@@ -547,12 +547,12 @@ struct rte_mbuf **pg_brick_west_burst_get(struct pg_brick *brick,
 		return NULL;
 	}
 
-	if (!brick->burst_get) {
+	if (!brick->ops->burst_get) {
 		*errp = pg_error_new("No burst_get callback");
 		return NULL;
 	}
 
-	return brick->burst_get(brick, WEST_SIDE, pkts_mask);
+	return brick->ops->burst_get(brick, WEST_SIDE, pkts_mask);
 }
 
 struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
@@ -564,12 +564,12 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 		return NULL;
 	}
 
-	if (!brick->burst_get) {
+	if (!brick->ops->burst_get) {
 		*errp = pg_error_new("No burst_get callback");
 		return NULL;
 	}
 
-	return brick->burst_get(brick, EAST_SIDE, pkts_mask);
+	return brick->ops->burst_get(brick, EAST_SIDE, pkts_mask);
 }
 
 int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,

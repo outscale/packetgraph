@@ -65,12 +65,13 @@ target_link_libraries(${BIN_NAME}
 	pcap
 	dl
 	${GLIB2_LIBRARIES}
-	${RTE_SDK_ROOT}/build/lib/librte_vhost.a
+	${RTE_SDK_ROOT}/build/lib/librte_malloc.a
 	${RTE_SDK_ROOT}/build/lib/librte_hash.a
 	${RTE_SDK_ROOT}/build/lib/librte_mbuf.a
 	${RTE_SDK_ROOT}/build/lib/librte_mempool.a
 	${RTE_SDK_ROOT}/build/lib/librte_table.a
 	${RTE_SDK_ROOT}/build/lib/librte_ring.a
+	${RTE_SDK_ROOT}/build/lib/librte_vhost.a
 	${RTE_SDK_ROOT}/build/lib/librte_eal.a
 	${RTE_SDK_ROOT}/build/lib/libethdev.a
 	${RTE_SDK_ROOT}/build/lib/librte_pmd_pcap.a

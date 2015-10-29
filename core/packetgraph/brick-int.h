@@ -87,16 +87,7 @@ struct pg_brick {
 	int (*poll)(struct pg_brick *brick,
 		    uint16_t *count, struct pg_error **errp);
 
-	/**
-	 * Return a packet burst. This field is used bricks designed to
-	 * collect packets for testing purpose. In regular bricks it will be
-	 * set to NULL.
-	 */
-	struct rte_mbuf **(*burst_get)(struct pg_brick *brick,
-				       enum pg_side side,
-				       uint64_t *pkts_mask);
-
-	struct pg_brick_side sides[2];	/* east and west sides */
+	struct pg_brick_side sides[MAX_SIDE];	/* east and west sides */
 
 	struct pg_brick_ops *ops;	/* management ops */
 	int64_t refcount;		/* reference count */
@@ -135,10 +126,14 @@ struct pg_brick_ops {
 
 	int (*reset)(struct pg_brick *brick, struct pg_error **errp);
 
-	/* this return a copy of the brick handle:
-	 * the socket path for vhost-user.
+	/**
+	 * Return a packet burst. This field is used bricks designed to
+	 * collect packets for testing purpose. In regular bricks it will be
+	 * set to NULL.
 	 */
-	char *(*handle_dup)(struct pg_brick *brick, struct pg_error **errp);
+	struct rte_mbuf **(*burst_get)(struct pg_brick *brick,
+				       enum pg_side side,
+				       uint64_t *pkts_mask);
 };
 
 extern GList *pg_all_bricks;
