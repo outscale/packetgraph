@@ -350,11 +350,9 @@ static void test_graph_type1(void)
 	qemu1_pid = start_qemu_graph(&branch1, mac_reader_1,  &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu1_pid);
-	printf("qemu1 has been started\n");
 	qemu2_pid = start_qemu_graph(&branch2, mac_reader_2,  &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu2_pid);
-	printf("qemu2 has been started\n");
 
 	/* Now we need to kill qemu before exit in case of error */
 	
@@ -487,8 +485,6 @@ static void test_graph_firewall_intense(void)
 		/* Add firewall rule */
 		ASSERT(!pg_firewall_rule_add(branch1.firewall, "icmp",
 					     MAX_SIDE, 1, &error));
-		printf("vtep ref: %zu\n", vtep->refcount);
-		printf("vtep nb neighbour: %d\n", vtep->sides[EAST_SIDE].nb);
 		rm_graph_branch(&branch1);
 	}
 
