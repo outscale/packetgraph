@@ -301,8 +301,8 @@ static int switch_init(struct pg_brick *brick,
 		.n_entries		= HASH_ENTRIES,
 		.f_hash			= ether_hash,
 		.seed			= 0,
-		.signature_offset	= 0,
-		.key_offset		= 0,
+		.signature_offset	= APP_METADATA_OFFSET(0),
+		.key_offset		= APP_METADATA_OFFSET(0),
 	};
 
 	brick->burst = switch_burst;

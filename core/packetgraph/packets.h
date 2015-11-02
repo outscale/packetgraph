@@ -26,19 +26,23 @@
 #define HASH_ENTRIES		(1024 * 32)
 #define HASH_KEY_SIZE		8
 
+#define APP_METADATA_OFFSET(offset) (sizeof(struct rte_mbuf) + (offset))
+
 /**
  * Made as a macro for performance reason since a function would imply a 10%
  * performance hit and a function in a separate module would not be inlined.
  */
 #define dst_key_ptr(pkt)						\
-	((struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt, 0))
+	((struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt,		\
+							   APP_METADATA_OFFSET(0)))
 
 /**
  * Made as a macro for performance reason since a function would imply a 10%
  * performance hit and a function in a separate module would not be inlined.
  */
 #define src_key_ptr(pkt)						\
-	((struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt, HASH_KEY_SIZE))
+	((struct ether_addr *) RTE_MBUF_METADATA_UINT8_PTR(pkt,		\
+							   APP_METADATA_OFFSET(HASH_KEY_SIZE)))
 
 
 struct ether_addr;
