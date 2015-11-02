@@ -1,8 +1,14 @@
-cmake_minimum_required(VERSION 2.6)
+set(BRICK core)
+project(packetgraph-${BRICK})
 
-project(packetgraph-core)
+# Check if we build from packetgraph root or not
+set(PG_ROOT ${PG_ROOT_PATH})
+if("${PG_ROOT_PATH}" STREQUAL "")
+    cmake_minimum_required(VERSION 2.6)
+    set(PG_ROOT ${CMAKE_SOURCE_DIR}/..)
+endif()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../tools/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PG_ROOT}/tools/cmake")
 find_package(GLIB2 REQUIRED)
 
 set(RTE_SDK_ROOT $ENV{RTE_SDK})
@@ -12,23 +18,23 @@ endif()
 
 set(CMAKE_C_FLAGS "-g -O3 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11")
 
-add_library(packetgraph-core-objects OBJECT 
-	./src/utils/bitmask.c
-	./src/utils/config.c
-	./src/utils/errors.c
-	./src/utils/qemu.c
-	./src/lifecycle.c
-	./src/utils/mempool.c
-	./src/utils/mac.c
-	./src/bricks.c
-	./src/packets.c
-	./src/nop.c
-	./src/collect.c
-	./src/graph.c
-	./src/packetsgen.c)
+add_library(packetgraph-${BRICK}-objects OBJECT 
+	${PG_ROOT}/${BRICK}/src/utils/bitmask.c
+	${PG_ROOT}/${BRICK}/src/utils/config.c
+	${PG_ROOT}/${BRICK}/src/utils/errors.c
+	${PG_ROOT}/${BRICK}/src/utils/qemu.c
+	${PG_ROOT}/${BRICK}/src/lifecycle.c
+	${PG_ROOT}/${BRICK}/src/utils/mempool.c
+	${PG_ROOT}/${BRICK}/src/utils/mac.c
+	${PG_ROOT}/${BRICK}/src/bricks.c
+	${PG_ROOT}/${BRICK}/src/packets.c
+	${PG_ROOT}/${BRICK}/src/nop.c
+	${PG_ROOT}/${BRICK}/src/collect.c
+	${PG_ROOT}/${BRICK}/src/graph.c
+	${PG_ROOT}/${BRICK}/src/packetsgen.c)
 
-target_include_directories(packetgraph-core-objects PUBLIC
-	.
+target_include_directories(packetgraph-${BRICK}-objects PUBLIC
+	${PG_ROOT}/${BRICK}
 	${RTE_SDK_ROOT}/build/include
 	${RTE_SDK_ROOT}/lib
 	${GLIB2_INCLUDE_DIR}
@@ -53,37 +59,37 @@ set(HEADERS
 		ccan/build_assert/build_assert.h
 		ccan/compiler/compiler.h)
 
-add_library(packetgraph-core-shared
-		SHARED $<TARGET_OBJECTS:packetgraph-core-objects>)
+add_library(packetgraph-${BRICK}-shared
+		SHARED $<TARGET_OBJECTS:packetgraph-${BRICK}-objects>)
 
-add_library(packetgraph-core-static
-		STATIC $<TARGET_OBJECTS:packetgraph-core-objects>)
+add_library(packetgraph-${BRICK}-static
+		STATIC $<TARGET_OBJECTS:packetgraph-${BRICK}-objects>)
 
-set_target_properties(packetgraph-core-static packetgraph-core-shared
-		PROPERTIES OUTPUT_NAME packetgraph-core)
+set_target_properties(packetgraph-${BRICK}-static packetgraph-${BRICK}-shared
+		PROPERTIES OUTPUT_NAME packetgraph-${BRICK})
 
-install(TARGETS packetgraph-core-shared
+install(TARGETS packetgraph-${BRICK}-shared
 	LIBRARY
 	DESTINATION /usr/lib64)
 
-install(TARGETS packetgraph-core-static
+install(TARGETS packetgraph-${BRICK}-static
 	ARCHIVE
 	DESTINATION /usr/lib64)
 
 foreach(HEADER ${HEADERS})
 	string(REGEX MATCH "(.*)[/\\]" DIR ${HEADER})
-	install(FILES packetgraph/${HEADER}
+	install(FILES ${PG_ROOT}/${BRICK}/packetgraph/${HEADER}
 		DESTINATION /usr/include/packetgraph/${DIR})
 endforeach(HEADER ${HEADERS})
 
-set(PKG ${CMAKE_SOURCE_DIR}/pkg)
+set(PKG ${PG_ROOT}/${BRICK}/pkg)
 file(STRINGS ${PKG}/version.txt VERSION)
 file(STRINGS ${PKG}/release.txt RELEASE)
-set(CPACK_PACKAGE_NAME ${CMAKE_PROJECT_NAME})
+set(CPACK_PACKAGE_NAME packetgraph-${BRICK})
 set(CPACK_PACKAGE_MAINTAINER "Jerome Jutteau")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${PKG}/description.txt")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "packetgraph library permits to interconnect network bricks and create a dynamic software defined network")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_LICENSE "${PG_ROOT}/${BRICK}/LICENSE")
 set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_PACKAGE_RELEASE ${RELEASE})
 set(CPACK_PACKAGE_CONTACT "contact@outscale.com")
@@ -91,7 +97,7 @@ set(CPACK_PACKAGE_VENDOR "Outscale SAS")
 set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
 # RPM specific
-set(CPACK_RPM_PACKAGE_URL "https://gitantispoof.com/outscale/packetgraph")
+set(CPACK_RPM_PACKAGE_URL "https://github.com/outscale/packetgraph")
 set(CPACK_RPM_PACKAGE_LICENSE "GPL")
 set(CPACK_RPM_CHANGELOG_FILE "${PKG}/changelog.txt")
 set(CPACK_RPM_PACKAGE_REQUIRES "glib2 >= 2.40.0")
@@ -100,7 +106,7 @@ include(CPack)
 
 # Tests
 
-add_executable(packetgraph-core-tests EXCLUDE_FROM_ALL
+add_executable(packetgraph-${BRICK}-tests EXCLUDE_FROM_ALL
 		tests/test-core.c
 		tests/test-graph.c
 		tests/test-flow.c
@@ -108,16 +114,16 @@ add_executable(packetgraph-core-tests EXCLUDE_FROM_ALL
 		tests/test-pkts-count.c
 		tests/tests.c)
 
-target_include_directories(packetgraph-core-tests PUBLIC
-	.
-	./tests
+target_include_directories(packetgraph-${BRICK}-tests PUBLIC
+	${PG_ROOT}/${BRICK}
+	${PG_ROOT}/${BRICK}/tests
 	${RTE_SDK_ROOT}/build/include
 	${RTE_SDK_ROOT}/lib
 	${GLIB2_INCLUDE_DIR}
 	${GLIB2_INTERNAL_INCLUDE_DIR})
 
-target_link_libraries(packetgraph-core-tests
-	packetgraph-core-shared
+target_link_libraries(packetgraph-${BRICK}-tests
+	packetgraph-${BRICK}-shared
 	pthread
 	dl
 	${GLIB2_LIBRARIES}
@@ -129,8 +135,7 @@ target_link_libraries(packetgraph-core-tests
 	${RTE_SDK_ROOT}/build/lib/librte_eal.a
 	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
 
-add_custom_target(tests
-		COMMAND packetgraph-core-tests -c1 -n1 --socket-mem 64 
-		WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
-add_dependencies(tests ${CMAKE_PROJECT_NAME}-static)
-add_dependencies(tests ${CMAKE_PROJECT_NAME}-tests)
+add_custom_target(packetgraph-${BRICK}-tests-run
+		COMMAND /usr/bin/sudo ${PROJECT_BINARY_DIR}/packetgraph-${BRICK}-tests -c1 -n1 --socket-mem 64)
+add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-static)
+add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-tests)

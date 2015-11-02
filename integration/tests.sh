@@ -25,6 +25,8 @@ BUILD_ROOT=$3
 
 usage="usage: build_buildroot.sh VHOST_DIR_PATH VHOST_BUILD_DIR_PATH BUILD_ROOT"
 
+bin="packetgraph-integration-tests"
+
 # Test vhost root
 if [ ! -f $VHOST_ROOT/src/vhost.c ]; then
 	echo can not found $VHOST_ROOT/src/vhost.c
@@ -40,8 +42,8 @@ if [ ! -d $VHOST_BUILD_ROOT/CMakeFiles ]; then
 fi
 
 # Test build root
-if [ ! -f $BUILD_ROOT/tests-bin ]; then
-	echo can not found $BUILD_ROOT/tests-bin
+if [ ! -f $BUILD_ROOT/$bin ]; then
+	echo can not found $BUILD_ROOT/$bin
 	echo $usage
 	exit 1
 fi
@@ -84,4 +86,4 @@ fi
 echo $VHOST_BUILD_ROOT/
 file $VHOST_BUILD_ROOT/packetgraph-vhost-tests
 # Launch test
-sudo $BUILD_ROOT/tests-bin -c1 -n1 --socket-mem 64 -- -bzimage $VHOST_BUILD_ROOT/buildroot/output/images/bzImage -cpio $VHOST_BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge
+sudo $BUILD_ROOT/$bin -c1 -n1 --socket-mem 64 -- -bzimage $VHOST_BUILD_ROOT/buildroot/output/images/bzImage -cpio $VHOST_BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge

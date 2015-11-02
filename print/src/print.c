@@ -61,7 +61,9 @@ static struct pg_brick_config *pg_print_config_new(const char *name,
 
 static int should_skip(uint16_t *type_filter, struct ether_hdr *eth)
 {
-	for (int i = 0; type_filter != NULL && type_filter[i]; ++i) {
+	int i;
+
+	for (i = 0; type_filter != NULL && type_filter[i]; ++i) {
 		if (eth->ether_type == type_filter[i])
 			return 1;
 	}

@@ -79,7 +79,7 @@ static inline void pg_gc_chained_add_int(GList **name, ...)
 {
 	va_list ap;
 	struct pg_brick *cur;
-	
+
 	va_start(ap, name);
 	while ((cur = va_arg(ap, struct pg_brick *)) != NULL)
 		*name = g_list_append(*name, cur);
@@ -213,7 +213,7 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	GString *tmp = g_string_new(NULL);
 
 	branch->collector = NULL;
-	branch->id = id;	
+	branch->id = id;
 	branch->mac = mac;
 	g_string_printf(tmp, "fw-%d", id);
 	branch->firewall = pg_firewall_new(tmp->str, 1, 1,
@@ -270,6 +270,7 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	g_string_free(tmp, 1);
 	return 1;
 }
+
 static int link_graph_branch(struct branch *branch, struct pg_brick *west_brick)
 {
 	struct pg_error *error = NULL;
@@ -278,7 +279,6 @@ static int link_graph_branch(struct branch *branch, struct pg_brick *west_brick)
 	CHECK_ERROR(error);
 	return 1;
 }
-
 
 static void test_graph_type1(void)
 {
@@ -304,7 +304,7 @@ static void test_graph_type1(void)
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
-	
+
 	nic = pg_nic_new_by_id("nic", 1, 1, WEST_SIDE, ring_port(), &error);
 	CHECK_ERROR(error);
 	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
@@ -314,7 +314,7 @@ static void test_graph_type1(void)
 	print = pg_print_new("print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
 			     NULL, &error);
 	CHECK_ERROR(error);
-	
+
 	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
 
 	g_assert(add_graph_branch(&branch1, 1, mac1, 0, 0));
@@ -355,7 +355,7 @@ static void test_graph_type1(void)
 	g_assert(qemu2_pid);
 
 	/* Now we need to kill qemu before exit in case of error */
-	
+
 	/* Add VNI's */
 	pg_vtep_add_vni(vtep, branch1.firewall, VNI_1,
 			inet_addr("225.0.0.1"), &error);
@@ -399,7 +399,7 @@ static void test_graph_type1(void)
 	ASSERT(pg_brick_pkts_count_get(branch1.firewall, EAST_SIDE));
 	/* ASSERT(pg_brick_pkts_count_get(antispoof1, EAST_SIDE)); */
 	ASSERT(pg_brick_pkts_count_get(branch1.vhost, EAST_SIDE));
-	
+
 	/* check the collect1 */
 	for (int i = 0; i < 10; i++) {
 		usleep(100000);
@@ -462,7 +462,7 @@ static void test_graph_firewall_intense(void)
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
-	
+
 	nic = pg_nic_new_by_id("nic", 1, 1, WEST_SIDE, ring_port(), &error);
 	CHECK_ERROR(error);
 	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
@@ -472,7 +472,6 @@ static void test_graph_firewall_intense(void)
 	print = pg_print_new("main-print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
 			     NULL, &error);
 	CHECK_ERROR(error);
-	
 	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
 
 	pg_brick_chained_links(&error, nic, print, vtep);
@@ -480,7 +479,7 @@ static void test_graph_firewall_intense(void)
 
 	for (int i = 0; i < 100; ++i) {
 		g_assert(add_graph_branch(&branch1, 1, mac1, 0, 0));
-		g_assert(link_graph_branch(&branch1, vtep));	
+		g_assert(link_graph_branch(&branch1, vtep));
 
 		/* Add firewall rule */
 		ASSERT(!pg_firewall_rule_add(branch1.firewall, "icmp",
@@ -495,7 +494,7 @@ exit:
 	pg_gc_destroy(brick_gc);
 	rm_graph_branch(&branch1);
 	pg_vhost_stop();
-	g_assert(!ret);	
+	g_assert(!ret);
 }
 
 int main(int argc, char **argv)

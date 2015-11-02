@@ -670,10 +670,10 @@ static uint64_t parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error;
+	struct pg_error *error = NULL;
 	int r;
 	int test_flags;
-	
+
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
