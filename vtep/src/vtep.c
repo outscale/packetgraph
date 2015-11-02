@@ -755,8 +755,8 @@ static void vtep_init_hashes(struct pg_brick *brick,
 		.n_buckets = HASH_ENTRIES >> 2,
 		.f_hash = hash_32,
 		.seed = 0,
-		.signature_offset = 0,
-		.key_offset = 0,
+		.signature_offset = APP_METADATA_OFFSET(0),
+		.key_offset = APP_METADATA_OFFSET(0),
 	};
 
 	state->vni_to_port = rte_table_hash_lru_dosig_ops.f_create(
@@ -1076,8 +1076,8 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 		.n_entries		= HASH_ENTRIES,
 		.f_hash			= hash_64,
 		.seed			= 0,
-		.signature_offset	= 0,
-		.key_offset		= 0,
+		.signature_offset	= APP_METADATA_OFFSET(0),
+		.key_offset		= APP_METADATA_OFFSET(0),
 	};
 
 	/* TODO: return 1 ? */
