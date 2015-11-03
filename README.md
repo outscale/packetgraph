@@ -54,6 +54,14 @@ $ cmake ..
 $ make
 ```
 
+to build a specific brick (diode for example):
+```
+$ mkdir build
+$ export RTE_SDK=/your/path/to/dpdk
+$ cmake ..
+$ make diode
+```
+
 # Question ? Contact us !
 
 Packetgraph is an open-source project, feel free to contact us on IRC:
