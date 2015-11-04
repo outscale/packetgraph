@@ -445,6 +445,8 @@ void pg_vhost_stop(void)
 
 	if (!vhost_start_ok)
 		return;
+	g_free(sockets_path);
+	sockets_path = NULL;
 	pthread_cancel(vhost_session_thread);
 	pthread_join(vhost_session_thread, &ret);
 	rcu_unregister_thread();
