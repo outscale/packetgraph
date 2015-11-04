@@ -399,6 +399,10 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 {
 	int ret;
 
+	if (vhost_start_ok) {
+		*errp = pg_error_new("vhost already started");
+		return 0;
+	}
 	rcu_register_thread();
 
 	rte_vhost_feature_enable(1ULL << VIRTIO_NET_F_CTRL_RX);
