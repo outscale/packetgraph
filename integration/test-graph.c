@@ -518,9 +518,9 @@ int main(int argc, char **argv)
 		print_usage();
 	g_assert(!(test_flags & FAIL));
 
-	g_test_add_func("/brick/graph/type1",
+	g_test_add_func("/brick/graph/flow",
 			test_graph_type1);
-	g_test_add_func("/brick/graph/firewall/intense",
+	g_test_add_func("/brick/graph/intense",
 			test_graph_firewall_intense);
 	r = g_test_run();
 
