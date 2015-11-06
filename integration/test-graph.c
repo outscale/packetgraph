@@ -492,7 +492,6 @@ static void test_graph_firewall_intense(void)
 	ret = 0;
 exit:
 	pg_gc_destroy(brick_gc);
-	rm_graph_branch(&branch1);
 	pg_vhost_stop();
 	g_assert(!ret);
 }
