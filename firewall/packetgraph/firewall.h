@@ -26,8 +26,8 @@
 
 /**
  * Create a new firewall brick.
- * Don't forget to call pg_firewall_thread_register where you want to run
- * the firewall.
+ * This function should be call in the same thread than the one
+ * which process packets.
  *
  * @param	name name of the brick
  * @param	west_max maximum of links you can connect on the west side
