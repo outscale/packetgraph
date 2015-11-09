@@ -43,12 +43,6 @@ struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
 				 uint32_t east_max, uint64_t flags,
 				 struct pg_error **errp);
 
-/**
- * Register the firewall in the current thread.
- *
- * @param	brick pointer to the firewall brick
- */
-void pg_firewall_thread_register(struct pg_brick *brick);
 
 /**
  * Add a new rule in the firewall.

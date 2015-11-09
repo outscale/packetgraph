@@ -140,7 +140,6 @@ static void firewall_filter_rules(enum pg_side dir)
 	gen = pg_packetsgen_new("gen", 2, 2, pg_flip_side(dir), packets, nb, &error);
 	g_assert(!error);
 	fw = pg_firewall_new("fw", 2, 2, PG_NONE, &error);
-	pg_firewall_thread_register(fw);
 	g_assert(!error);
 	col = pg_collect_new("col", 2, 2, &error);
 	g_assert(!error);
@@ -446,7 +445,6 @@ static void firewall_replay(const unsigned char *pkts[],
 				  &error);
 	g_assert(!error);
 	fw = pg_firewall_new("fw", 1, 1, PG_NONE, &error);
-	pg_firewall_thread_register(fw);
 	g_assert(!error);
 	col_west = pg_collect_new("col_west", 1, 1, &error);
 	g_assert(!error);
@@ -550,7 +548,6 @@ static void firewall_noip(enum pg_side dir)
 	gen = pg_packetsgen_new("gen", 2, 2, pg_flip_side(dir), packets, nb, &error);
 	g_assert(!error);
 	fw = pg_firewall_new("fw", 2, 2, PG_NONE, &error);
-	pg_firewall_thread_register(fw);
 	g_assert(!error);
 	col = pg_collect_new("col", 2, 2, &error);
 	g_assert(!error);
