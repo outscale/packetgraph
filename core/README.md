@@ -19,6 +19,7 @@ If you don't have DPDK, get it and build it:
 ```
 $ git clone http://dpdk.org/git/dpdk
 $ cd dpdk
+$ git checkout -b to_use 6c6373c763748ca28805f215c3f646e127a7cf8a
 $ export RTE_SDK=$(pwd)
 $ make config T=x86_64-native-linuxapp-gcc
 $ make CONFIG_RTE_LIBRTE_VHOST=y CONFIG_RTE_LIBRTE_PMD_PCAP=y
