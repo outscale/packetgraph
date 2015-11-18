@@ -60,10 +60,10 @@ struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					const char *str);
 
 struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
-					 uint64_t pkts_mask,
-					 struct ether_addr *src_mac,
-					 struct ether_addr *dst_mac,
-					 uint16_t ether_type);
+					  uint64_t pkts_mask,
+					  struct ether_addr *src_mac,
+					  struct ether_addr *dst_mac,
+					  uint16_t ether_type);
 
 struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
 					 uint64_t pkts_mask,
