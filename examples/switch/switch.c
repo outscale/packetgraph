@@ -29,6 +29,7 @@
 
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/nic.h>
+#include <packetgraph/vhost.h>
 #include <packetgraph/switch.h>
 #include <packetgraph/print.h>
 #include <packetgraph/utils/mempool.h>
@@ -76,15 +77,16 @@ static void pg_brick_destroy_wraper(void *arg)
 			brick = ((name = g_list_first(name))->data);	\
 	} while (0)
 
-static int start_loop(int verbose)
+
+static int start_loop(int verbose, int nb_vhost)
 {
  	struct pg_error *error = NULL;
 	struct pg_brick *nic_tmp, *switch_east, *print_tmp;
 	uint16_t port_count = rte_eth_dev_count();
 	GList *nic_manager = NULL;
 	GList *manager = NULL;
+	int ret = -1;
 
-	g_assert(port_count > 1);
 
 	/*
 	 * Here is an ascii graph of the links:
@@ -100,12 +102,34 @@ static int start_loop(int verbose)
 	CHECK_ERROR(error);
 	PG_BM_ADD(manager, switch_east);
 
+	if (nb_vhost) {
+		if (pg_vhost_start("/tmp", &error) < 0)
+			goto free_switch;
+		port_count = nb_vhost;
+	}
+	g_assert(port_count > 1);
+
+	
 	for (int i = 0; i < port_count; ++i) {
-		nic_tmp = pg_nic_new_by_id("nic", 1, 1, WEST_SIDE, i, &error);
+		char *tmp_name;
+
+		if (nb_vhost) {
+			tmp_name = g_strdup_printf("vhost-%d", i);
+			nic_tmp = pg_vhost_new(tmp_name, 1, 1,
+					       WEST_SIDE, &error);
+		} else {
+			tmp_name = g_strdup_printf("nic-%d", i);
+			nic_tmp = pg_nic_new_by_id(tmp_name, 1, 1,
+					     WEST_SIDE, i, &error);
+		}
+
+		g_free(tmp_name);
 		CHECK_ERROR(error);
-		print_tmp = pg_print_new("print", 1, 1, NULL,
+		tmp_name = g_strdup_printf("print-%d", i);
+		print_tmp = pg_print_new(tmp_name, 1, 1, NULL,
 					 PG_PRINT_FLAG_MAX, NULL,
 					 &error);
+		g_free(tmp_name);
 		CHECK_ERROR(error);
 		if (!verbose)
 			pg_brick_chained_links(&error, nic_tmp, switch_east);
@@ -129,26 +153,46 @@ static int start_loop(int verbose)
 		}
 		printf("poll pkts: %lu\n", tot_send_pkts);
 	}
+	ret = 0;
 	nic_manager = g_list_first(nic_manager);
-	PG_BM_DESTROY(manager);
 	PG_BM_DESTROY(nic_manager);
-	return 0;
+free_switch:
+	PG_BM_DESTROY(manager);
+	pg_vhost_stop();
+	return ret;
 }
 
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
-	int ret;
+	int ret = -1;
 	int verbose = 0;
+	int nb_vhost = 0;
 	
 	ret = pg_start(argc, argv, &error);
 	g_assert(ret != -1);
 	CHECK_ERROR(error);
 	argc -= ret;
 	argv += ret;
-	verbose = (argc > 1 && g_str_equal(argv[1], "-verbose"));
+	while (argc > 1) {
+		if (g_str_equal(argv[1], "-verbose")) {
+			verbose = 1;
+		} else if (g_str_equal(argv[1], "-vhost")) {
+			if (argc < 2)
+				goto exit;
+			nb_vhost = atoi(argv[2]);
+			if (!nb_vhost)
+				goto exit;
+			--argc;
+			++argv;
+		}
+		--argc;
+		++argv;
+	}
+
 	/* accounting program name */
-	ret = start_loop(verbose);
+	ret = start_loop(verbose, nb_vhost);
+exit:
 	pg_stop();
 	return ret;
 }

@@ -8,6 +8,7 @@ find_package(PCAP REQUIRED)
 find_package(packetgraph-core REQUIRED)
 find_package(packetgraph-nic REQUIRED)
 find_package(packetgraph-switch REQUIRED)
+find_package(packetgraph-vhost REQUIRED)
 find_package(packetgraph-print REQUIRED)
 
 set(RTE_SDK_ROOT $ENV{RTE_SDK})
@@ -33,12 +34,14 @@ target_include_directories(switch PUBLIC
   ${LIBNPF_INCLUDE_DIR}
   ${LIBPACKETGRAPH-CORE_INCLUDE_DIR}
   ${LIBPACKETGRAPH-NIC_INCLUDE_DIR}
+  ${LIBPACKETGRAPH-VHOST_INCLUDE_DIR}
   ${LIBPACKETGRAPH-SWITCH_INCLUDE_DIR}
   ${LIBPACKETGRAPH-PRINT_INCLUDE_DIR})
 
 target_link_libraries(switch
 	${LIBPACKETGRAPH-NIC_LIBRARY}
 	${LIBPACKETGRAPH-SWITCH_LIBRARY}
+	${LIBPACKETGRAPH-VHOST_LIBRARY}
 	${LIBPACKETGRAPH-PRINT_LIBRARY}
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	${LIBNPF_LIBRARY}
@@ -62,4 +65,5 @@ target_link_libraries(switch
 	${RTE_SDK_ROOT}/build/lib/librte_pmd_ring.a
 	${RTE_SDK_ROOT}/build/lib/librte_pmd_e1000.a
 	${RTE_SDK_ROOT}/build/lib/librte_pmd_ixgbe.a
+	${RTE_SDK_ROOT}/build/lib/librte_vhost.a
 	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
