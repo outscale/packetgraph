@@ -25,6 +25,7 @@ add_library(packetgraph-${BRICK}-objects OBJECT
 	${PG_ROOT}/${BRICK}/src/utils/qemu.c
 	${PG_ROOT}/${BRICK}/src/lifecycle.c
 	${PG_ROOT}/${BRICK}/src/utils/mempool.c
+	${PG_ROOT}/${BRICK}/src/utils/bench.c
 	${PG_ROOT}/${BRICK}/src/utils/mac.c
 	${PG_ROOT}/${BRICK}/src/bricks.c
 	${PG_ROOT}/${BRICK}/src/packets.c
@@ -54,6 +55,7 @@ set(HEADERS
 		utils/config.h
 		utils/errors.h
 		utils/mempool.h
+		utils/bench.h
 		utils/mac.h
 		ccan/config.h
 		ccan/build_assert/build_assert.h
