@@ -110,7 +110,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 		     struct pg_error **errp)
 {
 	uint16_t count = 0;
-	uint16_t pkts_lost;
+	uint16_t pkts_bursted;
 	struct pg_nic_state *state = pg_brick_get_state(brick,
 							struct pg_nic_state);
 	struct rte_mbuf **exit_pkts = state->exit_pkts;
@@ -121,25 +121,25 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 	}
 
 	count = pg_packets_pack(exit_pkts,
-			     pkts, pkts_mask);
+				pkts, pkts_mask);
 
 	pg_packets_incref(pkts, pkts_mask);
 #ifndef _BRICKS_BRICK_NIC_STUB_H_
-	pkts_lost = rte_eth_tx_burst(state->portid, 0,
-				     exit_pkts,
-				     count);
+	pkts_bursted = rte_eth_tx_burst(state->portid, 0,
+					exit_pkts,
+					count);
 #else
 	if (nb_pkts > max_pkts)
-		pkts_lost = rte_eth_tx_burst(state->portid, 0,
-					     exit_pkts, max_pkts);
+		pkts_bursted = rte_eth_tx_burst(state->portid, 0,
+						exit_pkts, max_pkts);
 	else
-		pkts_lost = rte_eth_tx_burst(state->portid, 0,
-					     exit_pkts, nb_pkts);
+		pkts_bursted = rte_eth_tx_burst(state->portid, 0,
+						exit_pkts, nb_pkts);
 #endif /* #ifndef _BRICKS_BRICK_NIC_STUB_H_ */
 
-	if (unlikely(pkts_lost < count)) {
+	if (unlikely(pkts_bursted < count)) {
 		pg_packets_free(exit_pkts, pg_mask_firsts(count) &
-				~pg_mask_firsts(pkts_lost));
+				~pg_mask_firsts(pkts_bursted));
 	}
 	return 1;
 }
