@@ -1,4 +1,4 @@
-/* Copyright 2014 Nodalink EURL
+/* Copyright 2015 Outscale SAS
  *
  * This file is part of Butterfly.
  *
@@ -15,21 +15,21 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TESTS_H_
-#define _TESTS_H_
+#include <glib.h>
+#include <packetgraph/packetgraph.h>
 
-enum test_flags {
-	PRINT_USAGE = 1,
-	FAIL = 2
-};
-
-void test_brick_core(void);
-void test_brick_graph(void);
-void test_brick_flow(void);
-void test_error(void);
-void test_pkts_count(void);
 void test_benchmark_nop(void);
 
-extern uint16_t  max_pkts;
+int main(int argc, char **argv)
+{
+	struct pg_error *error;
+	int r;
 
-#endif
+	g_test_init(&argc, &argv, NULL);
+	pg_start(argc, argv, &error);
+	g_assert(!error);
+	test_benchmark_nop();
+	r = g_test_run();
+	pg_stop();
+	return r;
+}
