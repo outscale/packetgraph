@@ -111,6 +111,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 {
 	uint16_t count = 0;
 	uint16_t pkts_bursted;
+	struct pg_brick_side *side;
 	struct pg_nic_state *state = pg_brick_get_state(brick,
 							struct pg_nic_state);
 	struct rte_mbuf **exit_pkts = state->exit_pkts;
@@ -136,6 +137,11 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 		pkts_bursted = rte_eth_tx_burst(state->portid, 0,
 						exit_pkts, nb_pkts);
 #endif /* #ifndef _BRICKS_BRICK_NIC_STUB_H_ */
+
+	side = &brick->sides[pg_flip_side(from)];
+	if (side->burst_count_cb != NULL)
+		side->burst_count_cb(side->burst_count_private_data,
+				     pkts_bursted);
 
 	if (unlikely(pkts_bursted < count)) {
 		pg_packets_free(exit_pkts, pg_mask_firsts(count) &
