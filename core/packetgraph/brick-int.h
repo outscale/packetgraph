@@ -65,6 +65,12 @@ struct pg_brick_side {
 	uint16_t nb;			/* number of edges */
 	struct pg_brick_edge *edges;	/* edges */
 	rte_atomic64_t packet_count;	/* incoming pkts count */
+	/* Optional callback to set to get the number of packets which has been
+	 * bursted/enqueue. Default: NULL.
+	 */
+	void (*burst_count_cb)(void *private_data, uint16_t burst_count);
+	/* Private data to provide when using callback. */
+	void *burst_count_private_data;
 };
 
 /**
