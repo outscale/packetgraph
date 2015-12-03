@@ -43,6 +43,21 @@ struct rte_mbuf **pg_packets_create(uint64_t pkts_mask)
 	return ret;
 }
 
+struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
+					uint64_t pkts_mask,
+					uint16_t len)
+{
+	char *tmp;
+
+	PG_FOREACH_BIT(pkts_mask, j) {
+		if (!pkts[j])
+			continue;
+		tmp = rte_pktmbuf_append(pkts[j], len);
+		memset(tmp, 0, len);
+	}
+	return pkts;
+}
+
 struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
 					const char *str)
@@ -57,7 +72,6 @@ struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 	}
 	return pkts;
 }
-
 
 struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
 					 uint64_t pkts_mask,

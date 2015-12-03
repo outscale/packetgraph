@@ -51,6 +51,10 @@ struct ether_addr;
 
 struct rte_mbuf **pg_packets_create(uint64_t pkts_mask);
 
+struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
+					  uint64_t pkts_mask,
+					  uint16_t len);
+
 struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
 					const char *str);
