@@ -36,6 +36,8 @@
 #include <packetgraph/hub.h>
 #include <packetgraph/nop.h>
 
+void test_benchmark_vtep(void);
+
 /* redeclar here for testing purpose,
  * theres stucture should not be use by user */
 
