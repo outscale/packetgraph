@@ -27,7 +27,6 @@
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/collect.h>
 
-
 #define NB_PKTS 3
 
 #define		TEST_HUB_DESTROY()					\
