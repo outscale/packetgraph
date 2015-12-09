@@ -16,6 +16,7 @@ set(bricks
     vtep
     vhost)
 add_custom_target(tests)
+add_custom_target(bench)
 
 foreach(brick IN LISTS bricks)
     # Include brick building
@@ -28,4 +29,6 @@ foreach(brick IN LISTS bricks)
     # Directly run tests of a specific brick
     add_custom_target(tests-${brick})
     add_dependencies(tests-${brick} packetgraph-${brick}-tests-run)
+    # Include benchmarks for all bricks
+    add_dependencies(bench packetgraph-${brick}-bench-run)
 endforeach(brick)
