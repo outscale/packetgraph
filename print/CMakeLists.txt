@@ -115,3 +115,40 @@ if (NOT "${PG_ROOT_PATH}" STREQUAL "")
     add_dependencies(packetgraph-${BRICK}-tests packetgraph-core-static)
 endif()
 
+# Benchmark
+
+add_executable(packetgraph-${BRICK}-bench EXCLUDE_FROM_ALL
+		tests/bench.c
+		tests/test-bench-${BRICK}.c)
+
+target_include_directories(packetgraph-${BRICK}-bench PUBLIC
+	${PG_ROOT}/${BRICK}/tests
+	${PG_ROOT}/${BRICK}
+	${RTE_SDK_ROOT}/build/include
+	${RTE_SDK_ROOT}/lib
+	${GLIB2_INCLUDE_DIR}
+	${GLIB2_INTERNAL_INCLUDE_DIR}
+	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
+
+target_link_libraries(packetgraph-${BRICK}-bench
+	packetgraph-${BRICK}-static
+	${LIBPACKETGRAPH-CORE_LIBRARY}
+	pthread
+	dl
+	${GLIB2_LIBRARIES}
+	${RTE_SDK_ROOT}/build/lib/librte_hash.a
+	${RTE_SDK_ROOT}/build/lib/librte_mbuf.a
+	${RTE_SDK_ROOT}/build/lib/librte_mempool.a
+	${RTE_SDK_ROOT}/build/lib/librte_table.a
+	${RTE_SDK_ROOT}/build/lib/librte_ring.a
+	${RTE_SDK_ROOT}/build/lib/librte_eal.a
+	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
+
+add_custom_target(packetgraph-${BRICK}-bench-run
+		COMMAND /usr/bin/sudo ${PROJECT_BINARY_DIR}/packetgraph-${BRICK}-bench -c1 -n1 --socket-mem 64 2> /dev/null)
+add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-static)
+add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-bench)
+if (NOT "${PG_ROOT_PATH}" STREQUAL "")
+    add_dependencies(packetgraph-${BRICK}-bench packetgraph-core-static)
+endif()
+
