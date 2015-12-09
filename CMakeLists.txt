@@ -32,3 +32,7 @@ foreach(brick IN LISTS bricks)
     # Include benchmarks for all bricks
     add_dependencies(bench packetgraph-${brick}-bench-run)
 endforeach(brick)
+
+add_custom_target(style
+        COMMAND ${PG_ROOT_PATH}/tools/check_style.sh ${PG_ROOT_PATH}
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
