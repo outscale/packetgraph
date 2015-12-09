@@ -22,7 +22,7 @@ set -e
 VHOST_ROOT=$1
 BUILD_ROOT=$2
 
-usage="usage: test.sh VHOST_DIR_PATH BUILD_DIR_PATH"
+usage="usage: bench.sh VHOST_DIR_PATH BUILD_DIR_PATH"
 
 # Test vhost root
 if [ ! -f $VHOST_ROOT/src/vhost.c ]; then
@@ -72,7 +72,7 @@ if [  $NB_HUGE -lt 50 ]; then
 fi
 
 echo $BUILD_ROOT/
-file $BUILD_ROOT/packetgraph-vhost-tests
+file $BUILD_ROOT/packetgraph-vhost-bench
 # Launch test
-sudo $BUILD_ROOT/packetgraph-vhost-tests -c1 -n1 --socket-mem 64 -- -bzimage $BUILD_ROOT/buildroot/output/images/bzImage -cpio $BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge
+sudo $BUILD_ROOT/packetgraph-vhost-bench -c1 -n1 --socket-mem 64 -- -bzimage $BUILD_ROOT/buildroot/output/images/bzImage -cpio $BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge
 

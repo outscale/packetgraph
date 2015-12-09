@@ -32,4 +32,6 @@ extern char *glob_bzimage_path;
 extern char *glob_cpio_path;
 extern char *glob_hugepages_path;
 
+void test_benchmark_vhost(void);
+
 #endif
