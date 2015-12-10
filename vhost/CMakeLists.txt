@@ -157,7 +157,7 @@ add_custom_target(packetgraph-${BRICK}-bench-run
         COMMAND ${PG_ROOT}/${BRICK}/tests/bench.sh ${PG_ROOT}/${BRICK} ${PROJECT_BINARY_DIR}
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-static)
-add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-tests)
+add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-bench)
 if (NOT "${PG_ROOT_PATH}" STREQUAL "")
     add_dependencies(packetgraph-${BRICK}-bench packetgraph-core-static)
 endif()
