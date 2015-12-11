@@ -606,7 +606,6 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 			} else {
 				tmp = pkts[j];
 			}
-			g_assert(tmp);
 			if (unlikely(!tmp))
 				return 0;
 			out_pkts[j] = tmp;
