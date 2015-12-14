@@ -24,6 +24,8 @@ enum pg_side {
 	MAX_SIDE  = 2
 };
 
+#define DEFAULT_SIDE WEST_SIDE
+
 /* do not change this */
 #define PG_MAX_PKTS_BURST	64
 

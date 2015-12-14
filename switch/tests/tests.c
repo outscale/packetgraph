@@ -49,7 +49,7 @@ static void test_switch_lifecycle(void)
 	struct pg_error *error = NULL;
 	struct pg_brick *brick;
 
-	brick = pg_switch_new("switch", 20, 20, &error);
+	brick = pg_switch_new("switch", 20, 20, DEFAULT_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -65,7 +65,7 @@ static void test_switch_learn(void)
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_switch_new("switch", 4, 4, &error);
+	brick = pg_switch_new("switch", 4, 4, DEFAULT_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -240,7 +240,7 @@ static void test_switch_switching(void)
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_switch_new("switch", 4, 4, &error);
+	brick = pg_switch_new("switch", 4, 4, WEST_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -411,7 +411,7 @@ static void test_switch_unlink(void)
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_switch_new("switch", 4, 4, &error);
+	brick = pg_switch_new("switch", 4, 4, WEST_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -603,7 +603,7 @@ static void test_switch_multicast_destination(void)
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_switch_new("switch", 4, 4, &error);
+	brick = pg_switch_new("switch", 4, 4, DEFAULT_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -785,7 +785,7 @@ static void test_switch_multicast_both(void)
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_switch_new("switch", 4, 4, &error);
+	brick = pg_switch_new("switch", 4, 4, DEFAULT_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -969,7 +969,7 @@ static void test_switch_filtered(void)
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask, i;
 
-	brick = pg_switch_new("switch", 4, 4, &error);
+	brick = pg_switch_new("switch", 4, 4, WEST_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -1059,7 +1059,8 @@ static void test_switch_perf_learn(void)
 	uint16_t i;
 	uint32_t j;
 
-	brick = pg_switch_new("switch", TEST_PORTS / 2, TEST_PORTS / 2, &error);
+	brick = pg_switch_new("switch", TEST_PORTS / 2, TEST_PORTS / 2,
+			      DEFAULT_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 
@@ -1142,7 +1143,8 @@ static void test_switch_perf_switch(void)
 	uint16_t i;
 	uint32_t j;
 
-	brick = pg_switch_new("switch", TEST_PORTS / 2, TEST_PORTS / 2, &error);
+	brick = pg_switch_new("switch", TEST_PORTS / 2, TEST_PORTS / 2,
+			      DEFAULT_SIDE, &error);
 	g_assert(brick);
 	CHECK_ERROR(error);
 

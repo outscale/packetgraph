@@ -49,7 +49,12 @@ struct pg_switch_side {
 struct pg_switch_state {
 	struct pg_brick brick;
 	void *table;				/* mac addy lookup table */
+	enum pg_side output;
 	struct pg_switch_side sides[MAX_SIDE];	/* sides of the switch */
+};
+
+struct pg_switch_config {
+	enum pg_side output;
 };
 
 static inline uint64_t ether_hash(void *key, uint32_t key_size, uint64_t seed)
@@ -107,20 +112,27 @@ static int forward_bursts(struct pg_switch_state *state,
 			  struct pg_error **errp)
 {
 	struct pg_switch_side *switch_side = &state->sides[source->from];
-	enum pg_side i;
+	enum pg_side i = state->output;
 	uint16_t j;
 	int ret;
 
 	/* never forward on source port */
 	switch_side->masks[source->edge_index] = 0;
 
-	for (i = 0; i < MAX_SIDE; i++)
-		for (j = 0; j < state->brick.sides[i].max; j++) {
-			ret = forward(state, i, j, pkts, nb, errp);
+	for (j = 0; j < state->brick.sides[i].max; j++) {
+		ret = forward(state, i, j, pkts, nb, errp);
 
-			if (!ret)
-				return 0;
-		}
+		if (!ret)
+			return 0;
+	}
+
+	i = pg_flip_side(i);
+	for (j = 0; j < state->brick.sides[i].max; j++) {
+		ret = forward(state, i, j, pkts, nb, errp);
+
+		if (!ret)
+			return 0;
+	}
 
 	return 1;
 }
@@ -305,6 +317,11 @@ static int switch_init(struct pg_brick *brick,
 		.key_offset		= APP_METADATA_OFFSET(0),
 	};
 
+	if (!config->brick_config) {
+		*errp = pg_error_new("config->brick_config is NULL");
+		return 0;
+	}
+
 	brick->burst = switch_burst;
 
 	state->table = rte_table_hash_key8_lru_dosig_ops.f_create(&hash_params,
@@ -324,17 +341,31 @@ static int switch_init(struct pg_brick *brick,
 		state->sides[i].masks	= g_new0(uint64_t, max);
 		state->sides[i].unlinks = g_new0(uint64_t, max);
 	}
-
+	state->output = ((struct pg_switch_config *)config->brick_config)->output;
 	return 1;
+}
+
+static struct pg_brick_config *pg_switch_config_new(const char *name,
+						    uint32_t west_max,
+						    uint32_t east_max,
+						    enum pg_side output)
+{
+	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
+	struct pg_switch_config *switch_config = g_new0(struct pg_switch_config,
+							1);
+	switch_config->output = output;
+	config->brick_config = switch_config;
+	return  pg_brick_config_init(config, name, west_max, east_max);
 }
 
 struct pg_brick *pg_switch_new(const char *name,
 			       uint32_t west_max,
 			       uint32_t east_max,
+			       enum pg_side output,
 			       struct pg_error **errp)
 {
-	struct pg_brick_config *config = pg_brick_config_new(name, west_max,
-							     east_max);
+	struct pg_brick_config *config = pg_switch_config_new(name, west_max,
+							     east_max, output);
 	struct pg_brick *ret = pg_brick_new("switch", config, errp);
 
 	pg_brick_config_free(config);
