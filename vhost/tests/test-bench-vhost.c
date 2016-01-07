@@ -55,6 +55,7 @@ void test_benchmark_vhost(char *bzimage_path, char *cpio_path,
 	int qemu_pid;
 	int exit_status;
 
+	pg_bench_init(&bench);
 	ret = pg_vhost_start("/tmp", &error);
 	g_assert(ret);
 	g_assert(!error);

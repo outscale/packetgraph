@@ -66,7 +66,14 @@ struct pg_bench {
 	 * launching a benchmark.
 	 */
 	struct pg_brick *count_brick;
+	void (*post_burst_op)(struct pg_bench *);
 };
+
+/**
+ * @param  bench struct pg_bench * to init
+ */
+#define pg_bench_init(bench)				\
+	(memset((bench), 0, sizeof(struct pg_bench)))
 
 /**
  * Run a benchmark on a brick.

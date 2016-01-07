@@ -45,6 +45,7 @@ static void inside_to_vxlan(void)
 	struct ether_addr mac3 = {{0x52,0x54,0x00,0x12,0x34,0x31}};
 	uint32_t len;
 
+	pg_bench_init(&bench);
 	vtep = pg_vtep_new("vtep", 1, 1, EAST_SIDE, inet_addr("192.168.0.1"),
 			   mac3, NO_PACKETS_CLEANUP | NO_INNERMAC_CKECK, &error);
 	g_assert(!error);
@@ -118,6 +119,7 @@ static void vxlan_to_inside(void)
 			   mac_vtep, NO_INNERMAC_CKECK, &error);
 	g_assert(!error);
 
+	pg_bench_init(&bench);
 	outside_nop = pg_nop_new("nop-outside", 1, 1, &error);
 	bench.input_brick = outside_nop;
 	bench.input_side = WEST_SIDE;

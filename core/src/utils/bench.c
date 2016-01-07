@@ -126,6 +126,8 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 		/* Poll back packets if needed. */
 		if (bench->output_poll)
 			pg_brick_poll(bench->output_brick, &cnt, error);
+		if (bench->post_burst_op)
+			bench->post_burst_op(bench);
 	}
 	gettimeofday(&result->date_end, NULL);
 	result->pkts_sent = bench->max_burst_cnt * bench->pkts_nb;

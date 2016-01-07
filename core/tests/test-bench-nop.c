@@ -42,6 +42,7 @@ void test_benchmark_nop(void)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	uint32_t len;
 
+	pg_bench_init(&bench);
 	nop = pg_nop_new("nop", 1, 1, &error);
 	g_assert(!error);
 

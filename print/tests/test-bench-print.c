@@ -42,6 +42,7 @@ void test_benchmark_print(void)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	uint32_t len;
 
+	pg_bench_init(&bench);
 	print = pg_print_new("print", 1, 1, stderr,
 			     PG_PRINT_FLAG_SUMMARY | PG_PRINT_FLAG_TIMESTAMP,
 			     NULL, &error);

@@ -44,6 +44,7 @@ void test_benchmark_switch(void)
 
 	sw = pg_switch_new("switch", 1, 1, DEFAULT_SIDE, &error);
 	g_assert(!error);
+	pg_bench_init(&bench);
 
 	bench.input_brick = sw;
 	bench.input_side = WEST_SIDE;
