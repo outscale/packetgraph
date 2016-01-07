@@ -38,6 +38,8 @@
 
 #define NB_PKTS	1
 
+static uint16_t ssh_port_id = 65000;
+
 /* this test harness a Linux guest to check that packet are send and received
  * by the vhost brick. An ethernet bridge inside the guest will forward packets
  * between the two vhost-user virtio interfaces.
@@ -54,7 +56,6 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	struct rte_mbuf **result_pkts;
 	int ret, qemu_pid, i;
 	uint64_t pkts_mask;
-	int exit_status;
 
 	/* start vhost */
 	ret = pg_vhost_start("/tmp", &error);
@@ -86,17 +87,29 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	g_assert(!error);
 	g_assert(socket_path_1);
 
-	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(socket_path_1, G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(glob_bzimage_path, G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(glob_cpio_path, G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(glob_hugepages_path, G_FILE_TEST_EXISTS));
+	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
+				      mac_addr_0, mac_addr_1,
+				      glob_vm_path,
+				      glob_vm_key_path,
+				      glob_hugepages_path, &error);
 
-	qemu_pid = pg_spawn_qemu(socket_path_0, socket_path_1,
-				 mac_addr_0, mac_addr_1, glob_bzimage_path,
-				 glob_cpio_path, glob_hugepages_path, &error);
 	g_assert(!error);
 	g_assert(qemu_pid);
+
+	/* Prepare VM's bridge. */
+#	define SSH(c) \
+		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+	SSH("'yes | pacman -Sq bridge-utils'");
+	SSH("brctl addbr br0");
+	SSH("ifconfig br0 up");
+	SSH("ifconfig ens4 up");
+	SSH("ifconfig ens5 up");
+	SSH("brctl addif br0 ens4");
+	SSH("brctl addif br0 ens5");
+	SSH("brctl setfd br0 0");
+	SSH("brctl stp br0 off");
+#	undef SSH
+	ssh_port_id++;
 
 	/* prepare packet to send */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -128,14 +141,12 @@ static void test_vhost_flow_(int qemu_exit_signal)
 			break;
 	}
 
-	/* kill QEMU */
-	kill(qemu_pid, qemu_exit_signal);
-	waitpid(qemu_pid, &exit_status, 0);
-	g_spawn_close_pid(qemu_pid);
-
 	result_pkts = pg_brick_east_burst_get(collect, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(result_pkts);
+
+	/* kill QEMU */
+	pg_util_stop_qemu(qemu_pid);
 
 	/* free result packets */
 	pg_packets_free(result_pkts, pkts_mask);
@@ -190,7 +201,6 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	struct rte_mbuf **result_pkts;
 	int ret, qemu_pid0, qemu_pid1, i;
 	uint64_t pkts_mask;
-	int exit_status;
 
 	/* start vhost */
 	ret = pg_vhost_start("/tmp", &error);
@@ -241,16 +251,48 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	socket_path_11 = pg_vhost_socket_path(vhost_11, &error);
 	g_assert(!error);
 	g_assert(socket_path_11);
-	qemu_pid0 = pg_spawn_qemu(socket_path_00, socket_path_01,
-				  mac_addr_00, mac_addr_01, glob_bzimage_path,
-				  glob_cpio_path, glob_hugepages_path, &error);
+	qemu_pid0 = pg_util_spawn_qemu(socket_path_00, socket_path_01,
+				       mac_addr_00, mac_addr_01,
+				       glob_vm_path, glob_vm_key_path,
+				       glob_hugepages_path, &error);
 	g_assert(qemu_pid0);
 	g_assert(!error);
-	qemu_pid1 = pg_spawn_qemu(socket_path_10, socket_path_11,
-				  mac_addr_10, mac_addr_11, glob_bzimage_path,
-				  glob_cpio_path, glob_hugepages_path, &error);
+
+#	define SSH(c) \
+		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+	SSH("'yes | pacman -Sq bridge-utils'");
+	SSH("brctl addbr br0");
+	SSH("ifconfig br0 up");
+	SSH("ifconfig ens4 up");
+	SSH("ifconfig ens5 up");
+	SSH("brctl addif br0 ens4");
+	SSH("brctl addif br0 ens5");
+	SSH("brctl setfd br0 0");
+	SSH("brctl stp br0 off");
+#	undef SSH
+	ssh_port_id++;
+
+	qemu_pid1 = pg_util_spawn_qemu(socket_path_10, socket_path_11,
+				       mac_addr_10, mac_addr_11,
+				       glob_vm_path, glob_vm_key_path,
+				       glob_hugepages_path, &error);
 	g_assert(qemu_pid1);
 	g_assert(!error);
+
+	/* Prepare VM's bridge. */
+#	define SSH(c) \
+		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+	SSH("'yes | pacman -Sq bridge-utils'");
+	SSH("brctl addbr br0");
+	SSH("ifconfig br0 up");
+	SSH("ifconfig ens4 up");
+	SSH("ifconfig ens5 up");
+	SSH("brctl addif br0 ens4");
+	SSH("brctl addif br0 ens5");
+	SSH("brctl setfd br0 0");
+	SSH("brctl stp br0 off");
+#	undef SSH
+	ssh_port_id++;
 
 	/* prepare packet to send */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -290,14 +332,6 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 			break;
 	}
 
-	/* kill QEMU */
-	kill(qemu_pid0, qemu_exit_signal);
-	waitpid(qemu_pid0, &exit_status, 0);
-	kill(qemu_pid1, qemu_exit_signal);
-	waitpid(qemu_pid1, &exit_status, 0);
-	g_spawn_close_pid(qemu_pid0);
-	g_spawn_close_pid(qemu_pid1);
-
 	result_pkts = pg_brick_east_burst_get(collect0, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(result_pkts);
@@ -311,6 +345,10 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	/* free sent packet */
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
+
+	/* kill QEMU */
+	pg_util_stop_qemu(qemu_pid0);
+	pg_util_stop_qemu(qemu_pid1);
 
 	/* break the graph */
 	pg_brick_unlink(collect0, &error);

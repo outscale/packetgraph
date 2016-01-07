@@ -20,12 +20,22 @@
 
 #include <packetgraph/utils/errors.h>
 
-int pg_spawn_qemu(const char *socket_path_0, const char *socket_path_1,
-		  const char *mac_0, const char *mac_1,
-		  const char *bzimage_path,
-		  const char *cpio_path,
-		  const char *hugepages_path,
-		  struct pg_error **errp);
+int pg_util_cmdloop(const char *cmd, int timeout_s);
 
+int pg_util_ssh(const char *host,
+		int port,
+		const char *key_path,
+		const char *cmd);
+
+int pg_util_spawn_qemu(const char *socket_path_0,
+		       const char *socket_path_1,
+		       const char *mac_0,
+		       const char *mac_1,
+		       const char *vm_image_path,
+		       const char *vm_ssh_key_path,
+		       const char *hugepages_path,
+		       struct pg_error **errp);
+
+void pg_util_stop_qemu(int qemu_pid);
 
 #endif

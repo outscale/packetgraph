@@ -15,6 +15,7 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <sys/wait.h>
 #include <glib.h>
 #include <string.h>
 #include <stdio.h>
@@ -22,129 +23,128 @@
 #include <unistd.h>
 #include <packetgraph/utils/qemu.h>
 
-static int is_ready(char *str)
+int pg_util_cmdloop(const char *cmd, int timeout_s)
 {
-	if (!str)
-		return 0;
-	return !strncmp(str, "Ready", strlen("Ready"));
+	struct timeval start, end;
+	gint status;
+
+	gettimeofday(&start, 0);
+	gettimeofday(&end, 0);
+	while (end.tv_sec - start.tv_sec < timeout_s) {
+		g_spawn_command_line_sync(cmd, NULL, NULL, &status, NULL);
+		if (g_spawn_check_exit_status(status, NULL))
+			return 0;
+		gettimeofday(&end, 0);
+	}
+	return 1;
 }
 
-int pg_spawn_qemu(const char *socket_path_0,
-		  const char *socket_path_1,
-		  const char *mac_0,
-		  const char *mac_1,
-		  const char *bzimage_path,
-		  const char *cpio_path,
-		  const char *hugepages_path,
-		  struct pg_error **errp)
+int pg_util_ssh(const char *host,
+		int port,
+		const char *key_path,
+		const char *cmd)
 {
-	GIOChannel *stdout_gio;
+	gchar *ssh_cmd;
+	gint status;
+
+	ssh_cmd = g_strdup_printf("%s%s%s%s%s%s%u%s%s%s",
+				  "ssh ", host, " -l root -q",
+				  " -i ", key_path,
+				  " -p ", port,
+				  " -oConnectTimeout=1",
+				  " -oStrictHostKeyChecking=no ", cmd);
+	g_spawn_command_line_sync(ssh_cmd, NULL, NULL, &status, NULL);
+	g_free(ssh_cmd);
+	return g_spawn_check_exit_status(status, NULL) ? 0 : 1;
+}
+
+int pg_util_spawn_qemu(const char *socket_path_0,
+		       const char *socket_path_1,
+		       const char *mac_0,
+		       const char *mac_1,
+		       const char *vm_image_path,
+		       const char *vm_key_path,
+		       const char *hugepages_path,
+		       struct pg_error **errp)
+{
+	int child_pid = 0;
+	static uint16_t vm_id;
+	gchar **argv = NULL;
+	gchar *argv_qemu = NULL;
+	gchar *argv_sock_0 = NULL;
+	gchar *argv_sock_1 = NULL;
+	gchar *ssh_cmd = NULL;
 	GError *error = NULL;
-	gchar *str_stdout;
-	/* gchar *str_stderr; */
-	int  child_pid;
-	gint stdout_fd;
-	gchar **argv;
-	int readiness = 1;
-	struct timeval start, end;
-	uint a = 0;
 
-	argv     = g_new(gchar *, 33);
-#	define add_arg(str) { argv[a] = g_strdup(str); a++; }
-#	define add_argp(str...) { argv[a] = g_strdup_printf(str); a++; }
-	add_arg("qemu-system-x86_64");
-	add_arg("-m");
-	add_arg("124M");
-	add_arg("-enable-kvm");
-	add_arg("-kernel");
-	add_arg(bzimage_path);
-	add_arg("-initrd");
-	add_arg(cpio_path);
-	add_arg("-append");
-	add_arg("console=ttyS0 rdinit=/sbin/init noapic");
-	add_arg("-serial");
-	add_arg("stdio");
-	add_arg("-monitor");
-	add_arg("/dev/null");
-	add_arg("-nographic");
+	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(socket_path_1, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(vm_image_path, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(vm_key_path, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(hugepages_path, G_FILE_TEST_EXISTS));
 
-	/* Add interface if given. */
 	if (socket_path_0) {
-		add_arg("-chardev");
-		add_argp("socket,id=char0,path=%s", socket_path_0);
-		add_arg("-netdev");
-		add_arg("type=vhost-user,id=mynet1,chardev=char0,vhostforce");
-		add_arg("-device");
-		add_argp("virtio-net-pci,mac=%s,netdev=mynet1", mac_0);
+		argv_sock_0 = g_strdup_printf("%s%s%s%s%s%s",
+		" -chardev socket,id=char0,path=", socket_path_0,
+		" -netdev type=vhost-user,id=mynet0,chardev=char0,vhostforce",
+		" -device virtio-net-pci,mac=", mac_0, ",netdev=mynet0");
 	}
 
 	if (socket_path_1) {
-		add_arg("-chardev");
-		add_argp("socket,id=char1,path=%s", socket_path_1);
-		add_arg("-netdev");
-		add_arg("type=vhost-user,id=mynet2,chardev=char1,vhostforce");
-		add_arg("-device");
-		add_argp("virtio-net-pci,mac=%s,netdev=mynet2", mac_1);
+		argv_sock_1 = g_strdup_printf("%s%s%s%s%s%s",
+		" -chardev socket,id=char1,path=", socket_path_1,
+		" -netdev type=vhost-user,id=mynet1,chardev=char1,vhostforce",
+		" -device virtio-net-pci,mac=", mac_1, ",netdev=mynet1");
 	}
-	add_arg("-object");
-	add_argp("memory-backend-file,id=mem,size=124M,mem-path=%s,share=on",
-		 hugepages_path);
-	add_arg("-numa");
-	add_arg("node,memdev=mem");
-	add_arg("-mem-prealloc");
 
-#	undef add_arg
-	argv[a] = NULL;
+	argv_qemu = g_strdup_printf(
+		"%s%s%u%s%s%s%s%s%s%s%s%u%s%s%s%s",
+		"qemu-system-x86_64 -m 512M -enable-kvm",
+		" -vnc :", vm_id,
+		" -nographic -snapshot -object",
+		" memory-backend-file,id=mem,size=512M,mem-path=",
+		hugepages_path, ",share=on",
+		" -numa node,memdev=mem -mem-prealloc",
+		" -drive file=", vm_image_path,
+		" -redir tcp:", vm_id + 65000, "::22",
+		" -netdev user,id=network0 -device e1000,netdev=network0",
+		argv_sock_0, argv_sock_1);
 
-	if (!g_spawn_async_with_pipes(NULL,
-				      argv,
-				      NULL,
-				      (GSpawnFlags) G_SPAWN_SEARCH_PATH |
-				      G_SPAWN_DO_NOT_REAP_CHILD,
-				      (GSpawnChildSetupFunc) NULL,
-				      NULL,
-				      &child_pid,
-				      NULL,
-				      &stdout_fd,
-				      NULL,
-				      &error))
-		g_assert(0);
+	argv = g_strsplit(argv_qemu, " ", 0);
+
+	g_assert(g_spawn_async(NULL,
+			       argv,
+			       NULL,
+			       (GSpawnFlags) G_SPAWN_SEARCH_PATH |
+			       G_SPAWN_DO_NOT_REAP_CHILD,
+			       (GSpawnChildSetupFunc) NULL,
+			       NULL,
+			       &child_pid,
+			       &error));
 	g_assert(!error);
+
+	ssh_cmd = g_strdup_printf("%s%s%s%u%s%s%s",
+				  "ssh root@localhost -q -i ", vm_key_path,
+				  " -p ", vm_id + 65000,
+				  " -oConnectTimeout=1 ",
+				  "-oStrictHostKeyChecking=no ",
+				  "ls");
+	if (pg_util_cmdloop(ssh_cmd, 10 * 60))
+		*errp = pg_error_new("qemu spawn failed");
+
+	vm_id++;
+	g_free(argv_qemu);
+	g_free(argv_sock_0);
+	g_free(argv_sock_1);
+	g_free(ssh_cmd);
 	g_strfreev(argv);
-
-	stdout_gio = g_io_channel_unix_new(stdout_fd);
-	g_io_channel_read_line(stdout_gio,
-			       &str_stdout,
-			       NULL,
-			       NULL,
-			       &error);
-
-
-	g_assert(!error);
-	gettimeofday(&start, 0);
-	while (!is_ready(str_stdout)) {
-		g_free(str_stdout);
-		g_io_channel_read_line(stdout_gio,
-				       &str_stdout,
-				       NULL,
-				       NULL,
-				       &error);
-
-		g_assert(!error);
-		gettimeofday(&end, 0);
-		if ((end.tv_sec - start.tv_sec) > 30) {
-			readiness = 0;
-			break;
-		}
-	}
-
-	if (!readiness)
-		*errp = pg_error_new("qemu spawming timeout");
-
-	g_free(str_stdout);
-
-	g_io_channel_shutdown(stdout_gio, TRUE, &error);
-	g_io_channel_unref(stdout_gio);
-
 	return child_pid;
+}
+
+void pg_util_stop_qemu(int qemu_pid)
+{
+	int exit_status;
+
+	kill(qemu_pid, SIGKILL);
+	waitpid(qemu_pid, &exit_status, 0);
+	g_spawn_close_pid(qemu_pid);
 }

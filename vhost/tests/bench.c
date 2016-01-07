@@ -20,10 +20,10 @@
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
 
-void test_benchmark_vhost(char *bzimage_path, char *cpio_path,
+void test_benchmark_vhost(char *vm_path, char *vm_key_path,
 			  char *hugepages_path);
-char *glob_bzimage_path;
-char *glob_cpio_path;
+char *glob_vm_path;
+char *glob_vm_key_path;
 char *glob_hugepages_path;
 
 enum test_flags {
@@ -36,7 +36,8 @@ enum test_flags {
 
 static void print_usage(void)
 {
-	printf("benchmark usage: [EAL options] -- [-help] -bzimage /path/to/kernel -cpio /path/to/rootfs.cpio -hugepages /path/to/hugepages/mount\n");
+	printf("benchmark usage: [EAL options] -- [-help] -vm "
+	       "/path/to/script/to/run/vm\n");
 	exit(0);
 }
 
@@ -48,12 +49,12 @@ static uint64_t parse_args(int argc, char **argv)
 	for (i = 0; i < argc; ++i) {
 		if (!g_strcmp0("-help", argv[i])) {
 			ret |= PRINT_USAGE;
-		} else if (!g_strcmp0("-bzimage", argv[i]) && i + 1 < argc) {
-			glob_bzimage_path = argv[i + 1];
+		} else if (!g_strcmp0("-vm", argv[i]) && i + 1 < argc) {
+			glob_vm_path = argv[i + 1];
 			ret |= BZIMAGE;
 			i++;
-		} else if (!g_strcmp0("-cpio", argv[i]) && i + 1 < argc) {
-			glob_cpio_path = argv[i + 1];
+		} else if (!g_strcmp0("-vm-key", argv[i]) && i + 1 < argc) {
+			glob_vm_key_path = argv[i + 1];
 			ret |= CPIO;
 			i++;
 		} else if (!g_strcmp0("-hugepages", argv[i]) && i + 1 < argc) {
@@ -90,8 +91,8 @@ int main(int argc, char **argv)
 		print_usage();
 	g_assert(!(test_flags & FAIL));
 
-	test_benchmark_vhost(glob_bzimage_path,
-			     glob_cpio_path,
+	test_benchmark_vhost(glob_vm_path,
+			     glob_vm_key_path,
 			     glob_hugepages_path);
 
 	return g_test_run();

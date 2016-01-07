@@ -28,13 +28,13 @@
 #include <packetgraph/packetgraph.h>
 #include "tests.h"
 
-char *glob_bzimage_path;
-char *glob_cpio_path;
+char *glob_vm_path;
+char *glob_vm_key_path;
 char *glob_hugepages_path;
 
 static void print_usage(void)
 {
-	printf("tests usage: [EAL options] -- [-help] -bzimage /path/to/kernel -cpio /path/to/rootfs.cpio -hugepages /path/to/hugepages/mount\n");
+	printf("tests usage: [EAL options] -- [-help] -vm /path/to/vm/image -vm-key /path/to/vm/ssh/key -hugepages /path/to/hugepages/mount\n");
 	exit(0);
 }
 
@@ -46,13 +46,13 @@ static uint64_t parse_args(int argc, char **argv)
 	for (i = 0; i < argc; ++i) {
 		if (!strcmp("-help", argv[i])) {
 			ret |= PRINT_USAGE;
-		} else if (!strcmp("-bzimage", argv[i]) && i + 1 < argc) {
-			glob_bzimage_path = argv[i + 1];
-			ret |= BZIMAGE;
+		} else if (!strcmp("-vm", argv[i]) && i + 1 < argc) {
+			glob_vm_path = argv[i + 1];
+			ret |= VM;
 			i++;
-		} else if (!strcmp("-cpio", argv[i]) && i + 1 < argc) {
-			glob_cpio_path = argv[i + 1];
-			ret |= CPIO;
+		} else if (!strcmp("-vm-key", argv[i]) && i + 1 < argc) {
+			glob_vm_key_path = argv[i + 1];
+			ret |= VM_KEY;
 			i++;
 		} else if (!strcmp("-hugepages", argv[i]) && i + 1 < argc) {
 			glob_hugepages_path = argv[i + 1];
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	argc -= ret;
 	argv += ret;
 	test_flags = parse_args(argc, argv);
-	if ((test_flags & (BZIMAGE | CPIO | HUGEPAGES)) == 0)
+	if ((test_flags & (VM | VM_KEY | HUGEPAGES)) == 0)
 		test_flags |= PRINT_USAGE;
 	if (test_flags & PRINT_USAGE)
 		print_usage();

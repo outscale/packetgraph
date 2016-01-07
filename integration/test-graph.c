@@ -51,8 +51,8 @@
 enum test_flags {
 	PRINT_USAGE = 1,
 	FAIL = 2,
-	CPIO = 4,
-	BZIMAGE = 8,
+	VM = 4,
+	VM_KEY = 8,
 	HUGEPAGES = 16
 };
 
@@ -71,8 +71,8 @@ struct branch {
 #define VNI_1	1
 #define VNI_2	2
 
-static char *glob_bzimage_path;
-static char *glob_cpio_path;
+static char *glob_vm_path;
+static char *glob_vm_key_path;
 static char *glob_hugepages_path;
 
 static inline void pg_gc_chained_add_int(GList **name, ...)
@@ -127,7 +127,7 @@ static void pg_gc_destroy(GList *graph)
 
 static void print_usage(void)
 {
-	printf("tests usage: [EAL options] -- [-help] -bzimage /path/to/kernel -cpio /path/to/rootfs.cpio -hugepages /path/to/hugepages/mount\n");
+	printf("tests usage: [EAL options] -- [-help] -vm /path/to/vm/image -vm-key /path/to/vm/key -hugepages /path/to/hugepages/mount\n");
 	exit(0);
 }
 
@@ -139,13 +139,13 @@ static uint64_t parse_args(int argc, char **argv)
 	for (i = 0; i < argc; ++i) {
 		if (!strcmp("-help", argv[i])) {
 			ret |= PRINT_USAGE;
-		} else if (!strcmp("-bzimage", argv[i]) && i + 1 < argc) {
-			glob_bzimage_path = argv[i + 1];
-			ret |= BZIMAGE;
+		} else if (!strcmp("-vm", argv[i]) && i + 1 < argc) {
+			glob_vm_path = argv[i + 1];
+			ret |= VM;
 			i++;
-		} else if (!strcmp("-cpio", argv[i]) && i + 1 < argc) {
-			glob_cpio_path = argv[i + 1];
-			ret |= CPIO;
+		} else if (!strcmp("-vm-key", argv[i]) && i + 1 < argc) {
+			glob_vm_key_path = argv[i + 1];
+			ret |= VM_KEY;
 			i++;
 		} else if (!strcmp("-hugepages", argv[i]) && i + 1 < argc) {
 			glob_hugepages_path = argv[i + 1];
@@ -192,15 +192,32 @@ static inline int start_qemu_graph(struct branch *branch,
 				  const char *mac_reader,
 				  struct pg_error **errp)
 {
+	static uint32_t ssh_port_id = 65000;
 	char tmp_mac[20];
 
 	g_assert(pg_printable_mac(&branch->mac, tmp_mac));
-	int qemu_pid = pg_spawn_qemu(sock_path_graph(branch, errp),
-				     sock_read_path_graph(branch, errp),
-				     tmp_mac, mac_reader, glob_bzimage_path,
-				     glob_cpio_path,
-				     glob_hugepages_path, errp);
+	int qemu_pid = pg_util_spawn_qemu(sock_path_graph(branch, errp),
+					  sock_read_path_graph(branch, errp),
+					  tmp_mac, mac_reader,
+					  glob_vm_path,
+					  glob_vm_key_path,
+					  glob_hugepages_path, errp);
 
+
+#	define SSH(c) \
+		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+	SSH("'yes | pacman -Sq bridge-utils'");
+	SSH("brctl addbr br0");
+	SSH("ifconfig br0 up");
+	SSH("ifconfig ens4 up");
+	SSH("ifconfig ens5 up");
+	SSH("brctl addif br0 ens4");
+	SSH("brctl addif br0 ens5");
+	SSH("brctl setfd br0 0");
+	SSH("brctl stp br0 off");
+#	undef SSH
+
+	ssh_port_id++;
 	return qemu_pid;
 }
 
@@ -298,7 +315,6 @@ static void test_graph_type1(void)
 	uint16_t count;
 	uint64_t pkts_mask = 0;
 	int ret = -1;
-	int exit_status;
 	uint32_t len;
 	GList *brick_gc = NULL;
 
@@ -343,8 +359,8 @@ static void test_graph_type1(void)
 			     G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(sock_read_path_graph(&branch2, &error),
 			     G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(glob_bzimage_path, G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(glob_cpio_path, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(glob_vm_path, G_FILE_TEST_EXISTS));
+	g_assert(g_file_test(glob_vm_key_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_hugepages_path, G_FILE_TEST_EXISTS));
 	/* spawm time ! */
 	qemu1_pid = start_qemu_graph(&branch1, mac_reader_1,  &error);
@@ -426,15 +442,11 @@ static void test_graph_type1(void)
 exit:
 	/*kill qemu's*/
 	if (qemu1_pid) {
-		kill(qemu1_pid, SIGKILL);
-		waitpid(qemu1_pid, &exit_status, 0);
-		g_spawn_close_pid(qemu1_pid);
+		pg_util_stop_qemu(qemu1_pid);
 	}
 
 	if (qemu2_pid) {
-		kill(qemu2_pid, SIGKILL);
-		waitpid(qemu2_pid, &exit_status, 0);
-		g_spawn_close_pid(qemu2_pid);
+		pg_util_stop_qemu(qemu2_pid);
 	}
 
 	/*Free all*/
@@ -512,7 +524,7 @@ int main(int argc, char **argv)
 	argc -= r;
 	argv += r;
 	test_flags = parse_args(argc, argv);
-	if ((test_flags & (BZIMAGE | CPIO | HUGEPAGES)) == 0)
+	if ((test_flags & (VM | VM_KEY | HUGEPAGES)) == 0)
 		test_flags |= PRINT_USAGE;
 	if (test_flags & PRINT_USAGE)
 		print_usage();
