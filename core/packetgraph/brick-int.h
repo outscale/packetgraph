@@ -96,7 +96,7 @@ struct pg_brick {
 
 	/* Accept a packet burst */
 	int (*burst)(struct pg_brick *brick, enum pg_side from,
-		     uint16_t edge_index, struct rte_mbuf **pkts, uint16_t nb,
+		     uint16_t edge_index, struct rte_mbuf **pkts,
 		     uint64_t pkts_mask, struct pg_error **errp);
 	/* polling */
 	int (*poll)(struct pg_brick *brick,

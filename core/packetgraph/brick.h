@@ -51,17 +51,17 @@ void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp);
 /* data flow */
 int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 		   uint16_t edge_index,
-		   struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
+		   struct rte_mbuf **pkts, uint64_t pkts_mask,
 		   struct pg_error **errp);
 
 /* data flow commodity functions */
 int pg_brick_burst_to_east(struct pg_brick *brick, uint16_t edge_index,
-			struct rte_mbuf **pkts, uint16_t nb, uint64_t pkts_mask,
+			struct rte_mbuf **pkts, uint64_t pkts_mask,
 			struct pg_error **errp);
 
 int pg_brick_burst_to_west(struct pg_brick *brick, uint16_t edge_index,
-			   struct rte_mbuf **pkts, uint16_t nb,
-			   uint64_t pkts_mask, struct pg_error **errp);
+			   struct rte_mbuf **pkts, uint64_t pkts_mask,
+			   struct pg_error **errp);
 
 /* used for testing */
 struct rte_mbuf **pg_brick_west_burst_get(struct pg_brick *brick,
@@ -73,8 +73,8 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 					  struct pg_error **errp);
 
 int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
-			  struct rte_mbuf **pkts, uint16_t nb,
-			  uint64_t pkts_mask, struct pg_error **errp);
+			  struct rte_mbuf **pkts, uint64_t pkts_mask,
+			  struct pg_error **errp);
 
 /**
  * Get the edge of a brick.

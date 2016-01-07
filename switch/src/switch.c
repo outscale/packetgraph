@@ -90,7 +90,7 @@ static inline void zero_masks(struct pg_switch_state *state)
 }
 
 static inline int forward(struct pg_switch_state *state, enum pg_side to,
-			  uint16_t index, struct rte_mbuf **pkts, uint16_t nb,
+			  uint16_t index, struct rte_mbuf **pkts,
 			  struct pg_error **errp)
 {
 	struct pg_brick_edge *edge =  &state->brick.sides[to].edges[index];
@@ -108,12 +108,12 @@ static inline int forward(struct pg_switch_state *state, enum pg_side to,
 
 	switch_side->masks[index] = 0;
 	return pg_brick_burst(edge->link, pg_flip_side(to), edge->pair_index,
-			      pkts, nb, mask, errp);
+			      pkts, mask, errp);
 }
 
 static int forward_bursts(struct pg_switch_state *state,
 			  struct pg_address_source *source,
-			  struct rte_mbuf **pkts, uint16_t nb,
+			  struct rte_mbuf **pkts,
 			  struct pg_error **errp)
 {
 	struct pg_switch_side *switch_side = &state->sides[source->from];
@@ -125,7 +125,7 @@ static int forward_bursts(struct pg_switch_state *state,
 	switch_side->masks[source->edge_index] = 0;
 
 	for (j = 0; j < state->brick.sides[i].max; j++) {
-		ret = forward(state, i, j, pkts, nb, errp);
+		ret = forward(state, i, j, pkts, errp);
 
 		if (!ret)
 			return 0;
@@ -133,7 +133,7 @@ static int forward_bursts(struct pg_switch_state *state,
 
 	i = pg_flip_side(i);
 	for (j = 0; j < state->brick.sides[i].max; j++) {
-		ret = forward(state, i, j, pkts, nb, errp);
+		ret = forward(state, i, j, pkts, errp);
 
 		if (!ret)
 			return 0;
@@ -244,7 +244,7 @@ static void do_switch(struct pg_switch_state *state,
 
 static int switch_burst(struct pg_brick *brick, enum pg_side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
-			uint16_t nb, uint64_t pkts_mask,
+			uint64_t pkts_mask,
 			struct pg_error **errp)
 {
 	struct pg_switch_state *state =
@@ -261,7 +261,7 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 
 	do_switch(state, source, pkts, unicast_mask);
 
-	return forward_bursts(state, source, pkts, nb, errp);
+	return forward_bursts(state, source, pkts, errp);
 }
 
 static int switch_init(struct pg_brick *brick,

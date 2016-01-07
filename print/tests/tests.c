@@ -110,7 +110,7 @@ static void test_print_simple(void)
 	g_assert(!error);
 
 	pg_brick_burst_to_east(gen, 0, packets,
-			       NB_PKTS, pg_mask_firsts(NB_PKTS), &error);
+			       pg_mask_firsts(NB_PKTS), &error);
 	g_assert(!error);
 
 	pkts = pg_brick_west_burst_get(col, &pkts_mask, &error);

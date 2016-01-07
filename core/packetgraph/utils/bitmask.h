@@ -55,4 +55,6 @@ int pg_mask_count(uint64_t pkts_mask);
 		     tmpmask;						\
 	     tmpmask &= ~(ONE64 << it))
 
+#define pg_get_last_packet(mask) \
+	(64 - __builtin_clzll(mask))
 #endif /* _PG_CORE_UTILS_BITMASK_H */
