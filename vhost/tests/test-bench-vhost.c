@@ -33,10 +33,12 @@
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/utils/qemu.h>
 
-void test_benchmark_vhost(char *bzimage_path, char *cpio_path,
+void test_benchmark_vhost(char *vm_image_path,
+			  char *vm_ssh_key_path,
 			  char *hugepages_path);
 
-void test_benchmark_vhost(char *bzimage_path, char *cpio_path,
+void test_benchmark_vhost(char *vm_image_path,
+			  char *vm_ssh_key_path,
 			  char *hugepages_path)
 {
 	struct pg_error *error = NULL;
@@ -53,7 +55,6 @@ void test_benchmark_vhost(char *bzimage_path, char *cpio_path,
 	uint32_t len;
 	int ret;
 	int qemu_pid;
-	int exit_status;
 
 	ret = pg_vhost_start("/tmp", &error);
 	g_assert(ret);
@@ -71,13 +72,26 @@ void test_benchmark_vhost(char *bzimage_path, char *cpio_path,
 	g_assert(!error);
 	g_assert(socket_path_exit);
 
-	/* Start virtual machine. */
-	qemu_pid = pg_spawn_qemu(socket_path_enter,
-				 socket_path_exit,
-				 mac1_str, mac2_str, bzimage_path,
-				 cpio_path, hugepages_path, &error);
+	qemu_pid = pg_util_spawn_qemu(socket_path_enter,
+				      socket_path_exit,
+				      mac1_str, mac2_str,
+				      vm_image_path, vm_ssh_key_path,
+				      hugepages_path, &error);
 	g_assert(!error);
 	g_assert(qemu_pid);
+
+#	define SSH(c) \
+		g_assert(!pg_util_ssh("localhost", 65000, vm_ssh_key_path, c))
+	SSH("'yes | pacman -Sq bridge-utils'");
+	SSH("brctl addbr br0");
+	SSH("ifconfig br0 up");
+	SSH("ifconfig ens4 up");
+	SSH("ifconfig ens5 up");
+	SSH("brctl addif br0 ens4");
+	SSH("brctl addif br0 ens5");
+	SSH("brctl setfd br0 0");
+	SSH("brctl stp br0 off");
+#	undef SSH
 
 	bench.input_brick = vhost_enter;
 	bench.input_side = WEST_SIDE;
@@ -109,10 +123,7 @@ void test_benchmark_vhost(char *bzimage_path, char *cpio_path,
 	g_assert(pg_bench_run(&bench, &stats, &error));
 	g_assert(pg_bench_print(&stats, NULL));
 
-	/* kill QEMU */
-	kill(qemu_pid, SIGKILL);
-	waitpid(qemu_pid, &exit_status, 0);
-	g_spawn_close_pid(qemu_pid);
+	pg_util_stop_qemu(qemu_pid);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(vhost_enter);

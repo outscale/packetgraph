@@ -21,15 +21,15 @@
 enum test_flags {
 	PRINT_USAGE = 1,
 	FAIL = 2,
-	CPIO = 4,
-	BZIMAGE = 8,
+	VM = 4,
+	VM_KEY = 8,
 	HUGEPAGES = 16
 };
 
 void test_vhost(void);
 
-extern char *glob_bzimage_path;
-extern char *glob_cpio_path;
+extern char *glob_vm_path;
+extern char *glob_vm_key_path;
 extern char *glob_hugepages_path;
 
 void test_benchmark_vhost(void);

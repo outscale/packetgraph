@@ -25,6 +25,26 @@ BUILD_ROOT=$3
 
 usage="usage: build_buildroot.sh VHOST_DIR_PATH VHOST_BUILD_DIR_PATH BUILD_ROOT"
 
+function download {
+    url=$1
+    md5=$2
+    path=$3
+
+    if [ ! -f $path ]; then
+        echo "$path, let's download it..."
+        wget $url -O $path
+    fi
+
+    if [ ! "$(md5sum $path | cut -f 1 -d ' ')" == "$md5" ]; then
+        echo "Bad md5 for $path, let's download it ..."
+        wget $url -O $path
+        if [ ! "$(md5sum $path | cut -f 1 -d ' ')" == "$md5" ]; then
+            echo "Still bad md5 for $path ... abort."
+            exit 1
+        fi
+    fi
+}
+
 bin="packetgraph-integration-tests"
 
 # Test vhost root
@@ -66,6 +86,15 @@ if [ ! -f $VHOST_BUILD_ROOT/buildroot/BUILDROOT_OK ]; then
 	$VHOST_ROOT/tests/build_buildroot.sh $VHOST_ROOT $VHOST_BUILD_ROOT
 fi
 
+# Get VM image & key
+IMG_URL=https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/arch-051115.qcow
+IMG_MD5=4b7b1a71ac47eb73d85cdbdc85533b07
+KEY_URL=https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/arch-051115.rsa
+KEY_MD5=eb3d700f2ee166e0dbe00f4e0aa2cef9
+download $IMG_URL $IMG_MD5 $BUILD_ROOT/vm.qcow
+download $KEY_URL $KEY_MD5 $BUILD_ROOT/vm.rsa
+chmod og-r $BUILD_ROOT/vm.rsa
+
 # Clean old sockets
 sudo rm /tmp/qemu-vhost-* | true
 
@@ -86,4 +115,4 @@ fi
 echo $VHOST_BUILD_ROOT/
 file $VHOST_BUILD_ROOT/packetgraph-vhost-tests
 # Launch test
-sudo $BUILD_ROOT/$bin -c1 -n1 --socket-mem 64 -- -bzimage $VHOST_BUILD_ROOT/buildroot/output/images/bzImage -cpio $VHOST_BUILD_ROOT/buildroot/output/images/rootfs.cpio -hugepages /mnt/huge
+sudo $BUILD_ROOT/$bin -c1 -n1 --socket-mem 64 -- -vm $BUILD_ROOT/vm.qcow -vm-key $BUILD_ROOT/vm.rsa -hugepages /mnt/huge
