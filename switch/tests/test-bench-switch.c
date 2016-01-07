@@ -42,7 +42,7 @@ void test_benchmark_switch(void)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	uint32_t len;
 
-	sw = pg_switch_new("switch", 1, 1, &error);
+	sw = pg_switch_new("switch", 1, 1, DEFAULT_SIDE, &error);
 	g_assert(!error);
 
 	bench.input_brick = sw;
