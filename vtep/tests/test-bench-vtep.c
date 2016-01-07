@@ -33,6 +33,39 @@
 
 void test_benchmark_vtep(void);
 
+/**
+ * Composite structure of all the headers required to wrap a packet in VTEP
+ */
+struct headers {
+	struct ether_hdr ethernet; /* define in rte_ether.h */
+	struct ipv4_hdr	 ipv4; /* define in rte_ip.h */
+	struct udp_hdr	 udp; /* define in rte_udp.h */
+	struct vxlan_hdr vxlan; /* define in rte_ether.h */
+} __attribute__((__packed__));
+
+struct igmp_hdr {
+	uint8_t type;
+	uint8_t maxRespTime;
+	uint16_t checksum;
+	uint32_t groupAddr;
+} __attribute__((__packed__));
+
+struct multicast_pkt {
+	struct ether_hdr ethernet;
+	struct ipv4_hdr ipv4;
+	struct igmp_hdr igmp;
+} __attribute__((__packed__));
+
+
+#define HEADERS_LENGTH sizeof(struct headers)
+
+static void remove_vtep_hdr(struct pg_bench *bench)
+{
+	for (int i = 0; i < 64; ++i) {
+		rte_pktmbuf_adj(bench->pkts[i], HEADERS_LENGTH);
+	}
+}
+
 static void inside_to_vxlan(void)
 {
 	struct pg_error *error = NULL;
@@ -47,7 +80,8 @@ static void inside_to_vxlan(void)
 
 	pg_bench_init(&bench);
 	vtep = pg_vtep_new("vtep", 1, 1, EAST_SIDE, inet_addr("192.168.0.1"),
-			   mac3, NO_PACKETS_CLEANUP | NO_INNERMAC_CKECK, &error);
+			   mac3, NO_PACKETS_CLEANUP | NO_COPY |
+			   NO_INNERMAC_CKECK, &error);
 	g_assert(!error);
 
 	inside_nop = pg_nop_new("nop-input", 1, 1, &error);
@@ -58,6 +92,7 @@ static void inside_to_vxlan(void)
 	bench.output_poll = false;
 	bench.max_burst_cnt = 3000000;
 	bench.count_brick = pg_nop_new("nop-inside", 1, 1, &error);
+	bench.post_burst_op = remove_vtep_hdr;
 	g_assert(!error);
 	pg_brick_link(inside_nop, vtep, &error);
 	g_assert(!error);
