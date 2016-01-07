@@ -18,6 +18,8 @@
 #ifndef _CIRCULAR_BUFFER_H_
 #define _CIRCULAR_BUFFER_H_
 
+/* Warning ! */
+/* size MUST be a powers of two */
 #define REGISTER_CB(name, type, size)					\
 	struct name {							\
 		type buff[size];					\
@@ -39,7 +41,7 @@
 	} while (0)
 
 
-#define cb_get(cb, i) ((cb).buff[((cb).start + (i)) % (cb).buff_size])
+#define cb_get(cb, i) ((cb).buff[((cb).start + (i)) & ((cb).buff_size - 1)])
 
 #define cb_set_start(cb, i) ((cb).start = (i))
 
