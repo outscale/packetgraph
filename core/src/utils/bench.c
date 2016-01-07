@@ -131,7 +131,6 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 			       bl.input_side,
 			       0,
 			       bl.pkts,
-			       bl.pkts_nb,
 			       bl.pkts_mask,
 			       error);
 		sched_yield();

@@ -278,7 +278,7 @@ static void test_vtep_simple(void)
 	}
 
 	/* burst */
-	pg_brick_burst_to_west(vtep_east, 0, pkts, NB_PKTS,
+	pg_brick_burst_to_west(vtep_east, 0, pkts,
 			    pg_mask_firsts(NB_PKTS), &error);
 	if (error)
 		pg_error_print(error);
@@ -310,7 +310,7 @@ static void test_vtep_simple(void)
 		g_assert(is_same_ether_addr(&tmp->s_addr, &mac_dest));
 		g_assert(is_same_ether_addr(&tmp->d_addr, &mac_src));
 	}
-	pg_brick_burst_to_east(vtep_west, 0, pkts, NB_PKTS,
+	pg_brick_burst_to_east(vtep_west, 0, pkts,
 			    pg_mask_firsts(NB_PKTS), &error);
 	g_assert(!error);
 
@@ -516,7 +516,7 @@ static void test_vtep_speed(void)
 		ether_addr_copy(&src, &hdr->ethernet.s_addr);
 		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
 		
-		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, 1, &error);
+		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, &error);
 	} while (0);
 
 	while (end.tv_sec - start.tv_sec < 5) {
@@ -601,7 +601,7 @@ static void test_vtep_vxlanise(void)
 		ether_addr_copy(&src, &hdr->ethernet.s_addr);
 		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
 		
-		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, 1, &error);
+		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, &error);
 	} while (0);
 
 	while (end.tv_sec - start.tv_sec < 5) {

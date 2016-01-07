@@ -27,9 +27,11 @@ int pg_mask_count(uint64_t pkts_mask);
 #if __SIZEOF_POINTER__ == 8
 #define ONE64	1LU
 #define ctz64	__builtin_ctzl
+#define clz64	__builtin_clzl
 #elif __SIZEOF_POINTER__ == 4
 #define ONE64	1LLU
 #define ctz64	__builtin_ctzll
+#define clz64   __builtin_clzll
 #endif
 
 /**
@@ -37,8 +39,8 @@ int pg_mask_count(uint64_t pkts_mask);
  * performance hit and a function in a separate module would not be inlined.
  */
 #define pg_low_bit_iterate_full(mask, bit, index) do {	\
-	index =  ctz64(mask);			\
-	bit = ONE64 << index;				\
+		index =  ctz64(mask);			\
+		bit = ONE64 << index;			\
 	mask &= ~bit;					\
 	} while (0)
 
@@ -54,5 +56,7 @@ int pg_mask_count(uint64_t pkts_mask);
 	     ((it = ctz64(tmpmask)) || 1) &&				\
 		     tmpmask;						\
 	     tmpmask &= ~(ONE64 << it))
+
+#define pg_last_bit_pos(mask)	(64 - clz64(mask))
 
 #endif /* _PG_CORE_UTILS_BITMASK_H */

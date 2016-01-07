@@ -182,7 +182,7 @@ struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
 
 static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 			  uint16_t edge_index, struct rte_mbuf **pkts,
-			  uint16_t nb, uint64_t pkts_mask,
+			  uint64_t pkts_mask,
 			  struct pg_error **errp)
 {
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
@@ -232,7 +232,7 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
 	}
 
-	ret = pg_brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
+	ret = pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
 	return ret;
 }
 

@@ -93,7 +93,7 @@ static void test_brick_pkts_count_west(void)
 
 	for (j = 0, pkts_count = NB_PKTS; j < NB_LOOP;
 	     ++j, pkts_count += NB_PKTS) {
-		pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS,
+		pg_brick_burst_to_west(brick, 0, pkts,
 				       pg_mask_firsts(NB_PKTS), &error);
 		g_assert(!error);
 		g_assert(pg_brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
@@ -120,7 +120,7 @@ static void test_brick_pkts_count_east(void)
 
 	for (j = 0, pkts_count = NB_PKTS; j < NB_LOOP;
 	     ++j, pkts_count += NB_PKTS) {
-		pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS,
+		pg_brick_burst_to_east(brick, 0, pkts,
 				    pg_mask_firsts(NB_PKTS), &error);
 		g_assert(!error);
 		g_assert(pg_brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
