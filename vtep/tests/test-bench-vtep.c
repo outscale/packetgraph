@@ -135,6 +135,20 @@ static void inside_to_vxlan(void)
 	pg_brick_destroy(bench.count_brick);
 }
 
+char vxlan_hdr[sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
+		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) + 1];
+
+static void add_vtep_hdr(struct pg_bench *bench)
+{
+	bench->pkts = pg_packets_prepend_buf(
+		bench->pkts,
+		bench->pkts_mask,
+		vxlan_hdr,
+		sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
+		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr));
+
+}
+
 static void vxlan_to_inside(void)
 {
 	struct pg_error *error = NULL;
@@ -142,16 +156,15 @@ static void vxlan_to_inside(void)
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
 	struct pg_brick *outside_nop;
-	struct ether_addr mac_vtep = {{0xb0,0xb1,0xb2,0xb3,0xb4,0xb5}};
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	struct ether_addr mac3 = {{0x52,0x54,0x00,0x12,0x34,0x31}};
 	struct ether_addr mac4 = {{0x52,0x54,0x00,0x12,0x34,0x41}};
-	//struct ether_addr macff = {{0xff,0xff,0xff,0xff,0xff,0xff}};
+	static struct ether_addr mac_vtep = {{0xb0,0xb1,0xb2,0xb3,0xb4,0xb5}};
 	uint32_t len;
 
 	vtep = pg_vtep_new("vtep", 1, 1, WEST_SIDE, 0x000000EE,
-			   mac_vtep, NO_INNERMAC_CKECK, &error);
+			   mac_vtep,
+			   NO_INNERMAC_CKECK | NO_PACKETS_CLEANUP | NO_COPY,
+			   &error);
 	g_assert(!error);
 
 	pg_bench_init(&bench);
@@ -163,6 +176,7 @@ static void vxlan_to_inside(void)
 	bench.output_poll = false;
 	bench.max_burst_cnt = 1000000;
 	bench.count_brick = pg_nop_new("nop-bench", 1, 1, &error);
+	bench.post_burst_op = add_vtep_hdr;
 	g_assert(!error);
 	pg_brick_link(outside_nop, vtep, &error);
 	g_assert(!error);
@@ -178,7 +192,7 @@ static void vxlan_to_inside(void)
 	bench.pkts = pg_packets_append_ether(
 		bench.pkts,
 		bench.pkts_mask,
-		&mac1, &mac2,
+		&mac_vtep, &mac_vtep,
 		ETHER_TYPE_IPv4);
 	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) + 1400;
@@ -190,12 +204,17 @@ static void vxlan_to_inside(void)
 		bench.pkts,
 		bench.pkts_mask,
 		1000, 2000, 1400);
+	pg_packets_append_vxlan(bench.pkts, bench.pkts_mask, 1);
 	bench.pkts = pg_packets_append_ether(
 		bench.pkts,
 		bench.pkts_mask,
 		&mac3, &mac4,
 		ETHER_TYPE_IPv4);
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
+	memcpy(vxlan_hdr, rte_pktmbuf_mtod(bench.pkts[0], void *), len - 1400);
+	vxlan_hdr[sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
+		  sizeof(struct vxlan_hdr) +
+		  sizeof(struct ether_hdr)] = '\0';
 
 	g_assert(pg_bench_run(&bench, &stats, &error));
 	/* We know that this brick burst all packets. */
