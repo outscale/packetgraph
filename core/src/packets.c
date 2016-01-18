@@ -58,92 +58,163 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 	return pkts;
 }
 
+
+#define PG_PACKETS_OPS_STR(pkts, pkts_mask, str, ops)		\
+	char *tmp;						\
+	PG_FOREACH_BIT(pkts_mask, j) {				\
+		if (!pkts[j])					\
+			continue;				\
+		tmp = rte_pktmbuf_##ops(pkts[j], strlen(str));	\
+		strcpy(tmp, str);				\
+	}
+	
+
 struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
 					const char *str)
 {
-	char *tmp;
-
-	PG_FOREACH_BIT(pkts_mask, j) {
-		if (!pkts[j])
-			continue;
-		tmp = rte_pktmbuf_append(pkts[j], strlen(str));
-		strcpy(tmp, str);
-	}
+	PG_PACKETS_OPS_STR(pkts, pkts_mask, str, append)
 	return pkts;
 }
+
+struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
+					uint64_t pkts_mask,
+					const char *str)
+{
+	PG_PACKETS_OPS_STR(pkts, pkts_mask, str, prepend)
+	return pkts;
+}
+
+#undef PG_PACKETS_OPS_STR
+
+#define PACKETS_OPS_IPV4(pkts, pkts_mask, src_ip, dst_ip,		\
+			 datagram_len, proto, ops)			\
+	struct ipv4_hdr	ip_hdr;						\
+	char *tmp;							\
+	PG_FOREACH_BIT(pkts_mask, j) {					\
+		if (!pkts[j])						\
+			continue;					\
+		ip_hdr.version_ihl = 0x45;				\
+		ip_hdr.total_length = rte_cpu_to_be_16(datagram_len);	\
+		ip_hdr.packet_id = 0;					\
+		ip_hdr.time_to_live = 64;				\
+		ip_hdr.hdr_checksum = 0;				\
+		ip_hdr.next_proto_id = proto;				\
+		ip_hdr.src_addr = src_ip;				\
+		ip_hdr.dst_addr = dst_ip;				\
+		ip_hdr.hdr_checksum = rte_ipv4_cksum(&ip_hdr);		\
+		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(ip_hdr));	\
+		memcpy(tmp, &ip_hdr, sizeof(ip_hdr));			\
+	}								\
 
 struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
 					 uint64_t pkts_mask,
 					 uint32_t src_ip, uint32_t dst_ip,
 					 uint16_t datagram_len, uint8_t proto)
 {
-	struct ipv4_hdr	ip_hdr;
-	char *tmp;
-
-	PG_FOREACH_BIT(pkts_mask, j) {
-		if (!pkts[j])
-			continue;
-		ip_hdr.version_ihl = 0x45;
-		ip_hdr.total_length = rte_cpu_to_be_16(datagram_len);
-		ip_hdr.packet_id = 0;
-		ip_hdr.time_to_live = 64;
-		ip_hdr.hdr_checksum = 0;
-		ip_hdr.next_proto_id = proto;
-		ip_hdr.src_addr = src_ip;
-		ip_hdr.dst_addr = dst_ip;
-		ip_hdr.hdr_checksum = rte_ipv4_cksum(&ip_hdr);
-
-		tmp = rte_pktmbuf_append(pkts[j], sizeof(ip_hdr));
-		memcpy(tmp, &ip_hdr, sizeof(ip_hdr));
-	}
+	PACKETS_OPS_IPV4(pkts, pkts_mask, src_ip, dst_ip,
+			 datagram_len, proto, append)
 	return pkts;
 }
+
+struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
+					 uint64_t pkts_mask,
+					 uint32_t src_ip, uint32_t dst_ip,
+					 uint16_t datagram_len, uint8_t proto)
+{
+	PACKETS_OPS_IPV4(pkts, pkts_mask, src_ip, dst_ip,
+			 datagram_len, proto, prepend)
+	return pkts;
+}
+
+#undef PACKETS_OPS_IPV4
+
+#define PACKETS_OPS_UDP(pkts, pkts_mask, src_port,			\
+			dst_port, datagram_len, ops)			\
+	struct udp_hdr udp_hdr;						\
+	char *tmp;							\
+	PG_FOREACH_BIT(pkts_mask, j) {					\
+		if (!pkts[j])						\
+			continue;					\
+		udp_hdr.src_port = rte_cpu_to_be_16(src_port);		\
+		udp_hdr.dst_port = rte_cpu_to_be_16(dst_port);		\
+		udp_hdr.dgram_len = rte_cpu_to_be_16(datagram_len);	\
+		udp_hdr.dgram_cksum = 0;				\
+		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(udp_hdr));	\
+		memcpy(tmp, &udp_hdr, sizeof(udp_hdr));			\
+	}								\
+
 
 struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
 					uint16_t src_port, uint16_t dst_port,
 					uint16_t datagram_len)
 {
-	struct udp_hdr udp_hdr;
-	char *tmp;
-
-	PG_FOREACH_BIT(pkts_mask, j) {
-		if (!pkts[j])
-			continue;
-		udp_hdr.src_port = rte_cpu_to_be_16(src_port);
-		udp_hdr.dst_port = rte_cpu_to_be_16(dst_port);
-		udp_hdr.dgram_len = rte_cpu_to_be_16(datagram_len);
-		udp_hdr.dgram_cksum = 0;
-		tmp = rte_pktmbuf_append(pkts[j], sizeof(udp_hdr));
-		memcpy(tmp, &udp_hdr, sizeof(udp_hdr));
-	}
+	PACKETS_OPS_UDP(pkts, pkts_mask, src_port,
+			dst_port, datagram_len, append)
 	return pkts;
 }
 
+struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
+					uint64_t pkts_mask,
+					uint16_t src_port, uint16_t dst_port,
+					uint16_t datagram_len)
+{
+	PACKETS_OPS_UDP(pkts, pkts_mask, src_port,
+			dst_port, datagram_len, prepend)
+	return pkts;
+}
+
+#undef PACKETS_OPS_UDP
+
 #define VTEP_I_FLAG		0x08000000
+
+#define PG_PACKETS_OPS_VXLAN(pkts, pkts_mask, vni, ops)			\
+	struct vxlan_hdr vx_hdr;					\
+	char *tmp;							\
+	PG_FOREACH_BIT(pkts_mask, j) {					\
+		if (!pkts[j])						\
+			continue;					\
+		/* mark the VNI as valid */				\
+		vx_hdr.vx_flags = rte_cpu_to_be_32(VTEP_I_FLAG);	\
+		vx_hdr.vx_vni = rte_cpu_to_be_32(vni);			\
+		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(vx_hdr));	\
+		memcpy(tmp, &vx_hdr, sizeof(vx_hdr));			\
+	}								\
 
 struct rte_mbuf **pg_packets_append_vxlan(struct rte_mbuf **pkts,
 					  uint64_t pkts_mask,
 					  uint32_t vni)
 {
-	struct vxlan_hdr vx_hdr;
-	char *tmp;
+	PG_PACKETS_OPS_VXLAN(pkts, pkts_mask, vni, append)
+	return pkts;
+}
 
-	PG_FOREACH_BIT(pkts_mask, j) {
-		if (!pkts[j])
-			continue;
-
-		/* mark the VNI as valid */
-		vx_hdr.vx_flags = rte_cpu_to_be_32(VTEP_I_FLAG);
-		vx_hdr.vx_vni = rte_cpu_to_be_32(vni);
-		tmp = rte_pktmbuf_append(pkts[j], sizeof(vx_hdr));
-		memcpy(tmp, &vx_hdr, sizeof(vx_hdr));
-	}
+struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
+					  uint64_t pkts_mask,
+					  uint32_t vni)
+{
+	PG_PACKETS_OPS_VXLAN(pkts, pkts_mask, vni, prepend)
 	return pkts;
 }
 
 #undef VTEP_I_FLAG
+
+#undef PG_PACKETS_OPS_VXLAN
+
+#define PG_PACKETS_OPS_ETHER(pkts, pkts_mask, src_mac,			\
+			     dst_mac, ether_type, ops)			\
+	struct ether_hdr eth_hdr;					\
+	char *tmp;							\
+	PG_FOREACH_BIT(pkts_mask, j) {					\
+		if (!pkts[j])						\
+			continue;					\
+		ether_addr_copy(src_mac, &eth_hdr.s_addr);		\
+		ether_addr_copy(dst_mac, &eth_hdr.d_addr);		\
+		eth_hdr.ether_type = rte_cpu_to_be_16(ether_type);	\
+		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(eth_hdr));	\
+		memcpy(tmp, &eth_hdr, sizeof(eth_hdr));			\
+	}								\
 
 struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
 					 uint64_t pkts_mask,
@@ -151,21 +222,23 @@ struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
 					 struct ether_addr *dst_mac,
 					 uint16_t ether_type)
 {
-	struct ether_hdr eth_hdr;
-	char *tmp;
-
-	PG_FOREACH_BIT(pkts_mask, j) {
-		if (!pkts[j])
-			continue;
-		ether_addr_copy(src_mac, &eth_hdr.s_addr);
-		ether_addr_copy(dst_mac, &eth_hdr.d_addr);
-
-		eth_hdr.ether_type = rte_cpu_to_be_16(ether_type);
-		tmp = rte_pktmbuf_append(pkts[j], sizeof(eth_hdr));
-		memcpy(tmp, &eth_hdr, sizeof(eth_hdr));
-	}
+	PG_PACKETS_OPS_ETHER(pkts, pkts_mask, src_mac,
+			     dst_mac, ether_type, append)
 	return pkts;
 }
+
+struct rte_mbuf **pg_packets_prepend_ether(struct rte_mbuf **pkts,
+					 uint64_t pkts_mask,
+					 struct ether_addr *src_mac,
+					 struct ether_addr *dst_mac,
+					 uint16_t ether_type)
+{
+	PG_PACKETS_OPS_ETHER(pkts, pkts_mask, src_mac,
+			     dst_mac, ether_type, prepend)
+	return pkts;
+}
+
+#undef PG_PACKETS_OPS_ETHER
 
 /**
  * This function copy and pack a source packet array into a destination array

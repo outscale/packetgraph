@@ -59,13 +59,29 @@ struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
 					const char *str);
 
+struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
+					 uint64_t pkts_mask,
+					 const char *str);
+
 struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
 					  uint64_t pkts_mask,
 					  struct ether_addr *src_mac,
 					  struct ether_addr *dst_mac,
 					  uint16_t ether_type);
 
+struct rte_mbuf **pg_packets_prepend_ether(struct rte_mbuf **pkts,
+					   uint64_t pkts_mask,
+					   struct ether_addr *src_mac,
+					   struct ether_addr *dst_mac,
+					   uint16_t ether_type);
+
 struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
+					 uint64_t pkts_mask,
+					 uint32_t src_ip, uint32_t dst_ip,
+					 uint16_t datagram_len,
+					 uint8_t proto);
+
+struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
 					 uint64_t pkts_mask,
 					 uint32_t src_ip, uint32_t dst_ip,
 					 uint16_t datagram_len,
@@ -76,9 +92,18 @@ struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
 					uint16_t src_port, uint16_t dst_port,
 					uint16_t datagram_len);
 
+struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
+					 uint64_t pkts_mask,
+					 uint16_t src_port, uint16_t dst_port,
+					 uint16_t datagram_len);
+
 struct rte_mbuf **pg_packets_append_vxlan(struct rte_mbuf **pkts,
 					  uint64_t pkts_mask,
 					  uint32_t vni);
+
+struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
+					   uint64_t pkts_mask,
+					   uint32_t vni);
 
 
 
