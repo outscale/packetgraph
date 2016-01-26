@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <packetgraph/utils/qemu.h>
+#include <stdlib.h>
 
 int pg_util_cmdloop(const char *cmd, int timeout_s)
 {
@@ -74,6 +75,7 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	gchar *argv_sock_0 = NULL;
 	gchar *argv_sock_1 = NULL;
 	gchar *ssh_cmd = NULL;
+	char *set_cgroup = NULL;
 	GError *error = NULL;
 
 	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
@@ -131,11 +133,17 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	if (pg_util_cmdloop(ssh_cmd, 10 * 60))
 		*errp = pg_error_new("qemu spawn failed");
 
+	set_cgroup = g_strdup_printf("echo %d > /sys/fs/cgroup/cpu/qemu/task",
+			      child_pid);
+	system("mkdir /sys/fs/cgroup/cpu/qemu/");
+	system(set_cgroup);
+	system("echo 4096 > /sys/fs/cgroup/cpu/qemu/cpu.shares");
 	vm_id++;
 	g_free(argv_qemu);
 	g_free(argv_sock_0);
 	g_free(argv_sock_1);
 	g_free(ssh_cmd);
+	g_free(set_cgroup);
 	g_strfreev(argv);
 	return child_pid;
 }
@@ -147,4 +155,5 @@ void pg_util_stop_qemu(int qemu_pid)
 	kill(qemu_pid, SIGKILL);
 	waitpid(qemu_pid, &exit_status, 0);
 	g_spawn_close_pid(qemu_pid);
+	system("rmdir /sys/fs/cgroup/cpu/qemu/");
 }
