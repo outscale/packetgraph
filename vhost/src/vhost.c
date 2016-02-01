@@ -115,7 +115,6 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		return 1;
 	}
 
-	pg_packets_incref(pkts, pkts_mask);
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
 	bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
 					       VIRTIO_RXQ,
@@ -127,8 +126,6 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	if (side->burst_count_cb != NULL)
 		side->burst_count_cb(side->burst_count_private_data,
 				     bursted_pkts);
-
-	pg_packets_free(state->out, pg_mask_firsts(pkts_count));
 
 	return 1;
 }
