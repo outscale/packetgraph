@@ -29,6 +29,8 @@
 #include <packetgraph/nic.h>
 #include "tests.h"
 
+char *glob_pcap_in;
+
 static void print_usage(void)
 {
 	printf("tests usage: [EAL options] -- [-quick-test] [-help]\n");
@@ -43,6 +45,10 @@ static uint64_t parse_args(int argc, char **argv)
 	for (i = 0; i < argc; ++i) {
 		if (!strcmp("-help", argv[i])) {
 			ret |= PRINT_USAGE;
+		} else if (!strcmp("--pcap-in", argv[i]) && i + 1 < argc) {
+			glob_pcap_in = argv[i + 1];
+			ret |= PCAP_IN;
+			i++;
 		} else {
 			printf("tests: invalid option -- %s\n", argv[i]);
 			return FAIL | PRINT_USAGE;
@@ -67,6 +73,9 @@ int main(int argc, char **argv)
 	argc -= ret;
 	argv += ret;
 	test_flags = parse_args(argc, argv);
+
+	if ((test_flags & PCAP_IN) == 0)
+		test_flags |= PRINT_USAGE;
 	if (test_flags & PRINT_USAGE)
 		print_usage();
 	g_assert(!(test_flags & FAIL));

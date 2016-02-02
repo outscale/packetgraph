@@ -38,7 +38,11 @@ void pg_nic_start(void);
  * @name:	name of the brick
  * @west_max:	maximum of links you can connect on the west side
  * @east_max:	maximum of links you can connect on the east side
- * @ifname:	the name of the interface you want to use(example: "eth0")
+ * @ifname:	the name of the interface you want to use.
+ *	This is the same syntax as --vdev in DPDK:
+ *	http://pktgen.readthedocs.org/en/latest/usage_eal.html?highlight=vdev
+ *	For example, if you want to open a system NIC, put:
+ *	"eth_pcap0,iface=eth2"
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure, on success, 0 on error
  */
