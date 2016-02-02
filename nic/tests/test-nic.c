@@ -52,15 +52,20 @@ static void test_nic_simple_flow(void)
 	uint16_t total_get_pkts = 0;
 	struct pg_error *error = NULL;
 	struct pg_nic_stats info;
+	gchar *tmp;
 
 	/* create a chain of a few nop brick with collectors on each sides */
 	/*           /-------- [col_east]
 	 * [nic_west] ------- [nic_east]
 	 * [col_west] -------/
 	 */
-	nic_west = pg_nic_new("nic", 4, 4, WEST_SIDE, "eth_pcap0", &error);
+
+	tmp = g_strdup_printf("eth_pcap0,rx_pcap=%s,tx_pcap=out.pcap",
+			      glob_pcap_in);
+	nic_west = pg_nic_new("nic", 4, 4, WEST_SIDE, tmp, &error);
+	g_free(tmp);
 	CHECK_ERROR(error);
-	nic_ring = pg_nic_new_by_id("nic", 4, 4, EAST_SIDE, 1, &error);
+	nic_ring = pg_nic_new_by_id("nic", 4, 4, EAST_SIDE, 0, &error);
 	CHECK_ERROR(error);
 	collect_east = pg_collect_new("collect 1", 1, 1, &error);
 	CHECK_ERROR(error);

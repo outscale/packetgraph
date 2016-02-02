@@ -185,32 +185,6 @@ static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	return nic_poll_forward(state, brick, nb_pkts, errp);
 }
 
-/* Convert interface name to port id. */
-static int ifname_to_portid(char *ifname, struct pg_error **errp)
-{
-	uint8_t port_id = -1;
-	uint8_t port_id_max;
-
-	port_id_max = rte_eth_dev_count();
-	for (port_id = 0; port_id < port_id_max; port_id++) {
-		struct rte_eth_dev_info dev_info;
-		char tmp[IF_NAMESIZE];
-
-		rte_eth_dev_info_get(port_id, &dev_info);
-
-		if (if_indextoname(dev_info.if_index, tmp) == NULL) {
-			/* try to get name from DPDK */
-			struct rte_eth_dev *dev = &rte_eth_devices[port_id];
-
-			g_strlcpy(tmp, dev->data->name, IF_NAMESIZE);
-		}
-		if (g_str_equal(ifname, tmp))
-			return port_id;
-	}
-	*errp = pg_error_new("Interface %s not found", ifname);
-	return -1;
-}
-
 static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 {
 	int ret;
@@ -292,7 +266,13 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	/* Setup port id */
 	if (nic_config->ifname) {
-		state->portid = ifname_to_portid(nic_config->ifname, errp);
+		gchar *tmp = g_strdup_printf("%s", nic_config->ifname);
+
+		if (rte_eth_dev_attach(tmp, &state->portid) < 0) {
+			*errp = pg_error_new("Invalid parameter %s",
+					     nic_config->ifname);
+		}
+		g_free(tmp);
 		if (pg_error_is_set(errp))
 			return 0;
 	} else if (nic_config->portid < rte_eth_dev_count()) {

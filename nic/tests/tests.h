@@ -20,9 +20,11 @@
 
 enum test_flags {
 	PRINT_USAGE = 1,
-	FAIL = 2
+	FAIL = 2,
+	PCAP_IN = 4
 };
 
+extern char *glob_pcap_in;
 void test_nic(void);
 
 #endif
