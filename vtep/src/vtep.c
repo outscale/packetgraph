@@ -392,9 +392,9 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		entries[i] = mac_cache_get(state->cache,
 					   (uint64_t *)dst_key_ptr(pkt));
 		if (entries[i])
-			ip_mask |= 1LLU << i;
+			ip_mask |= ONE64 << i;
 		else
-			unicast_mask |= 1LLU << i;
+			unicast_mask |= ONE64 << i;
 	}
 
 	if (unicast_mask) {
