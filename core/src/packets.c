@@ -58,7 +58,6 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 	return pkts;
 }
 
-
 #define PG_PACKETS_OPS_BUF(pkts, pkts_mask, buf, len, ops)	\
 	void *tmp;						\
 	PG_FOREACH_BIT(pkts_mask, j) {				\
@@ -67,7 +66,6 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], len);		\
 		memcpy(tmp, buf, len);				\
 	}
-	
 
 struct rte_mbuf **pg_packets_append_buf(struct rte_mbuf **pkts,
 					 uint64_t pkts_mask,
@@ -89,7 +87,6 @@ struct rte_mbuf **pg_packets_prepend_buf(struct rte_mbuf **pkts,
 
 #undef PG_PACKETS_OPS_BUF
 
-
 #define PG_PACKETS_OPS_STR(pkts, pkts_mask, str, ops)		\
 	char *tmp;						\
 	PG_FOREACH_BIT(pkts_mask, j) {				\
@@ -98,7 +95,6 @@ struct rte_mbuf **pg_packets_prepend_buf(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], strlen(str));	\
 		strcpy(tmp, str);				\
 	}
-	
 
 struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
@@ -174,7 +170,6 @@ struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(udp_hdr));	\
 		memcpy(tmp, &udp_hdr, sizeof(udp_hdr));			\
 	}								\
-
 
 struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
