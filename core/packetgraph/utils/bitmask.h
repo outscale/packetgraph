@@ -24,27 +24,35 @@ uint64_t pg_mask_firsts(uint8_t count);
 
 int pg_mask_count(uint64_t pkts_mask);
 
+#if __SIZEOF_POINTER__ == 8
+#define ONE64	1LU
+#define ctz64	__builtin_ctzl
+#elif __SIZEOF_POINTER__ == 4
+#define ONE64	1LLU
+#define ctz64	__builtin_ctzll
+#endif
+
 /**
  * Made as a macro for performance reason since a function would imply a 10%
  * performance hit and a function in a separate module would not be inlined.
  */
 #define pg_low_bit_iterate_full(mask, bit, index) do {	\
-	index =  __builtin_ctzll(mask);			\
-	bit = 1LLU << index;				\
+	index =  ctz64(mask);			\
+	bit = ONE64 << index;				\
 	mask &= ~bit;					\
 	} while (0)
 
 #define pg_low_bit_iterate(mask, index) do {	\
 	uint64_t bit;				\
-	index =  __builtin_ctzll(mask);		\
-	bit = 1LLU << index;			\
+	index =  ctz64(mask);			\
+	bit = ONE64 << index;			\
 	mask &= ~bit;				\
 	} while (0)
 
 #define PG_FOREACH_BIT(mask, it)					\
 	for (uint64_t tmpmask = mask, it;				\
-	     ((it = __builtin_ctzl(tmpmask)) || 1) &&			\
+	     ((it = ctz64(tmpmask)) || 1) &&				\
 		     tmpmask;						\
-	     tmpmask &= ~(1LLU << it))
+	     tmpmask &= ~(ONE64 << it))
 
 #endif /* _PG_CORE_UTILS_BITMASK_H */
