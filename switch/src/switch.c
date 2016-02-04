@@ -341,7 +341,8 @@ static int switch_init(struct pg_brick *brick,
 		state->sides[i].masks	= g_new0(uint64_t, max);
 		state->sides[i].unlinks = g_new0(uint64_t, max);
 	}
-	state->output = ((struct pg_switch_config *)config->brick_config)->output;
+	state->output =
+	  ((struct pg_switch_config *)config->brick_config)->output;
 	return 1;
 }
 
