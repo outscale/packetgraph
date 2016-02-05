@@ -81,7 +81,8 @@ static struct pg_brick_config *vhost_config_new(const char *name,
 
 	vhost_config->output = output;
 	config->brick_config = (void *) vhost_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max,
+				    east_max, PG_MULTIPOLE);
 }
 
 static int vhost_burst(struct pg_brick *brick, enum pg_side from,

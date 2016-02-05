@@ -24,32 +24,32 @@
 #include <packetgraph/utils/config.h>
 #include <packetgraph/utils/mempool.h>
 #include <packetgraph/packets.h>
+#include <packetgraph/collect.h>
+#include <packetgraph/nop.h>
 #include "tests.h"
 
 #define NB_PKTS 3
 #define NB_LOOP 4
 
 #define	TEST_PKTS_COUNT_INIT()						\
-	struct pg_brick_config *config;					\
 	struct pg_brick *brick, *collect_west, *collect_east;		\
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST], **result_pkts;	\
 	struct rte_mempool *mp = pg_get_mempool();			\
 	struct pg_error *error = NULL;					\
 	uint16_t i;							\
 	uint64_t pkts_mask;						\
-	config = pg_brick_config_new("mybrick", 4, 4);			\
 	memset(pkts, 0, PG_MAX_PKTS_BURST * sizeof(struct rte_mbuf *));	\
 	for (i = 0; i < NB_PKTS; i++) {					\
 		pkts[i] = rte_pktmbuf_alloc(mp);			\
 		g_assert(pkts[i]);					\
 		pkts[i]->udata64 = i;					\
 	}								\
-	brick = pg_brick_new("nop", config, &error);			\
+	brick = pg_nop_new("nop", 4, 4, &error);				\
 	g_assert(!error);						\
-	collect_west = pg_brick_new("collect", config, &error);		\
+	collect_west = pg_collect_new("mybrick", 4, 4, &error);		\
 	g_assert(!error);						\
 	g_assert(collect_west);						\
-	collect_east = pg_brick_new("collect", config, &error);		\
+	collect_east = pg_collect_new("mybrick", 4, 4, &error);		\
 	g_assert(!error);						\
 	g_assert(collect_east);						\
 	pg_brick_link(collect_west, brick, &error);			\
@@ -71,7 +71,6 @@
 		g_assert(!error);				\
 		pg_brick_decref(collect_east, &error);		\
 		g_assert(!error);				\
-		pg_brick_config_free(config);			\
 	} while (0)
 
 #define	TEST_PKTS_COUNT_CHECK(get_burst_fn, to_collect, result_to_check) do { \

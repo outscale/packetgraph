@@ -38,7 +38,8 @@ static struct pg_brick_config *diode_config_new(const char *name,
 
 	diode_config->output = output;
 	config->brick_config = (void *) diode_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max,
+				    east_max, PG_MULTIPOLE);
 }
 
 static int diode_burst(struct pg_brick *brick, enum pg_side from,

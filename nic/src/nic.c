@@ -86,7 +86,8 @@ static struct pg_brick_config *nic_config_new(const char *name,
 	}
 	nic_config->output = output;
 	config->brick_config = (void *) nic_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max,
+				    east_max, PG_MULTIPOLE);
 }
 
 void pg_nic_get_stats(struct pg_brick *nic,

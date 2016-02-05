@@ -56,7 +56,8 @@ struct pg_brick *pg_nop_new(const char *name,
 {
 	struct pg_brick_config *config = pg_brick_config_new(name,
 							     west_max,
-							     east_max);
+							     east_max,
+							     PG_MULTIPOLE);
 	struct pg_brick *ret = pg_brick_new("nop", config, errp);
 
 	pg_brick_config_free(config);

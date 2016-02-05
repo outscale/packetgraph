@@ -57,7 +57,8 @@ static struct pg_brick_config *firewall_config_new(const char *name,
 
 	firewall_config->flags = flags;
 	config->brick_config = (void *) firewall_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max, east_max,
+				    PG_MULTIPOLE);
 }
 
 void pg_firewall_gc(struct pg_brick *brick)

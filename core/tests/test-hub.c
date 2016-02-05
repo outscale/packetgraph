@@ -61,7 +61,6 @@
 		g_assert(!error);					\
 		pg_brick_decref(collect4, &error);			\
 		g_assert(!error);					\
-		pg_brick_config_free(config);				\
 	} while (0)
 
 #define		TEST_HUB_COLLECT_AND_TEST(get_burst_fn,	to_col, to_check) do { \
@@ -77,7 +76,6 @@
 
 static void test_hub_east_dispatch(void)
 {
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
 	struct pg_brick *hub;
 	struct pg_brick *collect1, *collect2, *collect3, *collect4;
 	struct rte_mbuf *pkts[NB_PKTS], **result_pkts;
@@ -141,7 +139,6 @@ static void test_hub_east_dispatch(void)
 
 static void test_hub_west_dispatch(void)
 {
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
 	struct pg_brick *hub;
 	struct pg_brick *collect1, *collect2, *collect3, *collect4;
 	struct rte_mbuf *pkts[NB_PKTS], **result_pkts;
@@ -155,18 +152,18 @@ static void test_hub_west_dispatch(void)
 		g_assert(pkts[i]);
 		pkts[i]->udata64 = i;
 	}
-	hub = pg_brick_new("hub", config, &error);
+	hub = pg_hub_new("hub", 4, 4, &error);
 	g_assert(!error);
-	collect1 = pg_brick_new("collect", config, &error);
+	collect1 = pg_collect_new("collect", 1, 1, &error);
 	g_assert(!error);
 	g_assert(collect1);
-	collect2 = pg_brick_new("collect", config, &error);
+	collect2 = pg_collect_new("collect", 1, 1, &error);
 	g_assert(!error);
 	g_assert(collect2);
-	collect3 = pg_brick_new("collect", config, &error);
+	collect3 = pg_collect_new("collect", 1, 1, &error);
 	g_assert(!error);
 	g_assert(collect3);
-	collect4 = pg_brick_new("collect", config, &error);
+	collect4 = pg_collect_new("collect", 1, 1, &error);
 	g_assert(!error);
 	g_assert(collect4);
 	pg_brick_link(collect1, hub, &error);

@@ -56,7 +56,8 @@ static struct pg_brick_config *pg_print_config_new(const char *name,
 	print_config->type_filter = type_filter;
 
 	config->brick_config = (void *) print_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max, east_max,
+		PG_MULTIPOLE);
 }
 
 static int should_skip(uint16_t *type_filter, struct ether_hdr *eth)

@@ -64,7 +64,8 @@ struct pg_brick *pg_hub_new(const char *name, uint32_t west_max,
 			    struct pg_error **errp)
 {
 	struct pg_brick_config *config = pg_brick_config_new(name, west_max,
-							     east_max);
+							     east_max,
+							     PG_MULTIPOLE);
 	struct pg_brick *ret = pg_brick_new("hub", config, errp);
 
 	pg_brick_config_free(config);

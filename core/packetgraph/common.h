@@ -24,6 +24,15 @@ enum pg_side {
 	MAX_SIDE  = 2
 };
 
+static inline const char *pg_side_to_string(enum pg_side side)
+{
+	static const char * const sides[] = {"WEST_SIDE",
+					     "EAST_SIDE",
+					     "MAX_SIDE"};
+
+	return sides[side];
+}
+
 #define DEFAULT_SIDE WEST_SIDE
 
 /* do not change this */

@@ -35,11 +35,6 @@ inline enum pg_side pg_flip_side(enum pg_side side)
 
 static void assert_brick_callback(struct pg_brick *brick)
 {
-	enum pg_side i;
-
-	/* the init constructor should set these */
-	for (i = 0; i < MAX_SIDE; i++)
-		g_assert(brick->sides[i].max);
 	/* assert that the minimum of functions pointers are filled */
 	g_assert(brick->burst);
 	g_assert(brick->ops);
@@ -57,9 +52,14 @@ static void alloc_edges(struct pg_brick *brick)
 	for (i = 0; i < MAX_SIDE; i++) {
 		struct pg_brick_side *side = &brick->sides[i];
 
-		side->nb = 0;
-		g_assert(side->max);
-		side->edges = g_new0(struct pg_brick_edge, side->max);
+		if (brick->type == PG_MULTIPOLE) {
+			side->nb = 0;
+			g_assert(side->max);
+			side->edges = g_new0(struct pg_brick_edge, side->max);
+		} else {
+			side->edge.link = NULL;
+			side->edge.pair_index = 0;
+		}
 	}
 }
 
@@ -70,9 +70,9 @@ static void alloc_edges(struct pg_brick *brick)
  * @param	west_edges the size of the west array
  * @param	east_edges the size of the east array
  */
-void pg_brick_set_max_edges(struct pg_brick *brick,
-			    uint16_t west_edges,
-			    uint16_t east_edges)
+static void pg_brick_set_max_edges(struct pg_brick *brick,
+				   uint16_t west_edges,
+				   uint16_t east_edges)
 {
 	brick->sides[WEST_SIDE].max = west_edges;
 	brick->sides[EAST_SIDE].max = east_edges;
@@ -88,6 +88,34 @@ static void zero_brick_counters(struct pg_brick *brick)
 
 /* Convenient macro to get a pointer to brick ops */
 #define pg_brick_get(it) ((struct pg_brick_ops *)(it->data))
+
+static int check_side_max(struct pg_brick_config *config,
+			  struct pg_error **errp)
+{
+	int overedge = (config->west_max >= UINT16_MAX ||
+			config->east_max >= UINT16_MAX);
+
+	if (config->type == PG_MULTIPOLE && overedge) {
+
+		enum pg_side faulte = config->west_max >= UINT16_MAX ?
+			WEST_SIDE : EAST_SIDE;
+
+		*errp = pg_error_new(
+			"A '%s' cannot have more than %d edge on %s",
+			pg_brick_type_to_string(config->type),
+			UINT16_MAX, pg_side_to_string(faulte));
+		return 0;
+
+	} else if ((config->type == PG_MONOPOLE ||
+		    config->type == PG_DIPOLE) &&
+		   (config->west_max > 1 ||  config->east_max > 1)) {
+		*errp = pg_error_new(
+			"A '%s' cannot have more than one neibour per side",
+			pg_brick_type_to_string(config->type));
+		return 0;
+	}
+	return 1;
+}
 
 /**
  * This function instantiates a brick by its brick_ops name
@@ -131,18 +159,12 @@ struct pg_brick *pg_brick_new(const char *name,
 	brick = g_malloc0(pg_brick_get(it)->state_size);
 	brick->ops = pg_brick_get(it);
 	brick->refcount = 1;
+	brick->type = config->type;
 
 	zero_brick_counters(brick);
 
-	if (config->west_max >= UINT16_MAX) {
-		*errp = pg_error_new("Supports UINT16_MAX west neigbourghs");
+	if (!check_side_max(config, errp))
 		goto fail_exit;
-	}
-
-	if (config->east_max >= UINT16_MAX) {
-		*errp = pg_error_new("Supports UINT16_MAX east neigbourghs");
-		goto fail_exit;
-	}
 
 	pg_brick_set_max_edges(brick, config->west_max, config->east_max);
 	brick->name = g_strdup(config->name);
@@ -219,8 +241,10 @@ struct pg_brick *pg_brick_decref(struct pg_brick *brick, struct pg_error **errp)
 	if (brick->ops->destroy)
 		brick->ops->destroy(brick, errp);
 
-	for (i = 0; i < MAX_SIDE; i++)
-		g_free(brick->sides[i].edges);
+	if (brick->type == PG_MULTIPOLE) {
+		for (i = 0; i < MAX_SIDE; i++)
+			g_free(brick->sides[i].edges);
+	}
 
 	g_free(brick->name);
 	/* The brick struct is be the first member of the state. */
@@ -285,14 +309,30 @@ uint32_t pg_brick_links_count_get(struct pg_brick *brick,
 {
 	uint32_t count = 0;
 	enum pg_side i;
+	struct pg_brick_side *side;
 
 	if (!brick) {
 		*errp = pg_error_new("brick is NULL");
 		return 0;
 	}
 
-	for (i = 0; i < MAX_SIDE; i++)
-		count += count_side(&brick->sides[i], target);
+	if (brick->type == PG_MULTIPOLE) {
+		for (i = 0; i < MAX_SIDE; i++)
+			count += count_side(&brick->sides[i],
+					    target);
+	} else if (brick->type == PG_DIPOLE) {
+		for (i = 0; i < MAX_SIDE; i++) {
+			side = &brick->sides[i];
+			if (side->edge.link && side->edge.link == target)
+				++count;
+		}
+	} else if (brick->type == PG_MONOPOLE) {
+		side = &brick->side;
+		if (side->edge.link && side->edge.link == target)
+			++count;
+	} else {
+		return -1;
+	}
 
 	return count;
 }
@@ -318,33 +358,74 @@ void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp)
 	brick->ops->unlink(brick, errp);
 }
 
-/**
- * This function insert a brick into the first empty edge of an edge array
- *
- * @param	side the side to insert into
- * @param	brick the brick to link to
- * @return	the insertion index in the array
- *
- */
-static uint16_t insert_link(struct pg_brick_side *side,
-			    struct pg_brick *brick)
+
+
+struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
+					enum pg_side side,
+					uint32_t edge)
 {
-	uint16_t i;
+	switch (brick->type) {
+	case PG_MULTIPOLE:
+		return &brick->sides[side].edges[edge];
+	case PG_DIPOLE:
+		return &brick->sides[side].edge;
+	case PG_MONOPOLE:
+		return &brick->side.edge;
+	}
+	return NULL;
+}
 
-	g_assert(side->edges);
+/**
+ * link @from to @to, on @side
+ */
+static uint16_t insert_link(struct pg_brick *from,
+			    struct pg_brick *to,
+			    enum pg_side side)
+{
+	struct pg_brick_side *s;
 
-	for (i = 0; i < side->max; i++)
-		if (!side->edges[i].link) {
-			side->nb++;
-			pg_brick_incref(brick);
-			side->edges[i].link = brick;
-			return i;
+	switch (from->type) {
+	case PG_MULTIPOLE:
+		s = &from->sides[side];
+		g_assert(s->edges);
+
+		for (uint16_t i = 0; i < s->max; i++) {
+			if (!s->edges[i].link) {
+				s->nb++;
+				pg_brick_incref(to);
+				s->edges[i].link = to;
+				return i;
+			}
 		}
 
-	g_assert(0);
+		/* This should never happen */
+		g_assert(0);
+		return 0;
+	case PG_DIPOLE:
+		from->sides[side].edge.link = to;
+		from->sides[side].nb++;
+		pg_brick_incref(to);
+		return 0;
+	case PG_MONOPOLE:
+		from->side.nb++;
+		pg_brick_incref(to);
+		from->side.edge.link = to;
+		return 0;
+	}
 	return 0;
 }
 
+static int is_place_available(struct pg_brick *brick, enum pg_side side)
+{
+	switch (brick->type) {
+	case PG_MONOPOLE:
+		return (brick->side.nb < brick->side.max);
+	case PG_DIPOLE:
+	case PG_MULTIPOLE:
+		return (brick->sides[side].nb < brick->sides[side].max);
+	}
+	return 0;
+}
 
 int pg_brick_link(struct pg_brick *west,
 		  struct pg_brick *east,
@@ -361,21 +442,23 @@ int pg_brick_link(struct pg_brick *west,
 		*errp = pg_error_new("Can not link a brick to herself");
 		return 0;
 	}
-	if (east->sides[WEST_SIDE].nb == east->sides[WEST_SIDE].max) {
+	/* check if each sides have places */
+	if (!is_place_available(east, WEST_SIDE)) {
 		*errp = pg_error_new("%s: Side full", east->name);
 		return 0;
 	}
-	if (west->sides[EAST_SIDE].nb == west->sides[EAST_SIDE].max) {
+	if (!is_place_available(west, EAST_SIDE)) {
 		*errp = pg_error_new("%s: Side full", west->name);
 		return 0;
 	}
 
-	east_index = insert_link(&east->sides[WEST_SIDE], west);
-	west_index = insert_link(&west->sides[EAST_SIDE], east);
+	/* insert and get pair index */
+	east_index = insert_link(east, west, WEST_SIDE);
+	west_index = insert_link(west, east, EAST_SIDE);
 
 	/* finish the pairing of the edge */
-	east->sides[WEST_SIDE].edges[east_index].pair_index = west_index;
-	west->sides[EAST_SIDE].edges[west_index].pair_index = east_index;
+	pg_brick_get_edge(east, WEST_SIDE, east_index)->pair_index = west_index;
+	pg_brick_get_edge(west, EAST_SIDE, west_index)->pair_index = east_index;
 
 	return 1;
 }
@@ -428,15 +511,17 @@ static void unlink_notify(struct pg_brick_edge *edge, enum pg_side array_side,
 static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 		      struct pg_error **errp)
 {
-	struct pg_brick_edge *edge = &brick->sides[side].edges[index];
-	struct pg_brick_edge *pair_edge;
+	struct pg_brick_edge *edge = pg_brick_get_edge(brick, side, index);
 	struct pg_brick_side *pair_side;
+	struct pg_brick_edge *pair_edge;
 
 	if (!edge->link)
 		return;
 
 	pair_side = &edge->link->sides[pg_flip_side(side)];
-	pair_edge = &pair_side->edges[edge->pair_index];
+	pair_edge = pg_brick_get_edge(edge->link,
+				      pg_flip_side(side),
+				      edge->pair_index);
 
 	unlink_notify(edge, side, errp);
 	if (pg_error_is_set(errp))
@@ -459,6 +544,20 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 	pair_side->nb--;
 }
 
+static void brick_generic_unlink_multipole(struct pg_brick *brick,
+					   enum pg_side side,
+					   struct pg_error **errp)
+{
+	uint16_t i;
+
+	for (i = 0; i < brick->sides[side].max; i++) {
+		do_unlink(brick, side, i, errp);
+
+		if (pg_error_is_set(errp))
+			return;
+	}
+}
+
 /**
  * This function unlinks all the link from and to this brick
  *
@@ -468,15 +567,21 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp)
 {
 	enum pg_side i;
-	uint16_t j;
 
-	for (i = 0; i < MAX_SIDE; i++)
-		for (j = 0; j < brick->sides[i].max; j++) {
-			do_unlink(brick, i, j, errp);
-
-			if (pg_error_is_set(errp))
-				return;
+	for (i = 0; i < MAX_SIDE; i++) {
+		switch (brick->type) {
+		case PG_MULTIPOLE:
+			brick_generic_unlink_multipole(brick, i, errp);
+			break;
+		case PG_DIPOLE:
+			do_unlink(brick, i, 0, errp);
+			break;
+		case PG_MONOPOLE:
+			do_unlink(brick, 0, 0, errp);
+			/* there's only one side, so we can return now */
+			return;
 		}
+	}
 }
 
 /**
@@ -567,9 +672,10 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 	return brick->ops->burst_get(brick, EAST_SIDE, pkts_mask);
 }
 
-int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
-			  struct rte_mbuf **pkts, uint16_t nb,
-			  uint64_t pkts_mask, struct pg_error **errp)
+int pg_brick_side_forward(struct pg_brick_side *brick_side,
+			  enum pg_side from, struct rte_mbuf **pkts,
+			  uint16_t nb, uint64_t pkts_mask,
+			  struct pg_error **errp)
 {
 	int ret = 1;
 	uint16_t i;
@@ -590,7 +696,14 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 {
 	if (!brick)
 		return 0;
-	return rte_atomic64_read(&brick->sides[side].packet_count);
+	switch (brick->type) {
+	case PG_MULTIPOLE:
+	case PG_DIPOLE:
+		return rte_atomic64_read(&brick->sides[side].packet_count);
+	case PG_MONOPOLE:
+		return rte_atomic64_read(&brick->side.packet_count);
+	}
+	return 0;
 }
 
 const char *pg_brick_name(struct pg_brick *brick)
@@ -601,4 +714,9 @@ const char *pg_brick_name(struct pg_brick *brick)
 const char *pg_brick_type(struct pg_brick *brick)
 {
 	return brick->ops->name;
+}
+
+uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side)
+{
+	return brick->sides[side].max;
 }

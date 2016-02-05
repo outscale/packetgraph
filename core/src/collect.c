@@ -106,7 +106,7 @@ struct pg_brick *pg_collect_new(const char *name,
 {
 	struct pg_brick_config *config;
 
-	config = pg_brick_config_new(name, west_max, east_max);
+	config = pg_brick_config_new(name, west_max, east_max, PG_MULTIPOLE);
 	struct pg_brick *ret = pg_brick_new("collect", config, errp);
 
 	pg_brick_config_free(config);

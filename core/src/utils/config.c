@@ -21,24 +21,27 @@
 #include <packetgraph/brick-int.h>
 
 struct pg_brick_config *pg_brick_config_init(struct pg_brick_config *config,
-					  const char *name,
-					  uint32_t west_max,
-					  uint32_t east_max)
+					     const char *name,
+					     uint32_t west_max,
+					     uint32_t east_max,
+					     enum pg_brick_type type)
 {
 	config->name = g_strdup(name);
 	config->west_max = west_max;
 	config->east_max = east_max;
 	config->brick_config_free = NULL;
+	config->type = type;
 	return config;
 }
 
 struct pg_brick_config *pg_brick_config_new(const char *name,
 					    uint32_t west_max,
-					    uint32_t east_max)
+					    uint32_t east_max,
+					    enum pg_brick_type type)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max, east_max, type);
 }
 
 void pg_brick_config_free(struct pg_brick_config *config)

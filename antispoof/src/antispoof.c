@@ -96,7 +96,8 @@ static struct pg_brick_config *antispoof_config_new(const char *name,
 	antispoof_config->mac = mac;
 	config = g_new0(struct pg_brick_config, 1);
 	config->brick_config = (void *) antispoof_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max,
+				    east_max, PG_MULTIPOLE);
 }
 
 static inline int antispoof_arp(struct pg_antispoof_state *state,

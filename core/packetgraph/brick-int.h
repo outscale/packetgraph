@@ -61,9 +61,6 @@ struct pg_brick_edge {
 };
 
 struct pg_brick_side {
-	uint16_t max;			/* maximum number of edges */
-	uint16_t nb;			/* number of edges */
-	struct pg_brick_edge *edges;	/* edges */
 	rte_atomic64_t packet_count;	/* incoming pkts count */
 	/* Optional callback to set to get the number of packets which has been
 	 * bursted/enqueue. Default: NULL.
@@ -71,7 +68,19 @@ struct pg_brick_side {
 	void (*burst_count_cb)(void *private_data, uint16_t burst_count);
 	/* Private data to provide when using callback. */
 	void *burst_count_private_data;
+	/* a padding which can contain any kind of side */
+	uint16_t max;			/* maximum number of edges */
+	uint16_t nb;			/* number of edges */
+
+	/* Edges is use by multipoles bricks,
+	 * and edge by dipole and monopole bricks
+	 */
+	union {
+		struct pg_brick_edge *edges;	/* edges */
+		struct pg_brick_edge edge;
+	};
 };
+
 
 /**
  * Brick State
@@ -93,12 +102,20 @@ struct pg_brick {
 	int (*poll)(struct pg_brick *brick,
 		    uint16_t *count, struct pg_error **errp);
 
-	struct pg_brick_side sides[MAX_SIDE];	/* east and west sides */
-
 	struct pg_brick_ops *ops;	/* management ops */
 	int64_t refcount;		/* reference count */
 	char *name;			/* unique name */
+	enum pg_brick_type type;
+
+	/* Sides is use by multipoles and dipole bricks,
+	 * and side by monopole bricks
+	 */
+	union {
+		struct pg_brick_side sides[MAX_SIDE];
+		struct pg_brick_side side;
+	};
 };
+
 
 /**
  * Brick Operations
