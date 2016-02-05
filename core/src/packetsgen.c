@@ -147,7 +147,8 @@ static struct pg_brick_config *packetsgen_config_new(const char *name,
 	packetsgen_config->packets = packets;
 	packetsgen_config->packets_nb = packets_nb;
 	config->brick_config = (void *) packetsgen_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max,
+				    east_max, PG_MULTIPOLE);
 }
 
 

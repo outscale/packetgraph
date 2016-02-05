@@ -22,13 +22,11 @@
 #include <packetgraph/brick-int.h>
 #include <packetgraph/utils/errors.h>
 
-void pg_brick_set_max_edges(struct pg_brick *brick,
-			   uint16_t west_edges, uint16_t east_edges);
-
  /* lifecycle */
 struct pg_brick *pg_brick_new(const char *name,
 			      struct pg_brick_config *config,
 			      struct pg_error **errp);
+
 void pg_brick_incref(struct pg_brick *brick);
 struct pg_brick *pg_brick_decref(struct pg_brick *brick,
 				 struct pg_error **errp);
@@ -77,5 +75,20 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 			  struct rte_mbuf **pkts, uint16_t nb,
 			  uint64_t pkts_mask, struct pg_error **errp);
+
+/**
+ * Get the edge of a brick.
+ * @brick:	the brick
+ * @side:	the side on which the edge is store, useless if monopole brick
+ * @edge:	the edge we want, useless if not a miltipole brick.
+ */
+struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
+					enum pg_side side,
+					uint32_t edge);
+
+/**
+ * return the maximum number of brick a side can have
+ */
+uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side);
 
 #endif /* _PG_CORE_BRICK_H */

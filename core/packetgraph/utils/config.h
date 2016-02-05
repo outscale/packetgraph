@@ -21,6 +21,12 @@
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
+enum pg_brick_type {
+	PG_MULTIPOLE,
+	PG_MONOPOLE,
+	PG_DIPOLE
+};
+
 struct pg_brick_config {
 	/* The unique name of the brick brick in the graph */
 	char *name;
@@ -29,19 +35,31 @@ struct pg_brick_config {
 	/* The maximum number of east edges */
 	uint32_t east_max;
 
+	enum pg_brick_type  type;
 	/* Function to call to free this brick config */
 	void (*brick_config_free)(void *brick_config);
 	void *brick_config;
 };
 
+static inline const char *pg_brick_type_to_string(enum pg_brick_type type)
+{
+	static const char * const type_str[] = {"PG_MULTIPOLE",
+						"PG_MONOPOLE",
+						"PG_DIPOLE"};
+
+	return type_str[type];
+}
+
 struct pg_brick_config *pg_brick_config_init(struct pg_brick_config *config,
 					     const char *name,
 					     uint32_t west_max,
-					     uint32_t east_max);
+					     uint32_t east_max,
+					     enum pg_brick_type type);
 
 struct pg_brick_config *pg_brick_config_new(const char *name,
 					    uint32_t west_max,
-					    uint32_t east_max);
+					    uint32_t east_max,
+					    enum pg_brick_type type);
 
 void pg_brick_config_free(struct pg_brick_config *config);
 

@@ -797,7 +797,7 @@ static int vtep_init(struct pg_brick *brick,
 	vtep_config = config->brick_config;
 
 	state->output = vtep_config->output;
-	if (brick->sides[state->output].max != 1) {
+	if (pg_side_get_max(brick, state->output) != 1) {
 		*errp = pg_error_new("brick %s number of output port is not 1",
 				  brick->name);
 		return 0;
@@ -820,7 +820,7 @@ static int vtep_init(struct pg_brick *brick,
 	/* do a lazy allocation of the VTEP ports: the code will init them
 	 * at VNI port add
 	 */
-	max = brick->sides[pg_flip_side(state->output)].max;
+	max = pg_side_get_max(brick, pg_flip_side(state->output));
 	state->ports = g_new0(struct vtep_port, max);
 	state->masks = g_new0(uint64_t, max);
 
@@ -845,7 +845,8 @@ static struct pg_brick_config *vtep_config_new(const char *name,
 	vtep_config->flags = flags;
 	ether_addr_copy(&mac, &vtep_config->mac);
 	config->brick_config = vtep_config;
-	return pg_brick_config_init(config, name, west_max, east_max);
+	return pg_brick_config_init(config, name, west_max,
+				    east_max, PG_MULTIPOLE);
 }
 
 struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,

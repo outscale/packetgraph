@@ -356,7 +356,8 @@ static struct pg_brick_config *pg_switch_config_new(const char *name,
 							1);
 	switch_config->output = output;
 	config->brick_config = switch_config;
-	return  pg_brick_config_init(config, name, west_max, east_max);
+	return  pg_brick_config_init(config, name, west_max,
+				     east_max, PG_MULTIPOLE);
 }
 
 struct pg_brick *pg_switch_new(const char *name,

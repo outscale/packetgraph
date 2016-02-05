@@ -26,7 +26,8 @@ static void test_brick_core_simple_lifecycle(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick;
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 2, 2);
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 2, 2,
+							     PG_MULTIPOLE);
 
 	brick = pg_brick_new("foo", config, &error);
 	g_assert(!brick);
@@ -58,7 +59,8 @@ static void test_brick_core_refcount(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick;
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 2, 2);
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 2, 2,
+							     PG_MULTIPOLE);
 
 	brick = pg_brick_new("nop", config, &error);
 	g_assert(brick);
@@ -88,7 +90,8 @@ static void test_brick_core_link(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *west_brick, *middle_brick, *east_brick;
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
+							     PG_MULTIPOLE);
 	int64_t refcount;
 	int ret;
 
@@ -151,7 +154,8 @@ static void test_brick_core_link(void)
 static void test_brick_core_multiple_link(void)
 {
 	struct pg_brick *west_brick, *middle_brick, *east_brick;
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
+							     PG_MULTIPOLE);
 	struct pg_error *error = NULL;
 	int64_t refcount;
 	int ret;
@@ -221,13 +225,18 @@ static void test_brick_core_multiple_link(void)
 	pg_brick_config_free(config);
 }
 
-static int test_side_sanity_check(struct pg_brick_side *side)
+static int test_side_sanity_check(struct pg_brick_side *side,
+				  enum pg_brick_type type)
 {
 	uint16_t j, count = 0;
 
-	for (j = 0; j < side->max; j++) {
-		if (side->edges[j].link)
-			count++;
+	if (type == PG_MULTIPOLE) {
+		for (j = 0; j < side->max; j++) {
+			if (side->edges[j].link)
+				count++;
+		}
+	} else if (side->edge.link != NULL) {
+		count++;
 	}
 	g_assert(count == side->nb);
 	return count;
@@ -236,22 +245,25 @@ static int test_side_sanity_check(struct pg_brick_side *side)
 
 static void test_brick_sanity_check(struct pg_brick *brick)
 {
-	test_side_sanity_check(&brick->sides[WEST_SIDE]);
-	test_side_sanity_check(&brick->sides[EAST_SIDE]);
+	test_side_sanity_check(&brick->sides[WEST_SIDE], brick->type);
+	test_side_sanity_check(&brick->sides[EAST_SIDE], brick->type);
 }
 
 static void test_brick_sanity_check_expected(struct pg_brick *brick,
 					     int west, int east)
 {
-	g_assert(test_side_sanity_check(&brick->sides[WEST_SIDE]) == west);
-	g_assert(test_side_sanity_check(&brick->sides[EAST_SIDE]) == east);
+	g_assert(test_side_sanity_check(&brick->sides[WEST_SIDE], brick->type)
+		 == west);
+	g_assert(test_side_sanity_check(&brick->sides[EAST_SIDE], brick->type)
+		 == east);
 }
 
 
 static void test_brick_core_verify_multiple_link(void)
 {
 	struct pg_brick *west_brick, *middle_brick, *east_brick;
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4);
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
+							     PG_MULTIPOLE);
 	uint32_t links_count;
 	struct pg_error *error = NULL;
 
