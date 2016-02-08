@@ -19,6 +19,7 @@
 #include <packetgraph/packetgraph.h>
 
 void test_benchmark_nop(void);
+void test_benchmark_hub(void);
 
 int main(int argc, char **argv)
 {
@@ -28,7 +29,10 @@ int main(int argc, char **argv)
 	g_test_init(&argc, &argv, NULL);
 	pg_start(argc, argv, &error);
 	g_assert(!error);
+	printf("A wild Nop bench appears !\n");
 	test_benchmark_nop();
+	printf("Hub bench go !\n");
+	test_benchmark_hub();
 	r = g_test_run();
 	pg_stop();
 	return r;

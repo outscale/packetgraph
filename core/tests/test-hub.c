@@ -26,6 +26,7 @@
 #include <packetgraph/utils/mempool.h>
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/collect.h>
+#include "tests.h"
 
 #define NB_PKTS 3
 
@@ -203,27 +204,8 @@ static void test_hub_west_dispatch(void)
 #undef TEST_HUB_INIT
 #undef TEST_HUB_DESTROY
 
-static void test_hub(void)
+void test_hub(void)
 {
 	g_test_add_func("/brick/hub/east", test_hub_east_dispatch);
 	g_test_add_func("/brick/hub/west", test_hub_west_dispatch);
-}
-
-int main(int argc, char **argv)
-{
-	struct pg_error *error = NULL;
-	int r;
-
-	/* tests in the same order as the header function declarations */
-	g_test_init(&argc, &argv, NULL);
-
-	/* initialize packetgraph */
-	pg_start(argc, argv, &error);
-	g_assert(!error);
-
-	test_hub();
-	r = g_test_run();
-
-	pg_stop();
-	return r;
 }
