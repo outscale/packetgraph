@@ -24,8 +24,6 @@ vtep brick needs:
 - dpdk built
 - packetgraph-core installed OR ...
 - ```export PG_CORE=/abs/path/to/core/build/dir```
-- packetgraph-brick-hub installed OR ...
-- ```export PG_HUB=/abs/path/to/brick-hub/build/dir```
 
 For details on how to build dpdk, check packetgraph-core's documentation.
 

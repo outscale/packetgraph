@@ -30,6 +30,7 @@ add_library(packetgraph-${BRICK}-objects OBJECT
 	${PG_ROOT}/${BRICK}/src/bricks.c
 	${PG_ROOT}/${BRICK}/src/packets.c
 	${PG_ROOT}/${BRICK}/src/nop.c
+	${PG_ROOT}/${BRICK}/src/hub.c
 	${PG_ROOT}/${BRICK}/src/collect.c
 	${PG_ROOT}/${BRICK}/src/graph.c
 	${PG_ROOT}/${BRICK}/src/packetsgen.c)
@@ -114,6 +115,7 @@ add_executable(packetgraph-${BRICK}-tests EXCLUDE_FROM_ALL
 		tests/test-flow.c
 		tests/test-error.c
 		tests/test-pkts-count.c
+		tests/test-hub.c
 		tests/tests.c)
 
 target_include_directories(packetgraph-${BRICK}-tests PUBLIC
@@ -146,7 +148,8 @@ add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-tests)
 
 add_executable(packetgraph-core-bench EXCLUDE_FROM_ALL
 		tests/bench.c
-		tests/test-bench-nop.c)
+		tests/test-bench-nop.c
+		tests/test-bench-hub.c)
 
 target_include_directories(packetgraph-core-bench PUBLIC
 	${PG_ROOT}/core/tests

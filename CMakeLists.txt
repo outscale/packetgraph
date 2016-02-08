@@ -8,7 +8,6 @@ set(bricks
     antispoof
     diode
     firewall
-    hub
     integration # not a real brick but same behavior
     nic
     print

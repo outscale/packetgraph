@@ -11,7 +11,6 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PG_ROOT}/tools/cmake")
 find_package(GLIB2 REQUIRED)
 find_package(packetgraph-core REQUIRED)
-find_package(packetgraph-hub REQUIRED)
 
 set(RTE_SDK_ROOT $ENV{RTE_SDK})
 if("${RTE_SDK_ROOT}" STREQUAL "")
@@ -92,13 +91,11 @@ target_include_directories(packetgraph-${BRICK}-tests PUBLIC
 	${RTE_SDK_ROOT}/lib
 	${GLIB2_INCLUDE_DIR}
 	${GLIB2_INTERNAL_INCLUDE_DIR}
-	${LIBPACKETGRAPH-HUB_INCLUDE_DIR}
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-${BRICK}-tests
 	packetgraph-${BRICK}-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
-	${LIBPACKETGRAPH-HUB_LIBRARY}
     ${PCAP_LIBRARY}
 	pthread
 	dl
@@ -117,7 +114,6 @@ add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-static)
 add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-tests)
 if (NOT "${PG_ROOT_PATH}" STREQUAL "")
     add_dependencies(packetgraph-${BRICK}-tests packetgraph-core-static)
-    add_dependencies(packetgraph-${BRICK}-tests packetgraph-hub-static)
 endif()
 
 # Benchmark
