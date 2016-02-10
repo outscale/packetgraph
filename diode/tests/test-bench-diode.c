@@ -51,7 +51,7 @@ void test_benchmark_diode(void)
 	bench.output_brick = diode;
 	bench.output_side = EAST_SIDE;
 	bench.output_poll = false;
-	bench.max_burst_cnt = 1000000;
+	bench.max_burst_cnt = 10000000;
 	bench.count_brick = NULL;
 	bench.pkts_nb = 64;
 	bench.pkts_mask = pg_mask_firsts(64);
