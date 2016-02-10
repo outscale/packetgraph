@@ -28,14 +28,9 @@
 GList *pg_all_bricks;
 
 /* return the oposite side */
-enum pg_side pg_flip_side(enum pg_side side)
+inline enum pg_side pg_flip_side(enum pg_side side)
 {
-	if (side == WEST_SIDE)
-		return EAST_SIDE;
-	else if (side == EAST_SIDE)
-		return WEST_SIDE;
-	g_assert(0);
-	return 0;
+	return (side ^ 1);
 }
 
 static void assert_brick_callback(struct pg_brick *brick)
