@@ -142,13 +142,13 @@ add_custom_target(packetgraph-${BRICK}-tests-run
 add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-static)
 add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-tests)
 
-# Benchmark nop
+# Benchmark core
 
-add_executable(packetgraph-nop-bench EXCLUDE_FROM_ALL
+add_executable(packetgraph-core-bench EXCLUDE_FROM_ALL
 		tests/bench.c
 		tests/test-bench-nop.c)
 
-target_include_directories(packetgraph-nop-bench PUBLIC
+target_include_directories(packetgraph-core-bench PUBLIC
 	${PG_ROOT}/core/tests
 	${PG_ROOT}/core
 	${RTE_SDK_ROOT}/build/include
@@ -157,7 +157,7 @@ target_include_directories(packetgraph-nop-bench PUBLIC
 	${GLIB2_INTERNAL_INCLUDE_DIR}
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
-target_link_libraries(packetgraph-nop-bench
+target_link_libraries(packetgraph-core-bench
 	packetgraph-core-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
@@ -171,11 +171,11 @@ target_link_libraries(packetgraph-nop-bench
 	${RTE_SDK_ROOT}/build/lib/librte_eal.a
 	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
 
-add_custom_target(packetgraph-nop-bench-run
-		COMMAND /usr/bin/sudo ${PROJECT_BINARY_DIR}/packetgraph-nop-bench -c1 -n1 --socket-mem 64)
-add_dependencies(packetgraph-nop-bench-run packetgraph-nop-static)
-add_dependencies(packetgraph-nop-bench-run packetgraph-nop-bench)
+add_custom_target(packetgraph-core-bench-run
+		COMMAND /usr/bin/sudo ${PROJECT_BINARY_DIR}/packetgraph-core-bench -c1 -n1 --socket-mem 64)
+add_dependencies(packetgraph-core-bench-run packetgraph-nop-static)
+add_dependencies(packetgraph-core-bench-run packetgraph-core-bench)
 if (NOT "${PG_ROOT_PATH}" STREQUAL "")
-    add_dependencies(packetgraph-nop-bench packetgraph-core-static)
+    add_dependencies(packetgraph-core-bench packetgraph-core-static)
 endif()
 
