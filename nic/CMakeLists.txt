@@ -123,7 +123,7 @@ target_link_libraries(packetgraph-${BRICK}-tests
 	${RTE_SDK_ROOT}/build/lib/librte_kvargs.a)
 
 add_custom_target(packetgraph-${BRICK}-tests-run
-		COMMAND /usr/bin/sudo ${PROJECT_BINARY_DIR}/packetgraph-${BRICK}-tests -c1 -n1 --socket-mem 64 --vdev=eth_pcap0,rx_pcap=${CMAKE_CURRENT_SOURCE_DIR}/tests/enter.pcap,tx_pcap=out.pcap --vdev=eth_ring0)
+		COMMAND /usr/bin/sudo ${PROJECT_BINARY_DIR}/packetgraph-${BRICK}-tests -c1 -n1 --socket-mem 64 -- --pcap-in ${CMAKE_CURRENT_SOURCE_DIR}/tests/in.pcap)
 add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-static)
 add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-tests)
 if (NOT "${PG_ROOT_PATH}" STREQUAL "")
