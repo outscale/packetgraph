@@ -454,7 +454,12 @@ int pg_brick_link(struct pg_brick *west,
 
 	/* insert and get pair index */
 	east_index = insert_link(east, west, WEST_SIDE);
+	if (east->ops->link_notify)
+		east->ops->link_notify(east, WEST_SIDE, east_index);
+
 	west_index = insert_link(west, east, EAST_SIDE);
+	if (west->ops->link_notify)
+		west->ops->link_notify(west, EAST_SIDE, west_index);
 
 	/* finish the pairing of the edge */
 	pg_brick_get_edge(east, WEST_SIDE, east_index)->pair_index = west_index;
@@ -508,6 +513,13 @@ static void unlink_notify(struct pg_brick_edge *edge, enum pg_side array_side,
 				  edge->pair_index, errp);
 }
 
+static struct pg_brick_side *get_side(struct pg_brick *brick, enum pg_side side)
+{
+	if (brick->type == PG_MONOPOLE)
+		return &brick->side;
+	return &brick->sides[side];
+}
+
 static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 		      struct pg_error **errp)
 {
@@ -515,10 +527,14 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 	struct pg_brick_side *pair_side;
 	struct pg_brick_edge *pair_edge;
 
+	if (brick->type == PG_MONOPOLE) {
+		g_assert(brick->ops->get_side);
+		side = brick->ops->get_side(brick);
+	}
 	if (!edge->link)
 		return;
 
-	pair_side = &edge->link->sides[pg_flip_side(side)];
+	pair_side = get_side(edge->link, pg_flip_side(side));
 	pair_edge = pg_brick_get_edge(edge->link,
 				      pg_flip_side(side),
 				      edge->pair_index);

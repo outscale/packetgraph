@@ -150,6 +150,10 @@ struct pg_brick_ops {
 
 	int (*reset)(struct pg_brick *brick, struct pg_error **errp);
 
+	void (*link_notify)(struct pg_brick *brick, enum pg_side side,
+			    int index);
+	enum pg_side (*get_side)(struct pg_brick *brick);
+
 	/**
 	 * Return a packet burst. This field is used bricks designed to
 	 * collect packets for testing purpose. In regular bricks it will be
