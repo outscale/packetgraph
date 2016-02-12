@@ -205,7 +205,7 @@ static inline int start_qemu_graph(struct branch *branch,
 
 
 #	define SSH(c) \
-		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+	g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
 	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
@@ -258,7 +258,7 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 
 	g_string_printf(tmp, "print-%d", id);
 	branch->print = pg_print_new(tmp->str, 1, 1, NULL, PG_PRINT_FLAG_MAX,
-			     NULL, &error);
+				     NULL, &error);
 	CHECK_ERROR(error);
 
 	PG_GC_CHAINED_ADD(branch->collector, branch->firewall, branch->antispoof,
@@ -413,7 +413,6 @@ static void test_graph_type1(void)
 	ASSERT(pg_brick_pkts_count_get(nic, WEST_SIDE));
 	ASSERT(pg_brick_pkts_count_get(vtep, EAST_SIDE));
 	ASSERT(pg_brick_pkts_count_get(branch1.firewall, EAST_SIDE));
-	/* ASSERT(pg_brick_pkts_count_get(antispoof1, EAST_SIDE)); */
 	ASSERT(pg_brick_pkts_count_get(branch1.vhost, EAST_SIDE));
 
 	/* check the collect1 */
