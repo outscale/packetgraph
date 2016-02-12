@@ -46,9 +46,7 @@ void pg_nic_start(void);
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure, on success, 0 on error
  */
-struct pg_brick *pg_nic_new(const char *name, uint32_t west_max,
-			 uint32_t east_max,
-			 enum pg_side output,
+struct pg_brick *pg_nic_new(const char *name,
 			 const char *ifname,
 			 struct pg_error **errp);
 
@@ -63,9 +61,7 @@ struct pg_brick *pg_nic_new(const char *name, uint32_t west_max,
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure, on success, 0 on error
  */
-struct pg_brick *pg_nic_new_by_id(const char *name, uint32_t west_max,
-				  uint32_t east_max,
-				  enum pg_side output,
+struct pg_brick *pg_nic_new_by_id(const char *name,
 				  uint8_t portid,
 				  struct pg_error **errp);
 

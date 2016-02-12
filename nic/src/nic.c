@@ -29,7 +29,6 @@
 #include "nic-int.h"
 
 struct pg_nic_config {
-	enum pg_side output;
 	char *ifname;
 	uint8_t portid;
 };
@@ -69,9 +68,6 @@ void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr)
 }
 
 static struct pg_brick_config *nic_config_new(const char *name,
-					      uint32_t west_max,
-					      uint32_t east_max,
-					      enum pg_side output,
 					      const char *ifname,
 					      uint8_t portid)
 {
@@ -84,10 +80,8 @@ static struct pg_brick_config *nic_config_new(const char *name,
 		nic_config->ifname = NULL;
 		nic_config->portid = portid;
 	}
-	nic_config->output = output;
 	config->brick_config = (void *) nic_config;
-	return pg_brick_config_init(config, name, west_max,
-				    east_max, PG_MULTIPOLE);
+	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
 }
 
 void pg_nic_get_stats(struct pg_brick *nic,
@@ -117,11 +111,6 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 							struct pg_nic_state);
 	struct rte_mbuf **exit_pkts = state->exit_pkts;
 
-	if (state->output == from) {
-		*errp = pg_error_new("Bursting on wrong direction");
-		return 0;
-	}
-
 	count = pg_packets_pack(exit_pkts,
 				pkts, pkts_mask);
 
@@ -139,7 +128,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 						exit_pkts, nb_pkts);
 #endif /* #ifndef PG_NIC_STUB */
 
-	side = &brick->sides[pg_flip_side(from)];
+	side = &brick->side;
 	if (side->burst_count_cb != NULL)
 		side->burst_count_cb(side->burst_count_private_data,
 				     pkts_bursted);
@@ -156,14 +145,19 @@ static int nic_poll_forward(struct pg_nic_state *state,
 			    uint16_t nb_pkts,
 			    struct pg_error **errp)
 {
-	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
+	struct pg_brick_side *s = &brick->side;
 	int ret;
 	uint64_t pkts_mask;
 
+	if (unlikely(s->edge.link == NULL))
+		return 1;
+
 	pkts_mask = pg_mask_firsts(nb_pkts);
 
-	ret = pg_brick_side_forward(s, state->output,
-				    state->pkts, nb_pkts, pkts_mask, errp);
+	ret = pg_brick_burst(s->edge.link, state->output,
+			     s->edge.pair_index,
+			     state->pkts, nb_pkts, pkts_mask, errp);
+
 	pg_packets_free(state->pkts, pkts_mask);
 	return ret;
 }
@@ -261,7 +255,6 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 		return 0;
 	}
 
-	state->output = nic_config->output;
 	if (pg_error_is_set(errp))
 		return 0;
 
@@ -311,15 +304,10 @@ static void nic_destroy(struct pg_brick *brick, struct pg_error **errp)
 }
 
 struct pg_brick *pg_nic_new(const char *name,
-			    uint32_t west_max,
-			    uint32_t east_max,
-			    enum pg_side output,
 			    const char *ifname,
 			    struct pg_error **errp)
 {
-	struct pg_brick_config *config = nic_config_new(name, west_max,
-							east_max, output,
-							ifname, 0);
+	struct pg_brick_config *config = nic_config_new(name, ifname, 0);
 
 	struct pg_brick *ret = pg_brick_new("nic", config, errp);
 
@@ -328,15 +316,11 @@ struct pg_brick *pg_nic_new(const char *name,
 }
 
 struct pg_brick *pg_nic_new_by_id(const char *name,
-				  uint32_t west_max,
-				  uint32_t east_max,
-				  enum pg_side output,
 				  uint8_t portid,
 				  struct pg_error **errp)
 {
 	struct pg_brick_config *config = nic_config_new(name,
-							west_max, east_max,
-							output, NULL,
+							NULL,
 							portid);
 
 	struct pg_brick *ret = pg_brick_new("nic", config, errp);
@@ -345,13 +329,32 @@ struct pg_brick *pg_nic_new_by_id(const char *name,
 	return ret;
 }
 
+static void nic_link(struct pg_brick *brick, enum pg_side side, int edge)
+{
+	struct pg_nic_state *state = pg_brick_get_state(brick,
+							struct pg_nic_state);
+	/*
+	 * We flip the side, because we don't want to flip side when
+	 * we burst
+	 */
+	state->output = pg_flip_side(side);
+}
+
+static enum pg_side nic_get_side(struct pg_brick *brick)
+{
+	struct pg_nic_state *state = pg_brick_get_state(brick,
+							struct pg_nic_state);
+	return pg_flip_side(state->output);
+}
+
 static struct pg_brick_ops nic_ops = {
 	.name		= "nic",
 	.state_size	= sizeof(struct pg_nic_state),
 
 	.init		= nic_init,
 	.destroy	= nic_destroy,
-
+	.link_notify	= nic_link,
+	.get_side	= nic_get_side,
 	.unlink		= pg_brick_generic_unlink,
 };
 
