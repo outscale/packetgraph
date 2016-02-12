@@ -47,12 +47,12 @@ void test_benchmark_nic(void)
 	uint32_t len;
 
 	pg_nic_start();
-	nic_enter = pg_nic_new_by_id("nic-enter", 1, 1, EAST_SIDE, 0, &error);
+	nic_enter = pg_nic_new_by_id("nic-enter", 0, &error);
 	if (error) {
 		pg_error_print(error);
 		return;
 	}
-	nic_exit = pg_nic_new_by_id("nic-exit", 1, 1, EAST_SIDE, 1, &error);
+	nic_exit = pg_nic_new_by_id("nic-exit", 1, &error);
 	if (error) {
 		pg_error_print(error);
 		return;

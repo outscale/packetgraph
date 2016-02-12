@@ -43,8 +43,7 @@ uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 static void test_nic_simple_flow(void)
 {
-	struct pg_brick *nic_west, *collect_west, *collect_east, *nic_ring;
-	uint64_t pkts_mask;
+	struct pg_brick *nic_west, *nic_ring;
 	int i = 0;
 	int nb_iteration = 32;
 	uint16_t nb_send_pkts;
@@ -55,27 +54,17 @@ static void test_nic_simple_flow(void)
 	gchar *tmp;
 
 	/* create a chain of a few nop brick with collectors on each sides */
-	/*           /-------- [col_east]
+	/*
 	 * [nic_west] ------- [nic_east]
-	 * [col_west] -------/
 	 */
-
 	tmp = g_strdup_printf("eth_pcap0,rx_pcap=%s,tx_pcap=out.pcap",
 			      glob_pcap_in);
-	nic_west = pg_nic_new("nic", 4, 4, WEST_SIDE, tmp, &error);
+	nic_west = pg_nic_new("nic", tmp, &error);
 	g_free(tmp);
 	CHECK_ERROR(error);
-	nic_ring = pg_nic_new_by_id("nic", 4, 4, EAST_SIDE, 0, &error);
-	CHECK_ERROR(error);
-	collect_east = pg_collect_new("collect 1", 1, 1, &error);
-	CHECK_ERROR(error);
-	collect_west = pg_collect_new("collect 2", 1, 1, &error);
+	nic_ring = pg_nic_new_by_id("nic", 0, &error);
 	CHECK_ERROR(error);
 	pg_brick_link(nic_west, nic_ring, &error);
-	CHECK_ERROR(error);
-	pg_brick_link(nic_west, collect_east, &error);
-	CHECK_ERROR(error);
-	pg_brick_link(collect_west, nic_ring, &error);
 	CHECK_ERROR(error);
 
 	for (i = 0; i < nb_iteration * 6; ++i) {
@@ -84,28 +73,14 @@ static void test_nic_simple_flow(void)
 		max_pkts = i * 2;
 		if (max_pkts > 64)
 			max_pkts = 64;
-		struct rte_mbuf **result_pkts;
 		/*poll packets to east*/
 		pg_brick_poll(nic_west, &nb_send_pkts, &error);
 		CHECK_ERROR(error);
-		pkts_mask = 0;
 		/* collect pkts on the east */
-		result_pkts = pg_brick_west_burst_get(collect_east,
-						      &pkts_mask, &error);
-		CHECK_ERROR(error);
 		if (nb_send_pkts) {
-			g_assert(result_pkts);
-			g_assert(pkts_mask);
 			total_send_pkts += max_pkts;
 		}
-		pkts_mask = 0;
 		/* check no pkts end here */
-		result_pkts = pg_brick_east_burst_get(collect_east,
-						      &pkts_mask, &error);
-		CHECK_ERROR(error);
-		g_assert(!pkts_mask);
-		g_assert(!result_pkts);
-		pg_brick_reset(collect_east, &error);
 		CHECK_ERROR(error);
 	}
 	pg_nic_get_stats(nic_ring, &info);
@@ -116,9 +91,6 @@ static void test_nic_simple_flow(void)
 		pg_brick_poll(nic_ring, &nb_send_pkts, &error);
 		CHECK_ERROR(error);
 		total_get_pkts += nb_send_pkts;
-		pg_brick_east_burst_get(collect_west, &pkts_mask, &error);
-		g_assert(pkts_mask);
-		pkts_mask = 0;
 	}
 	/* This assert allow us to check nb_send_pkts*/
 	g_assert(total_get_pkts == total_send_pkts);
@@ -128,8 +100,6 @@ static void test_nic_simple_flow(void)
 
 	/* break the chain */
 	pg_brick_destroy(nic_west);
-	pg_brick_destroy(collect_east);
-	pg_brick_destroy(collect_west);
 	pg_brick_destroy(nic_ring);
 }
 
