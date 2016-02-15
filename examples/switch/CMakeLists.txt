@@ -28,7 +28,7 @@ target_include_directories(switch PUBLIC
   .
   ${RTE_SDK_ROOT}/build/include
   ${RTE_SDK_ROOT}/lib
-  ${GLIB2_INCLUDE_sDIR}
+  ${GLIB2_INCLUDE_DIR}
   ${GLIB2_INTERNAL_INCLUDE_DIR}
   ${PCAP_INCLUDE_DIR}
   ${LIBNPF_INCLUDE_DIR}
