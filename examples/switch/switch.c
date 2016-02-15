@@ -98,7 +98,7 @@ static int start_loop(int verbose, int nb_vhost)
 	 * [NIC-X+2] - [PRINT-X+2] /
 	 * ....
 	 */
-	switch_east = pg_switch_new("switch", 20, 20, &error);
+	switch_east = pg_switch_new("switch", 20, 20, EAST_SIDE, &error);
 	CHECK_ERROR(error);
 	PG_BM_ADD(manager, switch_east);
 
@@ -119,8 +119,7 @@ static int start_loop(int verbose, int nb_vhost)
 					       WEST_SIDE, &error);
 		} else {
 			tmp_name = g_strdup_printf("nic-%d", i);
-			nic_tmp = pg_nic_new_by_id(tmp_name, 1, 1,
-					     WEST_SIDE, i, &error);
+			nic_tmp = pg_nic_new_by_id(tmp_name, i, &error);
 		}
 
 		g_free(tmp_name);
