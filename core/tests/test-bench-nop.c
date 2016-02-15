@@ -43,7 +43,7 @@ void test_benchmark_nop(void)
 	uint32_t len;
 
 	pg_bench_init(&bench);
-	nop = pg_nop_new("nop", 1, 1, &error);
+	nop = pg_nop_new("nop", &error);
 	g_assert(!error);
 
 	bench.input_brick = nop;

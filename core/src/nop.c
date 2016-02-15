@@ -31,7 +31,11 @@ static int nop_burst(struct pg_brick *brick, enum pg_side from,
 {
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 
-	return pg_brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
+	if (s->edge.link == NULL)
+		return 1;
+	return  pg_brick_burst(s->edge.link, from,
+			       s->edge.pair_index,
+			       pkts, nb, pkts_mask, errp);
 }
 
 static int nop_init(struct pg_brick *brick,
@@ -50,14 +54,10 @@ static int nop_init(struct pg_brick *brick,
 }
 
 struct pg_brick *pg_nop_new(const char *name,
-			    uint32_t west_max,
-			    uint32_t east_max,
 			    struct pg_error **errp)
 {
-	struct pg_brick_config *config = pg_brick_config_new(name,
-							     west_max,
-							     east_max,
-							     PG_MULTIPOLE);
+	struct pg_brick_config *config = pg_brick_config_new(name, 1, 1,
+							     PG_DIPOLE);
 	struct pg_brick *ret = pg_brick_new("nop", config, errp);
 
 	pg_brick_config_free(config);

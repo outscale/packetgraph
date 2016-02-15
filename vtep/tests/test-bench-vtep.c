@@ -84,14 +84,14 @@ static void inside_to_vxlan(void)
 			   NO_INNERMAC_CKECK, &error);
 	g_assert(!error);
 
-	inside_nop = pg_nop_new("nop-input", 1, 1, &error);
+	inside_nop = pg_nop_new("nop-input", &error);
 	bench.input_brick = inside_nop;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = vtep;
 	bench.output_side = EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 3000000;
-	bench.count_brick = pg_nop_new("nop-inside", 1, 1, &error);
+	bench.count_brick = pg_nop_new("nop-inside", &error);
 	bench.post_burst_op = remove_vtep_hdr;
 	g_assert(!error);
 	pg_brick_link(inside_nop, vtep, &error);
@@ -168,14 +168,14 @@ static void vxlan_to_inside(void)
 	g_assert(!error);
 
 	pg_bench_init(&bench);
-	outside_nop = pg_nop_new("nop-outside", 1, 1, &error);
+	outside_nop = pg_nop_new("nop-outside", &error);
 	bench.input_brick = outside_nop;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = vtep;
 	bench.output_side = EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 1000000;
-	bench.count_brick = pg_nop_new("nop-bench", 1, 1, &error);
+	bench.count_brick = pg_nop_new("nop-bench", &error);
 	bench.post_burst_op = add_vtep_hdr;
 	g_assert(!error);
 	pg_brick_link(outside_nop, vtep, &error);

@@ -415,13 +415,13 @@ static void test_brick_core_verify_multiple_link(void)
 static void test_brick_core_verify_re_link(void)
 {
 	struct pg_error *e = NULL;
-	struct pg_brick *v = pg_nop_new("v", 1, 1, &e);
+	struct pg_brick *v = pg_nop_new("v", &e);
 	g_assert(!e);
-	struct pg_brick *f = pg_nop_new("f", 1, 1, &e);
+	struct pg_brick *f = pg_nop_new("f", &e);
 	g_assert(!e);
-	struct pg_brick *a = pg_nop_new("a", 1, 1, &e);
+	struct pg_brick *a = pg_nop_new("a", &e);
 	g_assert(!e);
-	struct pg_brick *s = pg_nop_new("s", 1, 1, &e);
+	struct pg_brick *s = pg_nop_new("s", &e);
 	g_assert(!e);
 
 	/* Initial state: v -- f -- a */
