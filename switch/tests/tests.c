@@ -1065,7 +1065,7 @@ static void test_switch_perf_learn(void)
 	CHECK_ERROR(error);
 
 	for (i = 0; i < TEST_PORTS; i++) {
-		nops[i] = pg_nop_new("nop", 1, 1, &error);
+		nops[i] = pg_nop_new("nop", &error);
 		CHECK_ERROR(error);
 	}
 
@@ -1149,7 +1149,7 @@ static void test_switch_perf_switch(void)
 	CHECK_ERROR(error);
 
 	for (i = 0; i < TEST_PORTS; i++) {
-		nops[i] = pg_nop_new("nop", 1, 1, &error);
+		nops[i] = pg_nop_new("nop", &error);
 		CHECK_ERROR(error);
 	}
 

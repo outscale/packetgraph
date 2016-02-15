@@ -80,7 +80,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 
 	/* Link ouput brick to a nop brick to count outcoming packets. */
 	if (bench->count_brick == NULL) {
-		count_brick = pg_nop_new("nop-bench", 1, 1, error);
+		count_brick = pg_nop_new("nop-bench", error);
 		if (*error)
 			return 0;
 		if (bench->output_side == WEST_SIDE)

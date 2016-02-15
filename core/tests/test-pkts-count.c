@@ -44,7 +44,7 @@
 		g_assert(pkts[i]);					\
 		pkts[i]->udata64 = i;					\
 	}								\
-	brick = pg_nop_new("nop", 4, 4, &error);				\
+	brick = pg_nop_new("nop", &error);				\
 	g_assert(!error);						\
 	collect_west = pg_collect_new("mybrick", 4, 4, &error);		\
 	g_assert(!error);						\

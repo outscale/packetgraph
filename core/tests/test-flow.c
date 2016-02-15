@@ -20,6 +20,7 @@
 #include <packetgraph/brick.h>
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/utils/config.h>
+#include <packetgraph/nop.h>
 #include "tests.h"
 
 #define NB_PKTS 3
@@ -43,9 +44,9 @@ static void test_brick_flow_west(void)
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
-	brick1 = pg_brick_new("nop", config, &error);
+	brick1 = pg_nop_new("nop", &error);
 	g_assert(!error);
-	brick2 = pg_brick_new("nop", config, &error);
+	brick2 = pg_nop_new("nop", &error);
 	g_assert(!error);
 	collect_west = pg_brick_new("collect", config, &error);
 	g_assert(!error);
@@ -141,9 +142,9 @@ static void test_brick_flow_east(void)
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
-	brick1 = pg_brick_new("nop", config, &error);
+	brick1 = pg_nop_new("nop", &error);
 	g_assert(!error);
-	brick2 = pg_brick_new("nop", config, &error);
+	brick2 = pg_nop_new("nop", &error);
 	g_assert(!error);
 	collect_west = pg_brick_new("collect", config, &error);
 	g_assert(!error);

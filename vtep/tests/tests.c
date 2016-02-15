@@ -419,7 +419,7 @@ static void test_nop_speed(void)
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
-	nop_east = pg_nop_new("nop-east", 1, 1, &error);
+	nop_east = pg_nop_new("nop-east", &error);
 	CHECK_ERROR(error);	
 
 	pg_brick_chained_links(&error, pktgen_west , nop_east);
@@ -485,7 +485,7 @@ static void test_vtep_speed(void)
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
-	nop_east = pg_nop_new("nop-east", 1, 1, &error);
+	nop_east = pg_nop_new("nop-east", &error);
 	CHECK_ERROR(error);	
 
 	pg_brick_chained_links(&error, pktgen_west , vtep_west,
@@ -573,7 +573,7 @@ static void test_vtep_vxlanise(void)
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
-	nop_east = pg_nop_new("nop-east", 1, 1, &error);
+	nop_east = pg_nop_new("nop-east", &error);
 	CHECK_ERROR(error);	
 
 	pg_brick_chained_links(&error, pktgen_west , vtep_west,
