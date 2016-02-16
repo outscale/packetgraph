@@ -122,7 +122,9 @@ inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
 }
 
 static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac);
-
+static void  multicast_internal( struct vtep_state *state, struct vtep_port *port,
+				 uint32_t multicast_ip, struct pg_error **errp,
+				 int number);
 static inline uint64_t hash_32(void *key, uint32_t key_size, uint64_t seed)
 {
 	return _mm_crc32_u32(seed, *((uint64_t *) key));
@@ -920,73 +922,10 @@ static void multicast_subscribe(struct vtep_state *state,
 				uint32_t multicast_ip,
 				struct pg_error **errp)
 {
-	struct rte_mempool *mp = pg_get_mempool();
-	struct rte_mbuf *pkt[1];
-	struct multicast_pkt *hdr;
-	struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
-
-	if (!is_multicast_ip(multicast_ip))
-		goto error_invalid_address;
-
-	/* The all-systems group (224.0.0.1) is handled as a special case. */
-	/* The host never sends a report for that group */
-	if (multicast_ip == IPv4(224, 0, 0, 1))
-		goto error_invalid_address;
-
-	/* Allocate a memory buffer to hold an IGMP message */
-	pkt[0] = rte_pktmbuf_alloc(mp);
-	if (!pkt[0]) {
-		pg_error_new("Packet allocation faild");
-		return;
-	}
-
-	/* Point to the beginning of the IGMP message */
-	hdr = (struct multicast_pkt *) rte_pktmbuf_append(pkt[0],
-							  IGMP_PKT_LEN);
-
-	ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
-	/* Because of the conversion from le to be, we need to skip the first
-	 * byte of dst when making the copy*/
-	ether_addr_copy(&dst,
-			&hdr->ethernet.d_addr);
-	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
-
-	/* 4-5 = 0x45 */
-	hdr->ipv4.version_ihl = 0x45;
-	hdr->ipv4.type_of_service = 0;
-	hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
-					     sizeof(struct igmp_hdr));
-	hdr->ipv4.packet_id = 0;
-	hdr->ipv4.fragment_offset = 0;
-	hdr->ipv4.time_to_live = 1;
-	hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER;
-	hdr->ipv4.hdr_checksum = 0;
-	hdr->ipv4.dst_addr = multicast_ip;
-	hdr->ipv4.src_addr = state->ip;
-
-	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
-
-	/* Version 2 Membership Report = 0x16 */
-	hdr->igmp.type = 0x16;
-	hdr->igmp.maxRespTime = 0;
-	hdr->igmp.checksum = 0;
-	hdr->igmp.groupAddr = multicast_ip;
-
-	hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
-
-	/* The Membership Report message is sent to the group being reported */
-	if (!pg_brick_side_forward(&state->brick.sides[state->output],
-				pg_flip_side(state->output),
-				pkt, 1, pg_mask_firsts(1), errp)) {
-		rte_pktmbuf_free(pkt[0]);
-		/* let's admit the error is set */
-		return;
-	}
-
-	rte_pktmbuf_free(pkt[0]);
-	return;
-error_invalid_address:
-	pg_error_new("invalide multicast adress");
+  int operation;
+  
+  operation = 1;
+  multicast_internal(state, port, multicast_ip, errp, number);
 }
 
 static void multicast_unsubscribe(struct vtep_state *state,
@@ -994,73 +933,10 @@ static void multicast_unsubscribe(struct vtep_state *state,
 				  uint32_t multicast_ip,
 				  struct pg_error **errp)
 {
-	struct rte_mempool *mp = pg_get_mempool();
-	struct rte_mbuf *pkt[1];
-	struct multicast_pkt *hdr;
-	struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
-
-	if (!is_multicast_ip(multicast_ip))
-		goto error_invalid_address;
-
-	/* The all-systems group (224.0.0.1) is handled as a special case. */
-	/* The host never sends a report for that group */
-	if (multicast_ip == IPv4(224, 0, 0, 1))
-		goto error_invalid_address;
-
-	/* Allocate a memory buffer to hold an IGMP message */
-	pkt[0] = rte_pktmbuf_alloc(mp);
-	if (!pkt[0]) {
-		pg_error_new("Packet allocation faild");
-		return;
-	}
-
-	/* Point to the beginning of the IGMP message */
-	hdr = (struct multicast_pkt *) rte_pktmbuf_append(pkt[0],
-							  IGMP_PKT_LEN);
-
-	ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
-	/* Because of the conversion from le to be, we need to skip the first
-	 * byte of dst when making the copy*/
-	ether_addr_copy(&dst,
-			&hdr->ethernet.d_addr);
-	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
-
-	/* 4-5 = 0x45 */
-	hdr->ipv4.version_ihl = 0x45;
-	hdr->ipv4.type_of_service = 0;
-	hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
-					     sizeof(struct igmp_hdr));
-	hdr->ipv4.packet_id = 0;
-	hdr->ipv4.fragment_offset = 0;
-	hdr->ipv4.time_to_live = 1;
-	hdr->ipv4.next_proto_id = 0x02;
-	hdr->ipv4.hdr_checksum = 0;
-	/* This ip is for All Routers */
-	hdr->ipv4.dst_addr = IPv4(224, 0, 0, 2);
-	hdr->ipv4.src_addr = state->ip;
-
-	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
-
-	/* Format the Leave Group message */
-	hdr->igmp.type = 0x17;
-	hdr->igmp.maxRespTime = 0;
-	hdr->igmp.checksum = 0;
-	hdr->igmp.groupAddr = multicast_ip;
-
-	hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
-
-	/* The Membership Report message is sent to the group being reported */
-	if (pg_brick_side_forward(&state->brick.sides[state->output],
-			       pg_flip_side(state->output),
-			       pkt, 1, pg_mask_firsts(1), errp)) {
-		/* let's admit the error is set */
-		return;
-	}
-
-	rte_pktmbuf_free(pkt[0]);
-	return;
-error_invalid_address:
-	pg_error_new("invalide multicast adress");
+  int operation;
+  
+  operation = 0;
+  multicast_internal(state, port, multicast_ip, errp, number);
 }
 
 #undef UINT64_TO_MAC
@@ -1244,6 +1120,94 @@ static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac)
 							&tmp, &val,
 							&i,
 							&entry);
+}
+
+static void multicast_internal(struct vtep_state *state,
+				 struct vtep_port *port,
+				 uint32_t multicast_ip,
+				 struct pg_error **errp,
+				 int  operation)
+{
+  struct rte_mempool *mp = pg_get_mempool();
+  struct rte_mbuf *pkt[1];
+  struct multicast_pkt *hdr;
+  struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
+  
+  if (!is_multicast_ip(multicast_ip))
+    goto error_invalid_address;
+  
+  /* The all-systems group (224.0.0.1) is handled as a special case. */
+  /* The host never sends a report for that group */
+  if (multicast_ip == IPv4(224, 0, 0, 1))
+    goto error_invalid_address;
+  
+  /* Allocate a memory buffer to hold an IGMP message */
+  pkt[0] = rte_pktmbuf_alloc(mp);
+  if (!pkt[0]) {
+    pg_error_new("Packet allocation faild");
+    return;
+  }
+  
+  /* Point to the beginning of the IGMP message */
+  hdr = (struct multicast_pkt *) rte_pktmbuf_append(pkt[0],
+						    IGMP_PKT_LEN);
+  
+  ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
+  /* Because of the conversion from le to be, we need to skip the first                         
+   * byte of dst when making the copy*/
+  ether_addr_copy(&dst,
+		  &hdr->ethernet.d_addr);
+  hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
+  
+  /* 4-5 = 0x45 */
+  hdr->ipv4.version_ihl = 0x45;
+  hdr->ipv4.type_of_service = 0;
+  hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
+					    sizeof(struct igmp_hdr));
+  hdr->ipv4.packet_id = 0;
+  hdr->ipv4.fragment_offset = 0;
+  hdr->ipv4.time_to_live = 1;
+  hdr->ipv4.hdr_checksum = 0;
+  hdr->ipv4.src_addr = state->ip;
+  
+  hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
+  
+  /* Version 2 Membership Report = 0x16 */
+  hdr->igmp.maxRespTime = 0;
+  hdr->igmp.checksum = 0;
+  hdr->igmp.groupAddr = multicast_ip;
+  
+  hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
+  
+  if (operation) {
+    hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER;
+    hdr->ipv4.dst_addr = multicast_ip;
+    hdr->igmp.type = 0x16;
+    if (!pg_brick_side_forward(&state->brick.sides[state->output],
+			       pg_flip_side(state->output),
+			       pkt, 1, pg_mask_firsts(1), errp)) {
+      rte_pktmbuf_free(pkt[0]);
+      /* let's admit the error is set */
+      return;
+    }
+  }
+  else {
+    hdr->ipv4.next_proto_id = 0x02;
+    hdr->ipv4.dst_addr = IPv4(224, 0, 0, 2);
+    hdr->igmp.type = 0x17;
+    if (pg_brick_side_forward(&state->brick.sides[state->output],
+			      pg_flip_side(state->output),
+			      pkt, 1, pg_mask_firsts(1), errp)) {
+      /* let's admit the error is set */
+      return;
+    }
+  }
+  
+  /* The Membership Report message is sent to the group being reported */
+  rte_pktmbuf_free(pkt[0]);
+  return;
+ error_invalid_address:
+  pg_error_new("invalide multicast adress");
 }
 
 static void vtep_unlink_notify(struct pg_brick *brick,
