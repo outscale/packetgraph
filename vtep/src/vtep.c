@@ -100,6 +100,12 @@ struct vtep_port {
 	void *known_mac;	/* is the MAC adress on this port  */
 };
 
+typedef enum Operation operation;
+enum Operation {
+  subscribe,
+  unsubscribe,
+};
+
 struct vtep_state {
 	struct pg_brick brick;
 	uint32_t ip;			/* IP of the VTEP */
@@ -124,7 +130,7 @@ inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
 static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac);
 static void  multicast_internal( struct vtep_state *state, struct vtep_port *port,
 				 uint32_t multicast_ip, struct pg_error **errp,
-				 int number);
+				 operation action);
 static inline uint64_t hash_32(void *key, uint32_t key_size, uint64_t seed)
 {
 	return _mm_crc32_u32(seed, *((uint64_t *) key));
@@ -922,10 +928,10 @@ static void multicast_subscribe(struct vtep_state *state,
 				uint32_t multicast_ip,
 				struct pg_error **errp)
 {
-  int operation;
-  
-  operation = 1;
-  multicast_internal(state, port, multicast_ip, errp, number);
+   operation action;
+
+   action = subscribe;
+   multicast_internal(state, port, multicast_ip, errp, action);
 }
 
 static void multicast_unsubscribe(struct vtep_state *state,
@@ -933,10 +939,10 @@ static void multicast_unsubscribe(struct vtep_state *state,
 				  uint32_t multicast_ip,
 				  struct pg_error **errp)
 {
-  int operation;
-  
-  operation = 0;
-  multicast_internal(state, port, multicast_ip, errp, number);
+  operation action;
+
+  action = unsubscribe;
+  multicast_internal(state, port, multicast_ip, errp, action);
 }
 
 #undef UINT64_TO_MAC
@@ -1126,7 +1132,7 @@ static void multicast_internal(struct vtep_state *state,
 				 struct vtep_port *port,
 				 uint32_t multicast_ip,
 				 struct pg_error **errp,
-				 int  operation)
+				 operation action)
 {
   struct rte_mempool *mp = pg_get_mempool();
   struct rte_mbuf *pkt[1];
@@ -1178,31 +1184,34 @@ static void multicast_internal(struct vtep_state *state,
   hdr->igmp.groupAddr = multicast_ip;
   
   hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
-  
-  if (operation) {
-    hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER;
-    hdr->ipv4.dst_addr = multicast_ip;
-    hdr->igmp.type = 0x16;
-    if (!pg_brick_side_forward(&state->brick.sides[state->output],
-			       pg_flip_side(state->output),
-			       pkt, 1, pg_mask_firsts(1), errp)) {
-      rte_pktmbuf_free(pkt[0]);
-      /* let's admit the error is set */
-      return;
-    }
-  }
-  else {
-    hdr->ipv4.next_proto_id = 0x02;
-    hdr->ipv4.dst_addr = IPv4(224, 0, 0, 2);
-    hdr->igmp.type = 0x17;
-    if (pg_brick_side_forward(&state->brick.sides[state->output],
-			      pg_flip_side(state->output),
-			      pkt, 1, pg_mask_firsts(1), errp)) {
-      /* let's admit the error is set */
-      return;
-    }
-  }
-  
+  switch (action)
+    {
+    case subscribe:
+      hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER;
+      hdr->ipv4.dst_addr = multicast_ip;
+      hdr->igmp.type = 0x16;
+      if (!pg_brick_side_forward(&state->brick.sides[state->output],
+				 pg_flip_side(state->output),
+				 pkt, 1, pg_mask_firsts(1), errp)) {
+	rte_pktmbuf_free(pkt[0]);
+	/* let's admit the error is set */
+	return;
+      }
+      break;
+    case unsubscribe:
+      hdr->ipv4.next_proto_id = 0x02;
+      hdr->ipv4.dst_addr = IPv4(224, 0, 0, 2);
+      hdr->igmp.type = 0x17;
+      if (pg_brick_side_forward(&state->brick.sides[state->output],
+				pg_flip_side(state->output),
+				pkt, 1, pg_mask_firsts(1), errp)) {
+	/* let's admit the error is set */
+	return;
+      } 
+      break;
+    default:
+      goto error_invalid_address;
+     }
   /* The Membership Report message is sent to the group being reported */
   rte_pktmbuf_free(pkt[0]);
   return;
