@@ -220,7 +220,6 @@ static void do_switch(struct pg_switch_state *state,
 		struct pg_switch_side *switch_side;
 		struct pg_address_source *entry;
 		uint16_t edge_index;
-		enum pg_side from;
 		uint64_t bit;
 		uint16_t i;
 
@@ -230,8 +229,7 @@ static void do_switch(struct pg_switch_state *state,
 			&state->table,
 			*(union pg_mac *)dst_key_ptr(pkts[i]));
 		if (entry) {
-			from = entry->from;
-			switch_side = &state->sides[from];
+			switch_side = &state->sides[entry->from];
 			edge_index = entry->edge_index;
 
 		/* the lookup table entry is stale due to a port hotplug */
