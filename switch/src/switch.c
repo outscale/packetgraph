@@ -36,7 +36,6 @@
 
 /* this tell from where a given source mac address came */
 struct pg_address_source {
-	uint64_t unlink;	/* hot plugging unlink */
 	uint16_t edge_index;    /* index of the port the packet came from */
 	enum pg_side from;	/* side of the switch the packet came from */
 };
@@ -45,7 +44,6 @@ struct pg_address_source {
 struct pg_switch_side {
 	struct pg_address_source *sources;
 	uint64_t *masks;	/* outgoing packet masks (one per port) */
-	uint64_t *unlinks;	/* hot plugging unlink  (one per port) */
 };
 
 struct pg_switch_state {
@@ -155,8 +153,7 @@ static inline int learn_addr(struct pg_switch_state *state,
 {
 	/* memorize from where this address_source mac address come from */
 	pg_mac_table_ptr_set(&state->table, *((union pg_mac *)key),
-			  source);
-
+			     source);
 	return 1;
 }
 
@@ -233,9 +230,7 @@ static void do_switch(struct pg_switch_state *state,
 			edge_index = entry->edge_index;
 
 		/* the lookup table entry is stale due to a port hotplug */
-		} else if (!entry || unlikely(entry->unlink <
-					      switch_side->
-					      unlinks[edge_index])) {
+		} else {
 			flood_mask |= bit;
 			continue;
 		}
@@ -261,7 +256,6 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	source = &state->sides[from].sources[edge_index];
 	source->from = from;
 	source->edge_index = edge_index;
-	source->unlink = state->sides[from].unlinks[edge_index];
 
 	pg_packets_prefetch(pkts, pkts_mask);
 
@@ -310,7 +304,6 @@ static int switch_init(struct pg_brick *brick,
 		uint16_t max = brick->sides[i].max;
 
 		state->sides[i].masks	= g_new0(uint64_t, max);
-		state->sides[i].unlinks = g_new0(uint64_t, max);
 		state->sides[i].sources	= g_new0(struct pg_address_source, max);
 	}
 	state->output =
@@ -355,7 +348,6 @@ static void switch_destroy(struct pg_brick *brick, struct pg_error **errp)
 
 	for (i = 0; i < MAX_SIDE; i++) {
 		g_free(state->sides[i].masks);
-		g_free(state->sides[i].unlinks);
 		g_free(state->sides[i].sources);
 	}
 
@@ -369,7 +361,13 @@ static void switch_unlink_notify(struct pg_brick *brick,
 	struct pg_switch_state *state =
 		pg_brick_get_state(brick, struct pg_switch_state);
 
-	state->sides[side].unlinks[edge_index]++;
+	PG_MAC_TABLE_FOREACH(&state->table, cur_mac,
+			     struct pg_address_source *, src) {
+		if (likely(src != NULL) &&
+		    src->from == side &&
+		    src->edge_index == edge_index)
+			pg_mac_table_ptr_unset(&state->table, cur_mac);
+	}
 }
 
 static struct pg_brick_ops switch_ops = {
