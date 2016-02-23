@@ -69,6 +69,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	uint64_t pkts_burst;
 	struct pg_brick_side *side;
 	struct pg_brick *count_brick;
+	struct pg_bench bl;
 
 	if (bench == NULL || result == NULL ||
 	    bench->pkts == NULL || bench->pkts_nb == 0 ||
@@ -110,26 +111,28 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	result->pkts_average_size /= bench->pkts_nb;
 
 	/* Let's run ! */
+	memcpy(&bl, bench, sizeof(struct pg_bench));
 	gettimeofday(&result->date_start, NULL);
-	for (i = 0; i < bench->max_burst_cnt; i++) {
+	for (i = 0; i < bl.max_burst_cnt; i++) {
 		/* Burst packets. */
-		pg_brick_burst(bench->input_brick,
-			       bench->input_side,
+		pg_brick_burst(bl.input_brick,
+			       bl.input_side,
 			       0,
-			       bench->pkts,
-			       bench->pkts_nb,
-			       bench->pkts_mask,
+			       bl.pkts,
+			       bl.pkts_nb,
+			       bl.pkts_mask,
 			       error);
 		sched_yield();
 		if (*error)
 			return 0;
 		/* Poll back packets if needed. */
-		if (bench->output_poll)
-			pg_brick_poll(bench->output_brick, &cnt, error);
-		if (bench->post_burst_op)
-			bench->post_burst_op(bench);
+		if (bl.output_poll)
+			pg_brick_poll(bl.output_brick, &cnt, error);
+		if (bl.post_burst_op)
+			bl.post_burst_op(bench);
 	}
 	gettimeofday(&result->date_end, NULL);
+	memcpy(bench, &bl, sizeof(struct pg_bench));
 	result->pkts_sent = bench->max_burst_cnt * bench->pkts_nb;
 	result->burst_cnt = bench->max_burst_cnt;
 	result->pkts_burst = pkts_burst;
