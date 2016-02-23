@@ -99,7 +99,7 @@ void test_benchmark_vhost(char *vm_image_path,
 	bench.output_brick = vhost_exit;
 	bench.output_side = WEST_SIDE;
 	bench.output_poll = true;
-	bench.max_burst_cnt = 1000000;
+	bench.max_burst_cnt = 10000000;
 	bench.count_brick = NULL;
 	bench.pkts_nb = 64;
 	bench.pkts_mask = pg_mask_firsts(64);
