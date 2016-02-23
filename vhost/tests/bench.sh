@@ -69,11 +69,6 @@ if [ ! -d /mnt/huge ]; then
 	exit 1
 fi
 
-# Check that buildroot is built
-if [ ! -f $BUILD_ROOT/buildroot/BUILDROOT_OK ]; then
-	$VHOST_ROOT/tests/build_buildroot.sh $VHOST_ROOT $BUILD_ROOT
-fi
-
 # Get VM image & key
 IMG_URL=https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/arch-051115.qcow
 IMG_MD5=4b7b1a71ac47eb73d85cdbdc85533b07
