@@ -376,6 +376,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	pg_vhost_stop();
 }
 
+<<<<<<< d9cc6ceb55ac073b137674457033b521abf516ab
 #define VHOST_CNT 1000
 
 static void test_vhost_fd(void)
@@ -395,6 +396,7 @@ static void test_vhost_fd(void)
 			g_assert(!error);
 			g_assert(vhost[i]);
 		}
+<<<<<<< d9cc6ceb55ac073b137674457033b521abf516ab
 		for (int i = 0; i < VHOST_CNT; i++) {
 			pg_brick_destroy(vhost[i]);
 			g_assert(!error);
@@ -403,6 +405,7 @@ static void test_vhost_fd(void)
 	pg_vhost_stop();
 }
 
+<<<<<<< d9cc6ceb55ac073b137674457033b521abf516ab
 #undef VHOST_CNT
 
 static void test_vhost_fd_loop(void) {
