@@ -585,7 +585,11 @@ int main(int argc, char **argv)
 			test_graph_type1);
 	g_test_add_func("/brick/graph/intense/solo",
 			test_graph_firewall_intense);
+<<<<<<< dffd8d29ac628941282427778ff763a95de4f6c2
 	g_test_add_func("/brick/graph/intense/multiple",
+=======
+	g_test_add_func("/brick/graph/intense",
+>>>>>>> integration: add an intense test with a lot of mulitple branches
 			test_graph_firewall_intense_multiple);
 
 	r = g_test_run();
