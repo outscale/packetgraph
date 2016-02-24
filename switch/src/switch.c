@@ -32,6 +32,7 @@
 #include <packetgraph/common.h>
 #include <packetgraph/switch.h>
 #include <packetgraph/packets.h>
+#include <packetgraph/utils/mac-table.h>
 
 /* this tell from where a given source mac address came */
 struct pg_address_source {
@@ -42,13 +43,14 @@ struct pg_address_source {
 
 /* structure used to describe a side (EAST_SIDE/WEST_SIDE) of the switch */
 struct pg_switch_side {
+	struct pg_address_source *sources;
 	uint64_t *masks;	/* outgoing packet masks (one per port) */
 	uint64_t *unlinks;	/* hot plugging unlink  (one per port) */
 };
 
 struct pg_switch_state {
 	struct pg_brick brick;
-	void *table;				/* mac addy lookup table */
+	struct pg_mac_table table;
 	enum pg_side output;
 	struct pg_switch_side sides[MAX_SIDE];	/* sides of the switch */
 };
@@ -149,21 +151,13 @@ static inline int is_filtered(struct ether_addr *eth_addr)
 
 static inline int learn_addr(struct pg_switch_state *state,
 			     uint8_t *key,
-			     struct pg_address_source *source,
-			     struct pg_error **errp)
+			     struct pg_address_source *source)
 {
-	void *entry = NULL;
-	int key_found;
-	int ret;
-
 	/* memorize from where this address_source mac address come from */
-	ret = rte_table_hash_key8_lru_dosig_ops.f_add(state->table, key, source,
-						      &key_found, &entry);
-	if (unlikely(ret))
-		*errp = pg_error_new_errno(-ret,
-					   "Fail to learn source address");
+	pg_mac_table_ptr_set(&state->table, *((union pg_mac *)key),
+			  source);
 
-	return !ret;
+	return 1;
 }
 
 static int do_learn_filter_multicast(struct pg_switch_state *state,
@@ -188,7 +182,7 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 
 		/* associate source mac address with its source port */
 		ret = learn_addr(state, (void *) src_key_ptr(pkt),
-				 source, errp);
+				 source);
 
 		if (unlikely(!ret))
 			return 0;
@@ -217,13 +211,12 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 
 static void do_switch(struct pg_switch_state *state,
 		      struct pg_address_source *source,
-		      uint64_t pkts_mask,
-		      uint64_t lookup_hit_mask,
-		      struct pg_address_source **entries)
+		      struct rte_mbuf **pkts,
+		      uint64_t pkts_mask)
 {
-	uint64_t flood_mask = pkts_mask & ~lookup_hit_mask;
+	uint64_t flood_mask = 0;
 
-	for ( ; lookup_hit_mask; ) {
+	for ( ; pkts_mask; ) {
 		struct pg_switch_side *switch_side;
 		struct pg_address_source *entry;
 		uint16_t edge_index;
@@ -231,17 +224,20 @@ static void do_switch(struct pg_switch_state *state,
 		uint64_t bit;
 		uint16_t i;
 
-		pg_low_bit_iterate_full(lookup_hit_mask, bit, i);
+		pg_low_bit_iterate_full(pkts_mask, bit, i);
 
-		entry = entries[i];
-
-		from = entry->from;
-		switch_side = &state->sides[from];
-		edge_index = entry->edge_index;
+		entry = pg_mac_table_ptr_get(
+			&state->table,
+			*(union pg_mac *)dst_key_ptr(pkts[i]));
+		if (entry) {
+			from = entry->from;
+			switch_side = &state->sides[from];
+			edge_index = entry->edge_index;
 
 		/* the lookup table entry is stale due to a port hotplug */
-		if (unlikely(entry->unlink <
-			     switch_side->unlinks[edge_index])) {
+		} else if (!entry || unlikely(entry->unlink <
+					      switch_side->
+					      unlinks[edge_index])) {
 			flood_mask |= bit;
 			continue;
 		}
@@ -260,14 +256,14 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 {
 	struct pg_switch_state *state =
 		pg_brick_get_state(brick, struct pg_switch_state);
-	uint64_t unicast_mask = 0, lookup_hit_mask = 0;
-	struct pg_address_source *entries[64];
-	struct pg_address_source source;
+	uint64_t unicast_mask = 0;
+	struct pg_address_source *source;
 	int ret;
 
-	source.from = from;
-	source.edge_index = edge_index;
-	source.unlink = state->sides[from].unlinks[edge_index];
+	source = &state->sides[from].sources[edge_index];
+	source->from = from;
+	source->edge_index = edge_index;
+	source->unlink = state->sides[from].unlinks[edge_index];
 
 	pg_packets_prefetch(pkts, pkts_mask);
 
@@ -277,26 +273,15 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(!ret))
 		return 0;
 
-	ret = do_learn_filter_multicast(state, &source, pkts,
+	ret = do_learn_filter_multicast(state, source, pkts,
 					pkts_mask, &unicast_mask, errp);
 	if (unlikely(!ret))
 		goto no_forward;
 
-	ret = rte_table_hash_key8_lru_dosig_ops.f_lookup(state->table, pkts,
-							 unicast_mask,
-							 &lookup_hit_mask,
-							 (void **) entries);
-
-	if (unlikely(ret)) {
-		*errp = pg_error_new_errno(-ret, "Fail to lookup dest address");
-		goto no_forward;
-	}
-
-	do_switch(state, &source, unicast_mask, lookup_hit_mask,
-		  (struct pg_address_source **) entries);
+	do_switch(state, source, pkts, unicast_mask);
 
 	pg_packets_clear_hash_keys(pkts, pkts_mask);
-	return forward_bursts(state, &source, pkts, nb, errp);
+	return forward_bursts(state, source, pkts, nb, errp);
 no_forward:
 	pg_packets_clear_hash_keys(pkts, pkts_mask);
 	return 0;
@@ -309,14 +294,6 @@ static int switch_init(struct pg_brick *brick,
 		pg_brick_get_state(brick, struct pg_switch_state);
 	enum pg_side i;
 
-	struct rte_table_hash_key8_lru_params hash_params = {
-		.n_entries		= HASH_ENTRIES,
-		.f_hash			= ether_hash,
-		.seed			= 0,
-		.signature_offset	= APP_METADATA_OFFSET(0),
-		.key_offset		= APP_METADATA_OFFSET(0),
-	};
-
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
 		return 0;
@@ -324,11 +301,7 @@ static int switch_init(struct pg_brick *brick,
 
 	brick->burst = switch_burst;
 
-	state->table = rte_table_hash_key8_lru_dosig_ops.f_create(&hash_params,
-			rte_socket_id(),
-			sizeof(struct pg_address_source));
-
-	if (!state->table) {
+	if (pg_mac_table_init(&state->table) < 0) {
 		*errp = pg_error_new(
 				"Failed to create hash for switch brick '%s'",
 				brick->name);
@@ -340,6 +313,7 @@ static int switch_init(struct pg_brick *brick,
 
 		state->sides[i].masks	= g_new0(uint64_t, max);
 		state->sides[i].unlinks = g_new0(uint64_t, max);
+		state->sides[i].sources	= g_new0(struct pg_address_source, max);
 	}
 	state->output =
 	  ((struct pg_switch_config *)config->brick_config)->output;
@@ -384,9 +358,10 @@ static void switch_destroy(struct pg_brick *brick, struct pg_error **errp)
 	for (i = 0; i < MAX_SIDE; i++) {
 		g_free(state->sides[i].masks);
 		g_free(state->sides[i].unlinks);
+		g_free(state->sides[i].sources);
 	}
 
-	rte_table_hash_key8_lru_dosig_ops.f_free(state->table);
+	pg_mac_table_free(&state->table);
 }
 
 static void switch_unlink_notify(struct pg_brick *brick,
@@ -395,6 +370,7 @@ static void switch_unlink_notify(struct pg_brick *brick,
 {
 	struct pg_switch_state *state =
 		pg_brick_get_state(brick, struct pg_switch_state);
+
 	state->sides[side].unlinks[edge_index]++;
 }
 
