@@ -307,6 +307,7 @@ static void nic_destroy(struct pg_brick *brick, struct pg_error **errp)
 		pg_brick_get_state(brick, struct pg_nic_state);
 	rte_eth_xstats_reset(state->portid);
 	rte_eth_dev_stop(state->portid);
+	rte_eth_dev_close(state->portid);
 }
 
 struct pg_brick *pg_nic_new(const char *name,
