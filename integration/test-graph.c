@@ -508,6 +508,58 @@ exit:
 	g_assert(!ret);
 }
 
+static void test_graph_firewall_intense_multiple(void)
+{
+	struct pg_brick *nic, *vtep, *print;
+	struct pg_error *error = NULL;
+	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
+				       0xb3, 0xb4, 0xb5}};
+	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+	int branches_nb = 64;
+	struct branch branches[branches_nb];
+	int ret = -1;
+	GList *brick_gc = NULL;
+
+	pg_vhost_start("/tmp", &error);
+	CHECK_ERROR(error);
+
+	nic = pg_nic_new_by_id("nic", ring_port(), &error);
+	CHECK_ERROR(error);
+	vtep = pg_vtep_new("vt", 1, branches_nb, WEST_SIDE,
+			   0x000000EE, mac_vtep, ALL_OPTI, &error);
+	CHECK_ERROR(error);
+
+	print = pg_print_new("main-print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
+			     NULL, &error);
+	CHECK_ERROR(error);
+	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
+
+	pg_brick_chained_links(&error, nic, print, vtep);
+	CHECK_ERROR(error);
+
+	for (int i = 0; i < 100; ++i) {
+		for (int j = 0; j < branches_nb; j++) {
+			g_assert(add_graph_branch(&branches[j], j, mac1, 0, 0));
+			g_assert(link_graph_branch(&branches[j], vtep));
+
+			/* Add firewall rule */
+			ASSERT(!pg_firewall_rule_add(branches[j].firewall, "icmp",
+						     MAX_SIDE, 1, &error));
+		}
+		for (int j = 0; j < branches_nb; j++) {
+			rm_graph_branch(&branches[j]);
+		}
+	}
+
+	CHECK_ERROR_ASSERT(error);
+
+	ret = 0;
+exit:
+	pg_gc_destroy(brick_gc);
+	pg_vhost_stop();
+	g_assert(!ret);
+}
+
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
@@ -529,11 +581,13 @@ int main(int argc, char **argv)
 	if (test_flags & PRINT_USAGE)
 		print_usage();
 	g_assert(!(test_flags & FAIL));
-
 	g_test_add_func("/brick/graph/flow",
 			test_graph_type1);
-	g_test_add_func("/brick/graph/intense",
+	g_test_add_func("/brick/graph/intense/solo",
 			test_graph_firewall_intense);
+	g_test_add_func("/brick/graph/intense/multiple",
+			test_graph_firewall_intense_multiple);
+
 	r = g_test_run();
 
 	pg_stop();
