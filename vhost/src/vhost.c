@@ -272,9 +272,7 @@ static void vhost_destroy(struct pg_brick *brick, struct pg_error **errp)
 	pthread_mutex_lock(&mutex);
 
 	g_remove(state->socket->path);
-	/* TODO: uncomment when implemented
-	 * rte_vhost_driver_unregister(state->socket->path);
-	 */
+	rte_vhost_driver_unregister(state->socket->path);
 	LIST_REMOVE(state->socket, socket_list);
 	g_free(state->socket->path);
 	g_free(state->socket);

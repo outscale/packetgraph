@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <glib.h>
+#include <glib/gprintf.h>
 #include <rte_config.h>
 #include <rte_hash_crc.h>
 
@@ -374,6 +376,41 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	pg_vhost_stop();
 }
 
+static void test_vhost_fd(void)
+{
+	unsigned int vhost_cnt = 1000;
+	struct pg_brick *vhost[vhost_count];
+	struct pg_error *error = NULL;
+	int i, j, ret;
+
+	ret = pg_vhost_start("/tmp", &error);
+	g_assert(ret);
+	g_assert(!error);
+
+	for (j = 0; j < 10; j++) {
+		for (i = 0; i < vhost_cnt; i++) {
+			gchar *name = g_strdup_printf("vhost-%i", i);
+			vhost[i] = pg_vhost_new(name, 1, 1, EAST_SIDE, &error);
+			g_free(name);
+			pg_error_print(error);
+			g_assert(!error);
+			g_assert(vhost[i]);
+		}
+		for (i = 0; i < vhost_cnt; i++) {
+			pg_brick_destroy(vhost[i]);
+			g_assert(!error);
+		}
+	}
+	pg_vhost_stop();
+}
+
+static void test_vhost_fd_loop(void) {
+	int i;
+
+	for (i = 0; i < 3; i++)
+		test_vhost_fd();
+}
+
 static void test_vhost_multivm(void)
 {
 	printf("------- test_vhost_multivm SIGKILL ---------\n");
@@ -386,4 +423,5 @@ void test_vhost(void)
 {
 	g_test_add_func("/vhost/flow", test_vhost_flow);
 	g_test_add_func("/vhost/multivm", test_vhost_multivm);
+	g_test_add_func("/vhost/fd", test_vhost_fd_loop);
 }
