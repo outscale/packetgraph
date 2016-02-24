@@ -84,6 +84,7 @@ target_link_libraries(packetgraph-${BRICK}-tests
 add_custom_target(packetgraph-${BRICK}-tests-run
 		COMMAND ${PG_ROOT}/${BRICK}/tests.sh ${LIBPACKETGRAPH-VHOST_INCLUDE_DIR} ${CMAKE_BINARY_DIR}/vhost ${PROJECT_BINARY_DIR}
 		WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+add_dependencies(packetgraph-${BRICK}-tests-run packetgraph-${BRICK}-tests)
 if (NOT "${PG_ROOT_PATH}" STREQUAL "")
     add_dependencies(packetgraph-${BRICK}-tests
         packetgraph-core-static
