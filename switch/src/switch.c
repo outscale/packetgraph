@@ -177,14 +177,15 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 
 		pkt = pkts[i];
 
+		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
+
 		/* associate source mac address with its source port */
-		ret = learn_addr(state, (void *) src_key_ptr(pkt),
+		ret = learn_addr(state, (void *) &eth_hdr->s_addr,
 				 source);
 
 		if (unlikely(!ret))
 			return 0;
 
-		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 
 		/* http://standards.ieee.org/regauth/groupmac/tutorial.html */
 		if (unlikely(is_filtered(&eth_hdr->d_addr))) {
@@ -212,6 +213,7 @@ static void do_switch(struct pg_switch_state *state,
 		      uint64_t pkts_mask)
 {
 	uint64_t flood_mask = 0;
+	struct ether_hdr *eth_hdr;
 
 	for ( ; pkts_mask; ) {
 		struct pg_switch_side *switch_side;
@@ -222,9 +224,10 @@ static void do_switch(struct pg_switch_state *state,
 
 		pg_low_bit_iterate_full(pkts_mask, bit, i);
 
+		eth_hdr = rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
 		entry = pg_mac_table_ptr_get(
 			&state->table,
-			*(union pg_mac *)dst_key_ptr(pkts[i]));
+			*((union pg_mac *)&eth_hdr->d_addr));
 		if (entry) {
 			switch_side = &state->sides[entry->from];
 			edge_index = entry->edge_index;
@@ -257,13 +260,7 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	source->from = from;
 	source->edge_index = edge_index;
 
-	pg_packets_prefetch(pkts, pkts_mask);
-
 	zero_masks(state);
-
-	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
-	if (unlikely(!ret))
-		return 0;
 
 	ret = do_learn_filter_multicast(state, source, pkts,
 					pkts_mask, &unicast_mask, errp);
@@ -272,10 +269,8 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 
 	do_switch(state, source, pkts, unicast_mask);
 
-	pg_packets_clear_hash_keys(pkts, pkts_mask);
 	return forward_bursts(state, source, pkts, nb, errp);
 no_forward:
-	pg_packets_clear_hash_keys(pkts, pkts_mask);
 	return 0;
 }
 
