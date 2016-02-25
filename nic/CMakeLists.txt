@@ -104,7 +104,6 @@ target_link_libraries(packetgraph-${BRICK}-tests
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
 	dl
-	urcu
 	z
 	cdb
 	pcap
@@ -150,7 +149,6 @@ target_link_libraries(packetgraph-${BRICK}-bench
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
 	dl
-	urcu
 	z
 	cdb
 	pcap
