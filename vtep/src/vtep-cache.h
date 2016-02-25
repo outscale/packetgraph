@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _VTEP_CACHE_H_
-#define _VTEP_CACHE_H_
+#ifndef _PG_VTEP_VTEP_CACHE_H
+#define _PG_VTEP_VTEP_CACHE_H
 
 #include <rte_config.h>
 #include <rte_ether.h>
@@ -49,4 +49,4 @@ struct dest_addresses *mac_cache_get(struct cache *cache,
 void mac_cache_destroy(struct cache *cache);
 
 
-#endif
+#endif /* _PG_VTEP_VTEP_CACHE_H */
