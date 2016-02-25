@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_INT_H_
-#define _BRICKS_BRICK_INT_H_
+#ifndef _PG_CORE_BRICK_INT_H
+#define _PG_CORE_BRICK_INT_H
 
 #include <glib.h>
 #include <stdint.h>
@@ -156,5 +156,5 @@ extern GList *pg_all_bricks;
 		pg_all_bricks = g_list_append(pg_all_bricks, (ops)); \
 	}
 
-#endif
+#endif /* _PG_CORE_BRICK_INT_H */
 

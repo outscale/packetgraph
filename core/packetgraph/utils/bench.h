@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_BENCH_H_
-#define _UTILS_BENCH_H_
+#ifndef _PG_CORE_UTILS_BENCH_H
+#define _PG_CORE_UTILS_BENCH_H
 
 #include <sys/time.h>
 #include <stdbool.h>
@@ -96,4 +96,4 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
  */
 int pg_bench_print(struct pg_bench_stats *result, FILE *output);
 
-#endif
+#endif /* _PG_CORE_UTILS_BENCH_H */

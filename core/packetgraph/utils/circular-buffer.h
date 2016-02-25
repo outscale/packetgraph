@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CIRCULAR_BUFFER_H_
-#define _CIRCULAR_BUFFER_H_
+#ifndef _PG_CORE_UTILS_CIRCULAR_BUFFER_H
+#define _PG_CORE_UTILS_CIRCULAR_BUFFER_H
 
 /* Warning ! */
 /* size MUST be a powers of two */
@@ -49,4 +49,4 @@
 
 #define cb_set(cb, i, val) (cb_get((cb), (i)) = val)
 
-#endif
+#endif /* _PG_CORE_UTILS_CIRCULAR_BUFFER_H */

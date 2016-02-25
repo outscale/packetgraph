@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PACKETGRAPH_H_
-#define _PACKETGRAPH_H_
+#ifndef _PG_CORE_PACKETGRAPH_H
+#define _PG_CORE_PACKETGRAPH_H
 
 #include <stdarg.h>
 #include <packetgraph/utils/errors.h>
@@ -129,4 +129,4 @@ void pg_brick_destroy(struct pg_brick *brick);
 const char *pg_brick_name(struct pg_brick *brick);
 const char *pg_brick_type(struct pg_brick *brick);
 
-#endif
+#endif /* _PG_CORE_PACKETGRAPH_H */

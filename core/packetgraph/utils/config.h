@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_CONFIG_H_
-#define _UTILS_CONFIG_H_
+#ifndef _PG_CORE_UTILS_CONFIG_H
+#define _PG_CORE_UTILS_CONFIG_H
 
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
@@ -45,4 +45,4 @@ struct pg_brick_config *pg_brick_config_new(const char *name,
 
 void pg_brick_config_free(struct pg_brick_config *config);
 
-#endif
+#endif /* _PG_CORE_UTILS_CONFIG_H */

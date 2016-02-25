@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _PG_CORE_COMMON_H
+#define _PG_CORE_COMMON_H
 
 enum pg_side {
 	WEST_SIDE = 0,
@@ -29,4 +29,4 @@ enum pg_side {
 /* do not change this */
 #define PG_MAX_PKTS_BURST	64
 
-#endif
+#endif /* _PG_CORE_COMMON_H */

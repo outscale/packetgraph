@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_ERRORS_H
-#define _UTILS_ERRORS_H
+#ifndef _PG_CORE_UTILS_ERRORS_H
+#define _PG_CORE_UTILS_ERRORS_H
 
 #include <stdint.h>
 
@@ -62,4 +62,4 @@ void pg_error_print(struct pg_error *error);
 
 int pg_error_is_set(struct pg_error **error);
 
-#endif
+#endif /* _PG_CORE_UTILS_ERRORS_H */
