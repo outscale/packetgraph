@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_H_
-#define _BRICKS_BRICK_H_
+#ifndef _PG_CORE_BRICK_H
+#define _PG_CORE_BRICK_H
 
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/brick-int.h>
@@ -78,4 +78,4 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 			  struct rte_mbuf **pkts, uint16_t nb,
 			  uint64_t pkts_mask, struct pg_error **errp);
 
-#endif
+#endif /* _PG_CORE_BRICK_H */

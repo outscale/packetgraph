@@ -16,8 +16,8 @@
  */
 
 
-#ifndef _BRICKS_BRICK_COLLECT_H_
-#define _BRICKS_BRICK_COLLECT_H_
+#ifndef _PG_CORE_COLLECT_H
+#define _PG_CORE_COLLECT_H
 
 #include <packetgraph/utils/errors.h>
 
@@ -25,4 +25,4 @@ struct pg_brick *pg_collect_new(const char *name, uint32_t west_max,
 				uint32_t east_max,
 				struct pg_error **errp);
 
-#endif  /* _BRICKS_BRICK_COLLECT_H_ */
+#endif  /* _PG_CORE_COLLECT_H */

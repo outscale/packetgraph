@@ -15,6 +15,9 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _PG_CORE_GRAPH_H
+#define _PG_CORE_GRAPH_H
+
 #include <stdio.h>
 #include <packetgraph/utils/errors.h>
 
@@ -30,4 +33,4 @@ struct pg_brick;
  */
 int pg_graph_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp);
 
-
+#endif /* _PG_CORE_GRAPH_H */

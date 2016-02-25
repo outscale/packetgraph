@@ -15,12 +15,12 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_MEMPOOL_H_
-#define _UTILS_MEMPOOL_H_
+#ifndef _PG_CORE_UTILS_MEMPOOL_H
+#define _PG_CORE_UTILS_MEMPOOL_H
 
 #include <rte_config.h>
 #include <rte_mempool.h>
 
 struct rte_mempool *pg_get_mempool(void);
 
-#endif
+#endif /* _PG_CORE_UTILS_MEMPOOL_H */

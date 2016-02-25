@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PACKETS_PACKETS_H_
-#define _PACKETS_PACKETS_H_
+#ifndef _PG_CORE_PACKETS_H
+#define _PG_CORE_PACKETS_H
 
 #include <rte_config.h>
 #include <rte_mbuf.h>
@@ -135,4 +135,4 @@ int pg_packets_prepare_hash_keys(struct rte_mbuf **pkts,
 
 void pg_packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
-#endif
+#endif /* _PG_CORE_PACKETS_H */

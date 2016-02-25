@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_BITMASK_H_
-#define _UTILS_BITMASK_H_
+#ifndef _PG_CORE_UTILS_BITMASK_H
+#define _PG_CORE_UTILS_BITMASK_H
 
 #include <stdint.h>
 
@@ -47,4 +47,4 @@ int pg_mask_count(uint64_t pkts_mask);
 		     tmpmask;						\
 	     tmpmask &= ~(1LLU << it))
 
-#endif
+#endif /* _PG_CORE_UTILS_BITMASK_H */
