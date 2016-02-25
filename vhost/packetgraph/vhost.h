@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_VHOST_H_
-#define _BRICKS_BRICK_VHOST_H_
+#ifndef _PG_VHOST_VHOST_H
+#define _PG_VHOST_VHOST_H
 
 #include <packetgraph/utils/errors.h>
 
@@ -60,4 +60,4 @@ const char *pg_vhost_socket_path(struct pg_brick *brick,
 
 void pg_vhost_stop(void);
 
-#endif  /* _BRICKS_BRICK_VHOST_H_ */
+#endif  /* _PG_VHOST_VHOST_H */
