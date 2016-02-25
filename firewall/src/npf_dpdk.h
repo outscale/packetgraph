@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _NPF_DPDK_H_
-#define _NPF_DPDK_H_
+#ifndef _PG_FIREWALL_NPF_DPDK_H
+#define _PG_FIREWALL_NPF_DPDK_H
 
 #include <net/npf.h>
 #include <net/npfkern.h>
@@ -52,5 +52,5 @@ npf_t *npf_dpdk_create(int);
 struct ifnet *npf_dpdk_ifattach(npf_t *, const char *, unsigned);
 void npf_dpdk_ifdetach(npf_t *, struct ifnet *);
 
-#endif
+#endif /* _PG_FIREWALL_NPF_DPDK_H */
 
