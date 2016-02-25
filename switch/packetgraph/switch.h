@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_SWITCH_H_
-#define _BRICKS_BRICK_SWITCH_H_
+#ifndef _PG_SWITCH_SWITCH_H
+#define _PG_SWITCH_SWITCH_H
 
 #include <packetgraph/utils/errors.h>
 
@@ -35,4 +35,4 @@ struct pg_brick *pg_switch_new(const char *name,
 			       enum pg_side output,
 			       struct pg_error **errp);
 
-#endif  /* _BRICKS_BRICK_SWITCH_H_ */
+#endif  /* _PG_SWITCH_SWITCH_H */
