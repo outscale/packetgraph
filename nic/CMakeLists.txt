@@ -80,7 +80,7 @@ include(CPack)
 
 # Tests
 
-# We recompile nic.c with _BRICKS_BRICK_NIC_STUB_H_ in order
+# We recompile nic.c with PG_NIC_STUB in order
 # to test even without a real NIC.
 
 add_executable(packetgraph-${BRICK}-tests EXCLUDE_FROM_ALL
@@ -89,7 +89,7 @@ add_executable(packetgraph-${BRICK}-tests EXCLUDE_FROM_ALL
 		tests/tests.c)
 
 set_target_properties(packetgraph-${BRICK}-tests
-		PROPERTIES COMPILE_FLAGS "-D _BRICKS_BRICK_NIC_STUB_H_")
+		PROPERTIES COMPILE_FLAGS "-D PG_NIC_STUB")
 
 target_include_directories(packetgraph-${BRICK}-tests PUBLIC
 	${PG_ROOT}/${BRICK}

@@ -26,7 +26,7 @@
 #include <packetgraph/utils/mempool.h>
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/nic.h>
-#include "nic.h"
+#include "nic-int.h"
 
 struct pg_nic_config {
 	enum pg_side output;
@@ -125,7 +125,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 				pkts, pkts_mask);
 
 	pg_packets_incref(pkts, pkts_mask);
-#ifndef _BRICKS_BRICK_NIC_STUB_H_
+#ifndef PG_NIC_STUB
 	pkts_bursted = rte_eth_tx_burst(state->portid, 0,
 					exit_pkts,
 					count);
@@ -136,7 +136,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 	else
 		pkts_bursted = rte_eth_tx_burst(state->portid, 0,
 						exit_pkts, nb_pkts);
-#endif /* #ifndef _BRICKS_BRICK_NIC_STUB_H_ */
+#endif /* #ifndef PG_NIC_STUB */
 
 	side = &brick->sides[pg_flip_side(from)];
 	if (side->burst_count_cb != NULL)
