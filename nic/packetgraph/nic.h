@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_NIC_H_
-#define _BRICKS_BRICK_NIC_H_
+#ifndef _PG_NIC_NIC_H
+#define _PG_NIC_NIC_H
 
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
@@ -112,4 +112,4 @@ void pg_nic_get_stats(struct pg_brick *nic,
  */
 void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr);
 
-#endif  /* _BRICKS_BRICK_NIC_H_ */
+#endif  /* _PG_NIC_NIC_H */

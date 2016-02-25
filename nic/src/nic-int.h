@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_NIC_INT_H_
-#define _BRICKS_BRICK_NIC_H_
+#ifndef _PG_NIC_NIC_INT_H
+#define _PG_NIC_NIC_INT_H
 
 /* internal headers for nic brick */
 
@@ -28,8 +28,8 @@ void devinitfn_pmd_ring_drv(void);
 
 extern struct rte_eth_dev rte_eth_devices[RTE_MAX_ETHPORTS];
 
-#ifdef _BRICKS_BRICK_NIC_STUB_H_
+#ifdef PG_NIC_STUB
 extern uint16_t max_pkts;
-#endif /* #ifdef _BRICKS_BRICK_NIC_STUB_H_ */
+#endif /* PG_NIC_STUB */
 
-#endif /* _BRICKS_BRICK_NIC_H_*/
+#endif /* _PG_NIC_NIC_INT_H */
