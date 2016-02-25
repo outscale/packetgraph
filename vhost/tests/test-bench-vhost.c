@@ -48,11 +48,10 @@ void test_benchmark_vhost(char *vm_image_path,
 	struct pg_bench_stats stats;
 	const char *socket_path_enter;
 	const char *socket_path_exit;
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
+	struct ether_addr rand_mac1 = {{0x52,0x54,0x00,0x00,0x42,0x01}};
+	struct ether_addr rand_mac2 = {{0x52,0x54,0x00,0x00,0x42,0x02}};
 	const char mac1_str[18] = "52:54:00:12:34:11";
 	const char mac2_str[18] = "52:54:00:12:34:12";
-	uint32_t len;
 	int ret;
 	int qemu_pid;
 
@@ -99,27 +98,18 @@ void test_benchmark_vhost(char *vm_image_path,
 	bench.output_brick = vhost_exit;
 	bench.output_side = WEST_SIDE;
 	bench.output_poll = true;
-	bench.max_burst_cnt = 1000000;
+	bench.max_burst_cnt = 20000000;
 	bench.count_brick = NULL;
-	bench.pkts_nb = 64;
-	bench.pkts_mask = pg_mask_firsts(64);
+	bench.pkts_nb = 32;
+	bench.pkts_mask = pg_mask_firsts(32);
 	bench.pkts = pg_packets_create(bench.pkts_mask);
 	bench.pkts = pg_packets_append_ether(
 		bench.pkts,
 		bench.pkts_mask,
-		&mac1, &mac2,
-		ETHER_TYPE_IPv4);
-	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
-		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) + 1400;
-	pg_packets_append_ipv4(
-		bench.pkts,
-		bench.pkts_mask,
-		0x000000EE, 0x000000CC, len, 17);
-	bench.pkts = pg_packets_append_udp(
-		bench.pkts,
-		bench.pkts_mask,
-		1000, 2000, 1400);
-	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
+		&rand_mac1, &rand_mac2,
+		0xcafe);
+	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask,
+					     1500 - sizeof(struct ether_hdr));
 
 	g_assert(pg_bench_run(&bench, &stats, &error));
 	g_assert(pg_bench_print(&stats, NULL));
