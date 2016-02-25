@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_HUB_H_
-#define _BRICKS_BRICK_HUB_H_
+#ifndef _PG_HUB_HUB_H
+#define _PG_HUB_HUB_H
 
 #include <packetgraph/utils/errors.h>
 
@@ -34,4 +34,4 @@ struct pg_brick *pg_hub_new(const char *name,
 			    uint32_t east_max,
 			    struct pg_error **errp);
 
-#endif  /* _BRICKS_BRICK_HUB_H_ */
+#endif  /* _PG_HUB_HUB_H */
