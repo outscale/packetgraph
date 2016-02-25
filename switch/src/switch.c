@@ -147,17 +147,15 @@ static inline int is_filtered(struct ether_addr *eth_addr)
 		eth_addr->addr_bytes[5] <= 0x0F;
 }
 
-static inline int learn_addr(struct pg_switch_state *state,
+static inline void learn_addr(struct pg_switch_state *state,
 			     uint8_t *key,
 			     struct pg_address_source *source)
 {
-	/* memorize from where this address_source mac address come from */
 	pg_mac_table_ptr_set(&state->table, *((union pg_mac *)key),
 			     source);
-	return 1;
 }
 
-static int do_learn_filter_multicast(struct pg_switch_state *state,
+static void do_learn_filter_multicast(struct pg_switch_state *state,
 				     struct pg_address_source *source,
 				     struct rte_mbuf **pkts,
 				     uint64_t pkts_mask,
@@ -171,7 +169,6 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 		struct rte_mbuf *pkt;
 		uint64_t bit;
 		uint16_t i;
-		int ret;
 
 		pg_low_bit_iterate_full(mask, bit, i);
 
@@ -180,12 +177,8 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 
 		/* associate source mac address with its source port */
-		ret = learn_addr(state, (void *) &eth_hdr->s_addr,
-				 source);
-
-		if (unlikely(!ret))
-			return 0;
-
+		learn_addr(state, (void *) &eth_hdr->s_addr,
+			   source);
 
 		/* http://standards.ieee.org/regauth/groupmac/tutorial.html */
 		if (unlikely(is_filtered(&eth_hdr->d_addr))) {
@@ -204,7 +197,6 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 	flood(state, source, flood_mask);
 
 	*unicast_mask = pkts_mask & ~filtered_mask & ~flood_mask;
-	return 1;
 }
 
 static void do_switch(struct pg_switch_state *state,
@@ -254,7 +246,6 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 		pg_brick_get_state(brick, struct pg_switch_state);
 	uint64_t unicast_mask = 0;
 	struct pg_address_source *source;
-	int ret;
 
 	source = &state->sides[from].sources[edge_index];
 	source->from = from;
@@ -262,16 +253,12 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 
 	zero_masks(state);
 
-	ret = do_learn_filter_multicast(state, source, pkts,
-					pkts_mask, &unicast_mask, errp);
-	if (unlikely(!ret))
-		goto no_forward;
+	do_learn_filter_multicast(state, source, pkts,
+				  pkts_mask, &unicast_mask, errp);
 
 	do_switch(state, source, pkts, unicast_mask);
 
 	return forward_bursts(state, source, pkts, nb, errp);
-no_forward:
-	return 0;
 }
 
 static int switch_init(struct pg_brick *brick,
