@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_PRINTER_H_
-#define _BRICKS_BRICK_PRINTER_H_
+#ifndef _PG_PRINT_PRINTER_H
+#define _PG_PRINT_PRINTER_H
 
 #include <glib.h>
 
@@ -38,4 +38,4 @@ void print_summary(void *data, size_t size, FILE *ouput);
  */
 void print_raw(void *data, size_t size, FILE *output);
 
-#endif  /* _BRICKS_BRICK_PRINTER_H_ */
+#endif  /* _PG_PRINT_PRINTER_H */

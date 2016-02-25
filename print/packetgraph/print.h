@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRICKS_BRICK_PRINT_H_
-#define _BRICKS_BRICK_PRINT_H_
+#ifndef _PG_PRINT_PRINT_H
+#define _PG_PRINT_PRINT_H
 
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
@@ -69,4 +69,4 @@ struct pg_brick *pg_print_new(const char *name,
  */
 void pg_print_set_flags(struct pg_brick *brick, int flags);
 
-#endif  /* _BRICKS_BRICK_PRINT_H_ */
+#endif  /* _PG_PRINT_PRINT_H */
