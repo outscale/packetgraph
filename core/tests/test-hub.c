@@ -26,6 +26,7 @@
 #include <packetgraph/utils/mempool.h>
 #include <packetgraph/utils/bitmask.h>
 #include <packetgraph/collect.h>
+#include "tests.h"
 
 #define NB_PKTS 3
 
@@ -33,32 +34,32 @@
 	do {								\
 		pg_brick_unlink(hub, &error);				\
 		g_assert(!error);					\
-		pg_brick_unlink(collect1, &error);				\
+		pg_brick_unlink(collect1, &error);			\
 		g_assert(!error);					\
-		pg_brick_unlink(collect2, &error);				\
+		pg_brick_unlink(collect2, &error);			\
 		g_assert(!error);					\
-		pg_brick_unlink(collect3, &error);				\
+		pg_brick_unlink(collect3, &error);			\
 		g_assert(!error);					\
-		pg_brick_unlink(collect4, &error);				\
+		pg_brick_unlink(collect4, &error);			\
 		g_assert(!error);					\
 		pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));		\
 		pg_brick_decref(hub, &error);				\
 		g_assert(!error);					\
-		pg_brick_reset(collect1, &error);				\
+		pg_brick_reset(collect1, &error);			\
 		g_assert(!error);					\
-		pg_brick_reset(collect2, &error);				\
+		pg_brick_reset(collect2, &error);			\
 		g_assert(!error);					\
-		pg_brick_reset(collect3, &error);				\
+		pg_brick_reset(collect3, &error);			\
 		g_assert(!error);					\
-		pg_brick_reset(collect4, &error);				\
+		pg_brick_reset(collect4, &error);			\
 		g_assert(!error);					\
-		pg_brick_decref(collect1, &error);				\
+		pg_brick_decref(collect1, &error);			\
 		g_assert(!error);					\
-		pg_brick_decref(collect2, &error);				\
+		pg_brick_decref(collect2, &error);			\
 		g_assert(!error);					\
-		pg_brick_decref(collect3, &error);				\
+		pg_brick_decref(collect3, &error);			\
 		g_assert(!error);					\
-		pg_brick_decref(collect4, &error);				\
+		pg_brick_decref(collect4, &error);			\
 		g_assert(!error);					\
 		pg_brick_config_free(config);				\
 	} while (0)
@@ -66,7 +67,7 @@
 #define		TEST_HUB_COLLECT_AND_TEST(get_burst_fn,	to_col, to_check) do { \
 		result_pkts = get_burst_fn(to_col, &pkts_mask, &error); \
 		g_assert(!error);					\
-		g_assert(pkts_mask == pg_mask_firsts(to_check));		\
+		g_assert(pkts_mask == pg_mask_firsts(to_check));	\
 		if (to_check)						\
 			for (i = 0; i < NB_PKTS; i++)			\
 				g_assert(result_pkts[i]->udata64 == i);	\
@@ -203,27 +204,8 @@ static void test_hub_west_dispatch(void)
 #undef TEST_HUB_INIT
 #undef TEST_HUB_DESTROY
 
-static void test_hub(void)
+void test_hub(void)
 {
 	g_test_add_func("/brick/hub/east", test_hub_east_dispatch);
 	g_test_add_func("/brick/hub/west", test_hub_west_dispatch);
-}
-
-int main(int argc, char **argv)
-{
-	struct pg_error *error;
-	int r;
-
-	/* tests in the same order as the header function declarations */
-	g_test_init(&argc, &argv, NULL);
-
-	/* initialize packetgraph */
-	pg_start(argc, argv, &error);
-	g_assert(!error);
-
-	test_hub();
-	r = g_test_run();
-
-	pg_stop();
-	return r;
 }
