@@ -180,12 +180,12 @@ struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
 	return ret;
 }
 
-static int firewall_burst(struct pg_brick *brick, enum pg_side side,
+static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 			  uint16_t edge_index, struct rte_mbuf **pkts,
 			  uint16_t nb, uint64_t pkts_mask,
 			  struct pg_error **errp)
 {
-	struct pg_brick_side *s;
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	struct pg_firewall_state *state;
 	int pf_side;
 	uint64_t it_mask;
@@ -194,9 +194,8 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side side,
 	int ret;
 	struct rte_mbuf *tmp;
 
-	s = &brick->sides[pg_flip_side(side)];
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
-	pf_side = FIREWALL_SIDE_TO_NPF(side);
+	pf_side = FIREWALL_SIDE_TO_NPF(from);
 
 	it_mask = pkts_mask;
 	for (; it_mask;) {
@@ -233,7 +232,7 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side side,
 		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
 	}
 
-	ret = pg_brick_side_forward(s, side, pkts, nb, pkts_mask, errp);
+	ret = pg_brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
 	return ret;
 }
 
