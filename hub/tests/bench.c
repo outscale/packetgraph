@@ -22,7 +22,7 @@ void test_benchmark_hub(void);
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error;
+	struct pg_error *error = NULL;
 	int r;
 
 	g_test_init(&argc, &argv, NULL);
