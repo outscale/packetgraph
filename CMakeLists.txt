@@ -35,3 +35,7 @@ endforeach(brick)
 add_custom_target(style
         COMMAND ${PG_ROOT_PATH}/tools/check_style.sh ${PG_ROOT_PATH}
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+
+# Check a lot of things, useful for pull request
+add_custom_target(check-all)
+add_dependencies(check-all all tests style bench)
