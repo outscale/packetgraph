@@ -132,7 +132,7 @@ static void test_print_simple(void)
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error;
+	struct pg_error *error = NULL;
 	int r;
 
 	/* tests in the same order as the header function declarations */
