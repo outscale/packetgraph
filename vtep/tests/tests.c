@@ -47,12 +47,6 @@ void test_benchmark_vtep(void);
 		g_assert(!error);		\
 	} while (0)
 
-enum test_flags {
-	PRINT_USAGE = 1,
-	QUICK = 2,
-	FAIL = 4
-};
-
 struct headers {
 	struct ether_hdr ethernet; /* define in rte_ether.h */
 	struct ipv4_hdr	 ipv4; /* define in rte_ip.h */
@@ -631,69 +625,21 @@ static void test_vtep_vxlanise(void)
 
 #undef NB_PKTS
 
-static void test_vtep(int quick)
-{
-	g_test_add_func("/brick/vtep/simple",
-			test_vtep_simple);
-	if (!quick) {
-		g_test_add_func("/brick/nop/speed",
-				test_nop_speed);
-		g_test_add_func("/brick/vtep/vxlanise/speed",
-				test_vtep_vxlanise);
-		g_test_add_func("/brick/vtep/both/speed",
-				test_vtep_speed);
-
-	}
-}
-
-static void print_usage(void)
-{
-	printf("tests usage: [EAL options] -- [-help] [-quick-tests]\n");
-	exit(0);
-}
-
-static uint64_t parse_args(int argc, char **argv)
-{
-	int i;
-	int ret = 0;
-
-	for (i = 0; i < argc; ++i) {
-		if (!strcmp("-help", argv[i])) {
-			ret |= PRINT_USAGE;
-		} else if (!strcmp("-quick-tests", argv[i])) {
-			ret |= QUICK;
-		} else {
-			printf("tests: invalid option -- %s\n", argv[i]);
-			return FAIL | PRINT_USAGE;
-		}
-	}
-	return ret;
-}
-
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	int r;
-	int test_flags;
-
-	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
-	/* initialize packetgraph */
 	r = pg_start(argc, argv, &error);
 	g_assert(r >= 0);
 	g_assert(!error);
 
-	/* accounting program name */
-	r += + 1;
-	argc -= r;
-	argv += r;
-	test_flags = parse_args(argc, argv);
-	if (test_flags & PRINT_USAGE)
-		print_usage();
-	g_assert(!(test_flags & FAIL));
-
-	test_vtep(test_flags & QUICK);
+	g_test_add_func("/brick/vtep/simple", test_vtep_simple);
+	g_test_add_func("/brick/nop/speed", test_nop_speed);
+	g_test_add_func("/brick/vtep/vxlanise/speed", test_vtep_vxlanise);
+	g_test_add_func("/brick/vtep/both/speed", test_vtep_speed);
+	
 	r = g_test_run();
 
 	pg_stop();
