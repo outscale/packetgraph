@@ -92,8 +92,6 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	struct pg_vhost_state *state;
 	struct virtio_net *virtio_net;
 	uint16_t pkts_count;
-	uint16_t bursted_pkts;
-	struct pg_brick_side *side;
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
 
@@ -117,17 +115,26 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	}
 
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
-	bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
-					       VIRTIO_RXQ,
-					       state->out,
-					       pkts_count);
-	rcu_read_unlock();
 
-	side = &brick->sides[pg_flip_side(from)];
+#ifndef PG_VHOST_BENCH
+	rte_vhost_enqueue_burst(virtio_net,
+				VIRTIO_RXQ,
+				state->out,
+				pkts_count);
+#else
+	uint16_t bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
+							VIRTIO_RXQ,
+							state->out,
+							pkts_count);
+
+	struct pg_brick_side *side = &brick->sides[pg_flip_side(from)];
+
 	if (side->burst_count_cb != NULL)
 		side->burst_count_cb(side->burst_count_private_data,
 				     bursted_pkts);
+#endif /* #ifdef PG_VHOST_BENCH */
 
+	rcu_read_unlock();
 	return 1;
 }
 

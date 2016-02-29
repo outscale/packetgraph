@@ -124,8 +124,12 @@ endif()
 # Benchmark
 
 add_executable(packetgraph-${BRICK}-bench EXCLUDE_FROM_ALL
+		src/vhost.c
 		tests/bench.c
 		tests/test-bench-${BRICK}.c)
+
+set_target_properties(packetgraph-${BRICK}-bench
+		PROPERTIES COMPILE_FLAGS "-D PG_VHOST_BENCH")
 
 target_include_directories(packetgraph-${BRICK}-bench PUBLIC
 	${PG_ROOT}/${BRICK}
@@ -138,7 +142,6 @@ target_include_directories(packetgraph-${BRICK}-bench PUBLIC
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-${BRICK}-bench
-	packetgraph-${BRICK}-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
 	dl
@@ -156,7 +159,6 @@ target_link_libraries(packetgraph-${BRICK}-bench
 add_custom_target(packetgraph-${BRICK}-bench-run
         COMMAND ${PG_ROOT}/${BRICK}/tests/bench.sh ${PG_ROOT}/${BRICK} ${PROJECT_BINARY_DIR}
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
-add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-static)
 add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-bench)
 if (NOT "${PG_ROOT_PATH}" STREQUAL "")
     add_dependencies(packetgraph-${BRICK}-bench packetgraph-core-static)
