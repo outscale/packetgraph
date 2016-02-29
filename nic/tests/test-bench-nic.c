@@ -35,6 +35,8 @@
 
 void test_benchmark_nic(void);
 
+uint16_t max_pkts = PG_MAX_PKTS_BURST;
+
 void test_benchmark_nic(void)
 {
 	struct pg_error *error = NULL;
@@ -49,15 +51,23 @@ void test_benchmark_nic(void)
 	pg_nic_start();
 	nic_enter = pg_nic_new_by_id("nic-enter", 0, &error);
 	if (error) {
-		pg_error_print(error);
-		return;
-	}
-	nic_exit = pg_nic_new_by_id("nic-exit", 1, &error);
-	if (error) {
-		pg_error_print(error);
-		return;
+		/* Create a loop nic instead of using a real interface. */
+		error = NULL;
+		nic_enter = pg_nic_new("nic-enter", "eth_ring0", &error);
+		if (error) {
+			pg_error_print(error);
+			return;
+		}
+		nic_exit = nic_enter;
+	} else {
+		nic_exit = pg_nic_new_by_id("nic-exit", 1, &error);
+		if (error) {
+			pg_error_print(error);
+			return;
+		}
 	}
 
+	pg_bench_init(&bench);
 	bench.input_brick = nic_enter;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = nic_exit;

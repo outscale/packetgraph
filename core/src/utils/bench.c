@@ -67,7 +67,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	uint64_t i;
 	uint16_t cnt;
 	uint64_t pkts_burst;
-	struct pg_brick_side *side;
+	struct pg_brick_side *side = NULL;
 	struct pg_brick *count_brick;
 	struct pg_bench bl;
 
@@ -98,7 +98,19 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 
 	/* Setup callback to get burst count. */
 	pkts_burst = 0;
-	side = &(bench->input_brick->sides[pg_flip_side(bench->input_side)]);
+	switch (bench->input_brick->type) {
+	case PG_MONOPOLE:
+		side = bench->input_brick->sides;
+		break;
+	case PG_DIPOLE:
+	case PG_MULTIPOLE:
+		side = &(bench->input_brick->sides
+			 [pg_flip_side(bench->input_side)]);
+		break;
+	default:
+		g_assert(0);
+		break;
+	}
 	side->burst_count_cb = pg_bench_burst_cb;
 	side->burst_count_private_data = (void *)(&pkts_burst);
 
@@ -162,7 +174,6 @@ int pg_bench_print(struct pg_bench_stats *r, FILE *o)
 
 	timeval_subtract(&duration, &r->date_end, &r->date_start);
 	duration_s = (uint16_t) duration.tv_sec + duration.tv_usec / 1000000.0;
-
 	if (r->pkts_burst == 0 || r->pkts_sent == 0 || duration_s < 0)
 		return 0;
 

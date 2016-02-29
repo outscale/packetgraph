@@ -80,14 +80,13 @@ include(CPack)
 
 # Tests
 
-# We recompile nic.c with PG_NIC_STUB in order
-# to test even without a real NIC.
-
 add_executable(packetgraph-${BRICK}-tests EXCLUDE_FROM_ALL
 		src/nic.c
 		tests/test-nic.c
 		tests/tests.c)
 
+# We recompile nic.c with PG_NIC_STUB in order
+# to test even without a real NIC.
 set_target_properties(packetgraph-${BRICK}-tests
 		PROPERTIES COMPILE_FLAGS "-D PG_NIC_STUB")
 
@@ -132,6 +131,7 @@ endif()
 # Benchmark
 
 add_executable(packetgraph-${BRICK}-bench EXCLUDE_FROM_ALL
+		src/nic.c
 		tests/bench.c
 		tests/test-bench-${BRICK}.c)
 
@@ -145,7 +145,6 @@ target_include_directories(packetgraph-${BRICK}-bench PUBLIC
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 target_link_libraries(packetgraph-${BRICK}-bench
-	packetgraph-${BRICK}-static
 	${LIBPACKETGRAPH-CORE_LIBRARY}
 	pthread
 	dl
@@ -168,7 +167,8 @@ target_link_libraries(packetgraph-${BRICK}-bench
 
 add_custom_target(packetgraph-${BRICK}-bench-run
 		COMMAND /usr/bin/sudo ${PROJECT_BINARY_DIR}/packetgraph-${BRICK}-bench -c1 -n1 --socket-mem 64)
-add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-static)
+set_target_properties(packetgraph-${BRICK}-bench
+		PROPERTIES COMPILE_FLAGS "-D PG_NIC_BENCH")
 add_dependencies(packetgraph-${BRICK}-bench-run packetgraph-${BRICK}-bench)
 if (NOT "${PG_ROOT_PATH}" STREQUAL "")
     add_dependencies(packetgraph-${BRICK}-bench packetgraph-core-static)
