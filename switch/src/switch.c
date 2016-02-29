@@ -95,15 +95,20 @@ static inline int forward(struct pg_switch_state *state, enum pg_side to,
 {
 	struct pg_brick_edge *edge =  &state->brick.sides[to].edges[index];
 	struct pg_switch_side *switch_side = &state->sides[to];
-
-	if (!switch_side->masks[index])
-		return 1;
+	uint64_t mask;
 
 	if (!edge->link)
 		return 1;
 
+	mask = switch_side->masks[index];
+
+	if (!mask)
+		return 1;
+
+
+	switch_side->masks[index] = 0;
 	return pg_brick_burst(edge->link, pg_flip_side(to), edge->pair_index,
-			      pkts, nb, switch_side->masks[index], errp);
+			      pkts, nb, mask, errp);
 }
 
 static int forward_bursts(struct pg_switch_state *state,
@@ -251,8 +256,6 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	source->from = from;
 	source->edge_index = edge_index;
 
-	zero_masks(state);
-
 	do_learn_filter_multicast(state, source, pkts,
 				  pkts_mask, &unicast_mask, errp);
 
@@ -288,6 +291,7 @@ static int switch_init(struct pg_brick *brick,
 		state->sides[i].masks	= g_new0(uint64_t, max);
 		state->sides[i].sources	= g_new0(struct pg_address_source, max);
 	}
+	zero_masks(state);
 	state->output =
 	  ((struct pg_switch_config *)config->brick_config)->output;
 	return 1;
