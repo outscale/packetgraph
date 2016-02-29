@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <packetgraph/utils/qemu.h>
 
-int pg_util_cmdloop(const char *cmd, int timeout_s)
+bool pg_util_cmdloop(const char *cmd, int timeout_s)
 {
 	struct timeval start, end;
 	gint status;
@@ -33,13 +33,13 @@ int pg_util_cmdloop(const char *cmd, int timeout_s)
 	while (end.tv_sec - start.tv_sec < timeout_s) {
 		g_spawn_command_line_sync(cmd, NULL, NULL, &status, NULL);
 		if (g_spawn_check_exit_status(status, NULL))
-			return 0;
+			return false;
 		gettimeofday(&end, 0);
 	}
-	return 1;
+	return true;
 }
 
-int pg_util_ssh(const char *host,
+bool pg_util_ssh(const char *host,
 		int port,
 		const char *key_path,
 		const char *cmd)
@@ -55,7 +55,7 @@ int pg_util_ssh(const char *host,
 				  " -oStrictHostKeyChecking=no ", cmd);
 	g_spawn_command_line_sync(ssh_cmd, NULL, NULL, &status, NULL);
 	g_free(ssh_cmd);
-	return g_spawn_check_exit_status(status, NULL) ? 0 : 1;
+	return g_spawn_check_exit_status(status, NULL) ? false : true;
 }
 
 int pg_util_spawn_qemu(const char *socket_path_0,
