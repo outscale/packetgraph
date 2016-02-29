@@ -89,7 +89,7 @@ static void zero_brick_counters(struct pg_brick *brick)
 /* Convenient macro to get a pointer to brick ops */
 #define pg_brick_get(it) ((struct pg_brick_ops *)(it->data))
 
-static int check_side_max(struct pg_brick_config *config,
+static bool check_side_max(struct pg_brick_config *config,
 			  struct pg_error **errp)
 {
 	int overedge = (config->west_max >= UINT16_MAX ||
@@ -104,7 +104,7 @@ static int check_side_max(struct pg_brick_config *config,
 			"A '%s' cannot have more than %d edge on %s",
 			pg_brick_type_to_string(config->type),
 			UINT16_MAX, pg_side_to_string(faulte));
-		return 0;
+		return false;
 
 	} else if ((config->type == PG_MONOPOLE ||
 		    config->type == PG_DIPOLE) &&
@@ -112,9 +112,9 @@ static int check_side_max(struct pg_brick_config *config,
 		*errp = pg_error_new(
 			"A '%s' cannot have more than one neibour per side",
 			pg_brick_type_to_string(config->type));
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 /**
@@ -195,15 +195,15 @@ void pg_brick_incref(struct pg_brick *brick)
 	brick->refcount++;
 }
 
-static int is_brick_valid(struct pg_brick *brick)
+static bool is_brick_valid(struct pg_brick *brick)
 {
 	if (!brick)
-		return 0;
+		return false;
 
 	if (!brick->ops)
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 void pg_brick_destroy(struct pg_brick *brick)
@@ -688,7 +688,7 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 	return brick->ops->burst_get(brick, EAST_SIDE, pkts_mask);
 }
 
-int pg_brick_side_forward(struct pg_brick_side *brick_side,
+bool pg_brick_side_forward(struct pg_brick_side *brick_side,
 			  enum pg_side from, struct rte_mbuf **pkts,
 			  uint16_t nb, uint64_t pkts_mask,
 			  struct pg_error **errp)
@@ -702,10 +702,10 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side,
 					     brick_side->edges[i].pair_index,
 					     pkts, nb, pkts_mask, errp);
 		if (unlikely(!ret))
-			return 0;
+			return false;
 	}
 
-	return 1;
+	return true;
 }
 
 uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
