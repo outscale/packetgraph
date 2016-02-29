@@ -18,6 +18,7 @@
 #ifndef _PG_CORE_PACKETGRAPH_H
 #define _PG_CORE_PACKETGRAPH_H
 
+#include <stdbool.h>
 #include <stdarg.h>
 #include <packetgraph/utils/errors.h>
 #include <packetgraph/utils/config.h>
