@@ -410,4 +410,4 @@ static struct pg_brick_ops switch_ops = {
 	.unlink_notify  = switch_unlink_notify,
 };
 
-pg_brick_register(switch, &switch_ops);
+PG_BRICK_REGISTER(switch, &switch_ops);
