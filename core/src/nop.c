@@ -74,4 +74,4 @@ static struct pg_brick_ops nop_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(nop, &nop_ops);
+PG_BRICK_REGISTER(nop, &nop_ops);
