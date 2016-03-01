@@ -170,7 +170,7 @@ extern GList *pg_all_bricks;
  * @brickname:	  name of the brick
  * @ops:	  a pointer to a static brick_ops structure
  */
-#define pg_brick_register(brickname, ops) \
+#define PG_BRICK_REGISTER(brickname, ops) \
 	static void pg_##brickname##_brick_register(void) \
 		__attribute__((constructor(101))); \
 	static void pg_##brickname##_brick_register(void) \
