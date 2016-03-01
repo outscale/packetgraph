@@ -125,4 +125,4 @@ static struct pg_brick_ops collect_ops = {
 	.burst_get	= collect_burst_get,
 };
 
-pg_brick_register(collect, &collect_ops);
+PG_BRICK_REGISTER(collect, &collect_ops);
