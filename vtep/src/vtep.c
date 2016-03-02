@@ -344,12 +344,6 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		return 0;
 	}
 
-	/* make sure headers are clear */
-	/* removed for perf reason (may add bug) */
-	/* memset(headers, 0, sizeof(struct headers)); */
-
-	/* build the headers from the inside to the outside */
-
 	vxlan_build(&headers->vxlan, port->vni);
 	udp_build(&headers->udp, eth_hdr, state->dst_port,
 		  packet_len + udp_overhead());
@@ -446,34 +440,16 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	if (!unlikely(port->multicast_ip))
 		return 1;
 
-	/* TODO: pg_packets_prefetch and pg_packets_prepare_hash_keys should
-	 * have been made and clean in switch, so we should add option in
-	 * The switch brick to stop cleaning this and add option in
-	 * vtep to ensure that the prepare_hash_keys has been made
-	 * in the previous brick */
-	pg_packets_prefetch(pkts, pkts_mask);
-	/* TODO: account the size of the VTEP header in prepare hash keys */
-	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
-
-	if (unlikely(!ret))
-		return 0;
 
 	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
 
 	if (unlikely(!ret))
-		goto no_forward;
-
-	pg_packets_clear_hash_keys(state->pkts, pkts_mask);
+		return 0;
 
 	ret =  pg_brick_side_forward(s, from, state->pkts, nb, pkts_mask, errp);
 	if (!(state->flags & NO_COPY))
 		pg_packets_free(state->pkts, pkts_mask);
 	return ret;
-
-no_forward:
-	if (!(state->flags & NO_PACKETS_CLEANUP))
-		pg_packets_clear_hash_keys(state->pkts, pkts_mask);
-	return 0;
 }
 
 static inline int add_dst_iner_mac(struct vtep_state *state,
