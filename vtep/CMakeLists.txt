@@ -20,8 +20,7 @@ endif()
 set(CMAKE_C_FLAGS "-g -Ofast -std=gnu11 -march=core-avx-i -mtune=core-avx-i -fmessage-length=0  -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -D RTE_MAX_LCORE=128 -D RTE_PKTMBUF_HEADROOM=128")
 
 add_library(packetgraph-${BRICK}-objects OBJECT 
-	${PG_ROOT}/${BRICK}/src/vtep.c
-	${PG_ROOT}/${BRICK}/src/vtep-cache.c)
+	${PG_ROOT}/${BRICK}/src/vtep.c)
 
 target_include_directories(packetgraph-${BRICK}-objects PUBLIC
 	${PG_ROOT}/${BRICK}
