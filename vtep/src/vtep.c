@@ -101,7 +101,6 @@ struct multicast_pkt {
 struct vtep_port {
 	uint32_t vni;		/* the VNI of this ethernet port */
 	uint32_t multicast_ip;  /* the multicast ip associated with the VNI */
-	void *original;
 	struct pg_mac_table mac_to_dst;
 	void *known_mac;	/* is the MAC adress on this port  */
 };
@@ -117,7 +116,6 @@ struct vtep_state {
 	uint64_t *masks;		/* internal port packet masks */
 	enum pg_side output;		/* the side the VTEP packets will go */
 	uint16_t dst_port;		/* the UDP destination port */
-	void *vni_to_port;		/* map VNIs to vtep_port pointers */
 	struct ether_addr mac;		/* MAC address of the VTEP */
 	struct vtep_port *ports;
 	rte_atomic16_t packet_id;	/* IP identification number */
@@ -397,8 +395,10 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 
 		/* pick up the right destination ip */
 		if (unicast) {
-			struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(pkts[i],
-								     struct ether_hdr *);
+			struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(
+				pkts[i],
+				struct ether_hdr *);
+
 			entry = pg_mac_table_elem_get(
 				&port->mac_to_dst,
 				*((union pg_mac *)&eth_hdr->d_addr),
@@ -690,39 +690,6 @@ static int vtep_burst(struct pg_brick *brick, enum pg_side from,
 				pkts, nb, pkts_mask, errp);
 }
 
-/**
- * This function will initialize the vtep_state hash common hash tables
- *
- * @param	the brick we are working with
- * @param	an error pointer
- */
-static void vtep_init_hashes(struct pg_brick *brick,
-			      struct pg_error **errp)
-{
-	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
-
-	struct rte_table_hash_lru_params vni_hash_params = {
-		.key_size = 4,
-		.n_keys = HASH_ENTRIES,
-		.n_buckets = HASH_ENTRIES >> 2,
-		.f_hash = hash_32,
-		.seed = 0,
-		.signature_offset = APP_METADATA_OFFSET(0),
-		.key_offset = APP_METADATA_OFFSET(0),
-	};
-
-	state->vni_to_port = rte_table_hash_lru_dosig_ops.f_create(
-		&vni_hash_params,
-		rte_socket_id(),
-		sizeof(struct vtep_port *));
-
-	if (!state->vni_to_port) {
-		*errp = pg_error_new("Failed to create hash for brick '%s'",
-				  brick->name);
-		return;
-	}
-}
-
 static int vtep_init(struct pg_brick *brick,
 		      struct pg_brick_config *config, struct pg_error **errp)
 {
@@ -756,8 +723,6 @@ static int vtep_init(struct pg_brick *brick,
 
 	if (pg_error_is_set(errp))
 		return 0;
-
-	vtep_init_hashes(brick, errp);
 
 	if (pg_error_is_set(errp))
 		return 0;
@@ -810,12 +775,6 @@ struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
 
 static void vtep_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
-	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
-
-	g_free(state->masks);
-	g_free(state->ports);
-
-	rte_table_hash_lru_dosig_ops.f_free(state->vni_to_port);
 }
 
 /**
@@ -828,35 +787,6 @@ static int is_vni_valid(uint32_t vni)
 {
 	/* VNI is coded on 24 bits */
 	return vni <= (UINT32_MAX >> 8);
-}
-
-/**
- * Map VNI to port
- *
- * No collision should be detected by this function: hence the g_assert
- *
- * @param	state the state we are working with
- * @param	vni the 24 bit VNI to map
- * @param	port a pointer to a struct vtep_port
- * @param	errp an error pointer
- */
-static void vni_map(struct vtep_state *state, uint32_t vni,
-		    struct vtep_port *port, struct pg_error **errp)
-{
-	void *entry = NULL;
-	int key_found;
-	int ret;
-
-	ret = rte_table_hash_lru_dosig_ops.f_add(state->vni_to_port,
-						 &vni, port,
-						 &key_found, &entry);
-	if (unlikely(ret)) {
-		*errp = pg_error_new_errno(-ret,
-			"Fail to learn associate VNI to port");
-		return;
-	}
-	/* A VNI was added twice to the VTEP -> assert */
-	g_assert(!key_found);
 }
 
 static inline uint16_t igmp_checksum(struct igmp_hdr *msg, size_t size)
@@ -920,7 +850,6 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 				  state->brick.name);
 		return;
 	}
-	vni_map(state, vni, port, errp);
 
 	if (pg_error_is_set(errp))
 		goto map_error_exit;
@@ -989,33 +918,6 @@ void pg_vtep_add_vni(struct pg_brick *brick,
 
 }
 
-/**
- * Unmap VNI from port
- *
- * No spurious VNI removal should occur but we just ignore them since they are
- * harmless.
- *
- * @param	state the state we are working with
- * @param	vni the 24 bit VNI to map
- * @param	port a pointer to a struct vtep_port
- * @param	errp and error pointer
- */
-static void vni_unmap(struct vtep_state *state,
-		      uint32_t vni, struct pg_error **errp)
-{
-	void *entry = NULL;
-	int key_found;
-	int ret;
-
-	ret = rte_table_hash_lru_dosig_ops.f_delete(state->vni_to_port,
-						    &vni, &key_found, &entry);
-	if (unlikely(ret)) {
-		*errp = pg_error_new_errno(-ret,
-			"Fail to deassociate VNI from port");
-		return;
-	}
-}
-
 static void do_remove_vni(struct vtep_state *state,
 		   uint16_t edge_index, struct pg_error **errp)
 {
@@ -1025,8 +927,6 @@ static void do_remove_vni(struct vtep_state *state,
 
 	if (pg_error_is_set(errp))
 		return;
-
-	vni_unmap(state, port->vni, errp);
 
 	if (pg_error_is_set(errp))
 		return;
