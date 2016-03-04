@@ -477,22 +477,18 @@ static inline int add_dst_iner_macs(struct vtep_state *state,
 
 	for (mask = multicast_mask; mask;) {
 		int i;
+		struct dest_addresses dst;
+		struct ether_hdr *pkt_addr;
 
 		pg_low_bit_iterate_full(mask, bit, i);
-		if (multicast_mask & (1 << i)) {
-			struct dest_addresses dst;
-			struct ether_hdr *pkt_addr;
 
-			pkt_addr = rte_pktmbuf_mtod(pkts[i],
-						    struct ether_hdr *);
-			/* print_mac(&pkt_addr->s_addr); printf("\n"); */
-			ether_addr_copy(&hdrs[i]->ethernet.s_addr, &dst.mac);
-			dst.ip = hdrs[i]->ipv4.src_addr;
-			if (!unlikely(add_dst_iner_mac(state, port,
-						       &pkt_addr->s_addr,
-						       &dst)))
-				return 0;
-		}
+		pkt_addr = rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
+		ether_addr_copy(&hdrs[i]->ethernet.s_addr, &dst.mac);
+		dst.ip = hdrs[i]->ipv4.src_addr;
+		if (!unlikely(add_dst_iner_mac(state, port,
+					       &pkt_addr->s_addr,
+					       &dst)))
+			return 0;
 	}
 	return 1;
 }
