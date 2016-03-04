@@ -394,7 +394,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		unicast = !is_multicast_ether_addr(dst_key_ptr(pkt));
 
 		/* pick up the right destination ip */
-		if (unicast) {
+		if (likely(unicast)) {
 			struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(
 				pkts[i],
 				struct ether_hdr *);
@@ -403,7 +403,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 				&port->mac_to_dst,
 				*((union pg_mac *)&eth_hdr->d_addr),
 				struct dest_addresses);
-			if (!entry)
+			if (unlikely(!entry))
 				unicast = 0;
 		}
 
