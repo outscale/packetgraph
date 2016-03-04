@@ -452,20 +452,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	return ret;
 }
 
-static inline int add_dst_iner_mac(struct vtep_state *state,
-				   struct vtep_port *port,
-				   struct ether_addr *iner_mac,
-				   struct dest_addresses *dst) {
-	union pg_mac tmp;
-
-	tmp.mac = 0;
-	memcpy(tmp.bytes, iner_mac->addr_bytes, 6);
-	pg_mac_table_elem_set(&port->mac_to_dst, tmp, dst,
-			      sizeof(struct dest_addresses));
-	return 1;
-}
-
-static inline int add_dst_iner_macs(struct vtep_state *state,
+static inline void add_dst_iner_macs(struct vtep_state *state,
 				    struct vtep_port *port,
 				    struct rte_mbuf **pkts,
 				    struct headers **hdrs,
@@ -474,6 +461,9 @@ static inline int add_dst_iner_macs(struct vtep_state *state,
 {
 	uint64_t mask;
 	uint64_t bit;
+	union pg_mac tmp;
+
+	tmp.mac = 0;
 
 	for (mask = multicast_mask; mask;) {
 		int i;
@@ -485,12 +475,10 @@ static inline int add_dst_iner_macs(struct vtep_state *state,
 		pkt_addr = rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
 		ether_addr_copy(&hdrs[i]->ethernet.s_addr, &dst.mac);
 		dst.ip = hdrs[i]->ipv4.src_addr;
-		if (!unlikely(add_dst_iner_mac(state, port,
-					       &pkt_addr->s_addr,
-					       &dst)))
-			return 0;
+		memcpy(tmp.bytes, &pkt_addr->s_addr.addr_bytes, 6);
+		pg_mac_table_elem_set(&port->mac_to_dst, tmp, &dst,
+				      sizeof(struct dest_addresses));
 	}
-	return 1;
 }
 
 static inline int from_vtep_failure_no_clear(struct rte_mbuf **pkts,
@@ -600,14 +588,8 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 
 		pkts_mask ^= vni_mask;
 		if (state->flags & NO_INNERMAC_CKECK) {
-			if (unlikely(!add_dst_iner_macs(state, port,
-							out_pkts, hdrs,
-							vni_mask,
-							multicast_mask)))
-				return from_vtep_failure_no_clear(out_pkts,
-								  vni_mask,
-								  state->flags &
-								  NO_COPY);
+			add_dst_iner_macs(state, port, out_pkts, hdrs,
+					  vni_mask, multicast_mask);
 
 			if (unlikely(!pg_brick_burst(s->edges[i].link,
 						  from,
@@ -643,12 +625,8 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 						 state->flags & NO_COPY);
 		}
 		if (hitted_mask) {
-			if (unlikely(!add_dst_iner_macs(state, port,
-							out_pkts, hdrs,
-							hitted_mask,
-							multicast_mask)))
-				return from_vtep_failure(out_pkts, vni_mask,
-					state->flags & NO_COPY);
+			add_dst_iner_macs(state, port, out_pkts, hdrs,
+					  hitted_mask, multicast_mask);
 		}
 		pg_packets_clear_hash_keys(out_pkts, vni_mask);
 		if (hitted_mask) {
