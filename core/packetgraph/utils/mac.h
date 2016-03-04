@@ -20,6 +20,18 @@
 
 #include <rte_ether.h>
 
+union pg_mac {
+	uint64_t mac;
+	uint8_t bytes[8];
+	uint16_t bytes16[4];
+	uint32_t bytes32[2];
+	struct {
+		uint16_t padding1;
+		uint8_t padding2;
+		uint32_t part2;
+	} __attribute__ ((__packed__));
+} __attribute__ ((__packed__));
+
 int pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf);
 
 void pg_set_mac_addrs(struct rte_mbuf *mb, const char *src, const char *dst);
