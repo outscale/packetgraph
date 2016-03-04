@@ -102,7 +102,7 @@ struct vtep_port {
 	uint32_t vni;		/* the VNI of this ethernet port */
 	uint32_t multicast_ip;  /* the multicast ip associated with the VNI */
 	struct pg_mac_table mac_to_dst;
-	void *known_mac;	/* is the MAC adress on this port  */
+	struct pg_mac_table known_mac;	/* is the MAC adress on this port  */
 };
 
 enum operation {
@@ -129,7 +129,7 @@ inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
 		NULL;
 }
 
-static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac);
+static inline void do_add_mac(struct vtep_port *port, struct ether_addr *mac);
 static void  multicast_internal(struct vtep_state *state,
 				struct vtep_port *port,
 				uint32_t multicast_ip,
@@ -351,12 +351,8 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		dst_mac = &entry->mac;
 		dst_ip = entry->ip;
 	} else {
-		if ((!(state->flags & NO_INNERMAC_CKECK)) &&
-		    !do_add_mac(port, &eth_hdr->s_addr)) {
-			*errp = pg_error_new("Failed to add mac for brick'%s'",
-					     state->brick.name);
-			return 0;
-		}
+		if (!(state->flags & NO_INNERMAC_CKECK))
+			do_add_mac(port, &eth_hdr->s_addr);
 
 		dst_ip = port->multicast_ip;
 		dst = multicast_get_dst_addr(dst_ip);
@@ -481,20 +477,13 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 	}
 }
 
-static inline int from_vtep_failure_no_clear(struct rte_mbuf **pkts,
+static inline int from_vtep_failure(struct rte_mbuf **pkts,
 					     uint64_t pkts_mask,
 					     int no_copy)
 {
 	if (!no_copy)
 		pg_packets_free(pkts, pkts_mask);
 	return 0;
-}
-
-static inline int from_vtep_failure(struct rte_mbuf **pkts, uint64_t pkts_mask,
-				    int no_copy)
-{
-	pg_packets_clear_hash_keys(pkts, pkts_mask);
-	return from_vtep_failure_no_clear(pkts, pkts_mask, no_copy);
 }
 
 static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
@@ -575,8 +564,6 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		struct vtep_port *port = &state->ports[i];
 		uint64_t hitted_mask = 0;
 		uint64_t vni_mask;
-		int *entries[64];
-		int ret = 0;
 
 		if (!pkts_mask)
 			break;
@@ -588,57 +575,36 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 
 		pkts_mask ^= vni_mask;
 		if (state->flags & NO_INNERMAC_CKECK) {
-			add_dst_iner_macs(state, port, out_pkts, hdrs,
-					  vni_mask, multicast_mask);
+			hitted_mask = vni_mask;
+		} else {
+			PG_FOREACH_BIT(vni_mask, it) {
+				void *entry;
+				struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(
+					out_pkts[i],
+					struct ether_hdr *);
 
-			if (unlikely(!pg_brick_burst(s->edges[i].link,
-						  from,
-						  i, out_pkts, nb,
-						  vni_mask,
-						  errp)))
-				return from_vtep_failure_no_clear(out_pkts,
-								  vni_mask,
-								  state->flags &
-								  NO_COPY);
-			if (unlikely(!(state->flags & NO_COPY)))
-				pg_packets_free(out_pkts, vni_mask);
+				entry = pg_mac_table_ptr_get(
+					&port->known_mac,
+					*((union pg_mac *)&eth_hdr->d_addr));
 
-			continue;
+				if (entry)
+					hitted_mask |= ONE64 << it;
+			}
 		}
-		pg_packets_prefetch(out_pkts, vni_mask);
-		if (unlikely(!pg_packets_prepare_hash_keys(out_pkts,
-							vni_mask,
-							errp)))
-			return 0;
 
-		ret = rte_table_hash_key8_lru_dosig_ops.f_lookup(port->
-								 known_mac,
-								 out_pkts,
-								 vni_mask,
-								 &hitted_mask,
-								 (void **)
-								 entries);
-		if (unlikely(ret)) {
-			*errp = pg_error_new_errno(-ret,
-						"Fail to lookup dest address");
-			return from_vtep_failure(out_pkts, vni_mask,
-						 state->flags & NO_COPY);
-		}
 		if (hitted_mask) {
 			add_dst_iner_macs(state, port, out_pkts, hdrs,
 					  hitted_mask, multicast_mask);
-		}
-		pg_packets_clear_hash_keys(out_pkts, vni_mask);
-		if (hitted_mask) {
+
 			if (unlikely(!pg_brick_burst(s->edges[i].link,
 						  from,
 						  i, out_pkts, nb,
 						  hitted_mask,
 						  errp)))
-				return from_vtep_failure_no_clear(out_pkts,
-								  vni_mask,
-								  state->flags &
-								  NO_COPY);
+				return from_vtep_failure(out_pkts,
+							 vni_mask,
+							 state->flags &
+							 NO_COPY);
 		}
 
 		if (unlikely(!(state->flags & NO_COPY)))
@@ -795,47 +761,18 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 {
 	struct vtep_port *port = &state->ports[edge_index];
 
-	struct rte_table_hash_key8_lru_params hash_params = {
-		.n_entries		= HASH_ENTRIES,
-		.f_hash			= hash_64,
-		.seed			= 0,
-		.signature_offset	= APP_METADATA_OFFSET(0),
-		.key_offset		= APP_METADATA_OFFSET(0),
-	};
-
 	/* TODO: return 1 ? */
 	g_assert(!port->vni);
 	g_assert(!port->multicast_ip);
-	g_assert(!port->known_mac);
 	vni = rte_cpu_to_be_32(vni);
 
 	port->vni = vni;
 	port->multicast_ip = multicast_ip;
 
 	pg_mac_table_init(&port->mac_to_dst);
-
-	port->known_mac =
-		rte_table_hash_key8_lru_dosig_ops.f_create(&hash_params,
-		rte_socket_id(),
-		sizeof(int)); /* 1 or 0 */
-
-	if (!port->known_mac) {
-		*errp = pg_error_new("Failed to create hash for vtep :'%s'",
-				  state->brick.name);
-		return;
-	}
-
-	if (pg_error_is_set(errp))
-		goto map_error_exit;
+	pg_mac_table_init(&port->known_mac);
 
 	multicast_subscribe(state, port, multicast_ip, errp);
-
-	if (pg_error_is_set(errp))
-		goto map_error_exit;
-
-	return;
-map_error_exit:
-	rte_table_hash_key8_lru_dosig_ops.f_free(port->known_mac);
 }
 
 void pg_vtep_add_vni(struct pg_brick *brick,
@@ -885,11 +822,7 @@ void pg_vtep_add_vni(struct pg_brick *brick,
 	}
 
 	do_add_vni(state, i, vni, multicast_ip, errp);
-	if (!do_add_mac(&state->ports[i], &mac)) {
-		*errp = pg_error_new("Failed to add mac for brick'%s'",
-				  state->brick.name);
-	}
-
+	do_add_mac(&state->ports[i], &mac);
 }
 
 static void do_remove_vni(struct vtep_state *state,
@@ -902,29 +835,21 @@ static void do_remove_vni(struct vtep_state *state,
 	if (pg_error_is_set(errp))
 		return;
 
-	if (pg_error_is_set(errp))
-		return;
-
 	/* Do the hash destroy at the end since it's the less idempotent */
-	rte_table_hash_key8_lru_dosig_ops.f_free(port->known_mac);
+	pg_mac_table_free(&port->known_mac);
 	pg_mac_table_free(&port->mac_to_dst);
 
 	/* clear for next user */
 	memset(port, 0, sizeof(struct vtep_port));
 }
 
-static inline int do_add_mac(struct vtep_port *port, struct ether_addr *mac)
+static inline void do_add_mac(struct vtep_port *port, struct ether_addr *mac)
 {
-	void *entry = NULL;
-	int8_t tmp[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-	int val = 1;
-	int i;
+	union pg_mac tmp;
 
-	rte_memcpy(tmp, mac->addr_bytes, 6);
-	return !rte_table_hash_key8_lru_dosig_ops.f_add(port->known_mac,
-							&tmp, &val,
-							&i,
-							&entry);
+	tmp.mac = 0;
+	rte_memcpy(tmp.bytes, mac->addr_bytes, 6);
+	pg_mac_table_ptr_set(&port->known_mac, tmp, (void *)1);
 }
 
 static void multicast_internal(struct vtep_state *state,
