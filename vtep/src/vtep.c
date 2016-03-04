@@ -82,9 +82,9 @@ struct headers {
 
 struct igmp_hdr {
 	uint8_t type;
-	uint8_t maxRespTime;
+	uint8_t max_resp_time;
 	uint16_t checksum;
-	uint32_t groupAddr;
+	uint32_t group_addr;
 } __attribute__((__packed__));
 
 struct multicast_pkt {
@@ -980,9 +980,9 @@ static void multicast_internal(struct vtep_state *state,
 
 	/* Version 2 Membership Report = 0x16 */
 	hdr->igmp.type = action;
-	hdr->igmp.maxRespTime = 0;
+	hdr->igmp.max_resp_time = 0;
 	hdr->igmp.checksum = 0;
-	hdr->igmp.groupAddr = multicast_ip;
+	hdr->igmp.group_addr = multicast_ip;
 	hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
 	switch (action) {
 	case IGMP_SUBSCRIBE:
