@@ -391,7 +391,6 @@ static void test_vhost_fd(void)
 			gchar *name = g_strdup_printf("vhost-%i", i);
 			vhost[i] = pg_vhost_new(name, 1, 1, EAST_SIDE, &error);
 			g_free(name);
-			pg_error_print(error);
 			g_assert(!error);
 			g_assert(vhost[i]);
 		}
