@@ -12,7 +12,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PG_ROOT}/tools/cmake")
 find_package(GLIB2 REQUIRED)
 find_package(NPF REQUIRED)
 find_package(NPFKERN REQUIRED)
-find_package(LibURCU REQUIRED)
 find_package(packetgraph-antispoof REQUIRED)
 find_package(packetgraph-core REQUIRED)
 find_package(packetgraph-vtep REQUIRED)
@@ -58,10 +57,8 @@ target_link_libraries(packetgraph-${BRICK}-tests
 	${LIBPACKETGRAPH-CORE_LIBRARY}	
 	${LIBNPF_LIBRARY}
 	${LIBNPFKERN_LIBRARY}
-	${LIBURCU_LIBRARY}
 	pthread
 	dl
-	urcu
 	z
 	cdb
 	pcap

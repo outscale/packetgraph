@@ -46,7 +46,6 @@ target_link_libraries(vxlan
 	${PCAP_LIBRARY}
 	pthread
 	dl
-	urcu
 	z
 	cdb
 	pcap

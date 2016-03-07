@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include <urcu.h>
 #include <glib.h>
 #include <glib/gstdio.h>
 
@@ -56,7 +55,8 @@ struct pg_vhost_state {
 	struct pg_brick brick;
 	enum pg_side output;
 	struct pg_vhost_socket *socket;
-	struct virtio_net *virtio_net;	/* fast path sync (protected by RCU) */
+	rte_atomic32_t allow_queuing;
+	struct virtio_net *virtio_net;
 	struct rte_mbuf *in[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
 };
@@ -101,18 +101,11 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		return 0;
 	}
 
-	rcu_read_lock();
-	virtio_net = rcu_dereference(state->virtio_net);
-
-	if (unlikely(!virtio_net)) {
-		rcu_read_unlock();
+	/* Try lock */
+	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
 		return 1;
-	}
 
-	if (unlikely(!(virtio_net->flags & VIRTIO_DEV_RUNNING))) {
-		rcu_read_unlock();
-		return 1;
-	}
+	virtio_net = state->virtio_net;
 
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
 
@@ -134,7 +127,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 				     bursted_pkts);
 #endif /* #ifdef PG_VHOST_BENCH */
 
-	rcu_read_unlock();
+	rte_atomic32_clear(&state->allow_queuing);
 	return 1;
 }
 
@@ -151,26 +144,20 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	uint16_t count;
 	int ret;
 
-	rcu_read_lock();
-	virtio_net = rcu_dereference(state->virtio_net);
 	*pkts_cnt = 0;
-
-	if (unlikely(!virtio_net)) {
-		rcu_read_unlock();
+	/* Try lock */
+	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
 		return 1;
-	}
 
-	if (unlikely(!(virtio_net->flags & VIRTIO_DEV_RUNNING))) {
-		rcu_read_unlock();
-		return 1;
-	}
+	rte_atomic32_set(&state->allow_queuing, 0);
+	virtio_net = state->virtio_net;
+	*pkts_cnt = 0;
 
 	count = rte_vhost_dequeue_burst(virtio_net, VIRTIO_TXQ, mp, state->in,
 					MAX_BURST);
 	*pkts_cnt = count;
 
-	rcu_read_unlock();
-
+	rte_atomic32_clear(&state->allow_queuing);
 	if (!count)
 		return 1;
 
@@ -255,6 +242,9 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	brick->burst = vhost_burst;
 	brick->poll = vhost_poll;
 
+	rte_atomic32_init(&state->allow_queuing);
+	rte_atomic32_set(&state->allow_queuing, 1);
+
 	return 1;
 }
 
@@ -306,8 +296,8 @@ static int new_vm(struct virtio_net *dev)
 
 	LIST_FOREACH(s, &sockets, socket_list) {
 		if (!strcmp(s->path, dev->ifname)) {
-			rcu_assign_pointer(s->state->virtio_net, dev);
-			synchronize_rcu();
+			s->state->virtio_net = dev;
+			rte_atomic32_clear(&s->state->allow_queuing);
 			break;
 		}
 	}
@@ -333,8 +323,10 @@ static void destroy_vm(VOLATILE struct virtio_net *dev)
 
 	LIST_FOREACH(s, &sockets, socket_list) {
 		if (!strcmp(s->path, path)) {
-			rcu_assign_pointer(s->state->virtio_net, NULL);
-			synchronize_rcu();
+			while (!rte_atomic32_test_and_set(&s->state->
+							  allow_queuing))
+				sched_yield();
+			s->state->virtio_net = NULL;
 			break;
 		}
 	}
@@ -415,7 +407,6 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 		*errp = pg_error_new("vhost already started");
 		return 0;
 	}
-	rcu_register_thread();
 
 	rte_vhost_feature_enable(1ULL << VIRTIO_NET_F_CTRL_RX);
 
@@ -461,7 +452,6 @@ void pg_vhost_stop(void)
 	sockets_path = NULL;
 	pthread_cancel(vhost_session_thread);
 	pthread_join(vhost_session_thread, &ret);
-	rcu_unregister_thread();
 	vhost_start_ok = 0;
 }
 

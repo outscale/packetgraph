@@ -10,7 +10,6 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PG_ROOT}/tools/cmake")
 find_package(GLIB2 REQUIRED)
-find_package(LibURCU REQUIRED)
 find_package(packetgraph-core REQUIRED)
 
 set(RTE_SDK_ROOT $ENV{RTE_SDK})
@@ -29,8 +28,7 @@ target_include_directories(packetgraph-${BRICK}-objects PUBLIC
 	${RTE_SDK_ROOT}/lib
 	${GLIB2_INCLUDE_DIR}
 	${GLIB2_INTERNAL_INCLUDE_DIR}
-	${LIBPACKETGRAPH-CORE_INCLUDE_DIR}
-    ${LIBURCU_INCLUDE_DIR})
+	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
 set(HEADERS
 		vhost.h)
@@ -92,7 +90,6 @@ target_include_directories(packetgraph-${BRICK}-tests PUBLIC
 	${RTE_SDK_ROOT}/build/include
 	${RTE_SDK_ROOT}/lib
 	${GLIB2_INCLUDE_DIR}
-    ${LIBURCU_INCLUDE_DIR}
 	${GLIB2_INTERNAL_INCLUDE_DIR}
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
@@ -102,7 +99,6 @@ target_link_libraries(packetgraph-${BRICK}-tests
 	pthread
 	dl
 	${GLIB2_LIBRARIES}
-    ${LIBURCU_LIBRARY}
     ${RTE_SDK_ROOT}/build/lib/librte_hash.a
     ${RTE_SDK_ROOT}/build/lib/librte_mbuf.a
     ${RTE_SDK_ROOT}/build/lib/librte_mempool.a
@@ -137,7 +133,6 @@ target_include_directories(packetgraph-${BRICK}-bench PUBLIC
 	${RTE_SDK_ROOT}/build/include
 	${RTE_SDK_ROOT}/lib
 	${GLIB2_INCLUDE_DIR}
-    ${LIBURCU_INCLUDE_DIR}
 	${GLIB2_INTERNAL_INCLUDE_DIR}
 	${LIBPACKETGRAPH-CORE_INCLUDE_DIR})
 
@@ -146,7 +141,6 @@ target_link_libraries(packetgraph-${BRICK}-bench
 	pthread
 	dl
 	${GLIB2_LIBRARIES}
-    ${LIBURCU_LIBRARY}
     ${RTE_SDK_ROOT}/build/lib/librte_hash.a
     ${RTE_SDK_ROOT}/build/lib/librte_mbuf.a
     ${RTE_SDK_ROOT}/build/lib/librte_mempool.a
