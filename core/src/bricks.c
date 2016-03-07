@@ -189,15 +189,15 @@ void pg_brick_incref(struct pg_brick *brick)
 	brick->refcount++;
 }
 
-static int is_brick_valid(struct pg_brick *brick)
+static bool is_brick_valid(struct pg_brick *brick)
 {
 	if (!brick)
-		return 0;
+		return false;
 
 	if (!brick->ops)
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 void pg_brick_destroy(struct pg_brick *brick)

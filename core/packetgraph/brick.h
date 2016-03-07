@@ -18,6 +18,7 @@
 #ifndef _PG_CORE_BRICK_H
 #define _PG_CORE_BRICK_H
 
+#include <stdbool.h>
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/brick-int.h>
 #include <packetgraph/utils/errors.h>
