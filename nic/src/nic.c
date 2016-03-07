@@ -46,6 +46,10 @@ void pg_nic_start(void)
 {
 	devinitfn_pmd_pcap_drv();
 
+#ifdef RTE_LIBRTE_PMD_VHOST
+	devinitfn_pmd_vhost_drv();
+#endif
+
 #ifdef RTE_LIBRTE_PMD_RING
 	devinitfn_pmd_ring_drv();
 #endif
