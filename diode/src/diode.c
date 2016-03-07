@@ -106,4 +106,4 @@ static struct pg_brick_ops diode_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(diode, &diode_ops);
+PG_BRICK_REGISTER(diode, &diode_ops);

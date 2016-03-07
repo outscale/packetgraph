@@ -233,4 +233,4 @@ static struct pg_brick_ops antispoof_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(antispoof, &antispoof_ops);
+PG_BRICK_REGISTER(antispoof, &antispoof_ops);

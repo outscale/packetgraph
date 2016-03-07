@@ -362,4 +362,4 @@ static struct pg_brick_ops nic_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(nic, &nic_ops);
+PG_BRICK_REGISTER(nic, &nic_ops);

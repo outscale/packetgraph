@@ -81,4 +81,4 @@ static struct pg_brick_ops hub_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(hub, &hub_ops);
+PG_BRICK_REGISTER(hub, &hub_ops);

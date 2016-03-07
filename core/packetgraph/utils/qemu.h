@@ -18,11 +18,12 @@
 #ifndef _PG_CORE_UTILS_QEMU_H
 #define _PG_CORE_UTILS_QEMU_H
 
+#include <stdbool.h>
 #include <packetgraph/utils/errors.h>
 
-int pg_util_cmdloop(const char *cmd, int timeout_s);
+bool pg_util_cmdloop(const char *cmd, int timeout_s);
 
-int pg_util_ssh(const char *host,
+bool pg_util_ssh(const char *host,
 		int port,
 		const char *key_path,
 		const char *cmd);

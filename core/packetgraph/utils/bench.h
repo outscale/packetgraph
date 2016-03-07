@@ -94,6 +94,6 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
  * @param   output where to write the output. NULL will print to stdout.
  * @return  1 on success, 0 on error.
  */
-int pg_bench_print(struct pg_bench_stats *result, FILE *output);
+bool pg_bench_print(struct pg_bench_stats *result, FILE *output);
 
 #endif /* _PG_CORE_UTILS_BENCH_H */

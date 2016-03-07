@@ -224,4 +224,4 @@ static struct pg_brick_ops print_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(print, &print_ops);
+PG_BRICK_REGISTER(print, &print_ops);

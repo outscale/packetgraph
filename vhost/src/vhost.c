@@ -475,4 +475,4 @@ static struct pg_brick_ops vhost_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(vhost, &vhost_ops);
+PG_BRICK_REGISTER(vhost, &vhost_ops);

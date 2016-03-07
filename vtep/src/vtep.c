@@ -1230,4 +1230,4 @@ static struct pg_brick_ops vtep_ops = {
 
 #undef HEADERS_LENGTH
 
-pg_brick_register(vtep, &vtep_ops);
+PG_BRICK_REGISTER(vtep, &vtep_ops);

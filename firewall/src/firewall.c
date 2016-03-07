@@ -300,6 +300,6 @@ static struct pg_brick_ops firewall_ops = {
 	.unlink		= pg_brick_generic_unlink,
 };
 
-pg_brick_register(firewall, &firewall_ops);
+PG_BRICK_REGISTER(firewall, &firewall_ops);
 
 #undef NWORKERS
