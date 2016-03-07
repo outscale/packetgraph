@@ -49,7 +49,6 @@ target_link_libraries(switch
 	${PCAP_LIBRARY}
 	pthread
 	dl
-	urcu
 	z
 	cdb
 	pcap
