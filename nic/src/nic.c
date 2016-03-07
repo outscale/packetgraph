@@ -44,7 +44,9 @@ struct pg_nic_state {
 
 void pg_nic_start(void)
 {
+#ifdef RTE_LIBRTE_PMD_PCAP
 	devinitfn_pmd_pcap_drv();
+#endif
 
 #ifdef RTE_LIBRTE_PMD_VHOST
 	devinitfn_pmd_vhost_drv();
