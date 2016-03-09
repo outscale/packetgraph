@@ -527,7 +527,8 @@ static inline int add_dst_iner_macs(struct vtep_state *state,
 				    struct rte_mbuf **pkts,
 				    struct headers **hdrs,
 				    uint64_t pkts_mask,
-				    uint64_t multicast_mask) {
+				    uint64_t multicast_mask)
+{
 	uint64_t mask;
 	uint64_t bit;
 
