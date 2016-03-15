@@ -108,11 +108,11 @@ static void test_brick_core_link(void)
 	g_assert(!error);
 
 	ret = pg_brick_link(west_brick, middle_brick,  &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	ret = pg_brick_link(middle_brick, east_brick, &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	refcount = pg_brick_refcount(west_brick);
@@ -173,20 +173,20 @@ static void test_brick_core_multiple_link(void)
 	g_assert(!error);
 
 	ret = pg_brick_link(west_brick, middle_brick, &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 	ret = pg_brick_link(west_brick, middle_brick, &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	ret = pg_brick_link(middle_brick, east_brick, &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 	ret = pg_brick_link(middle_brick, east_brick, &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 	ret = pg_brick_link(middle_brick, east_brick, &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	refcount = pg_brick_refcount(west_brick);
