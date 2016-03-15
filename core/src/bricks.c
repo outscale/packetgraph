@@ -98,7 +98,7 @@ static int check_side_max(struct pg_brick_config *config,
 			"A '%s' cannot have more than %d edge on %s",
 			pg_brick_type_to_string(config->type),
 			UINT16_MAX, pg_side_to_string(faulte));
-		return 0;
+		return -1;
 
 	} else if ((config->type == PG_MONOPOLE ||
 		    config->type == PG_DIPOLE) &&
@@ -106,9 +106,9 @@ static int check_side_max(struct pg_brick_config *config,
 		*errp = pg_error_new(
 			"A '%s' cannot have more than one neibour per side",
 			pg_brick_type_to_string(config->type));
-		return 0;
+		return -1;
 	}
-	return 1;
+	return 0;
 }
 
 /**
@@ -162,7 +162,7 @@ struct pg_brick *pg_brick_new(const char *name,
 
 	zero_brick_counters(brick);
 
-	if (!check_side_max(config, errp))
+	if (check_side_max(config, errp) < 0)
 		goto fail_exit;
 
 	pg_brick_set_max_edges(brick, config->west_max, config->east_max);
