@@ -435,21 +435,21 @@ int pg_brick_link(struct pg_brick *west,
 
 	if (!is_brick_valid(east) || !is_brick_valid(west)) {
 		*errp = pg_error_new("Node is not valid");
-		return 0;
+		return -1;
 	}
 
 	if (west == east) {
 		*errp = pg_error_new("Can not link a brick to herself");
-		return 0;
+		return -1;
 	}
 	/* check if each sides have places */
 	if (!is_place_available(east, WEST_SIDE)) {
 		*errp = pg_error_new("%s: Side full", east->name);
-		return 0;
+		return -1;
 	}
 	if (!is_place_available(west, EAST_SIDE)) {
 		*errp = pg_error_new("%s: Side full", west->name);
-		return 0;
+		return -1;
 	}
 
 	/* insert and get pair index */
@@ -465,7 +465,7 @@ int pg_brick_link(struct pg_brick *west,
 	pg_brick_get_edge(east, WEST_SIDE, east_index)->pair_index = west_index;
 	pg_brick_get_edge(west, EAST_SIDE, west_index)->pair_index = east_index;
 
-	return 1;
+	return 0;
 }
 
 int pg_brick_chained_links_int(struct pg_error **errp,
@@ -478,7 +478,7 @@ int pg_brick_chained_links_int(struct pg_error **errp,
 	va_start(ap, west);
 	while ((east = va_arg(ap, struct pg_brick *)) != NULL) {
 		ret = pg_brick_link(west, east, errp);
-		if (!ret)
+		if (ret < 0)
 			goto exit;
 		west = east;
 	}
