@@ -82,7 +82,7 @@ struct pg_bench {
  * @param   bench benchmark configuration to run.
  * @param   result benchmark results. No need to initialize it.
  * @param   error is set in case of an error
- * @return  1 on success, 0 on error.
+ * @return  0 on success, -1 on error.
  */
 int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 		 struct pg_error **error);
