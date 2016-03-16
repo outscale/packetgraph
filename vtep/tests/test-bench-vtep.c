@@ -216,7 +216,7 @@ static void vxlan_to_inside(void)
 		  sizeof(struct vxlan_hdr) +
 		  sizeof(struct ether_hdr)] = '\0';
 
-	g_assert(pg_bench_run(&bench, &stats, &error));
+	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
 	/* We know that this brick burst all packets. */
 	stats.pkts_burst = stats.pkts_sent;
 	printf("[outside] ==> [vtep] ==> [count] (no VXLAN side)\n");
