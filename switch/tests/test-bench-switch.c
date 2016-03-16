@@ -76,7 +76,7 @@ void test_benchmark_switch(void)
 	g_assert(pg_bench_run(&bench, &stats, &error));
 	/* We know that this brick burst all packets. */
 	stats.pkts_burst = stats.pkts_sent;
-	g_assert(pg_bench_print(&stats, NULL));
+	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(sw);

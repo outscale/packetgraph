@@ -166,7 +166,7 @@ int pg_bench_print(struct pg_bench_stats *r, FILE *o)
 	struct timeval duration;
 
 	if (!r)
-		return 0;
+		return -1;
 
 	if (o == NULL)
 		o = stdout;
@@ -174,7 +174,7 @@ int pg_bench_print(struct pg_bench_stats *r, FILE *o)
 	timeval_subtract(&duration, &r->date_end, &r->date_start);
 	duration_s = (uint16_t) duration.tv_sec + duration.tv_usec / 1000000.0;
 	if (r->pkts_burst == 0 || r->pkts_sent == 0 || duration_s < 0)
-		return 0;
+		return -1;
 
 	data_received = r->pkts_received * r->pkts_average_size;
 
@@ -196,6 +196,6 @@ int pg_bench_print(struct pg_bench_stats *r, FILE *o)
 	fprintf(o, "total packet lost: %.2lf%%\n",
 		100 - r->pkts_received * 100.0 / (r->pkts_sent * 1.0));
 
-	return 1;
+	return 0;
 }
 

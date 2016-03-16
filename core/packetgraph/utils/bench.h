@@ -92,7 +92,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
  *
  * @param   result results to print.
  * @param   output where to write the output. NULL will print to stdout.
- * @return  1 on success, 0 on error.
+ * @return  0 on success, -1 on error.
  */
 int pg_bench_print(struct pg_bench_stats *result, FILE *output);
 
