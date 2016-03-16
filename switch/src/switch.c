@@ -274,7 +274,7 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	zero_masks(state);
 
 	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
-	if (unlikely(!ret))
+	if (unlikely(ret))
 		return 0;
 
 	ret = do_learn_filter_multicast(state, &source, pkts,

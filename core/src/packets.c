@@ -381,7 +381,7 @@ int pg_packets_prepare_hash_keys(struct rte_mbuf **pkts,
 
 		if (unlikely(pkt->data_off < HASH_KEY_SIZE * 2)) {
 			*errp = pg_error_new("Not enough headroom space");
-			return 0;
+			return -1;
 		}
 
 		memset(dst_key_ptr(pkt), 0, HASH_KEY_SIZE * 2);
@@ -390,7 +390,7 @@ int pg_packets_prepare_hash_keys(struct rte_mbuf **pkts,
 		rte_prefetch0(dst_key_ptr(pkt));
 	}
 
-	return 1;
+	return 0;
 }
 
 void pg_packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask)

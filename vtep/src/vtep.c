@@ -480,7 +480,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	/* TODO: account the size of the VTEP header in prepare hash keys */
 	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
 
-	if (unlikely(!ret))
+	if (unlikely(ret))
 		return 0;
 
 	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
@@ -684,7 +684,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 			continue;
 		}
 		pg_packets_prefetch(out_pkts, vni_mask);
-		if (unlikely(!pg_packets_prepare_hash_keys(out_pkts,
+		if (unlikely(pg_packets_prepare_hash_keys(out_pkts,
 							vni_mask,
 							errp)))
 			return 0;
