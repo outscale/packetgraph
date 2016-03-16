@@ -112,7 +112,7 @@ void test_benchmark_vhost(char *vm_image_path,
 					     1500 - sizeof(struct ether_hdr));
 
 	g_assert(pg_bench_run(&bench, &stats, &error));
-	g_assert(pg_bench_print(&stats, NULL));
+	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_util_stop_qemu(qemu_pid);
 

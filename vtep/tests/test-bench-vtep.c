@@ -127,7 +127,7 @@ static void inside_to_vxlan(void)
 	/* We know that this brick burst all packets. */
 	stats.pkts_burst = stats.pkts_sent;
 	printf("[inside] ==> [vtep] ==> [count] (VXLAN side)\n");
-	g_assert(pg_bench_print(&stats, NULL));
+	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(vtep);
@@ -220,7 +220,7 @@ static void vxlan_to_inside(void)
 	/* We know that this brick burst all packets. */
 	stats.pkts_burst = stats.pkts_sent;
 	printf("[outside] ==> [vtep] ==> [count] (no VXLAN side)\n");
-	g_assert(pg_bench_print(&stats, NULL));
+	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(vtep);
