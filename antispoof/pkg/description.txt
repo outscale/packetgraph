@@ -1,2 +1,0 @@
-packetgraph-antispoof is part of the packetgraph project. The antispoof brick
- is made to protect against mac and arp spoofing.

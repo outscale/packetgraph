@@ -1,3 +1,0 @@
-packetgraph-vhost is part of the packetgraph project. The vhost brick function
-is to able to connect packetgraph to a virtual nic using vhost. This is
-particularly usefull to connect virtual machines to packetgraph.

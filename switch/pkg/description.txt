@@ -1,2 +1,0 @@
-packetgraph-switch is part of the packetgraph project. The switch brick
-role is to have to behavior of a basic layer 2 switch.
