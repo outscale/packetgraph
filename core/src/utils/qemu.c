@@ -36,7 +36,7 @@ int pg_util_cmdloop(const char *cmd, int timeout_s)
 			return 0;
 		gettimeofday(&end, 0);
 	}
-	return 1;
+	return -1;
 }
 
 int pg_util_ssh(const char *host,
@@ -128,7 +128,7 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 				  " -oConnectTimeout=1 ",
 				  "-oStrictHostKeyChecking=no ",
 				  "ls");
-	if (pg_util_cmdloop(ssh_cmd, 10 * 60))
+	if (pg_util_cmdloop(ssh_cmd, 10 * 60) < 0)
 		*errp = pg_error_new("qemu spawn failed");
 
 	vm_id++;
