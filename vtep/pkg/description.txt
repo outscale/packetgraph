@@ -1,2 +1,0 @@
-packetgraph-firewall is part of the packetgraph project. The firewall brick is
-responsible to filter IP packets (only).

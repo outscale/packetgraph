@@ -1,3 +1,0 @@
-packetgraph-core is part of the packetgraph project. The core is the main
-component permitting to manage bricks lifecycle and packets flow. All other
-packetgraph bricks relies on packetgraph-core.
