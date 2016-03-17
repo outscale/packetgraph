@@ -55,7 +55,7 @@ int pg_util_ssh(const char *host,
 				  " -oStrictHostKeyChecking=no ", cmd);
 	g_spawn_command_line_sync(ssh_cmd, NULL, NULL, &status, NULL);
 	g_free(ssh_cmd);
-	return g_spawn_check_exit_status(status, NULL) ? 0 : 1;
+	return g_spawn_check_exit_status(status, NULL) ? -1 : 0;
 }
 
 int pg_util_spawn_qemu(const char *socket_path_0,

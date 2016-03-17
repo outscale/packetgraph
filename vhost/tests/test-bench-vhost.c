@@ -81,7 +81,7 @@ void test_benchmark_vhost(char *vm_image_path,
 	g_assert(qemu_pid);
 
 #	define SSH(c) \
-		g_assert(!pg_util_ssh("localhost", 65000, vm_ssh_key_path, c))
+		g_assert(pg_util_ssh("localhost", 65000, vm_ssh_key_path, c) < 0)
 	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
