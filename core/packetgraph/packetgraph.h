@@ -49,7 +49,10 @@ void pg_stop(void);
 /**
  * Revert side: WEST_SIDE become EAST_SIDE and vice versa.
  */
-enum pg_side pg_flip_side(enum pg_side side);
+static inline enum pg_side pg_flip_side(enum pg_side side)
+{
+	return side ^ 1;
+}
 
 /**
  * Link two bricks with each others.

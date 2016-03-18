@@ -27,12 +27,6 @@
 /* All registred bricks. */
 GList *pg_all_bricks;
 
-/* return the oposite side */
-inline enum pg_side pg_flip_side(enum pg_side side)
-{
-	return (side ^ 1);
-}
-
 static void assert_brick_callback(struct pg_brick *brick)
 {
 	/* assert that the minimum of functions pointers are filled */
