@@ -382,10 +382,10 @@ static void test_graph_type1(void)
 	CHECK_ERROR_ASSERT(error);
 
 	/* Add firewall rule */
-	ASSERT(!pg_firewall_rule_add(branch1.firewall, "icmp",
-				     MAX_SIDE, 1, &error));
-	ASSERT(!pg_firewall_rule_add(branch2.firewall, "icmp",
-				     MAX_SIDE, 1, &error));
+	ASSERT(pg_firewall_rule_add(branch1.firewall, "icmp",
+				     MAX_SIDE, 1, &error) == 0);
+	ASSERT(pg_firewall_rule_add(branch2.firewall, "icmp",
+				     MAX_SIDE, 1, &error) == 0);
 
 	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) +
@@ -494,8 +494,8 @@ static void test_graph_firewall_intense(void)
 		g_assert(link_graph_branch(&branch1, vtep));
 
 		/* Add firewall rule */
-		ASSERT(!pg_firewall_rule_add(branch1.firewall, "icmp",
-					     MAX_SIDE, 1, &error));
+		ASSERT(pg_firewall_rule_add(branch1.firewall, "icmp",
+					     MAX_SIDE, 1, &error) == 0);
 		rm_graph_branch(&branch1);
 	}
 
@@ -543,8 +543,8 @@ static void test_graph_firewall_intense_multiple(void)
 			g_assert(link_graph_branch(&branches[j], vtep));
 
 			/* Add firewall rule */
-			ASSERT(!pg_firewall_rule_add(branches[j].firewall, "icmp",
-						     MAX_SIDE, 1, &error));
+			ASSERT(pg_firewall_rule_add(branches[j].firewall, "icmp",
+						     MAX_SIDE, 1, &error) == 0);
 		}
 		for (int j = 0; j < branches_nb; j++) {
 			rm_graph_branch(&branches[j]);
