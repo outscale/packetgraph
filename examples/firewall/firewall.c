@@ -63,10 +63,10 @@ int main(int argc, char **argv)
 	pg_brick_link(fw, nic_east, &error);
 	CHECK_ERROR(error);
 
-	g_assert(!pg_firewall_rule_add(fw, "tcp portrange 50-60", MAX_SIDE, 1,
-				       &error));
+	g_assert(pg_firewall_rule_add(fw, "tcp portrange 50-60", MAX_SIDE, 1,
+				       &error) == 0);
 	CHECK_ERROR(error);
-	g_assert(!pg_firewall_rule_add(fw, "icmp", MAX_SIDE, 1, &error));
+	g_assert(pg_firewall_rule_add(fw, "icmp", MAX_SIDE, 1, &error) == 0);
 	CHECK_ERROR(error);
 	g_assert(!pg_firewall_reload(fw, &error));
 	CHECK_ERROR(error);

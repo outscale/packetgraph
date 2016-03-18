@@ -116,7 +116,7 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 	npf_rule_setprio(rule, NPF_PRI_LAST);
 	if (filter && firewall_build_pcap_filter(rule, filter)) {
 		*errp = pg_error_new("pcap filter build failed");
-		return 1;
+		return -1;
 	}
 	state->rules = g_list_append(state->rules, rule);
 	return 0;
