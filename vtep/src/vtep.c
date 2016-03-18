@@ -411,7 +411,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		if (unlikely(ret)) {
 			*errp = pg_error_new_errno(-ret,
 						"Fail to lookup dest address");
-			return 0;
+			return -1;
 		}
 	}
 
@@ -441,20 +441,20 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		else
 			tmp = pkts[i];
 		if (unlikely(!tmp))
-			return 0;
+			return -1;
 
 		ret = vtep_header_prepend(state, tmp, port,
 					   entry, unicast, errp);
 
 		if (unlikely(ret < 0)) {
 			rte_pktmbuf_free(tmp);
-			return 0;
+			return -1;
 		}
 		state->pkts[i] = tmp;
 
 	}
 
-	return 1;
+	return 0;
 }
 
 static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
@@ -485,7 +485,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 
 	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
 
-	if (unlikely(!ret))
+	if (unlikely(ret < 0))
 		goto no_forward;
 
 	pg_packets_clear_hash_keys(state->pkts, pkts_mask);
