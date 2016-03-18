@@ -413,7 +413,7 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 
 	if (vhost_start_ok) {
 		*errp = pg_error_new("vhost already started");
-		return 0;
+		return -1;
 	}
 	rcu_register_thread();
 
@@ -423,7 +423,7 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 
 	check_and_store_base_dir(base_dir, errp);
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
 	ret = rte_vhost_driver_callback_register(&virtio_net_device_ops);
 	if (ret) {
@@ -444,11 +444,11 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 	/* Store that vhost start was successful. */
 	vhost_start_ok = 1;
 
-	return 1;
+	return 0;
 
 free_exit:
 	g_free(sockets_path);
-	return 0;
+	return -1;
 }
 
 void pg_vhost_stop(void)
