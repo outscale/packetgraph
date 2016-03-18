@@ -547,10 +547,10 @@ static inline int add_dst_iner_macs(struct vtep_state *state,
 			if (!unlikely(add_dst_iner_mac(state, port,
 						       &pkt_addr->s_addr,
 						       &dst)))
-				return 0;
+				return -1;
 		}
 	}
-	return 1;
+	return 0;
 }
 
 static inline int from_vtep_failure_no_clear(struct rte_mbuf **pkts,
@@ -660,10 +660,10 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 
 		pkts_mask ^= vni_mask;
 		if (state->flags & NO_INNERMAC_CKECK) {
-			if (unlikely(!add_dst_iner_macs(state, port,
+			if (unlikely(add_dst_iner_macs(state, port,
 							out_pkts, hdrs,
 							vni_mask,
-							multicast_mask)))
+							multicast_mask) < 0))
 				return from_vtep_failure_no_clear(out_pkts,
 								  vni_mask,
 								  state->flags &
@@ -703,10 +703,10 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 						 state->flags & NO_COPY);
 		}
 		if (hitted_mask) {
-			if (unlikely(!add_dst_iner_macs(state, port,
+			if (unlikely(add_dst_iner_macs(state, port,
 							out_pkts, hdrs,
 							hitted_mask,
-							multicast_mask)))
+							multicast_mask) < 0))
 				return from_vtep_failure(out_pkts, vni_mask,
 					state->flags & NO_COPY);
 		}
