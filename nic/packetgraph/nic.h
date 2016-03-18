@@ -66,6 +66,28 @@ struct pg_brick *pg_nic_new_by_id(const char *name,
 				  struct pg_error **errp);
 
 /**
+ * Set a custom MTU on the nic
+ *
+ * @param nic	the brick nic
+ * @param mtu	MTU to be applied
+ * @errp	set in case of an error
+ * @return	0 on success, -1 on error
+ */
+int pg_nic_set_mtu(struct pg_brick *brick, uint16_t mtu,
+		   struct pg_error **errp);
+
+/**
+ * Get MTU of the nic
+ *
+ * @param nic	the brick nic
+ * @mtu		set in case of success
+ * @errp	set in case of an error
+ * @return	0 on success, -1 on error
+ */
+int pg_nic_get_mtu(struct pg_brick *brick, uint16_t *mtu,
+		   struct pg_error **errp);
+
+/**
  * A structure used to retrieve statistics for an Ethernet port.
  * This is a copy from rte_eth_stats at V2.0.0.
  * TODO: handly copy fiel instead of memcpy.

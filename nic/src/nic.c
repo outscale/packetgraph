@@ -325,6 +325,36 @@ struct pg_brick *pg_nic_new(const char *name,
 	return ret;
 }
 
+int pg_nic_set_mtu(struct pg_brick *brick, uint16_t mtu,
+		   struct pg_error **errp)
+{
+	struct pg_nic_state *state = pg_brick_get_state(brick,
+							struct pg_nic_state);
+	int ret = rte_eth_dev_set_mtu(state->portid, mtu);
+
+	if (ret < 0) {
+		*errp = pg_error_new_errno(-ret,
+					   "cannot set MTU");
+		return -1;
+	}
+	return 0;
+}
+
+int pg_nic_get_mtu(struct pg_brick *brick, uint16_t *mtu,
+		   struct pg_error **errp)
+{
+	struct pg_nic_state *state = pg_brick_get_state(brick,
+							struct pg_nic_state);
+	int ret = rte_eth_dev_get_mtu(state->portid, mtu);
+
+	if (ret < 0) {
+		*errp = pg_error_new_errno(-ret,
+					   "cannot get MTU");
+		return -1;
+	}
+	return 0;
+}
+
 struct pg_brick *pg_nic_new_by_id(const char *name,
 				  uint8_t portid,
 				  struct pg_error **errp)
