@@ -60,15 +60,15 @@ static struct pg_brick_config *pg_print_config_new(const char *name,
 		PG_MULTIPOLE);
 }
 
-static int should_skip(uint16_t *type_filter, struct ether_hdr *eth)
+static bool should_skip(uint16_t *type_filter, struct ether_hdr *eth)
 {
 	int i;
 
 	for (i = 0; type_filter != NULL && type_filter[i]; ++i) {
 		if (eth->ether_type == type_filter[i])
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 static int print_burst(struct pg_brick *brick, enum pg_side from,
