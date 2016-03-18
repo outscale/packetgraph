@@ -57,7 +57,7 @@ void test_benchmark_vhost(char *vm_image_path,
 
 	pg_bench_init(&bench);
 	ret = pg_vhost_start("/tmp", &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	vhost_enter = pg_vhost_new("vhost-enter", 1, 1, EAST_SIDE, &error);
@@ -81,7 +81,7 @@ void test_benchmark_vhost(char *vm_image_path,
 	g_assert(qemu_pid);
 
 #	define SSH(c) \
-		g_assert(!pg_util_ssh("localhost", 65000, vm_ssh_key_path, c))
+		g_assert(pg_util_ssh("localhost", 65000, vm_ssh_key_path, c) < 0)
 	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
@@ -111,8 +111,8 @@ void test_benchmark_vhost(char *vm_image_path,
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask,
 					     1500 - sizeof(struct ether_hdr));
 
-	g_assert(pg_bench_run(&bench, &stats, &error));
-	g_assert(pg_bench_print(&stats, NULL));
+	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
+	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_util_stop_qemu(qemu_pid);
 

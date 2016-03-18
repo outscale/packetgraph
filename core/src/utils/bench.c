@@ -75,20 +75,20 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	    bench->pkts == NULL || bench->pkts_nb == 0 ||
 	    bench->max_burst_cnt == 0 || bench->pkts_mask == 0) {
 		*error = pg_error_new("missing or bad bench parameters");
-		return 0;
+		return -1;
 	}
 
 	/* Link ouput brick to a nop brick to count outcoming packets. */
 	if (bench->count_brick == NULL) {
 		count_brick = pg_nop_new("nop-bench", error);
 		if (*error)
-			return 0;
+			return -1;
 		if (bench->output_side == WEST_SIDE)
 			pg_brick_link(count_brick, bench->output_brick, error);
 		else
 			pg_brick_link(bench->output_brick, count_brick, error);
 		if (*error)
-			return 0;
+			return -1;
 	} else {
 		count_brick = bench->count_brick;
 	}
@@ -136,7 +136,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 			       error);
 		sched_yield();
 		if (*error)
-			return 0;
+			return -1;
 		/* Poll back packets if needed. */
 		if (bl.output_poll)
 			pg_brick_poll(bl.output_brick, &cnt, error);
@@ -155,9 +155,9 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	if (bench->count_brick == NULL) {
 		pg_brick_unlink(count_brick, error);
 		if (*error)
-			return 0;
+			return -1;
 	}
-	return 1;
+	return 0;
 }
 
 int pg_bench_print(struct pg_bench_stats *r, FILE *o)
@@ -167,7 +167,7 @@ int pg_bench_print(struct pg_bench_stats *r, FILE *o)
 	struct timeval duration;
 
 	if (!r)
-		return 0;
+		return -1;
 
 	if (o == NULL)
 		o = stdout;
@@ -175,7 +175,7 @@ int pg_bench_print(struct pg_bench_stats *r, FILE *o)
 	timeval_subtract(&duration, &r->date_end, &r->date_start);
 	duration_s = (uint16_t) duration.tv_sec + duration.tv_usec / 1000000.0;
 	if (r->pkts_burst == 0 || r->pkts_sent == 0 || duration_s < 0)
-		return 0;
+		return -1;
 
 	data_received = r->pkts_received * r->pkts_average_size;
 
@@ -197,6 +197,6 @@ int pg_bench_print(struct pg_bench_stats *r, FILE *o)
 	fprintf(o, "total packet lost: %.2lf%%\n",
 		100 - r->pkts_received * 100.0 / (r->pkts_sent * 1.0));
 
-	return 1;
+	return 0;
 }
 

@@ -62,7 +62,7 @@ static void test_vhost_flow_(int qemu_exit_signal)
 
 	/* start vhost */
 	ret = pg_vhost_start("/tmp", &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	/* instanciate brick */
@@ -101,7 +101,7 @@ static void test_vhost_flow_(int qemu_exit_signal)
 
 	/* Prepare VM's bridge. */
 #	define SSH(c) \
-		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) < 0)
 	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
@@ -207,7 +207,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 
 	/* start vhost */
 	ret = pg_vhost_start("/tmp", &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	/* instanciate brick */
@@ -262,7 +262,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 
 #	define SSH(c) \
-		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) < 0)
 	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
@@ -284,7 +284,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 
 	/* Prepare VM's bridge. */
 #	define SSH(c) \
-		g_assert(!pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c))
+		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) < 0)
 	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
@@ -384,7 +384,7 @@ static void test_vhost_fd(void)
 	struct pg_brick *vhost[VHOST_CNT];
 	struct pg_error *error = NULL;
 
-	g_assert(pg_vhost_start("/tmp", &error));
+	g_assert(pg_vhost_start("/tmp", &error) == 0);
 	g_assert(!error);
 
 	for (int j = 0; j < 10; j++) {

@@ -95,8 +95,8 @@ void test_benchmark_nic(void)
 		1000, 2000, 1400);
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
-	g_assert(pg_bench_run(&bench, &stats, &error));
-	g_assert(pg_bench_print(&stats, NULL));
+	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
+	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(nic_enter);

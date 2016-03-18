@@ -336,7 +336,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 	if (unlikely(!headers)) {
 		*errp = pg_error_new("No enough headroom to add VTEP headers");
-		return 0;
+		return -1;
 	}
 
 	/* make sure headers are clear */
@@ -358,7 +358,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		    !do_add_mac(port, &eth_hdr->s_addr)) {
 			*errp = pg_error_new("Failed to add mac for brick'%s'",
 					     state->brick.name);
-			return 0;
+			return -1;
 		}
 
 		dst_ip = port->multicast_ip;
@@ -369,7 +369,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		 packet_len + ip_overhead());
 	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
 
-	return 1;
+	return 0;
 }
 
 static inline int vtep_encapsulate(struct vtep_state *state,
@@ -411,7 +411,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		if (unlikely(ret)) {
 			*errp = pg_error_new_errno(-ret,
 						"Fail to lookup dest address");
-			return 0;
+			return -1;
 		}
 	}
 
@@ -441,20 +441,20 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		else
 			tmp = pkts[i];
 		if (unlikely(!tmp))
-			return 0;
+			return -1;
 
 		ret = vtep_header_prepend(state, tmp, port,
 					   entry, unicast, errp);
 
-		if (unlikely(!ret)) {
+		if (unlikely(ret < 0)) {
 			rte_pktmbuf_free(tmp);
-			return 0;
+			return -1;
 		}
 		state->pkts[i] = tmp;
 
 	}
 
-	return 1;
+	return 0;
 }
 
 static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
@@ -480,12 +480,12 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	/* TODO: account the size of the VTEP header in prepare hash keys */
 	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
 
-	if (unlikely(!ret))
+	if (unlikely(ret))
 		return 0;
 
 	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
 
-	if (unlikely(!ret))
+	if (unlikely(ret < 0))
 		goto no_forward;
 
 	pg_packets_clear_hash_keys(state->pkts, pkts_mask);
@@ -548,10 +548,10 @@ static inline int add_dst_iner_macs(struct vtep_state *state,
 			if (!unlikely(add_dst_iner_mac(state, port,
 						       &pkt_addr->s_addr,
 						       &dst)))
-				return 0;
+				return -1;
 		}
 	}
-	return 1;
+	return 0;
 }
 
 static inline int from_vtep_failure_no_clear(struct rte_mbuf **pkts,
@@ -661,10 +661,10 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 
 		pkts_mask ^= vni_mask;
 		if (state->flags & NO_INNERMAC_CKECK) {
-			if (unlikely(!add_dst_iner_macs(state, port,
+			if (unlikely(add_dst_iner_macs(state, port,
 							out_pkts, hdrs,
 							vni_mask,
-							multicast_mask)))
+							multicast_mask) < 0))
 				return from_vtep_failure_no_clear(out_pkts,
 								  vni_mask,
 								  state->flags &
@@ -685,7 +685,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 			continue;
 		}
 		pg_packets_prefetch(out_pkts, vni_mask);
-		if (unlikely(!pg_packets_prepare_hash_keys(out_pkts,
+		if (unlikely(pg_packets_prepare_hash_keys(out_pkts,
 							vni_mask,
 							errp)))
 			return 0;
@@ -704,10 +704,10 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 						 state->flags & NO_COPY);
 		}
 		if (hitted_mask) {
-			if (unlikely(!add_dst_iner_macs(state, port,
+			if (unlikely(add_dst_iner_macs(state, port,
 							out_pkts, hdrs,
 							hitted_mask,
-							multicast_mask)))
+							multicast_mask) < 0))
 				return from_vtep_failure(out_pkts, vni_mask,
 					state->flags & NO_COPY);
 		}

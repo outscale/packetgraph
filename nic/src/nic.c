@@ -217,7 +217,7 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 		*errp = pg_error_new(
 			"Port configuration %u failed (may already be in use)",
 			state->portid);
-		return 0;
+		return -1;
 	}
 
 	/* Setup queues */
@@ -229,7 +229,7 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 		*errp = pg_error_new(
 			"Setup failed for port rx queue 0, port %d",
 			state->portid);
-		return 0;
+		return -1;
 	}
 
 	ret = rte_eth_tx_queue_setup(state->portid, 0, 64,
@@ -239,9 +239,9 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 		*errp = pg_error_new(
 			"Setup failed for port tx queue 0, port %d",
 			state->portid);
-		return 0;
+		return -1;
 	}
-	return 1;
+	return 0;
 }
 
 static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
@@ -286,7 +286,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 		return 0;
 	}
 
-	if (!nic_init_ports(state, errp))
+	if (nic_init_ports(state, errp) < 0)
 		return 0;
 
 	ret = rte_eth_dev_start(state->portid);

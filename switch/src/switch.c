@@ -191,7 +191,7 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 				 source, errp);
 
 		if (unlikely(!ret))
-			return 0;
+			return -1;
 
 		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 
@@ -212,7 +212,7 @@ static int do_learn_filter_multicast(struct pg_switch_state *state,
 	flood(state, source, flood_mask);
 
 	*unicast_mask = pkts_mask & ~filtered_mask & ~flood_mask;
-	return 1;
+	return 0;
 }
 
 static void do_switch(struct pg_switch_state *state,
@@ -274,12 +274,12 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	zero_masks(state);
 
 	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
-	if (unlikely(!ret))
+	if (unlikely(ret))
 		return 0;
 
 	ret = do_learn_filter_multicast(state, &source, pkts,
 					pkts_mask, &unicast_mask, errp);
-	if (unlikely(!ret))
+	if (unlikely(ret < 0))
 		goto no_forward;
 
 	ret = rte_table_hash_key8_lru_dosig_ops.f_lookup(state->table, pkts,
