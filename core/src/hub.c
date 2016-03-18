@@ -28,23 +28,45 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 		     struct pg_error **errp)
 {
 	int ret;
-	enum pg_side i;
+	enum pg_side i = WEST_SIDE;
+	enum pg_side flip_i = WEST_SIDE;
 	uint16_t j;
+	struct pg_brick_side *s;
+	struct pg_brick_edge *edges;
 
-	for (i = 0; i < MAX_SIDE; i++) {
-		struct pg_brick_side *s = &brick->sides[i];
+	if (from == i)
+		flip_i = pg_flip_side(i);
+	else
+		i = pg_flip_side(i);
 
-		for (j = 0; j < s->max; j++) {
-			if (!s->edges[j].link)
-				continue;
-			if (from == i && j == edge_index)
-				continue;
-			ret = pg_brick_burst(s->edges[j].link, pg_flip_side(i),
-					     s->edges[j].pair_index,
-					     pkts, nb, pkts_mask, errp);
-			if (unlikely(!ret))
-				return 0;
-		}
+	s = &brick->sides[i];
+	edges = s->edges;
+
+	for (j = 0; j < s->max; ++j) {
+		if (!edges[j].link || j == edge_index)
+			continue;
+		ret = pg_brick_burst(edges[j].link,
+				     flip_i,
+				     edges[j].pair_index,
+				     pkts, nb, pkts_mask, errp);
+		if (unlikely(!ret))
+			return 0;
+	}
+
+	flip_i = pg_flip_side(flip_i);
+	i = pg_flip_side(i);
+	s = &brick->sides[i];
+	edges = s->edges;
+
+	for (j = 0; j < s->max; ++j) {
+		if (!edges[j].link)
+			continue;
+		ret = pg_brick_burst(edges[j].link,
+				     flip_i,
+				     edges[j].pair_index,
+				     pkts, nb, pkts_mask, errp);
+		if (unlikely(!ret))
+			return 0;
 	}
 	return 1;
 }
