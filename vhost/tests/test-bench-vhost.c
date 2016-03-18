@@ -57,7 +57,7 @@ void test_benchmark_vhost(char *vm_image_path,
 
 	pg_bench_init(&bench);
 	ret = pg_vhost_start("/tmp", &error);
-	g_assert(ret);
+	g_assert(ret == 0);
 	g_assert(!error);
 
 	vhost_enter = pg_vhost_new("vhost-enter", 1, 1, EAST_SIDE, &error);
