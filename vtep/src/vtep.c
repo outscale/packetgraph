@@ -336,7 +336,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 	if (unlikely(!headers)) {
 		*errp = pg_error_new("No enough headroom to add VTEP headers");
-		return 0;
+		return -1;
 	}
 
 	/* make sure headers are clear */
@@ -358,7 +358,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		    !do_add_mac(port, &eth_hdr->s_addr)) {
 			*errp = pg_error_new("Failed to add mac for brick'%s'",
 					     state->brick.name);
-			return 0;
+			return -1;
 		}
 
 		dst_ip = port->multicast_ip;
@@ -369,7 +369,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		 packet_len + ip_overhead());
 	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
 
-	return 1;
+	return 0;
 }
 
 static inline int vtep_encapsulate(struct vtep_state *state,
@@ -446,7 +446,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		ret = vtep_header_prepend(state, tmp, port,
 					   entry, unicast, errp);
 
-		if (unlikely(!ret)) {
+		if (unlikely(ret < 0)) {
 			rte_pktmbuf_free(tmp);
 			return 0;
 		}
