@@ -44,7 +44,7 @@ struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
  *
  * @param: the base directory where the vhost-user socket will be
  * @param: an error pointer
- * @return: 1 on success, 0 on error
+ * @return: 0 on success, -1 on error
  */
 int pg_vhost_start(const char *base_dir, struct pg_error **errp);
 
