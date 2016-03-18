@@ -166,16 +166,16 @@ static inline struct ether_addr multicast_get_dst_addr(uint32_t ip)
  * @param	ip the ip to check, must be in network order (big indian)
  * @return	1 if true, 0 if false
  */
-static inline int is_multicast_ip(uint32_t ip)
+static inline bool is_multicast_ip(uint32_t ip)
 {
 	uint8_t byte;
 
 	byte = ((uint8_t *) &ip)[0];
 
 	if (byte >= 224 && byte <= 239)
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 }
 
 /**
