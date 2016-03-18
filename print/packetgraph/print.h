@@ -18,6 +18,7 @@
 #ifndef _PG_PRINT_PRINT_H
 #define _PG_PRINT_PRINT_H
 
+#include <stdbool.h>
 #include <packetgraph/common.h>
 #include <packetgraph/utils/errors.h>
 
