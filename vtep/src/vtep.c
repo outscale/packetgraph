@@ -408,18 +408,18 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		else
 			tmp = pkt;
 		if (unlikely(!tmp))
-			return 0;
+			return -1;
 
 		if (unlikely(vtep_header_prepend(state, tmp, port,
 						  entry, unicast, errp)) < 0) {
 			rte_pktmbuf_free(tmp);
-			return 0;
+			return -1;
 		}
 		state->pkts[i] = tmp;
 
 	}
 
-	return 1;
+	return 0;
 }
 
 static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
@@ -439,7 +439,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 
 	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
 
-	if (unlikely(!ret))
+	if (unlikely(ret < 0))
 		return 0;
 
 	ret =  pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
