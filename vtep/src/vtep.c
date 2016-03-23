@@ -723,7 +723,7 @@ static void vtep_destroy(struct pg_brick *brick, struct pg_error **errp)
  * @param	vni the VNI to check
  * @return	1 if true, 0 if false
  */
-static int is_vni_valid(uint32_t vni)
+static bool is_vni_valid(uint32_t vni)
 {
 	/* VNI is coded on 24 bits */
 	return vni <= (UINT32_MAX >> 8);
