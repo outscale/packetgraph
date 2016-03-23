@@ -95,7 +95,7 @@ void pg_error_print(struct pg_error *error)
  * @param	errp an error pointer
  * @return	1 if the error is set else 0
  */
-int pg_error_is_set(struct pg_error **errp)
+bool pg_error_is_set(struct pg_error **errp)
 {
 	return !!*errp;
 }

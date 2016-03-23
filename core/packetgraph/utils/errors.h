@@ -19,7 +19,7 @@
 #define _PG_CORE_UTILS_ERRORS_H
 
 #include <stdint.h>
-
+#include <stdbool.h>
 /* To use the error infrastructure pass a struct pg_error **errp with
  * *errp == NULL to the various functions.
  * Then when an error occurs the functions will do *errp = error_new_errno() or
@@ -60,6 +60,6 @@ void pg_error_free(struct pg_error *error);
 
 void pg_error_print(struct pg_error *error);
 
-int pg_error_is_set(struct pg_error **error);
+bool pg_error_is_set(struct pg_error **error);
 
 #endif /* _PG_CORE_UTILS_ERRORS_H */
