@@ -137,7 +137,7 @@ static int forward_bursts(struct pg_switch_state *state,
 	return 1;
 }
 
-static inline int is_filtered(struct ether_addr *eth_addr)
+static inline bool is_filtered(struct ether_addr *eth_addr)
 {
 	return eth_addr->addr_bytes[0] == 0x01 &&
 		eth_addr->addr_bytes[1] == 0x80 &&
