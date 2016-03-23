@@ -409,7 +409,7 @@ static uint16_t insert_link(struct pg_brick *from,
 	return 0;
 }
 
-static int is_place_available(struct pg_brick *brick, enum pg_side side)
+static bool is_place_available(struct pg_brick *brick, enum pg_side side)
 {
 	switch (brick->type) {
 	case PG_MONOPOLE:
@@ -418,7 +418,7 @@ static int is_place_available(struct pg_brick *brick, enum pg_side side)
 	case PG_MULTIPOLE:
 		return (brick->sides[side].nb < brick->sides[side].max);
 	}
-	return 0;
+	return false;
 }
 
 int pg_brick_link(struct pg_brick *west,
