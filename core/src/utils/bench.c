@@ -26,7 +26,7 @@
 /* This function has been copied from glibc examples
  * http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
  */
-static int timeval_subtract(struct timeval *result,
+static bool timeval_subtract(struct timeval *result,
 			    struct timeval *x,
 			    struct timeval *y)
 {
