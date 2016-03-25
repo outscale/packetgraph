@@ -253,10 +253,6 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	state = pg_brick_get_state(brick, struct pg_nic_state);
 
-	if (!config) {
-		*errp = pg_error_new("config is NULL");
-		return 0;
-	}
 	nic_config = config->brick_config;
 
 	if (!nic_config) {

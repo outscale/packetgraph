@@ -127,6 +127,11 @@ struct pg_brick *pg_brick_new(const char *name,
 	size_t ret;
 	GList *it;
 
+
+	if (!config) {
+		*errp = pg_error_new("Brick config not set");
+		return NULL;
+	}
 	if (!name) {
 		*errp = pg_error_new("Brick name not set");
 		return NULL;

@@ -217,11 +217,6 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 		return 0;
 	}
 
-	if (!config) {
-		*errp = pg_error_new("config is NULL");
-		return 0;
-	}
-
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
 		return 0;

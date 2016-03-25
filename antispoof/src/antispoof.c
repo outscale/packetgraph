@@ -175,11 +175,6 @@ static int antispoof_init(struct pg_brick *brick,
 
 	state = pg_brick_get_state(brick, struct pg_antispoof_state);
 
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
-	}
-
 	antispoof_config = (struct pg_antispoof_config *) config->brick_config;
 	brick->burst = antispoof_burst;
 	state->outside = antispoof_config->outside;
