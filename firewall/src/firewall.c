@@ -248,10 +248,6 @@ static int firewall_init(struct pg_brick *brick,
 	struct pg_firewall_config *fw_config;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
-	}
 
 	fw_config = (struct pg_firewall_config *) config->brick_config;
 	/* initialize fast path */

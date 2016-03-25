@@ -637,11 +637,6 @@ static int vtep_init(struct pg_brick *brick,
 	struct vtep_config *vtep_config;
 	uint16_t max;
 
-	if (!config) {
-		*errp = pg_error_new("config is NULL");
-		return 0;
-	}
-
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
 		return 0;

@@ -67,10 +67,6 @@ static int diode_init(struct pg_brick *brick,
 	struct pg_diode_config *diode_config;
 
 	state = pg_brick_get_state(brick, struct pg_diode_state);
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
-	}
 
 	diode_config = (struct pg_diode_config *) config->brick_config;
 
