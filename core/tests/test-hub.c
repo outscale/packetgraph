@@ -114,7 +114,7 @@ static void test_hub_east_dispatch(void)
 
 	/* send a burst to the east from */
 
-	pg_brick_burst_to_east(hub, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(hub, 0, pkts, pg_mask_firsts(NB_PKTS),
 			    &error);
 
 	/* check no packet ended on the sending block collect1 */
@@ -176,7 +176,7 @@ static void test_hub_west_dispatch(void)
 	g_assert(!error);
 
 	/* send a burst to the west from the hub */
-	pg_brick_burst_to_west(hub, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_west(hub, 0, pkts, pg_mask_firsts(NB_PKTS),
 			    &error);
 
 	/* check packets on collect1 */

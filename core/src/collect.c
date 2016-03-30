@@ -22,6 +22,7 @@
 #include <packetgraph/brick.h>
 #include <packetgraph/packets.h>
 #include <packetgraph/collect.h>
+#include <packetgraph/utils/bitmask.h>
 
 struct pg_collect_state {
 	struct pg_brick brick;
@@ -32,14 +33,14 @@ struct pg_collect_state {
 
 static int collect_burst(struct pg_brick *brick, enum pg_side from,
 			 uint16_t edge_index, struct rte_mbuf **pkts,
-			 uint16_t nb, uint64_t pkts_mask,
+			 uint64_t pkts_mask,
 			 struct pg_error **errp)
 {
 	struct pg_collect_state *state;
 
 	state = pg_brick_get_state(brick, struct pg_collect_state);
 	BUILD_ASSERT(PG_MAX_PKTS_BURST == 64);
-	if (nb > PG_MAX_PKTS_BURST) {
+	if (pg_get_last_packet(pkts_mask) > PG_MAX_PKTS_BURST) {
 		*errp = pg_error_new("Burst too big");
 		return 0;
 	}
@@ -50,7 +51,8 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 	state->pkts_mask[from] = pkts_mask;
 	/* We made sure nb <= PG_MAX_PKTS_BURST */
 	/* Flawfinder: ignore */
-	memcpy(state->pkts[from], pkts, nb * sizeof(struct rte_mbuf *));
+	memcpy(state->pkts[from], pkts, pg_get_last_packet(pkts_mask)*
+	sizeof(struct rte_mbuf *));
 	pg_packets_incref(state->pkts[from], state->pkts_mask[from]);
 
 	return 1;

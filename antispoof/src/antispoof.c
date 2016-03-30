@@ -115,7 +115,7 @@ static inline int antispoof_arp(struct pg_antispoof_state *state,
 
 static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 			   uint16_t edge_index, struct rte_mbuf **pkts,
-			   uint16_t nb, uint64_t pkts_mask,
+			   uint64_t pkts_mask,
 			   struct pg_error **errp)
 {
 	struct pg_antispoof_state *state;
@@ -129,8 +129,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 
 	/* lets all packets from outside pass. */
 	if (state->outside == from)
-		return pg_brick_side_forward(s, from, pkts, nb,
-					     pkts_mask, errp);
+		return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
 
 	/* packets come from inside, let's check few things */
 	it_mask = pkts_mask;
@@ -163,7 +162,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 			continue;
 		}
 	}
-	return pg_brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
+	return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
 }
 
 static int antispoof_init(struct pg_brick *brick,
@@ -174,11 +173,6 @@ static int antispoof_init(struct pg_brick *brick,
 	struct pg_antispoof_config *antispoof_config;
 
 	state = pg_brick_get_state(brick, struct pg_antispoof_state);
-
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
-	}
 
 	antispoof_config = (struct pg_antispoof_config *) config->brick_config;
 	brick->burst = antispoof_burst;

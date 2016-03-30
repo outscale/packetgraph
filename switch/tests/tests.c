@@ -96,7 +96,7 @@ static void test_switch_learn(void)
 	/* Send the packet through the port 0 of  switch it should been
 	 * forwarded on all port because of the learning mode.
 	 */
-	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -139,7 +139,7 @@ static void test_switch_learn(void)
 	}
 
 	/* through port 0 of east side of the switch */
-	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_west(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -178,7 +178,7 @@ static void test_switch_learn(void)
 				 "F0:F1:F2:F3:F4:F5", "E0:E1:E2:E3:E4:E5");
 	}
 
-	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -276,7 +276,7 @@ static void test_switch_switching(void)
 				 "10:10:10:10:10:10", "AA:AA:AA:AA:AA:AA");
 	}
 	/* west port 0 == collect 1 */
-	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -294,7 +294,7 @@ static void test_switch_switching(void)
 				 "22:22:22:22:22:22", "AA:AA:AA:AA:AA:AA");
 	}
 	/* west port 1 == collect 2 */
-	pg_brick_burst_to_east(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 1, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -313,7 +313,7 @@ static void test_switch_switching(void)
 	}
 
 	/* east port 0 == collect 3 */
-	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_west(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -334,7 +334,7 @@ static void test_switch_switching(void)
 			 "66:66:66:66:66:66");
 
 	/* east port 1 == collect 4 */
-	pg_brick_burst_to_west(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_west(brick, 1, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -447,7 +447,7 @@ static void test_switch_unlink(void)
 				 "10:10:10:10:10:10", "AA:AA:AA:AA:AA:AA");
 	}
 	/* west port 1 == collect 2 */
-	pg_brick_burst_to_east(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 1, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -515,7 +515,7 @@ static void test_switch_unlink(void)
 	}
 
 	/* east port 1 == collect 4 */
-	pg_brick_burst_to_west(brick, 1, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_west(brick, 1, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -637,7 +637,7 @@ static void test_switch_multicast_destination(void)
 	/* Send the packet through the port 0 of  switch it should been
 	 * forwarded on all port because of the learning mode.
 	 */
-	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -681,7 +681,7 @@ static void test_switch_multicast_destination(void)
 				 "11:11:11:11:11:11", "AA:AA:AA:AA:AA:AA");
 	}
 	/* through port 0 of east side of the switch */
-	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_west(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -720,7 +720,7 @@ static void test_switch_multicast_destination(void)
 				 "AA:AA:AA:AA:AA:AA", "11:11:11:11:11:11");
 	}
 
-	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -818,7 +818,7 @@ static void test_switch_multicast_both(void)
 	/* Send the packet through the port 0 of  switch it should been
 	 * forwarded on all port because of the learning mode.
 	 */
-	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -862,7 +862,7 @@ static void test_switch_multicast_both(void)
 				 "11:11:11:11:11:11", "33:33:33:33:33:33");
 	}
 	/* through port 0 of east side of the switch */
-	pg_brick_burst_to_west(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_west(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -895,7 +895,6 @@ static void test_switch_multicast_both(void)
 	CHECK_ERROR(error);
 	pg_brick_reset(collect2, &error);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
 	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
@@ -904,7 +903,7 @@ static void test_switch_multicast_both(void)
 				 "33:33:33:33:33:33", "11:11:11:11:11:11");
 	}
 
-	pg_brick_burst_to_east(brick, 0, pkts, NB_PKTS, pg_mask_firsts(NB_PKTS),
+	pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
 			       &error);
 	CHECK_ERROR(error);
 
@@ -1006,7 +1005,7 @@ static void test_switch_filtered(void)
 	/* Send the packet through the port 0 of  switch it should been
 	 * forwarded on all port because of the learning mode.
 	 */
-	pg_brick_burst_to_east(brick, 0, pkts, FILTERED_COUNT,
+	pg_brick_burst_to_east(brick, 0, pkts,
 			       pg_mask_firsts(FILTERED_COUNT), &error);
 	CHECK_ERROR(error);
 
@@ -1102,7 +1101,7 @@ static void test_switch_perf_learn(void)
 		struct rte_mbuf **to_burst = &pkts[j % TEST_MOD];
 
 		pg_brick_burst_to_east(brick, 0,
-				       to_burst, PKTS_BURST,
+				       to_burst,
 				       pg_mask_firsts(PKTS_BURST), &error);
 		CHECK_ERROR(error);
 	}
@@ -1183,12 +1182,12 @@ static void test_switch_perf_switch(void)
 	/* mac the switch learn the sources mac addresses */
 	for (j = 0; j < TEST_PKTS; j += 2) {
 		to_burst = &pkts[j];
-		pg_brick_burst_to_east(brick, j % SIDE_PORTS, to_burst, 1,
+		pg_brick_burst_to_east(brick, j % SIDE_PORTS, to_burst,
 				       pg_mask_firsts(1), &error);
 		CHECK_ERROR(error);
 
 		to_burst = &pkts[j + 1];
-		pg_brick_burst_to_west(brick, j % SIDE_PORTS, to_burst, 1,
+		pg_brick_burst_to_west(brick, j % SIDE_PORTS, to_burst,
 				       pg_mask_firsts(1), &error);
 		CHECK_ERROR(error);
 	}
@@ -1200,6 +1199,7 @@ static void test_switch_perf_switch(void)
 		minor = i & 0xFF;
 		char *mac = g_strdup_printf("AA:AA:AA:AA:%02X:%02X",
 					    major, minor);
+
 		char *reverse = g_strdup_printf("AA:AA:AA:AA:%02X:%02X",
 						minor, major);
 
@@ -1213,12 +1213,12 @@ static void test_switch_perf_switch(void)
 	for (j = 0; j < TEST_PKTS_COUNT; j += PKTS_BURST *  2) {
 		to_burst = &pkts[(j % TEST_MOD)];
 		pg_brick_burst_to_east(brick, SIDE_PORTS - (j % SIDE_PORTS) - 1,
-				       to_burst, PKTS_BURST,
+				       to_burst,
 				       pg_mask_firsts(PKTS_BURST), &error);
 		CHECK_ERROR(error);
 		to_burst = &pkts[(j + PKTS_BURST) % TEST_MOD];
 		pg_brick_burst_to_east(brick, SIDE_PORTS - (j % SIDE_PORTS) - 1,
-				       to_burst, PKTS_BURST,
+				       to_burst,
 				       pg_mask_firsts(PKTS_BURST), &error);
 		CHECK_ERROR(error);
 	}

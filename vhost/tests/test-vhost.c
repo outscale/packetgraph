@@ -129,7 +129,7 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	}
 
 	/* send packet to the guest via one interface */
-	pg_brick_burst_to_east(vhost_0, 0, pkts, NB_PKTS,
+	pg_brick_burst_to_east(vhost_0, 0, pkts,
 			       pg_mask_firsts(NB_PKTS), &error);
 	g_assert(!error);
 
@@ -312,11 +312,11 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	}
 
 	/* send packet to the guest via one interface */
-	pg_brick_burst_to_east(vhost_00, 0, pkts, NB_PKTS,
+	pg_brick_burst_to_east(vhost_00, 0, pkts,
 			       pg_mask_firsts(NB_PKTS),
 			       &error);
 	g_assert(!error);
-	pg_brick_burst_to_east(vhost_10, 0, pkts, NB_PKTS,
+	pg_brick_burst_to_east(vhost_10, 0, pkts,
 			       pg_mask_firsts(NB_PKTS),
 			       &error);
 	g_assert(!error);
@@ -508,7 +508,7 @@ static void test_vhost_reco(void)
 		}
 
 		/* send packet to the guest via one interface */
-		pg_brick_burst_to_east(vhost_0, 0, pkts, NB_PKTS,
+		pg_brick_burst_to_east(vhost_0, 0, pkts,
 				       pg_mask_firsts(NB_PKTS), &error);
 		g_assert(!error);
 

@@ -87,7 +87,7 @@ static struct pg_brick_config *vhost_config_new(const char *name,
 
 static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
-		       uint16_t nb, uint64_t pkts_mask, struct pg_error **errp)
+		       uint64_t pkts_mask, struct pg_error **errp)
 {
 	struct pg_vhost_state *state;
 	struct virtio_net *virtio_net;
@@ -163,7 +163,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 
 	pkts_mask = pg_mask_firsts(count);
 	ret = pg_brick_side_forward(s, state->output,
-				 state->in, count, pkts_mask, errp);
+				 state->in, pkts_mask, errp);
 	pg_packets_free(state->in, pkts_mask);
 
 	return ret;
@@ -214,11 +214,6 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	if (!vhost_start_ok) {
 		*errp = pg_error_new(
 "vhost not ready, did you called vhost_start after packetgraph_start ?");
-		return 0;
-	}
-
-	if (!config) {
-		*errp = pg_error_new("config is NULL");
 		return 0;
 	}
 

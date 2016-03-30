@@ -424,7 +424,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 
 static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 		    uint16_t edge_index, struct rte_mbuf **pkts,
-		    uint16_t nb, uint64_t pkts_mask,
+		    uint64_t pkts_mask,
 		    struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
@@ -442,7 +442,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(!ret))
 		return 0;
 
-	ret =  pg_brick_side_forward(s, from, state->pkts, nb, pkts_mask, errp);
+	ret =  pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
 	if (!(state->flags & NO_COPY))
 		pg_packets_free(state->pkts, pkts_mask);
 	return ret;
@@ -545,7 +545,7 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 
 static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		      uint16_t edge_index, struct rte_mbuf **pkts,
-		      uint16_t nb, uint64_t pkts_mask,
+		      uint64_t pkts_mask,
 		      struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
@@ -598,7 +598,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 
 			if (unlikely(!pg_brick_burst(s->edges[i].link,
 						  from,
-						  i, out_pkts, nb,
+						  i, out_pkts,
 						  hitted_mask,
 						  errp)))
 				return from_vtep_failure(out_pkts,
@@ -615,7 +615,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 
 static int vtep_burst(struct pg_brick *brick, enum pg_side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
-			uint16_t nb, uint64_t pkts_mask,
+			uint64_t pkts_mask,
 			struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
@@ -624,10 +624,10 @@ static int vtep_burst(struct pg_brick *brick, enum pg_side from,
 	 * so the pkts are entering in the vtep */
 	if (from == state->output)
 		return from_vtep(brick, from, edge_index,
-				  pkts, nb, pkts_mask, errp);
+				  pkts, pkts_mask, errp);
 	else
 		return to_vtep(brick, from, edge_index,
-				pkts, nb, pkts_mask, errp);
+				pkts, pkts_mask, errp);
 }
 
 static int vtep_init(struct pg_brick *brick,
@@ -636,11 +636,6 @@ static int vtep_init(struct pg_brick *brick,
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct vtep_config *vtep_config;
 	uint16_t max;
-
-	if (!config) {
-		*errp = pg_error_new("config is NULL");
-		return 0;
-	}
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
@@ -923,7 +918,7 @@ static void multicast_internal(struct vtep_state *state,
 
 	pg_brick_side_forward(&state->brick.sides[state->output],
 			      pg_flip_side(state->output),
-			      pkt, 1, pg_mask_firsts(1), errp);
+			      pkt, pg_mask_firsts(1), errp);
 
 error:
 	rte_pktmbuf_free(pkt[0]);
