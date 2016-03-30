@@ -51,7 +51,7 @@ void pg_stop(void);
  */
 static inline enum pg_side pg_flip_side(enum pg_side side)
 {
-	return side ^ 1;
+	return (enum pg_side)(side ^ 1);
 }
 
 /**
