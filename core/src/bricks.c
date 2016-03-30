@@ -605,30 +605,29 @@ void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp)
 
 inline int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 			  uint16_t edge_index, struct rte_mbuf **pkts,
-			  uint16_t nb, uint64_t pkts_mask,
-			  struct pg_error **errp)
+			  uint64_t pkts_mask, struct pg_error **errp)
 {
 	/* @side is the opposite side of the direction on which
 	 * we send the packets, so we flip it */
 	rte_atomic64_add(&brick->sides[pg_flip_side(from)].packet_count,
 			 pg_mask_count(pkts_mask));
-	return brick->burst(brick, from, edge_index, pkts, nb, pkts_mask, errp);
+	return brick->burst(brick, from, edge_index, pkts, pkts_mask, errp);
 }
 
 inline int pg_brick_burst_to_east(struct pg_brick *brick, uint16_t edge_index,
-				  struct rte_mbuf **pkts, uint16_t nb,
-				  uint64_t pkts_mask, struct pg_error **errp)
+				  struct rte_mbuf **pkts, uint64_t pkts_mask,
+				  struct pg_error **errp)
 {
 	return pg_brick_burst(brick, WEST_SIDE, edge_index,
-			      pkts, nb, pkts_mask, errp);
+			      pkts, pkts_mask, errp);
 }
 
 inline int pg_brick_burst_to_west(struct pg_brick *brick, uint16_t edge_index,
-				  struct rte_mbuf **pkts, uint16_t nb,
-				  uint64_t pkts_mask, struct pg_error **errp)
+				  struct rte_mbuf **pkts, uint64_t pkts_mask,
+				  struct pg_error **errp)
 {
 	return pg_brick_burst(brick, EAST_SIDE, edge_index,
-			      pkts, nb, pkts_mask, errp);
+			      pkts, pkts_mask, errp);
 }
 
 int pg_brick_poll(struct pg_brick *brick,
@@ -682,9 +681,8 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 	return brick->ops->burst_get(brick, EAST_SIDE, pkts_mask);
 }
 
-int pg_brick_side_forward(struct pg_brick_side *brick_side,
-			  enum pg_side from, struct rte_mbuf **pkts,
-			  uint16_t nb, uint64_t pkts_mask,
+int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
+			  struct rte_mbuf **pkts, uint64_t pkts_mask,
 			  struct pg_error **errp)
 {
 	int ret = 1;
@@ -694,7 +692,7 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side,
 		if (brick_side->edges[i].link)
 			ret = pg_brick_burst(brick_side->edges[i].link, from,
 					     brick_side->edges[i].pair_index,
-					     pkts, nb, pkts_mask, errp);
+					     pkts, pkts_mask, errp);
 		if (unlikely(!ret))
 			return 0;
 	}

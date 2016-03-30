@@ -107,7 +107,7 @@ void pg_nic_get_stats(struct pg_brick *nic,
 /* The fastpath data function of the nic_brick just forward the bursts */
 static int nic_burst(struct pg_brick *brick, enum pg_side from,
 		     uint16_t edge_index, struct rte_mbuf **pkts,
-		     uint16_t nb_pkts, uint64_t pkts_mask,
+		     uint64_t pkts_mask,
 		     struct pg_error **errp)
 {
 	uint16_t count = 0;
@@ -125,12 +125,12 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 					exit_pkts,
 					count);
 #else
-	if (nb_pkts > max_pkts)
+	if (count > max_pkts)
 		pkts_bursted = rte_eth_tx_burst(state->portid, 0,
 						exit_pkts, max_pkts);
 	else
 		pkts_bursted = rte_eth_tx_burst(state->portid, 0,
-						exit_pkts, nb_pkts);
+						exit_pkts, count);
 #endif /* #ifndef PG_NIC_STUB */
 
 #ifdef PG_NIC_BENCH
@@ -165,7 +165,7 @@ static int nic_poll_forward(struct pg_nic_state *state,
 
 	ret = pg_brick_burst(s->edge.link, state->output,
 			     s->edge.pair_index,
-			     state->pkts, nb_pkts, pkts_mask, errp);
+			     state->pkts, pkts_mask, errp);
 
 	pg_packets_free(state->pkts, pkts_mask);
 	return ret;

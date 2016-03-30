@@ -73,7 +73,7 @@ static bool should_skip(uint16_t *type_filter, struct ether_hdr *eth)
 
 static int print_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
-		       uint16_t nb, uint64_t pkts_mask, struct pg_error **errp)
+		       uint64_t pkts_mask, struct pg_error **errp)
 {
 
 	struct pg_print_state *state;
@@ -132,7 +132,7 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 
 		fprintf(o, "\n");
 	}
-	return pg_brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
+	return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
 }
 
 static int print_init(struct pg_brick *brick,

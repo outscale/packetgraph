@@ -26,7 +26,7 @@ struct pg_nop_state {
 /* The fastpath data function of the nop_brick just forward the bursts */
 
 static int nop_burst(struct pg_brick *brick, enum pg_side from,
-		     uint16_t edge_index, struct rte_mbuf **pkts, uint16_t nb,
+		     uint16_t edge_index, struct rte_mbuf **pkts,
 		     uint64_t pkts_mask, struct pg_error **errp)
 {
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
@@ -35,7 +35,7 @@ static int nop_burst(struct pg_brick *brick, enum pg_side from,
 		return 1;
 	return  pg_brick_burst(s->edge.link, from,
 			       s->edge.pair_index,
-			       pkts, nb, pkts_mask, errp);
+			       pkts, pkts_mask, errp);
 }
 
 static int nop_init(struct pg_brick *brick,
