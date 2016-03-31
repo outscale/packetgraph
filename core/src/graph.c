@@ -100,6 +100,6 @@ continue_while:
 		done = g_list_append(done, b);
 	}
 	fprintf(fd, "}\n");
-	return 1;
+	return 0;
 }
 
