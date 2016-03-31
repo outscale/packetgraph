@@ -29,7 +29,7 @@ struct pg_brick;
  * @param	brick any brick pointer from which to start analyse the graph
  * @param	fd file descriptor where to write the graph description
  * @param	errp is set in case of an error
- * @return	1 on success, 0 on error
+ * @return	0 on success, -1 on error
  */
 int pg_graph_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp);
 

@@ -87,7 +87,7 @@ static void test_brick_core_graph(void)
 	ret = pg_graph_dot(k, fd, &error);
 	fclose(fd);
 	g_assert(!error);
-	g_assert(ret);
+	g_assert(ret == 0);
 
 	/* ugly test is ugly */
 	
