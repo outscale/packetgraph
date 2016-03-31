@@ -83,8 +83,6 @@ void pg_antispoof_arp_disable(struct pg_brick *brick)
 }
 
 static struct pg_brick_config *antispoof_config_new(const char *name,
-						    uint32_t west_max,
-						    uint32_t east_max,
 						    enum pg_side outside,
 						    struct ether_addr mac)
 {
@@ -96,8 +94,7 @@ static struct pg_brick_config *antispoof_config_new(const char *name,
 	antispoof_config->mac = mac;
 	config = g_new0(struct pg_brick_config, 1);
 	config->brick_config = (void *) antispoof_config;
-	return pg_brick_config_init(config, name, west_max,
-				    east_max, PG_MULTIPOLE);
+	return pg_brick_config_init(config, name, 1, 1, PG_DIPOLE);
 }
 
 static inline int antispoof_arp(struct pg_antispoof_state *state,
@@ -162,9 +159,12 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 			continue;
 		}
 	}
-	return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
+	if(s->edge.link == NULL)
+		return 1;
+	return pg_brick_burst(s->edge.link, from,
+			      s->edge.pair_index,
+			      pkts, pkts_mask, errp);
 }
-
 static int antispoof_init(struct pg_brick *brick,
 			  struct pg_brick_config *config,
 			  struct pg_error **errp)
@@ -200,8 +200,8 @@ struct pg_brick *pg_antispoof_new(const char *name,
 				  struct ether_addr mac,
 				  struct pg_error **errp)
 {
-	struct pg_brick_config *config = antispoof_config_new(name, west_max,
-							      east_max, outside,
+	struct pg_brick_config *config = antispoof_config_new(name,
+							      outside,
 							      mac);
 	struct pg_brick *ret = pg_brick_new("antispoof", config, errp);
 
