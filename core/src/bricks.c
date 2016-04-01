@@ -718,7 +718,16 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 	}
 	return 0;
 }
-
+int pg_brick_edge_side_forward(struct pg_brick *brick, enum pg_side from,
+			       uint16_t edge_index,
+			       struct rte_mbuf **pkts, uint64_t pkts_mask,
+			       struct pg_error **errp)
+{
+	if (brick == NULL)
+		return -1;
+	return pg_brick_burst(brick, from,
+			      edge_index, pkts, pkts_mask, errp);
+}
 const char *pg_brick_name(struct pg_brick *brick)
 {
 	return brick->name;

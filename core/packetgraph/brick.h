@@ -64,6 +64,11 @@ int pg_brick_burst_to_west(struct pg_brick *brick, uint16_t edge_index,
 			   struct rte_mbuf **pkts, uint64_t pkts_mask,
 			   struct pg_error **errp);
 
+/* data flow for bricks */
+int pg_brick_edge_side_forward(struct pg_brick *brick, enum pg_side from,
+			       uint16_t edge_index,
+			       struct rte_mbuf **pkts, uint64_t pkts_mask,
+			       struct pg_error **errp);
 /* used for testing */
 struct rte_mbuf **pg_brick_west_burst_get(struct pg_brick *brick,
 					  uint64_t *pkts_mask,
