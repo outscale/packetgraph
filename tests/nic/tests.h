@@ -20,8 +20,7 @@
 
 enum test_flags {
 	PRINT_USAGE = 1,
-	FAIL = 2,
-	PCAP_IN = 4
+	FAIL = 2
 };
 
 extern char *glob_pcap_in;
