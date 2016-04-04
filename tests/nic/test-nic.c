@@ -16,6 +16,7 @@
  */
 
 #include <glib.h>
+#include <glib/gstdio.h>
 
 #include <rte_config.h>
 #include <rte_ethdev.h>
@@ -51,16 +52,20 @@ static void test_nic_simple_flow(void)
 	uint16_t total_get_pkts = 0;
 	struct pg_error *error = NULL;
 	struct pg_nic_stats info;
-	gchar *tmp;
 
 	/* create a chain of a few nop brick with collectors on each sides */
 	/*
 	 * [nic_west] ------- [nic_east]
 	 */
-	tmp = g_strdup_printf("eth_pcap0,rx_pcap=%s,tx_pcap=out.pcap",
-			      glob_pcap_in);
-	nic_west = pg_nic_new("nic", tmp, &error);
-	g_free(tmp);
+
+	/* write rx pcap file (required bu pcap driver) */
+	const gchar pcap_in_file[] = {
+		212, 195, 178, 161, 2, 0, 4, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 255, 255, 0, 0, 1, 0, 0, 0};
+	g_assert(g_file_set_contents("in.pcap", pcap_in_file,
+				     sizeof(pcap_in_file), NULL));
+
+	nic_west = pg_nic_new("nic", "eth_pcap0,rx_pcap=in.pcap,tx_pcap=out.pcap", &error);
 	CHECK_ERROR(error);
 	nic_ring = pg_nic_new_by_id("nic", 0, &error);
 	CHECK_ERROR(error);
@@ -101,6 +106,10 @@ static void test_nic_simple_flow(void)
 	/* break the chain */
 	pg_brick_destroy(nic_west);
 	pg_brick_destroy(nic_ring);
+
+	/* remove pcap files */
+	g_assert(g_unlink("in.pcap") == 0);
+	g_assert(g_unlink("out.pcap") == 0);
 }
 
 #undef NB_PKTS
