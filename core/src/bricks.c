@@ -262,11 +262,11 @@ int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp)
 {
 	if (!brick) {
 		*errp = pg_error_new("brick is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (!brick->ops || !brick->ops->reset)
-		return 0;
+		return -1;
 
 	return brick->ops->reset(brick, errp);
 }
