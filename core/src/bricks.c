@@ -642,12 +642,12 @@ int pg_brick_poll(struct pg_brick *brick,
 {
 	if (!brick) {
 		*errp = pg_error_new("Brick is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (!brick->poll) {
 		*errp = pg_error_new("No poll callback");
-		return 0;
+		return -1;
 	}
 
 	return brick->poll(brick, count, errp);
