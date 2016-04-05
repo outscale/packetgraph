@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 	pg_start(argc, argv, &error);
 	g_assert(!error);
 
-	g_test_add_func("/brick/print/simple", test_print_simple);
+	g_test_add_func("/print/simple", test_print_simple);
 
 	r = g_test_run();
 

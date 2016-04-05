@@ -117,5 +117,5 @@ static void test_nic_simple_flow(void)
 
 void test_nic(void)
 {
-	g_test_add_func("/brick/pcap/nic-pcap", test_nic_simple_flow);
+	g_test_add_func("/nic/pcap/nic-pcap", test_nic_simple_flow);
 }

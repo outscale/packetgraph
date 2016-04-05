@@ -119,5 +119,5 @@ static void test_brick_core_graph(void)
 
 void test_brick_graph(void)
 {
-	g_test_add_func("/brick/core/graph", test_brick_core_graph);
+	g_test_add_func("/core/graph", test_brick_core_graph);
 }

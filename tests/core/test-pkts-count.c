@@ -146,6 +146,6 @@ static void test_brick_pkts_count_east(void)
 void test_pkts_count(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_add_func("/brick/pkts-counter/west", test_brick_pkts_count_west);
-	g_test_add_func("/brick/pkts-counter/east", test_brick_pkts_count_east);
+	g_test_add_func("/core/pkts-counter/west", test_brick_pkts_count_west);
+	g_test_add_func("/core/pkts-counter/east", test_brick_pkts_count_east);
 }
