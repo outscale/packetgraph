@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_FIREWALL_FIREWALL_H
-#define _PG_FIREWALL_FIREWALL_H
+#ifndef _PG_FIREWALL_H
+#define _PG_FIREWALL_H
 
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
@@ -92,4 +92,4 @@ void pg_firewall_rule_flush(struct pg_brick *brick);
  */
 int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp);
 
-#endif  /* _PG_FIREWALL_FIREWALL_H */
+#endif  /* _PG_FIREWALL_H */

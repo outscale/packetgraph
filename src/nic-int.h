@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_NIC_NIC_INT_H
-#define _PG_NIC_NIC_INT_H
+#ifndef _PG_NIC_INT_H
+#define _PG_NIC_INT_H
 
 /* internal headers for nic brick */
 
@@ -33,4 +33,4 @@ extern struct rte_eth_dev rte_eth_devices[RTE_MAX_ETHPORTS];
 extern uint16_t max_pkts;
 #endif /* PG_NIC_STUB */
 
-#endif /* _PG_NIC_NIC_INT_H */
+#endif /* _PG_NIC_INT_H */

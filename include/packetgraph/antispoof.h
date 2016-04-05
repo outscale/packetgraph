@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_ANTISPOOF_ANTISPOOF_H
-#define _PG_ANTISPOOF_ANTISPOOF_H
+#ifndef _PG_ANTISPOOF_H
+#define _PG_ANTISPOOF_H
 
 #ifndef __cplusplus
 #include <rte_config.h>
@@ -61,4 +61,4 @@ void pg_antispoof_arp_enable(struct pg_brick *brick, uint32_t ip);
  */
 void pg_antispoof_arp_disable(struct pg_brick *brick);
 
-#endif  /* _PG_ANTISPOOF_ANTISPOOF_H */
+#endif  /* _PG_ANTISPOOF_H */

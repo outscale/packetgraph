@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_CORE_BRICK_H
-#define _PG_CORE_BRICK_H
+#ifndef _PG_BRICK_H
+#define _PG_BRICK_H
 
 #include <stdbool.h>
 #include <packetgraph/packetgraph.h>
@@ -92,4 +92,4 @@ struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
  */
 uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side);
 
-#endif /* _PG_CORE_BRICK_H */
+#endif /* _PG_BRICK_H */
