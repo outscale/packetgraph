@@ -7,25 +7,13 @@ nics using packetgraph and DPDK:
 [nic]---[firewall]---[nic]
 ```
 
-## Build
+# Build
 
-First, make sure to have built DPDK, installed packetgraph-core,
-packetgraph-nic, packetgraph-firewall, and their dependencies.
+TODO sorry, this part is currently under heavy build.
 
-You can also set global variable PG_CORE, PG_FIREWALL and PG_NIC to specify
-where core, firewall and nic are built.
+# Configure your NICs
 
-```
-$ export RTE_SDK=/path/to/your/DPDK
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
-```
-
-## Configure your NICs
-
-### Using DPDK compatible NICs
+## Using DPDK compatible NICs
 
 If you are using DPDK nics, you have to bind them to a DPDK compatible driver
 so they are not managed by the kernel anymore.
@@ -84,17 +72,17 @@ Other network devices
 Our two ports are now not managed anymore by the kernel are now ready to be used
 in our firewall example.
 
-### Using non-DPDK NICs
+## Using non-DPDK NICs
 
 We can also use NICs which are not optimized to be used with DPDK.
 This will just requiere to pass some additional DPDK arguments to our example:
 "--vdev=eth_pcap0,iface=eth0 --vdev=eth_pcap0,iface=eth1".
 
-## Run example
+# Run example
 
 You can just run the firewall like:
 ```
-$ ./firewall -c1
+$ ./firewall -c1 -n1
 ```
 
 The program will use the first two DPDK ports available.
@@ -107,10 +95,10 @@ command.
 
 For example, you can set isolcpu=0 and run the firewall on the first core:
 ```
-$ taskset -c 0 ./firewall -c1
+$ taskset -c 0 ./firewall -c1 -n1
 ```
 
-## Test firewall
+# Test firewall
 
 As you may saw in example sources, the firewall is configured to accept ICMP and
 TCP packets in port range 50-60.
@@ -118,3 +106,4 @@ You can connect two other hosts on each physical nics and try to make some
 traffic tests using iperf for example.
 Note that firewall only manage IP protocols and is not meant to filter other
 ethernet level protocols such as ARP.
+
