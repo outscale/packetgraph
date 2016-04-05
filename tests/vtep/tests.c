@@ -392,7 +392,7 @@ struct speed_test_headers {
 
 static void test_nop_speed(void)
 {
- 	struct pg_error *error = NULL;
+	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west;
 
 	/*TODO: pregenerate pkts for pkggen*/
@@ -414,13 +414,13 @@ static void test_nop_speed(void)
 		ether_addr_copy(&src, &hdr->ethernet.s_addr);
 		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
 	}
-	
+
 	CHECK_ERROR(error);
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
 	nop_east = pg_nop_new("nop-east", &error);
-	CHECK_ERROR(error);	
+	CHECK_ERROR(error);
 
 	pg_brick_chained_links(&error, pktgen_west , nop_east);
 
@@ -442,12 +442,12 @@ static void test_nop_speed(void)
 	PRINT_RESULT("nop: ");
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
-	
+
 }
 
 static void test_vtep_speed(void)
 {
- 	struct pg_error *error = NULL;
+	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_east, *vtep_west;
 
 	/*TODO: pregenerate pkts for pkggen*/
@@ -471,7 +471,7 @@ static void test_vtep_speed(void)
 		ether_addr_copy(&src, &hdr->ethernet.s_addr);
 		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
 	}
-	
+
 	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
 	pg_scan_ether_addr(&multicast_mac2, "01:00:5e:00:00:06");
 
@@ -485,7 +485,7 @@ static void test_vtep_speed(void)
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
 	nop_east = pg_nop_new("nop-east", &error);
-	CHECK_ERROR(error);	
+	CHECK_ERROR(error);
 
 	pg_brick_chained_links(&error, pktgen_west , vtep_west,
 			    vtep_east, nop_east);
@@ -514,7 +514,7 @@ static void test_vtep_speed(void)
 		ether_addr_copy(&dst, &hdr->ethernet.d_addr);
 		ether_addr_copy(&src, &hdr->ethernet.s_addr);
 		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
-		
+
 		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, &error);
 	} while (0);
 
@@ -540,7 +540,7 @@ static void test_vtep_speed(void)
 
 static void test_vtep_vxlanise(void)
 {
- 	struct pg_error *error = NULL;
+	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_west;
 
 	/*TODO: pregenerate pkts for pkggen*/
@@ -563,7 +563,7 @@ static void test_vtep_vxlanise(void)
 		ether_addr_copy(&src, &hdr->ethernet.s_addr);
 		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
 	}
-	
+
 	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
 
 	vtep_west = pg_vtep_new("vt-w", 1, 1, EAST_SIDE,
@@ -573,7 +573,7 @@ static void test_vtep_vxlanise(void)
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
 	nop_east = pg_nop_new("nop-east", &error);
-	CHECK_ERROR(error);	
+	CHECK_ERROR(error);
 
 	pg_brick_chained_links(&error, pktgen_west , vtep_west,
 			    nop_east);
@@ -599,7 +599,7 @@ static void test_vtep_vxlanise(void)
 		ether_addr_copy(&dst, &hdr->ethernet.d_addr);
 		ether_addr_copy(&src, &hdr->ethernet.s_addr);
 		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
-		
+
 		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, &error);
 	} while (0);
 
@@ -638,7 +638,7 @@ int main(int argc, char **argv)
 	g_test_add_func("/nop/speed", test_nop_speed);
 	g_test_add_func("/vtep/vxlanise/speed", test_vtep_vxlanise);
 	g_test_add_func("/vtep/both/speed", test_vtep_speed);
-	
+
 	r = g_test_run();
 
 	pg_stop();
