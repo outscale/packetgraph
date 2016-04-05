@@ -15,14 +15,14 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_CORE_NOP_H
-#define _PG_CORE_NOP_H
+#ifndef _PG_NOP_H
+#define _PG_NOP_H
 
 #include <packetgraph/errors.h>
 
 struct pg_brick *pg_nop_new(const char *name,
 			    struct pg_error **errp);
 
-#endif  /* _PG_CORE_NOP_H */
+#endif  /* _PG_NOP_H */
 
 

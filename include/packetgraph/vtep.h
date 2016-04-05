@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_VTEP_VTEP_H
-#define _PG_VTEP_VTEP_H
+#ifndef _PG_VTEP_H
+#define _PG_VTEP_H
 
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/errors.h>
@@ -80,4 +80,4 @@ struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
 		       uint32_t east_max, enum pg_side output,
 		       uint32_t ip, struct ether_addr mac,
 		       int flag, struct pg_error **errp);
-#endif /* _PG_VTEP_VTEP_H */
+#endif /* _PG_VTEP_H */

@@ -23,8 +23,8 @@
 #include "utils/mac.h"
 #include "utils/bitmask.h"
 
-#ifndef PG_CORE_UTILS_MAC_TABLE_H
-#define PG_CORE_UTILS_MAC_TABLE_H
+#ifndef PG_UTILS_MAC_TABLE_H
+#define PG_UTILS_MAC_TABLE_H
 
 #define PG_MAC_TABLE_MASK_SIZE (0xffffff / 64 + 1)
 

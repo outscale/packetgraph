@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_CORE_UTILS_QEMU_H
-#define _PG_CORE_UTILS_QEMU_H
+#ifndef _PG_UTILS_QEMU_H
+#define _PG_UTILS_QEMU_H
 
 #include <packetgraph/errors.h>
 
@@ -38,4 +38,4 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 
 void pg_util_stop_qemu(int qemu_pid);
 
-#endif /* _PG_CORE_UTILS_MEMPOOL_H */
+#endif /* _PG_UTILS_MEMPOOL_H */

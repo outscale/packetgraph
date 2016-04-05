@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_CORE_PACKETSGEN_H
-#define _PG_CORE_PACKETSGEN_H
+#ifndef _PG_PACKETSGEN_H
+#define _PG_PACKETSGEN_H
 
 #include <rte_config.h>
 #include <rte_mbuf.h>
@@ -48,4 +48,4 @@ struct pg_brick *pg_packetsgen_new(const char *name,
 				   uint16_t packets_nb,
 				   struct pg_error **errp);
 
-#endif  /* _PG_CORE_PACKETSGEN_H */
+#endif  /* _PG_PACKETSGEN_H */

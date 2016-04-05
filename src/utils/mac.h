@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PG_CORE_UTILS_MAC_H
-#define PG_CORE_UTILS_MAC_H
+#ifndef PG_UTILS_MAC_H
+#define PG_UTILS_MAC_H
 
 #include <rte_ether.h>
 
@@ -44,4 +44,4 @@ void pg_print_mac(struct ether_addr *eth_addr);
 
 const char *pg_printable_mac(struct ether_addr *eth_addr, char *buf);
 
-#endif /* _PG_CORE_UTILS_MAC_H */
+#endif /* _PG_UTILS_MAC_H */
