@@ -634,10 +634,10 @@ int main(int argc, char **argv)
 	g_assert(r >= 0);
 	g_assert(!error);
 
-	g_test_add_func("/brick/vtep/simple", test_vtep_simple);
-	g_test_add_func("/brick/nop/speed", test_nop_speed);
-	g_test_add_func("/brick/vtep/vxlanise/speed", test_vtep_vxlanise);
-	g_test_add_func("/brick/vtep/both/speed", test_vtep_speed);
+	g_test_add_func("/vtep/simple", test_vtep_simple);
+	g_test_add_func("/nop/speed", test_nop_speed);
+	g_test_add_func("/vtep/vxlanise/speed", test_vtep_vxlanise);
+	g_test_add_func("/vtep/both/speed", test_vtep_speed);
 	
 	r = g_test_run();
 

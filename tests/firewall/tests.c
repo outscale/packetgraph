@@ -625,10 +625,10 @@ static void test_firewall_noip(void)
 
 static void test_firewall(void)
 {
-	g_test_add_func("/brick/firewall/filter", test_firewall_filter);
-	g_test_add_func("/brick/firewall/tcp", test_firewall_tcp);
-	g_test_add_func("/brick/firewall/icmp", test_firewall_icmp);
-	g_test_add_func("/brick/firewall/noip", test_firewall_noip);
+	g_test_add_func("/firewall/filter", test_firewall_filter);
+	g_test_add_func("/firewall/tcp", test_firewall_tcp);
+	g_test_add_func("/firewall/icmp", test_firewall_icmp);
+	g_test_add_func("/firewall/noip", test_firewall_noip);
 }
 
 int main(int argc, char **argv)

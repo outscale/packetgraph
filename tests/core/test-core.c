@@ -470,15 +470,15 @@ static void test_brick_core_verify_re_link(void)
 void test_brick_core(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_add_func("/brick/core/simple-lifecycle",
+	g_test_add_func("/core/simple-lifecycle",
 			test_brick_core_simple_lifecycle);
-	g_test_add_func("/brick/core/refcount", test_brick_core_refcount);
-	g_test_add_func("/brick/core/link",	test_brick_core_link);
-	g_test_add_func("/brick/core/multiple-link",
+	g_test_add_func("/core/refcount", test_brick_core_refcount);
+	g_test_add_func("/core/link",	test_brick_core_link);
+	g_test_add_func("/core/multiple-link",
 			test_brick_core_multiple_link);
-	g_test_add_func("/brick/core/verify/multiple-link",
+	g_test_add_func("/core/verify/multiple-link",
 			test_brick_core_verify_multiple_link);
-	g_test_add_func("/brick/core/verify/re-link",
+	g_test_add_func("/core/verify/re-link",
 			test_brick_core_verify_re_link);
 
 

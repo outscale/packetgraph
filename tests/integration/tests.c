@@ -583,11 +583,11 @@ int main(int argc, char **argv)
 	if (test_flags & PRINT_USAGE)
 		print_usage();
 	g_assert(!(test_flags & FAIL));
-	g_test_add_func("/brick/graph/flow",
+	g_test_add_func("/integration/graph/flow",
 			test_graph_type1);
-	g_test_add_func("/brick/graph/intense/solo",
+	g_test_add_func("/integration/graph/intense/solo",
 			test_graph_firewall_intense);
-	g_test_add_func("/brick/graph/intense/multiple",
+	g_test_add_func("/integration/graph/intense/multiple",
 			test_graph_firewall_intense_multiple);
 
 	r = g_test_run();

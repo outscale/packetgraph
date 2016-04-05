@@ -171,13 +171,13 @@ static void test_diode_east_bad_direction(void)
 static void test_diode(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_add_func("/brick/diode/west/good",
+	g_test_add_func("/diode/west/good",
 			test_diode_west_good_direction);
-	g_test_add_func("/brick/diode/west/bad",
+	g_test_add_func("/diode/west/bad",
 			test_diode_west_bad_direction);
-	g_test_add_func("/brick/diode/east/good",
+	g_test_add_func("/diode/east/good",
 			test_diode_east_good_direction);
-	g_test_add_func("/brick/diode/east/bad",
+	g_test_add_func("/diode/east/bad",
 			test_diode_east_bad_direction);
 }
 
