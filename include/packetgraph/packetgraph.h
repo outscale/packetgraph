@@ -22,6 +22,16 @@
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 #include <packetgraph/graph.h>
+#include <packetgraph/antispoof.h>
+#include <packetgraph/diode.h>
+#include <packetgraph/firewall.h>
+#include <packetgraph/hub.h>
+#include <packetgraph/nic.h>
+#include <packetgraph/nop.h>
+#include <packetgraph/print.h>
+#include <packetgraph/switch.h>
+#include <packetgraph/vhost.h>
+#include <packetgraph/vtep.h>
 
 struct pg_brick;
 
