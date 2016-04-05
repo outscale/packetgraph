@@ -3,7 +3,7 @@
 SWITCH_SRC_ROOT=$1
 SWITCH_BUILD_ROOT=$2
 
-source $SWITCH_SRC_ROOT/functions.sh
+source functions.sh
 
 network_connect 0 1
 server_start 0
