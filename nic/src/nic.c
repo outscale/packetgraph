@@ -140,7 +140,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 		pg_packets_free(exit_pkts, pg_mask_firsts(count) &
 				~pg_mask_firsts(pkts_bursted));
 	}
-	return 1;
+	return 0;
 }
 
 static int nic_poll_forward(struct pg_nic_state *state,
@@ -153,7 +153,7 @@ static int nic_poll_forward(struct pg_nic_state *state,
 	uint64_t pkts_mask;
 
 	if (unlikely(s->edge.link == NULL))
-		return 1;
+		return 0;
 
 	pkts_mask = pg_mask_firsts(nb_pkts);
 
@@ -176,7 +176,7 @@ static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 				   state->pkts, PG_MAX_PKTS_BURST);
 	if (!nb_pkts) {
 		*pkts_cnt = 0;
-		return 1;
+		return 0;
 	}
 
 	*pkts_cnt = nb_pkts;

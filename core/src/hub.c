@@ -42,11 +42,11 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 			ret = pg_brick_burst(s->edges[j].link, pg_flip_side(i),
 					     s->edges[j].pair_index,
 					     pkts, nb, pkts_mask, errp);
-			if (unlikely(!ret))
-				return 0;
+			if (unlikely(ret < 0))
+				return -1;
 		}
 	}
-	return 1;
+	return 0;
 }
 
 static int hub_init(struct pg_brick *brick,

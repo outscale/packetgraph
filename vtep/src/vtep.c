@@ -469,7 +469,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 
 	/* if the port VNI is not set up ignore the packets */
 	if (!unlikely(port->multicast_ip))
-		return 1;
+		return 0;
 
 	/* TODO: pg_packets_prefetch and pg_packets_prepare_hash_keys should
 	 * have been made and clean in switch, so we should add option in
@@ -481,7 +481,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
 
 	if (unlikely(ret))
-		return 0;
+		return -1;
 
 	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
 
@@ -498,7 +498,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 no_forward:
 	if (!(state->flags & NO_PACKETS_CLEANUP))
 		pg_packets_clear_hash_keys(state->pkts, pkts_mask);
-	return 0;
+	return -1;
 }
 
 static inline int add_dst_iner_mac(struct vtep_state *state,
@@ -559,7 +559,7 @@ static inline int from_vtep_failure_no_clear(struct rte_mbuf **pkts,
 {
 	if (!no_copy)
 		pg_packets_free(pkts, pkts_mask);
-	return 0;
+	return -1;
 }
 
 static inline int from_vtep_failure(struct rte_mbuf **pkts, uint64_t pkts_mask,
@@ -669,11 +669,11 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 								  state->flags &
 								  NO_COPY);
 
-			if (unlikely(!pg_brick_burst(s->edges[i].link,
+			if (unlikely(pg_brick_burst(s->edges[i].link,
 						  from,
 						  i, out_pkts, nb,
 						  vni_mask,
-						  errp)))
+						  errp) < 0))
 				return from_vtep_failure_no_clear(out_pkts,
 								  vni_mask,
 								  state->flags &
@@ -687,7 +687,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		if (unlikely(pg_packets_prepare_hash_keys(out_pkts,
 							vni_mask,
 							errp)))
-			return 0;
+			return -1;
 
 		ret = rte_table_hash_key8_lru_dosig_ops.f_lookup(port->
 								 known_mac,
@@ -712,11 +712,11 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		}
 		pg_packets_clear_hash_keys(out_pkts, vni_mask);
 		if (hitted_mask) {
-			if (unlikely(!pg_brick_burst(s->edges[i].link,
+			if (unlikely(pg_brick_burst(s->edges[i].link,
 						  from,
 						  i, out_pkts, nb,
 						  hitted_mask,
-						  errp)))
+						  errp) < 0))
 				return from_vtep_failure_no_clear(out_pkts,
 								  vni_mask,
 								  state->flags &
@@ -726,7 +726,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		if (unlikely(!(state->flags & NO_COPY)))
 			pg_packets_free(out_pkts, vni_mask);
 	}
-	return 1;
+	return 0;
 }
 
 static int vtep_burst(struct pg_brick *brick, enum pg_side from,

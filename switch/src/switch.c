@@ -97,10 +97,10 @@ static inline int forward(struct pg_switch_state *state, enum pg_side to,
 	struct pg_switch_side *switch_side = &state->sides[to];
 
 	if (!switch_side->masks[index])
-		return 1;
+		return 0;
 
 	if (!edge->link)
-		return 1;
+		return 0;
 
 	return pg_brick_burst(edge->link, pg_flip_side(to), edge->pair_index,
 			      pkts, nb, switch_side->masks[index], errp);
@@ -122,19 +122,19 @@ static int forward_bursts(struct pg_switch_state *state,
 	for (j = 0; j < state->brick.sides[i].max; j++) {
 		ret = forward(state, i, j, pkts, nb, errp);
 
-		if (!ret)
-			return 0;
+		if (ret < 0)
+			return -1;
 	}
 
 	i = pg_flip_side(i);
 	for (j = 0; j < state->brick.sides[i].max; j++) {
 		ret = forward(state, i, j, pkts, nb, errp);
 
-		if (!ret)
-			return 0;
+		if (ret < 0)
+			return -1;
 	}
 
-	return 1;
+	return 0;
 }
 
 static inline int is_filtered(struct ether_addr *eth_addr)
@@ -275,7 +275,7 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 
 	ret = pg_packets_prepare_hash_keys(pkts, pkts_mask, errp);
 	if (unlikely(ret))
-		return 0;
+		return -1;
 
 	ret = do_learn_filter_multicast(state, &source, pkts,
 					pkts_mask, &unicast_mask, errp);
@@ -299,7 +299,7 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	return forward_bursts(state, &source, pkts, nb, errp);
 no_forward:
 	pg_packets_clear_hash_keys(pkts, pkts_mask);
-	return 0;
+	return -1;
 }
 
 static int switch_init(struct pg_brick *brick,

@@ -54,7 +54,7 @@ static int diode_burst(struct pg_brick *brick, enum pg_side from,
 	s = &brick->sides[pg_flip_side(from)];
 
 	if (state->output == from)
-		return 1;
+		return 0;
 
 	return pg_brick_side_forward(s, from, pkts, nb, pkts_mask, errp);
 }

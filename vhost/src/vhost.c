@@ -98,7 +98,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	if (state->output == from) {
 		*errp = pg_error_new(
 				"Burst packets going on the wrong direction");
-		return 0;
+		return -1;
 	}
 
 	rcu_read_lock();
@@ -106,12 +106,12 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 
 	if (unlikely(!virtio_net)) {
 		rcu_read_unlock();
-		return 1;
+		return 0;
 	}
 
 	if (unlikely(!(virtio_net->flags & VIRTIO_DEV_RUNNING))) {
 		rcu_read_unlock();
-		return 1;
+		return 0;
 	}
 
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
@@ -135,7 +135,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 #endif /* #ifdef PG_VHOST_BENCH */
 
 	rcu_read_unlock();
-	return 1;
+	return 0;
 }
 
 static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
@@ -157,12 +157,12 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 
 	if (unlikely(!virtio_net)) {
 		rcu_read_unlock();
-		return 1;
+		return 0;
 	}
 
 	if (unlikely(!(virtio_net->flags & VIRTIO_DEV_RUNNING))) {
 		rcu_read_unlock();
-		return 1;
+		return 0;
 	}
 
 	count = rte_vhost_dequeue_burst(virtio_net, VIRTIO_TXQ, mp, state->in,
@@ -172,7 +172,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	rcu_read_unlock();
 
 	if (!count)
-		return 1;
+		return 0;
 
 	pkts_mask = pg_mask_firsts(count);
 	ret = pg_brick_side_forward(s, state->output,
