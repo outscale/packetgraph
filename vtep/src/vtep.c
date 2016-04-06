@@ -434,7 +434,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 
 	/* if the port VNI is not set up ignore the packets */
 	if (!unlikely(port->multicast_ip))
-		return 1;
+		return 0;
 
 
 	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
@@ -483,7 +483,7 @@ static inline int from_vtep_failure(struct rte_mbuf **pkts,
 {
 	if (!no_copy)
 		pg_packets_free(pkts, pkts_mask);
-	return 0;
+	return -1;
 }
 
 static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
@@ -596,11 +596,11 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 			add_dst_iner_macs(state, port, out_pkts, hdrs,
 					  hitted_mask, multicast_mask);
 
-			if (unlikely(!pg_brick_burst(s->edges[i].link,
-						  from,
-						  i, out_pkts,
-						  hitted_mask,
-						  errp)))
+			if (unlikely(pg_brick_burst(s->edges[i].link,
+						    from,
+						    i, out_pkts,
+						    hitted_mask,
+						    errp) < 0))
 				return from_vtep_failure(out_pkts,
 							 vni_mask,
 							 state->flags &
@@ -610,7 +610,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		if (unlikely(!(state->flags & NO_COPY)))
 			pg_packets_free(out_pkts, vni_mask);
 	}
-	return 1;
+	return 0;
 }
 
 static int vtep_burst(struct pg_brick *brick, enum pg_side from,

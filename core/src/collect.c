@@ -42,7 +42,7 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 	BUILD_ASSERT(PG_MAX_PKTS_BURST == 64);
 	if (pg_last_bit_pos(pkts_mask) > PG_MAX_PKTS_BURST) {
 		*errp = pg_error_new("Burst too big");
-		return 0;
+		return -1;
 	}
 
 	if (state->pkts_mask[from])
@@ -55,7 +55,7 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 	       sizeof(struct rte_mbuf *));
 	pg_packets_incref(state->pkts[from], pkts_mask);
 
-	return 1;
+	return 0;
 }
 
 static struct rte_mbuf **collect_burst_get(struct pg_brick *brick,

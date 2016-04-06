@@ -640,12 +640,12 @@ int pg_brick_poll(struct pg_brick *brick,
 {
 	if (!brick) {
 		*errp = pg_error_new("Brick is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (!brick->poll) {
 		*errp = pg_error_new("No poll callback");
-		return 0;
+		return -1;
 	}
 
 	return brick->poll(brick, count, errp);
@@ -698,11 +698,11 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 			ret = pg_brick_burst(brick_side->edges[i].link, from,
 					     brick_side->edges[i].pair_index,
 					     pkts, pkts_mask, errp);
-		if (unlikely(!ret))
-			return 0;
+		if (unlikely(ret < 0))
+			return -1;
 	}
 
-	return 1;
+	return 0;
 }
 
 uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)

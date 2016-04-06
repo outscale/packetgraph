@@ -431,8 +431,7 @@ static void test_nop_speed(void)
 		uint16_t nb_send_pkts;
 
 		for (int i = 0; i < 100; ++i) {
-			g_assert(pg_brick_poll(pktgen_west,
-					    &nb_send_pkts, &error));
+			g_assert(pg_brick_poll(pktgen_west, &nb_send_pkts, &error) == 0);
 			tot_send_pkts += nb_send_pkts;
 		}
 		gettimeofday(&end, 0);
@@ -524,7 +523,7 @@ static void test_vtep_speed(void)
 
 		for (int i = 0; i < 100; ++i) {
 			g_assert(pg_brick_poll(pktgen_west,
-					       &nb_send_pkts, &error));
+					       &nb_send_pkts, &error) == 0);
 			tot_send_pkts += nb_send_pkts;
 		}
 		gettimeofday(&end, 0);
@@ -609,7 +608,7 @@ static void test_vtep_vxlanise(void)
 
 		for (int i = 0; i < 100; ++i) {
 			g_assert(pg_brick_poll(pktgen_west,
-					       &nb_send_pkts, &error));
+					       &nb_send_pkts, &error) == 0);
 			tot_send_pkts += nb_send_pkts;
 		}
 		gettimeofday(&end, 0);

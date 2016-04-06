@@ -98,12 +98,12 @@ static inline int forward(struct pg_switch_state *state, enum pg_side to,
 	uint64_t mask;
 
 	if (!edge->link)
-		return 1;
+		return 0;
 
 	mask = switch_side->masks[index];
 
 	if (!mask)
-		return 1;
+		return 0;
 
 
 	switch_side->masks[index] = 0;
@@ -127,19 +127,19 @@ static int forward_bursts(struct pg_switch_state *state,
 	for (j = 0; j < state->brick.sides[i].max; j++) {
 		ret = forward(state, i, j, pkts, errp);
 
-		if (!ret)
-			return 0;
+		if (ret < 0)
+			return -1;
 	}
 
 	i = pg_flip_side(i);
 	for (j = 0; j < state->brick.sides[i].max; j++) {
 		ret = forward(state, i, j, pkts, errp);
 
-		if (!ret)
-			return 0;
+		if (ret < 0)
+			return -1;
 	}
 
-	return 1;
+	return 0;
 }
 
 static inline bool is_filtered(struct ether_addr *eth_addr)
