@@ -98,12 +98,12 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	if (state->output == from) {
 		*errp = pg_error_new(
 				"Burst packets going on the wrong direction");
-		return 0;
+		return -1;
 	}
 
 	/* Try lock */
 	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
-		return 1;
+		return 0;
 
 	virtio_net = state->virtio_net;
 
@@ -128,7 +128,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 #endif /* #ifdef PG_VHOST_BENCH */
 
 	rte_atomic32_clear(&state->allow_queuing);
-	return 1;
+	return 0;
 }
 
 static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
@@ -147,7 +147,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	*pkts_cnt = 0;
 	/* Try lock */
 	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
-		return 1;
+		return 0;
 
 	rte_atomic32_set(&state->allow_queuing, 0);
 	virtio_net = state->virtio_net;
@@ -159,7 +159,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 
 	rte_atomic32_clear(&state->allow_queuing);
 	if (!count)
-		return 1;
+		return 0;
 
 	pkts_mask = pg_mask_firsts(count);
 	ret = pg_brick_side_forward(s, state->output,

@@ -49,8 +49,8 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 				     flip_i,
 				     edges[j].pair_index,
 				     pkts, pkts_mask, errp);
-		if (unlikely(!ret))
-			return 0;
+		if (unlikely(ret < 0))
+			return -1;
 	}
 
 	flip_i = pg_flip_side(flip_i);
@@ -65,10 +65,10 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 				     flip_i,
 				     edges[j].pair_index,
 				     pkts, pkts_mask, errp);
-		if (unlikely(!ret))
-			return 0;
+		if (unlikely(ret < 0))
+			return -1;
 	}
-	return 1;
+	return 0;
 }
 
 static int hub_init(struct pg_brick *brick,
