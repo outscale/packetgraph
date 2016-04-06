@@ -88,7 +88,7 @@ void pg_firewall_rule_flush(struct pg_brick *brick);
  * @param	brick pointer to the firewall brick
  * @param	errp is set in case of an error
  * @return	0 if the firewall has reloaded correctly
- *		1 otherwise and errp is set.
+ *		-1 otherwise and errp is set.
  */
 int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp);
 

@@ -158,12 +158,10 @@ int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
 	}
 
 	config_build = npf_config_build(config);
-	ret = npf_load(state->npf, config_build, &errinfo);
+	ret = npf_load(state->npf, config_build, &errinfo) ? 0 : -1;
 	npf_config_destroy(config);
-	if (ret != 0) {
-		ret = 1;
+	if (ret == 0)
 		*errp = pg_error_new("NPF failed to load configuration");
-	}
 	return ret;
 }
 
