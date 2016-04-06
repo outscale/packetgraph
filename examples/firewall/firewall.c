@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	CHECK_ERROR(error);
 	g_assert(pg_firewall_rule_add(fw, "icmp", MAX_SIDE, 1, &error) == 0);
 	CHECK_ERROR(error);
-	g_assert(!pg_firewall_reload(fw, &error));
+	g_assert(pg_firewall_reload(fw, &error) < 0);
 	CHECK_ERROR(error);
 
 	for (;;) {

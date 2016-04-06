@@ -178,7 +178,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 	g_assert(!error);
 
 	/* let's burst ! */
@@ -208,7 +208,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 	g_assert(!error);
 
 	/* let it goooo */
@@ -238,7 +238,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	pg_firewall_rule_flush(fw);
 	ret = pg_firewall_reload(fw, &error);
 	g_assert(!error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 
 	/* let it goooo */
 	pg_brick_poll(gen, &packet_count, &error);
@@ -261,7 +261,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 	g_assert(!error);
 
 	/* let it goooo */
@@ -293,7 +293,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 	g_assert(!error);
 
 	/* let it goooo */
@@ -326,7 +326,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 	g_assert(!error);
 
 	/* let it goooo */
@@ -350,7 +350,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 	g_assert(!error);
 
 	/* let it goooo */
@@ -467,7 +467,7 @@ static void firewall_replay(const unsigned char *pkts[],
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
 	g_assert(!error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 
 	/* replay traffic */
 	for (i = 0; i < pkts_nb; i++) {
@@ -521,7 +521,7 @@ static void firewall_replay(const unsigned char *pkts[],
 		g_assert(ret == 0);
 		ret = pg_firewall_reload(fw, &error);
 		g_assert(!error);
-		g_assert(ret == 0);
+		g_assert(ret < 0);
 	}
 
 	/* clean */
