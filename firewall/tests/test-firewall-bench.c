@@ -52,7 +52,7 @@ void test_benchmark_firewall(void)
 	g_assert(!error);
 	g_assert(ret == 0);
 	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret == 0);
+	g_assert(ret < 0);
 	g_assert(!error);
 
 	bench.input_brick = fw;
