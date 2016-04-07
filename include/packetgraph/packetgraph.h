@@ -34,5 +34,6 @@
 #include <packetgraph/vtep.h>
 #include <packetgraph/brick.h>
 #include <packetgraph/lifecycle.h>
+#include <packetgraph/queue.h>
 
 #endif /* _PG_PACKETGRAPH_H */

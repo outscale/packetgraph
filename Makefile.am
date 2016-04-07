@@ -3,6 +3,7 @@ lib_LTLIBRARIES = libpacketgraph.la
 # No wildcard
 # https://www.gnu.org/software/automake/manual/html_node/Wildcards.html
 libpacketgraph_la_SOURCES = \
+	src/queue.c\
 	src/firewall.c\
 	src/printer.c\
 	src/packets.c\
@@ -50,6 +51,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/firewall.h\
 	include/packetgraph/vhost.h\
 	include/packetgraph/switch.h\
+	include/packetgraph/queue.h\
 	include/packetgraph/errors.h
 
 dist_doc_DATA = README.md
