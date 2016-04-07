@@ -56,7 +56,7 @@ pkginclude_HEADERS = \
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-firewall tests-integration tests-nic tests-print tests-switch tests-vhost tests-vtep
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep
 
 noinst_LTLIBRARIES = libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
@@ -111,6 +111,11 @@ tests_print_SOURCES = \
 tests_print_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_print_LDFLAGS = libpacketgraph-dev.la
 
+tests_queue_SOURCES = \
+	tests/queue/tests.c
+tests_queue_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_queue_LDFLAGS = libpacketgraph-dev.la
+
 tests_switch_SOURCES = \
 	tests/switch/tests.c
 tests_switch_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
@@ -135,6 +140,7 @@ TESTS = \
 	tests/integration/test.sh\
 	tests/nic/test.sh\
 	tests/print/test.sh\
+	tests/queue/test.sh\
 	tests/switch/test.sh\
 	tests/vhost/test.sh\
 	tests/vtep/test.sh
