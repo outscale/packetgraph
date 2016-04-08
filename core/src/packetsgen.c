@@ -102,7 +102,7 @@ static int packetsgen_init(struct pg_brick *brick,
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
+		return -1;
 	}
 
 	packetsgen_config = ((struct pg_packetsgen_config *)
@@ -110,12 +110,12 @@ static int packetsgen_init(struct pg_brick *brick,
 
 	if (packetsgen_config->packets == NULL) {
 		*errp = pg_error_new("packets argument is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (packetsgen_config->packets_nb == 0) {
 		*errp = pg_error_new("packet number must be positive");
-		return 0;
+		return -1;
 	}
 
 	state->output = packetsgen_config->output;
@@ -123,13 +123,13 @@ static int packetsgen_init(struct pg_brick *brick,
 	state->packets_nb = packetsgen_config->packets_nb;
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
 	/* Initialize fast path */
 	brick->burst = packetsgen_burst;
 	brick->poll = packetsgen_poll;
 
-	return 1;
+	return 0;
 }
 
 static struct pg_brick_config *packetsgen_config_new(const char *name,

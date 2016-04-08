@@ -50,7 +50,7 @@ static int nop_init(struct pg_brick *brick,
 	/* initialize fast path */
 	brick->burst = nop_burst;
 
-	return 1;
+	return 0;
 }
 
 struct pg_brick *pg_nop_new(const char *name,

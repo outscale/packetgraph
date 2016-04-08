@@ -146,7 +146,7 @@ static int print_init(struct pg_brick *brick,
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
+		return -1;
 	}
 
 	print_config = (struct pg_print_config *) config->brick_config;
@@ -173,9 +173,9 @@ static int print_init(struct pg_brick *brick,
 	}
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
-	return 1;
+	return 0;
 }
 
 struct pg_brick *pg_print_new(const char *name,
