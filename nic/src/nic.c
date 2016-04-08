@@ -249,17 +249,17 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	if (!config) {
 		*errp = pg_error_new("config is NULL");
-		return 0;
+		return -1;
 	}
 	nic_config = config->brick_config;
 
 	if (!nic_config) {
 		*errp = pg_error_new("config->nic is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
 	/* Setup port id */
 	if (nic_config->ifname) {
@@ -271,17 +271,17 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 		}
 		g_free(tmp);
 		if (pg_error_is_set(errp))
-			return 0;
+			return -1;
 	} else if (nic_config->portid < rte_eth_dev_count()) {
 		state->portid = nic_config->portid;
 	} else {
 		*errp = pg_error_new("Invalid port id %i",
 				  nic_config->portid);
-		return 0;
+		return -1;
 	}
 
 	if (nic_init_ports(state, errp) < 0)
-		return 0;
+		return -1;
 
 	ret = rte_eth_dev_start(state->portid);
 	if (ret < 0) {
@@ -295,7 +295,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 	brick->burst = nic_burst;
 	brick->poll = nic_poll;
 
-	return 1;
+	return 0;
 }
 
 static void nic_destroy(struct pg_brick *brick, struct pg_error **errp)

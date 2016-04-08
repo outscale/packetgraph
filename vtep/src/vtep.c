@@ -788,12 +788,12 @@ static int vtep_init(struct pg_brick *brick,
 
 	if (!config) {
 		*errp = pg_error_new("config is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
+		return -1;
 	}
 
 	vtep_config = config->brick_config;
@@ -802,7 +802,7 @@ static int vtep_init(struct pg_brick *brick,
 	if (pg_side_get_max(brick, state->output) != 1) {
 		*errp = pg_error_new("brick %s number of output port is not 1",
 				  brick->name);
-		return 0;
+		return -1;
 	}
 	state->ip = vtep_config->ip;
 	ether_addr_copy(&vtep_config->mac, &state->mac);
@@ -812,12 +812,12 @@ static int vtep_init(struct pg_brick *brick,
 	rte_atomic16_set(&state->packet_id, 0);
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
 	vtep_init_hashes(brick, errp);
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
 	/* do a lazy allocation of the VTEP ports: the code will init them
 	 * at VNI port add
@@ -828,7 +828,7 @@ static int vtep_init(struct pg_brick *brick,
 
 	brick->burst = vtep_burst;
 
-	return 1;
+	return 0;
 }
 
 static struct pg_brick_config *vtep_config_new(const char *name,

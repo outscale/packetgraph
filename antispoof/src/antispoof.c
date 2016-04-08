@@ -177,7 +177,7 @@ static int antispoof_init(struct pg_brick *brick,
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
+		return -1;
 	}
 
 	antispoof_config = (struct pg_antispoof_config *) config->brick_config;
@@ -194,9 +194,9 @@ static int antispoof_init(struct pg_brick *brick,
 	memcpy(&state->arp_packet.sender_mac, &state->mac, ETHER_ADDR_LEN);
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
-	return 1;
+	return 0;
 }
 
 struct pg_brick *pg_antispoof_new(const char *name,

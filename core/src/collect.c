@@ -78,7 +78,7 @@ static int collect_init(struct pg_brick *brick,
 {
 	brick->burst = collect_burst;
 
-	return 1;
+	return 0;
 }
 
 static int collect_reset(struct pg_brick *brick, struct pg_error **errp)

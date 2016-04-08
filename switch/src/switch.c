@@ -319,7 +319,7 @@ static int switch_init(struct pg_brick *brick,
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
+		return -1;
 	}
 
 	brick->burst = switch_burst;
@@ -332,7 +332,7 @@ static int switch_init(struct pg_brick *brick,
 		*errp = pg_error_new(
 				"Failed to create hash for switch brick '%s'",
 				brick->name);
-		return 0;
+		return -1;
 	}
 
 	for (i = 0; i < MAX_SIDE; i++) {
@@ -343,7 +343,7 @@ static int switch_init(struct pg_brick *brick,
 	}
 	state->output =
 	  ((struct pg_switch_config *)config->brick_config)->output;
-	return 1;
+	return 0;
 }
 
 static struct pg_brick_config *pg_switch_config_new(const char *name,

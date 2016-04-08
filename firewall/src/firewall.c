@@ -250,7 +250,7 @@ static int firewall_init(struct pg_brick *brick,
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
+		return -1;
 	}
 
 	fw_config = (struct pg_firewall_config *) config->brick_config;
@@ -260,13 +260,13 @@ static int firewall_init(struct pg_brick *brick,
 	if (!nb_firewall) {
 		if (unlikely(npf_sysinit(NWORKERS) < 0)) {
 			*errp = pg_error_new("fail during npf initialisation");
-			return 0;
+			return -1;
 		}
 	}
 	npf = npf_dpdk_create(fw_config->flags);
 	if (unlikely(!npf)) {
 		*errp = pg_error_new("fail to create npf");
-		return 0;
+		return -1;
 	}
 	npf_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
@@ -274,7 +274,7 @@ static int firewall_init(struct pg_brick *brick,
 	state->rules = NULL;
 	++nb_firewall;
 
-	return 1;
+	return 0;
 }
 
 static void firewall_destroy(struct pg_brick *brick,

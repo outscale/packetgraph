@@ -227,17 +227,17 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	if (!vhost_start_ok) {
 		*errp = pg_error_new(
 "vhost not ready, did you called vhost_start after packetgraph_start ?");
-		return 0;
+		return -1;
 	}
 
 	if (!config) {
 		*errp = pg_error_new("config is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (!config->brick_config) {
 		*errp = pg_error_new("config->brick_config is NULL");
-		return 0;
+		return -1;
 	}
 
 	vhost_config = (struct pg_vhost_config *) config->brick_config;
@@ -245,17 +245,17 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	state->output = vhost_config->output;
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
 	vhost_create_socket(state, errp);
 
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
 	brick->burst = vhost_burst;
 	brick->poll = vhost_poll;
 
-	return 1;
+	return 0;
 }
 
 struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
