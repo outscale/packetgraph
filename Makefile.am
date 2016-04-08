@@ -209,6 +209,7 @@ style:
 
 help:
 	@echo "make         : build packetgraph"
+	@echo "make doc     : generate public documentation using doxygen"
 	@echo "make style   : run style tests"
 	@echo "make check   : run tests"
 	@echo "make install : install packetgraph library"
@@ -222,6 +223,13 @@ endif
 if PG_EXAMPLES
 # TODO
 endif
+
+doxygen.conf: $(srcdir)/doc/doxygen.conf.template
+	$(SED) "s|PG_SRC_PATH|@srcdir@|g" $< > $@
+
+.PHONY: doc
+doc: doxygen.conf
+	doxygen $^
 
 # libtoolize recommanded this
 ACLOCAL_AMFLAGS = -I m4
