@@ -32,3 +32,5 @@ tests-*
 \#*\#
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
+doxygen.conf
+html
