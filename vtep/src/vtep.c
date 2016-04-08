@@ -392,7 +392,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		/* pick up the right destination ip */
 		if (likely(unicast)) {
 			struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(
-				pkts[i],
+				pkt,
 				struct ether_hdr *);
 
 			entry = pg_mac_table_elem_get(
@@ -404,9 +404,9 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		}
 
 		if (unlikely(!(state->flags & NO_COPY)))
-			tmp = rte_pktmbuf_clone(pkts[i], mp);
+			tmp = rte_pktmbuf_clone(pkt, mp);
 		else
-			tmp = pkts[i];
+			tmp = pkt;
 		if (unlikely(!tmp))
 			return 0;
 
