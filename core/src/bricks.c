@@ -124,7 +124,7 @@ struct pg_brick *pg_brick_new(const char *name,
 			      struct pg_error **errp)
 {
 	struct pg_brick *brick;
-	size_t ret;
+	int ret;
 	GList *it;
 
 
@@ -170,7 +170,7 @@ struct pg_brick *pg_brick_new(const char *name,
 
 	ret = brick->ops->init(brick, config, errp);
 
-	if (!ret) {
+	if (ret < 0) {
 		if (!pg_error_is_set(errp))
 			*errp = pg_error_new("Failed to init '%s' brick", name);
 		goto fail_exit;

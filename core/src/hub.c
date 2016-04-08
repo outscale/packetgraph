@@ -78,7 +78,7 @@ static int hub_init(struct pg_brick *brick,
 	/* initialize fast path */
 	brick->burst = hub_burst;
 
-	return 1;
+	return 0;
 }
 
 struct pg_brick *pg_hub_new(const char *name, uint32_t west_max,

@@ -74,9 +74,9 @@ static int diode_init(struct pg_brick *brick,
 
 	state->output = diode_config->output;
 	if (pg_error_is_set(errp))
-		return 0;
+		return -1;
 
-	return 1;
+	return 0;
 }
 
 struct pg_brick *pg_diode_new(const char *name,
