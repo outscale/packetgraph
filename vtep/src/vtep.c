@@ -764,8 +764,8 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	port->vni = vni;
 	port->multicast_ip = multicast_ip;
 
-	pg_mac_table_init(&port->mac_to_dst);
-	pg_mac_table_init(&port->known_mac);
+	g_assert(!pg_mac_table_init(&port->mac_to_dst));
+	g_assert(!pg_mac_table_init(&port->known_mac));
 
 	multicast_subscribe(state, port, multicast_ip, errp);
 }

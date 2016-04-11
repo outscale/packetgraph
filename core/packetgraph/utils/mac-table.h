@@ -74,10 +74,10 @@ struct pg_mac_table_iterator {
 
 static inline int pg_mac_table_init(struct pg_mac_table *ma)
 {
-	ma->ptrs = malloc(0xffffff * sizeof(struct pg_mac_table_ptr *));
-	memset(ma->mask, 0, (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
+	ma->ptrs = malloc((0xffffff + 1) * sizeof(struct pg_mac_table_ptr *));
 	if (!ma->ptrs)
 		return -1;
+	memset(ma->mask, 0, (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
 	return 0;
 }
 
@@ -112,9 +112,10 @@ static inline void pg_mac_table_elem_set(struct pg_mac_table *ma,
 	if (unlikely(!pg_mac_table_is_set(*ma, part1))) {
 		pg_mac_table_mask_set(*ma, part1);
 		ma->elems[part1] = malloc(sizeof(struct pg_mac_table_elem));
+		g_assert(ma->elems[part1]);
 		memset(ma->ptrs[part1]->mask, 0,
 		       (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
-		ma->ptrs[part1]->entries = malloc(0xffffff * elem_size);
+		ma->elems[part1]->entries = malloc((0xffffff + 1) * elem_size);
 	}
 
 	if (pg_mac_table_is_set(*ma->elems[part1], part2))
@@ -135,9 +136,11 @@ static inline void pg_mac_table_ptr_set(struct pg_mac_table *ma,
 	if (unlikely(!pg_mac_table_is_set(*ma, part1))) {
 		pg_mac_table_mask_set(*ma, part1);
 		ma->ptrs[part1] = malloc(sizeof(struct pg_mac_table_ptr));
+		g_assert(ma->ptrs[part1]);
 		memset(ma->ptrs[part1]->mask, 0,
 		       (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
-		ma->ptrs[part1]->entries = malloc(0xffffff * sizeof(void *));
+		ma->ptrs[part1]->entries =
+			malloc((0xffffff + 1) * sizeof(void *));
 	}
 
 	/*
