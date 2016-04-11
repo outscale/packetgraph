@@ -30,7 +30,7 @@ static void test_brick_flow_west(void)
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
 	struct pg_brick *brick1, *brick2, *collect_west, *collect_east;
-	struct rte_mbuf mbufs[NB_PKTS];
+	static struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[NB_PKTS];
 	uint16_t i;
@@ -128,7 +128,7 @@ static void test_brick_flow_east(void)
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
 	struct pg_brick *brick1, *brick2, *collect_west, *collect_east;
-	struct rte_mbuf mbufs[NB_PKTS];
+	static struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[NB_PKTS];
 	uint16_t i;

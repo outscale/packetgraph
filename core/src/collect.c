@@ -51,9 +51,9 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 	state->pkts_mask[from] = pkts_mask;
 	/* We made sure nb <= PG_MAX_PKTS_BURST */
 	/* Flawfinder: ignore */
-	memcpy(state->pkts[from], pkts, pg_last_bit_pos(pkts_mask)*
-	sizeof(struct rte_mbuf *));
-	pg_packets_incref(state->pkts[from], state->pkts_mask[from]);
+	memcpy(state->pkts[from], pkts, pg_last_bit_pos(pkts_mask) *
+	       sizeof(struct rte_mbuf *));
+	pg_packets_incref(state->pkts[from], pkts_mask);
 
 	return 1;
 }
