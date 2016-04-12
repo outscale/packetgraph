@@ -357,8 +357,6 @@ void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp)
 	brick->ops->unlink(brick, errp);
 }
 
-
-
 struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
 					enum pg_side side,
 					uint32_t edge)
@@ -733,3 +731,51 @@ uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side)
 {
 	return brick->sides[side].max;
 }
+
+int pg_brick_unlink_edge(struct pg_brick *west,
+			 struct pg_brick *east,
+			 struct pg_error **error)
+{
+	int i;
+	int west_max;
+	int west_index;
+	struct pg_brick_edge *west_edge = NULL;
+
+	if (!is_brick_valid(west)) {
+		*error = pg_error_new("West brick is not valid");
+		return -1;
+	}
+
+	if (!is_brick_valid(east)) {
+		*error = pg_error_new("East brick is not valid");
+		return -1;
+	}
+
+	west_max = get_side(west, EAST_SIDE)->max;
+	for (i = 0; i < west_max; i++) {
+		struct pg_brick_edge *edge =
+			pg_brick_get_edge(west, EAST_SIDE, i);
+
+		if (edge->link == east) {
+			west_edge = edge;
+			west_index = i;
+			break;
+		}
+	}
+	if (!west_edge) {
+		*error = pg_error_new("%s does not seem to be linked with %s",
+				      west->name, east->name);
+		return -1;
+	}
+
+	/* self-unlink notify and unlink edge only */
+	unlink_notify(west_edge, EAST_SIDE, error);
+	if (*error)
+		return -1;
+	do_unlink(west, EAST_SIDE, west_index, error);
+	if (*error)
+		return -1;
+
+	return 0;
+}
+
