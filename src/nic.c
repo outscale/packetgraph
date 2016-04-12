@@ -289,7 +289,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 	if (ret < 0) {
 		*errp = pg_error_new("Device failed to start on port %d",
 				     state->portid);
-		return ret;
+		return -1;
 	}
 	rte_eth_promiscuous_enable(state->portid);
 
