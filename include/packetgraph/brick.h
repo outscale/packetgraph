@@ -71,6 +71,18 @@ int pg_brick_chained_links_int(struct pg_error **errp,
 void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp);
 
 /**
+ * Remove link between two bricks without removing other links
+ *
+ * @param	west west brick to unlink with east brick
+ * @param	east east brick to unlink with west brick
+ * @param	error is set in case of an error
+ * @return	0 on success, -1 on error
+ */
+int pg_brick_unlink_edge(struct pg_brick *west,
+			 struct pg_brick *east,
+			 struct pg_error **error);
+
+/**
  * Poll packets from a brick a let it flow through the graph.
  * All polled packets will be free once the poll is done.
  *
