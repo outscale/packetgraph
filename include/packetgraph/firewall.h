@@ -74,7 +74,7 @@ void pg_firewall_gc(struct pg_brick *brick);
 /**
  * Flush all rules of the firewall.
  * Note that the flush won't be effective, you will need to call
- * girewall_reload() before.
+ * firewall_reload() before.
  *
  * @param	brick pointer to the firewall brick
  */
