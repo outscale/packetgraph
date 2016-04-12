@@ -151,6 +151,112 @@ static void test_brick_core_link(void)
 	pg_brick_config_free(config);
 }
 
+static void test_brick_core_unlink_edge(void)
+{
+	struct pg_error *error = NULL;
+	struct pg_brick *west_brick, *middle_brick, *east_brick;
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
+							     PG_MULTIPOLE);
+	int64_t refcount;
+	int ret;
+
+	west_brick = pg_brick_new("nop", config, &error);
+	g_assert(west_brick);
+	g_assert(!error);
+
+	middle_brick = pg_brick_new("nop", config, &error);
+	g_assert(middle_brick);
+	g_assert(!error);
+
+	east_brick = pg_brick_new("nop", config, &error);
+	g_assert(east_brick);
+	g_assert(!error);
+
+	ret = pg_brick_link(west_brick, middle_brick,  &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	ret = pg_brick_link(middle_brick, east_brick, &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 2);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 3);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 2);
+
+	g_assert(pg_brick_unlink_edge(west_brick, east_brick, &error) == -1);
+	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
+	g_assert(pg_brick_unlink_edge(east_brick, west_brick, &error) == -1);
+	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
+
+	g_assert(!pg_brick_unlink_edge(west_brick, middle_brick, &error));
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 2);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 2);
+
+	g_assert(!pg_brick_unlink_edge(middle_brick, east_brick, &error));
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 1);
+
+	ret = pg_brick_link(west_brick, middle_brick,  &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	ret = pg_brick_link(middle_brick, east_brick, &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 2);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 3);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 2);
+
+	g_assert(!pg_brick_unlink_edge(middle_brick, east_brick, &error));
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 2);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 2);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 1);
+
+	g_assert(!pg_brick_unlink_edge(west_brick, middle_brick, &error));
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 1);
+
+	/* destroy */
+	pg_brick_decref(west_brick, &error);
+	g_assert(!error);
+	pg_brick_decref(middle_brick, &error);
+	g_assert(!error);
+	pg_brick_decref(east_brick, &error);
+	g_assert(!error);
+
+	pg_brick_config_free(config);
+}
+
 static void test_brick_core_multiple_link(void)
 {
 	struct pg_brick *west_brick, *middle_brick, *east_brick;
@@ -206,6 +312,263 @@ static void test_brick_core_multiple_link(void)
 	g_assert(refcount == 4);
 
 	pg_brick_unlink(east_brick, &error);
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 1);
+
+	/* destroy */
+	pg_brick_decref(west_brick, &error);
+	g_assert(!error);
+	pg_brick_decref(middle_brick, &error);
+	g_assert(!error);
+	pg_brick_decref(east_brick, &error);
+	g_assert(!error);
+
+	pg_brick_config_free(config);
+}
+
+static void test_brick_core_multiple_unlink_edge_(struct pg_brick *west[4],
+						  struct pg_brick *middle,
+						  struct pg_brick *east[4])
+{
+	struct pg_error *error = NULL;
+	int ret;
+	int i;
+
+	for (i = 0; i < 4; i++) {
+		ret = pg_brick_chained_links(&error, west[i], middle, east[i]);
+		g_assert(ret == 0);
+		g_assert(!error);
+	}
+	g_assert(pg_brick_refcount(middle) == 9);
+	for (i = 0; i < 4; i++) {
+		g_assert(pg_brick_refcount(west[i]) == 2);
+		g_assert(pg_brick_refcount(east[i]) == 2);
+	}
+
+	g_assert(pg_brick_unlink_edge(west[0], east[0], &error) == -1);
+	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
+	g_assert(pg_brick_unlink_edge(east[0], west[0], &error) == -1);
+	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
+
+	g_assert(!pg_brick_unlink_edge(west[0], middle, &error));
+	g_assert(!error);
+	g_assert(pg_brick_refcount(west[0]) == 1);
+	for (i = 1; i < 4; i++)
+		g_assert(pg_brick_refcount(west[i]) == 2);
+	g_assert(pg_brick_refcount(middle) == 8);
+	for (i = 0; i < 4; i++)
+		g_assert(pg_brick_refcount(east[i]) == 2);
+
+	g_assert(!pg_brick_unlink_edge(west[1], middle, &error));
+	g_assert(!error);
+	for (i = 0; i < 2; i++)
+		g_assert(pg_brick_refcount(west[i]) == 1);
+	for (i = 2; i < 4; i++)
+		g_assert(pg_brick_refcount(west[i]) == 2);
+	g_assert(pg_brick_refcount(middle) == 7);
+	for (i = 0; i < 4; i++)
+		g_assert(pg_brick_refcount(east[i]) == 2);
+
+	g_assert(!pg_brick_unlink_edge(middle, east[0], &error));
+	g_assert(!error);
+	for (i = 0; i < 2; i++)
+		g_assert(pg_brick_refcount(west[i]) == 1);
+	for (i = 2; i < 4; i++)
+		g_assert(pg_brick_refcount(west[i]) == 2);
+	g_assert(pg_brick_refcount(middle) == 6);
+	g_assert(pg_brick_refcount(east[0]) == 1);
+	for (i = 1; i < 4; i++)
+		g_assert(pg_brick_refcount(east[i]) == 2);
+
+	g_assert(!pg_brick_unlink_edge(middle, east[1], &error));
+	g_assert(!error);
+	for (i = 0; i < 2; i++)
+		g_assert(pg_brick_refcount(west[i]) == 1);
+	for (i = 2; i < 4; i++)
+		g_assert(pg_brick_refcount(west[i]) == 2);
+	g_assert(pg_brick_refcount(middle) == 5);
+	for (i = 0; i < 2; i++)
+		g_assert(pg_brick_refcount(east[i]) == 1);
+	for (i = 2; i < 4; i++)
+		g_assert(pg_brick_refcount(east[i]) == 2);
+
+	g_assert(!pg_brick_unlink_edge(west[2], middle, &error));
+	g_assert(!error);
+	for (i = 0; i < 3; i++)
+		g_assert(pg_brick_refcount(west[i]) == 1);
+	g_assert(pg_brick_refcount(west[3]) == 2);
+	g_assert(pg_brick_refcount(middle) == 4);
+	for (i = 0; i < 2; i++)
+		g_assert(pg_brick_refcount(east[i]) == 1);
+	for (i = 2; i < 4; i++)
+		g_assert(pg_brick_refcount(east[i]) == 2);
+
+	g_assert(!pg_brick_unlink_edge(middle, east[2], &error));
+	g_assert(!error);
+	for (i = 0; i < 3; i++)
+		g_assert(pg_brick_refcount(west[i]) == 1);
+	g_assert(pg_brick_refcount(west[3]) == 2);
+	g_assert(pg_brick_refcount(middle) == 3);
+	for (i = 0; i < 3; i++)
+		g_assert(pg_brick_refcount(east[i]) == 1);
+	g_assert(pg_brick_refcount(east[3]) == 2);
+
+	g_assert(!pg_brick_unlink_edge(west[3], middle, &error));
+	g_assert(!error);
+	for (i = 0; i < 4; i++)
+		g_assert(pg_brick_refcount(west[i]) == 1);
+	g_assert(pg_brick_refcount(middle) == 2);
+	for (i = 0; i < 3; i++)
+		g_assert(pg_brick_refcount(east[i]) == 1);
+	g_assert(pg_brick_refcount(east[3]) == 2);
+
+	g_assert(!pg_brick_unlink_edge(middle, east[3], &error));
+	g_assert(!error);
+	for (i = 0; i < 4; i++)
+		g_assert(pg_brick_refcount(west[i]) == 1);
+	g_assert(pg_brick_refcount(middle) == 1);
+	for (i = 0; i < 4; i++)
+		g_assert(pg_brick_refcount(east[i]) == 1);
+}
+
+static void test_brick_core_multiple_unlink_edge(void)
+{
+	int i;
+	struct pg_brick *west[4];
+	struct pg_brick *middle;
+	struct pg_brick *east[4];
+	struct pg_error *error = NULL;
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
+							     PG_MULTIPOLE);
+
+	middle = pg_brick_new("nop", config, &error);
+	g_assert(middle);
+	g_assert(!error);
+	for (i = 0; i < 4; i++) {
+		west[i] = pg_brick_new("nop", config, &error);
+		g_assert(west[i]);
+		g_assert(!error);
+		east[i] = pg_brick_new("nop", config, &error);
+		g_assert(east[i]);
+		g_assert(!error);
+	}
+
+	for (int i = 0; i < 10; i++)
+		test_brick_core_multiple_unlink_edge_(west, middle, east);
+
+	/* destroy */
+	for (i = 0; i < 4; i++) {
+		pg_brick_decref(west[i], &error);
+		g_assert(!error);
+		pg_brick_decref(east[i], &error);
+		g_assert(!error);
+	}
+	pg_brick_decref(middle, &error);
+	g_assert(!error);
+
+	pg_brick_config_free(config);
+}
+
+static void test_brick_core_multiple_unlink_edge_same(void)
+{
+	struct pg_brick *west_brick, *middle_brick, *east_brick;
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
+							     PG_MULTIPOLE);
+	struct pg_error *error = NULL;
+	int64_t refcount;
+	int ret;
+
+	west_brick = pg_brick_new("nop", config, &error);
+	g_assert(west_brick);
+	g_assert(!error);
+
+	middle_brick = pg_brick_new("nop", config, &error);
+	g_assert(middle_brick);
+	g_assert(!error);
+
+	east_brick = pg_brick_new("nop", config, &error);
+	g_assert(east_brick);
+	g_assert(!error);
+
+	ret = pg_brick_link(west_brick, middle_brick, &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+	ret = pg_brick_link(west_brick, middle_brick, &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	ret = pg_brick_link(middle_brick, east_brick, &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+	ret = pg_brick_link(middle_brick, east_brick, &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+	ret = pg_brick_link(middle_brick, east_brick, &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 3);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 6);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 4);
+
+	g_assert(pg_brick_unlink_edge(west_brick, east_brick, &error) == -1);
+	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
+	g_assert(pg_brick_unlink_edge(east_brick, west_brick, &error) == -1);
+	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
+
+	g_assert(!pg_brick_unlink_edge(west_brick, middle_brick, &error));
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 2);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 5);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 4);
+
+	g_assert(!pg_brick_unlink_edge(west_brick, middle_brick, &error));
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 4);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 4);
+
+	g_assert(!pg_brick_unlink_edge(middle_brick, east_brick, &error));
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 3);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 3);
+
+	g_assert(!pg_brick_unlink_edge(middle_brick, east_brick, &error));
+	g_assert(!error);
+	refcount = pg_brick_refcount(west_brick);
+	g_assert(refcount == 1);
+	refcount = pg_brick_refcount(middle_brick);
+	g_assert(refcount == 2);
+	refcount = pg_brick_refcount(east_brick);
+	g_assert(refcount == 2);
+
+	g_assert(!pg_brick_unlink_edge(middle_brick, east_brick, &error));
 	g_assert(!error);
 	refcount = pg_brick_refcount(west_brick);
 	g_assert(refcount == 1);
@@ -474,8 +837,14 @@ void test_brick_core(void)
 			test_brick_core_simple_lifecycle);
 	g_test_add_func("/core/refcount", test_brick_core_refcount);
 	g_test_add_func("/core/link",	test_brick_core_link);
+	g_test_add_func("/core/unlink-edge",
+			test_brick_core_unlink_edge);
 	g_test_add_func("/core/multiple-link",
 			test_brick_core_multiple_link);
+	g_test_add_func("/core/multiple-unlink-edge",
+			test_brick_core_multiple_unlink_edge);
+	g_test_add_func("/core/multiple-unlink-edge-same",
+			test_brick_core_multiple_unlink_edge_same);
 	g_test_add_func("/core/verify/multiple-link",
 			test_brick_core_verify_multiple_link);
 	g_test_add_func("/core/verify/re-link",
