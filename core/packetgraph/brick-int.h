@@ -135,8 +135,8 @@ struct pg_brick_ops {
 
 	/* life cycle */
 	int (*init)(struct pg_brick *brick,		/* constructor */
-		    struct pg_brick_config *config,	/* ret 1 on success */
-		    struct pg_error **errp);		/* and 0 on error */
+		    struct pg_brick_config *config,	/* ret 0 on success */
+		    struct pg_error **errp);		/* and -1 on error */
 
 	void (*destroy)(struct pg_brick *brick,		/* destructor */
 			struct pg_error **errp);

@@ -256,7 +256,7 @@ struct pg_brick *pg_brick_decref(struct pg_brick *brick, struct pg_error **errp)
  *
  * @param	brick the brick we are working with
  * @param	errp a return pointer for an error message
- * @return	1 on success, 0 on error
+ * @return	0 on success, -1 on error
  */
 int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp)
 {

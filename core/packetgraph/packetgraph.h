@@ -62,7 +62,7 @@ static inline enum pg_side pg_flip_side(enum pg_side side)
  * @param	east the brick wich will be linked to it's west side to the
  *		other brick.
  * @param	errp is set in case of an error
- * @return	1 on success, 0 on error
+ * @return	0 on success, -1 on error
  */
 int pg_brick_link(struct pg_brick *west, struct pg_brick *east,
 		  struct pg_error **errp);
@@ -107,7 +107,7 @@ void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp);
  * @param	brick brick to poll
  * @param	count number of polled packets
  * @param	errp is set in case of an error
- * @return	1 on success, 0 on error
+ * @return	0 on success, -1 on error
  */
 int pg_brick_poll(struct pg_brick *brick, uint16_t *count,
 		  struct pg_error **errp);
