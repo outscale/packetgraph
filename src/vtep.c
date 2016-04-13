@@ -351,7 +351,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	ip_build(state, &headers->ipv4, state->ip, dst_ip,
 		 packet_len + ip_overhead());
 	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
-
+	pkt->l2_len = HEADERS_LENGTH + sizeof(struct ether_hdr);
 	return 0;
 }
 
