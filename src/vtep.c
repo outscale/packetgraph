@@ -378,13 +378,12 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		struct dest_addresses *entry = NULL;
 		/* struct ether_hdr *eth_hdr; */
 		/* uint32_t dst_ip; */
-		uint64_t bit;
 		struct rte_mbuf *pkt;
 		int unicast;
 		uint16_t i;
 		struct rte_mbuf *tmp;
 
-		pg_low_bit_iterate_full(pkts_mask, bit, i);
+		pg_low_bit_iterate(pkts_mask, i);
 
 		pkt = pkts[i];
 		/* must we encapsulate in an unicast VTEP header */
