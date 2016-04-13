@@ -1,0 +1,60 @@
+
+language: c
+
+dist: trusty
+
+before_install:
+ - sudo apt-get install -y linux-headers-$(uname -r)
+ - sudo apt-get install -y automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev
+ - sudo apt-get install -y build-essential make git hugepages
+ - sudo apt-get install -y qemu-kvm qemu-system virt-manager virt-viewer libvirt-bin
+ - cd ~/
+
+ - sudo bash -c "echo 1024 > /proc/sys/vm/nr_hugepages"
+ - sudo bash -c "mkdir -p /mnt/huge"
+ - sudo bash -c "chmod -R 777 /mnt/huge"
+ - sudo bash -c "mount -t hugetlbfs nodev /mnt/huge"
+ - sudo bash -c "echo \"hugetlbfs       /mnt/huge  hugetlbfs       rw,mode=0777        0 0\">> /etc/fstab"
+ - sudo apt-get update
+
+ - git clone http://dpdk.org/git/dpdk
+ - cd dpdk
+ - git checkout -b v16.04 v16.04
+ - export RTE_SDK=/home/travis/dpdk
+ - make config T=x86_64-native-linuxapp-gcc
+ - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_VHOST=n/CONFIG_RTE_LIBRTE_PMD_VHOST=y/g" build/.config
+ - sed -i -e "s/CONFIG_RTE_LIBRTE_VHOST=n/CONFIG_RTE_LIBRTE_VHOST=y/g" build/.config
+ - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" build/.config
+ - make EXTRA_CFLAGS='-fPIC'
+ - cd ~/
+ - git clone https://github.com/outscale/packetgraph.git
+ 
+script:
+ - cd ~/packetgraph
+ - ./autogen.sh
+ - mkdir build
+ - cd build
+ - ./../configure RTE_SDK=/home/travis/dpdk
+ 
+ - make tests-antispoof
+ - make tests-core
+ - make tests-diode
+ - make tests-firewall
+ - make tests-integration
+ - make tests-nic
+ - make tests-print
+ - make tests-queue
+ - make tests-switch
+ - make tests-vhost
+ - make tests-vtep
+
+ - ./../tests/antispoof/test.sh
+ - ./../tests/core/test.sh
+ - ./../tests/diode/test.sh
+ - ./../tests/firewall/test.sh
+ - ./../tests/nic/test.sh
+ - ./../tests/print/test.sh
+ - ./../tests/queue/test.sh
+ - ./../tests/switch/test.sh
+ - ./../tests/vtep/test.sh
+
