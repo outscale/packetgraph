@@ -23,13 +23,13 @@
 
 #include "utils/mac.h"
 
-inline int pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
+inline bool pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
 {
 	int ret;
 
 	/* is the input string long enough */
 	if (strlen(buf) < 17)
-		return 0;
+		return false;
 
 	ret = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
 		&eth_addr->addr_bytes[0],
