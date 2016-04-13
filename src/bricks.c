@@ -562,8 +562,9 @@ static void brick_generic_unlink_multipole(struct pg_brick *brick,
 					   struct pg_error **errp)
 {
 	uint16_t i;
+	int max = brick->sides[side].max;
 
-	for (i = 0; i < brick->sides[side].max; i++) {
+	for (i = 0; i < max; i++) {
 		do_unlink(brick, side, i, errp);
 
 		if (pg_error_is_set(errp))
