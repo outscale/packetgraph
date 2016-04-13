@@ -18,6 +18,7 @@
 #ifndef PG_UTILS_MAC_H
 #define PG_UTILS_MAC_H
 
+#include <stdbool.h>
 #include <rte_ether.h>
 
 union pg_mac {
@@ -32,7 +33,7 @@ union pg_mac {
 	} __attribute__ ((__packed__));
 } __attribute__ ((__packed__));
 
-int pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf);
+bool pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf);
 
 void pg_set_mac_addrs(struct rte_mbuf *mb, const char *src, const char *dst);
 
