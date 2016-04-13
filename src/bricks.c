@@ -336,12 +336,6 @@ uint32_t pg_brick_links_count_get(struct pg_brick *brick,
 	return count;
 }
 
-/**
- * This function unlinks all the link from and to this brick
- *
- * @param	brick the brick brick to unlink
- * @param	errp a return pointer for an error message
- */
 void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp)
 {
 	if (!is_brick_valid(brick)) {
