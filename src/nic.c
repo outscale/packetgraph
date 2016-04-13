@@ -211,6 +211,9 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 			.mq_mode = ETH_MQ_TX_NONE,
 		},
 	};
+	static const struct rte_eth_txconf tx_conf = {
+		.txq_flags = 0,
+	};
 
 	ret = rte_eth_dev_configure(state->portid, 1, 1, &port_conf);
 	if (ret < 0) {
@@ -234,7 +237,7 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 
 	ret = rte_eth_tx_queue_setup(state->portid, 0, 64,
 				     rte_eth_dev_socket_id(state->portid),
-				     NULL);
+				     &tx_conf);
 	if (ret < 0) {
 		*errp = pg_error_new(
 			"Setup failed for port tx queue 0, port %d",
