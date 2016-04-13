@@ -287,8 +287,9 @@ static uint16_t count_side(struct pg_brick_side *side,
 			   struct pg_brick *target)
 {
 	uint16_t j, count = 0;
+	int max = side->max;
 
-	for (j = 0; j < side->max; j++)
+	for (j = 0; j < max; j++)
 		if (side->edges[j].link && side->edges[j].link == target)
 			count++;
 	return count;
