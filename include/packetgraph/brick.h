@@ -127,4 +127,14 @@ const char *pg_brick_name(struct pg_brick *brick);
  */
 const char *pg_brick_type(struct pg_brick *brick);
 
+/**
+ * Describe connected bricks through a dot (graphviz) graph.
+ *
+ * @param	brick any brick pointer from which to start analyse the graph
+ * @param	fd file descriptor where to write the graph description
+ * @param	errp is set in case of an error
+ * @return	0 on success, -1 on error
+ */
+int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp);
+
 #endif /* _PG_BRICK_H */
