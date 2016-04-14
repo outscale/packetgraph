@@ -16,16 +16,14 @@
  */
 
 #include <glib.h>
+#include <string.h>
 
 #include <packetgraph/packetgraph.h>
-#include <packetgraph/nop.h>
-#include <packetgraph/hub.h>
 #include "tests.h"
-#include <string.h>
 
 #define RESULT_SIZE 100000
 
-static void test_brick_core_graph(void)
+static void test_brick_core_dot(void)
 {
 	/* Create a weird graph and make a representation using dot.
 	 *
@@ -86,7 +84,7 @@ static void test_brick_core_graph(void)
 	g_assert(!error);
 
 	fd = fmemopen(result, RESULT_SIZE, "w+");
-	ret = pg_graph_dot(k, fd, &error);
+	ret = pg_brick_dot(k, fd, &error);
 	fclose(fd);
 	g_assert(!error);
 	g_assert(ret == 0);
@@ -117,7 +115,7 @@ static void test_brick_core_graph(void)
 	pg_brick_destroy(k);
 }
 
-void test_brick_graph(void)
+void test_brick_dot(void)
 {
-	g_test_add_func("/core/graph", test_brick_core_graph);
+	g_test_add_func("/core/dot", test_brick_core_dot);
 }

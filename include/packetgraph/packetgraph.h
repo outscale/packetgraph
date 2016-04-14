@@ -21,7 +21,6 @@
 #include <stdarg.h>
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
-#include <packetgraph/graph.h>
 #include <packetgraph/antispoof.h>
 #include <packetgraph/diode.h>
 #include <packetgraph/firewall.h>
