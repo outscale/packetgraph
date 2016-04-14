@@ -19,7 +19,7 @@
 #include <string.h>
 #include "utils/ccan/build_assert/build_assert.h"
 #include <packetgraph/common.h>
-#include "brick.h"
+#include "brick-int.h"
 #include "packets.h"
 #include "collect.h"
 #include "utils/bitmask.h"

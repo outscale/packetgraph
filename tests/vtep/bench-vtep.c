@@ -26,7 +26,7 @@
 #include <packetgraph/vtep.h>
 #include <packetgraph/nop.h>
 #include "packets.h"
-#include "brick.h"
+#include "brick-int.h"
 #include "utils/bench.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"

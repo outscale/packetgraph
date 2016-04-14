@@ -20,7 +20,7 @@
 
 #include <packetgraph/common.h>
 #include <packetgraph/nop.h>
-#include "brick.h"
+#include "brick-int.h"
 #include "utils/bitmask.h"
 #include "utils/config.h"
 #include "utils/mempool.h"

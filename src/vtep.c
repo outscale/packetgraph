@@ -44,7 +44,7 @@
 #include <packetgraph/common.h>
 #include <packetgraph/vtep.h>
 #include <packetgraph/errors.h>
-#include "brick.h"
+#include "brick-int.h"
 #include "packets.h"
 #include "utils/bitmask.h"
 #include "utils/mempool.h"

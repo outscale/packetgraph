@@ -28,7 +28,7 @@
 #include <packetgraph/errors.h>
 #include "utils/mempool.h"
 #include "utils/config.h"
-#include "brick.h"
+#include "brick-int.h"
 #include "collect.h"
 #include "tests.h"
 
