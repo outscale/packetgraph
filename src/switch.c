@@ -27,9 +27,8 @@
 #define HASH_ENTRIES		(1024 * 32)
 #define HASH_KEY_SIZE		8
 
-#include <packetgraph/common.h>
-#include <packetgraph/switch.h>
-#include "brick.h"
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 #include "packets.h"
 #include "utils/bitmask.h"
 #include "utils/mac-table.h"

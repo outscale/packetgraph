@@ -25,7 +25,7 @@
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/antispoof.h>
 #include "packets.h"
-#include "brick.h"
+#include "brick-int.h"
 #include "utils/bench.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"

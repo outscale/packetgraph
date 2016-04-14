@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <packetgraph/diode.h>
-#include "brick.h"
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 
 struct pg_diode_config {
 	enum pg_side output;

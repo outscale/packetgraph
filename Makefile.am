@@ -17,7 +17,7 @@ libpacketgraph_la_SOURCES = \
 	src/utils/bitmask.c\
 	src/print.c\
 	src/hub.c\
-	src/bricks.c\
+	src/brick.c\
 	src/packetsgen.c\
 	src/vhost.c\
 	src/npf_dpdk.c\
@@ -43,6 +43,8 @@ pkginclude_HEADERS = \
 	include/packetgraph/nop.h\
 	include/packetgraph/nic.h\
 	include/packetgraph/antispoof.h\
+	include/packetgraph/brick.h\
+	include/packetgraph/lifecycle.h\
 	include/packetgraph/graph.h\
 	include/packetgraph/vtep.h\
 	include/packetgraph/firewall.h\

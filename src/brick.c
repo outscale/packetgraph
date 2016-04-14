@@ -21,7 +21,8 @@
 
 #include <string.h>
 #include <glib.h>
-#include "brick.h"
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 #include "utils/bitmask.h"
 
 /* All registred bricks. */

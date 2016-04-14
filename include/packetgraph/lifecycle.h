@@ -15,35 +15,25 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_COMMON_H
-#define _PG_COMMON_H
-
-enum pg_side {
-	WEST_SIDE = 0,
-	EAST_SIDE = 1,
-	MAX_SIDE  = 2
-};
-
-static inline const char *pg_side_to_string(enum pg_side side)
-{
-	static const char * const sides[] = {"WEST_SIDE",
-					     "EAST_SIDE",
-					     "MAX_SIDE"};
-
-	return sides[side];
-}
-
-#define DEFAULT_SIDE WEST_SIDE
-
-/* do not change this */
-#define PG_MAX_PKTS_BURST	64
+#ifndef _PG_LIFECYCLE_H
+#define _PG_LIFECYCLE_H
 
 /**
- * Revert side: WEST_SIDE become EAST_SIDE and vice versa.
+ * Initialize packetgraph.
+ * This function should be called before any other packetgraph function.
+ *
+ * @param	size of argv
+ * @param	argv all arguments passwed to packetgraph, it may contain
+ *		DPDK arugments.
+ * @param	errp is set in case of an error
+ * @return	return where the program's parameters count starts
  */
-static inline enum pg_side pg_flip_side(enum pg_side side)
-{
-	return (enum pg_side)(side ^ 1);
-}
+int pg_start(int argc, char **argv, struct pg_error **errp);
 
-#endif /* _PG_COMMON_H */
+/**
+ * Uninitialize packetgraph.
+ * This function should be called when the application exits.
+ */
+void pg_stop(void);
+
+#endif /* _PG_LIFECYCLE_H */

@@ -21,7 +21,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 #include <packetgraph/common.h>
-#include "brick.h"
+#include "brick-int.h"
 
 struct pg_bench_stats {
 	/* Burst count. */

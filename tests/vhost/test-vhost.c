@@ -34,7 +34,7 @@
 #include "packets.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
-#include "brick.h"
+#include "brick-int.h"
 #include "utils/mac.h"
 #include "utils/qemu.h"
 #include "tests.h"

@@ -20,9 +20,9 @@
 #include <pcap/pcap.h>
 #include <endian.h>
 
-#include <packetgraph/firewall.h>
+#include <packetgraph/packetgraph.h>
 #include "utils/bitmask.h"
-#include "brick.h"
+#include "brick-int.h"
 #include "packets.h"
 #include "npf_dpdk.h"
 

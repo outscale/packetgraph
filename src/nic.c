@@ -20,9 +20,8 @@
 #include <rte_cycles.h>
 #include <net/if.h>
 
-#include <packetgraph/common.h>
-#include <packetgraph/nic.h>
-#include "brick.h"
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 #include "packets.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"

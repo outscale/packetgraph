@@ -18,8 +18,8 @@
 #include <rte_config.h>
 #include <rte_ether.h>
 #include <rte_ip.h>
-#include <packetgraph/antispoof.h>
-#include "brick.h"
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 #include "utils/bitmask.h"
 #include "utils/mac.h"
 
