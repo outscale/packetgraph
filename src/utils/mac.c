@@ -23,7 +23,7 @@
 
 #include "utils/mac.h"
 
-inline int pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
+inline bool pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
 {
 	int ret;
 
