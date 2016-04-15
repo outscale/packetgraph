@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 	test_pkts_count();
 	test_brick_dot();
 	test_hub();
+	test_graph();
 
 	return g_test_run();
 }

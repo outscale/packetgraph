@@ -78,6 +78,7 @@ tests_core_SOURCES = \
 	tests/core/test-flow.c\
 	tests/core/test-error.c\
 	tests/core/test-pkts-count.c\
+	tests/core/test-graph.c\
 	tests/core/test-hub.c\
 	tests/core/tests.c
 tests_core_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)

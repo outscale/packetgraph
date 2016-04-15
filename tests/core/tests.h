@@ -30,6 +30,7 @@ void test_error(void);
 void test_pkts_count(void);
 void test_benchmark_nop(void);
 void test_hub(void);
+void test_graph(void);
 
 extern uint16_t  max_pkts;
 
