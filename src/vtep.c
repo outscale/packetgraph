@@ -136,10 +136,6 @@ static void  multicast_internal(struct vtep_state *state,
 				uint32_t multicast_ip,
 				struct pg_error **errp,
 				enum operation action);
-static inline uint64_t hash_32(void *key, uint32_t key_size, uint64_t seed)
-{
-	return _mm_crc32_u32(seed, *((uint64_t *) key));
-}
 
 static inline uint64_t hash_64(void *key, uint32_t key_size, uint64_t seed)
 {
