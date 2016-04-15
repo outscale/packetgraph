@@ -21,8 +21,8 @@
 #include <sys/time.h>
 #include <rte_config.h>
 #include <rte_ether.h>
-#include "brick.h"
-#include <packetgraph/print.h>
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 #include "utils/bitmask.h"
 #include "printer.h"
 

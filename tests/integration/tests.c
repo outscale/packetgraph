@@ -41,7 +41,7 @@
 #include <packetgraph/antispoof.h>
 #include <packetgraph/errors.h>
 #include "packets.h"
-#include "brick.h"
+#include "brick-int.h"
 #include "collect.h"
 #include "utils/mempool.h"
 #include "utils/config.h"

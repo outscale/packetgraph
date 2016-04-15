@@ -20,7 +20,7 @@
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/nop.h>
 #include <packetgraph/switch.h>
-#include "brick.h"
+#include "brick-int.h"
 #include "packets.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"

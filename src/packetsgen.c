@@ -20,8 +20,8 @@
  */
 
 #include <string.h>
-#include <packetgraph/common.h>
-#include "brick.h"
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 #include "packets.h"
 #include "packetsgen.h"
 #include "utils/mempool.h"

@@ -19,7 +19,7 @@
 
 #include <packetgraph/nop.h>
 #include "utils/config.h"
-#include "brick.h"
+#include "brick-int.h"
 #include "tests.h"
 
 static void test_brick_core_simple_lifecycle(void)

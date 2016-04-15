@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "brick.h"
-#include <packetgraph/nop.h>
+#include <packetgraph/packetgraph.h>
+#include "brick-int.h"
 
 struct pg_nop_state {
 	struct pg_brick brick;

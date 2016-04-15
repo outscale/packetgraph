@@ -31,7 +31,7 @@
 
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/firewall.h>
-#include "brick.h"
+#include "brick-int.h"
 #include "collect.h"
 #include "packetsgen.h"
 #include "packets.h"

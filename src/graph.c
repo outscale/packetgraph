@@ -15,8 +15,8 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "brick.h"
 #include <packetgraph/graph.h>
+#include "brick-int.h"
 
 static GList *add_brick_to_graph(GList *todo, GList *done,
 				 struct pg_brick *b, struct pg_brick *n,

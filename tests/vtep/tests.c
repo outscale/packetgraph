@@ -29,7 +29,7 @@
 #include <packetgraph/vtep.h>
 #include <packetgraph/hub.h>
 #include <packetgraph/nop.h>
-#include "brick.h"
+#include "brick-int.h"
 #include "utils/mempool.h"
 #include "utils/mac.h"
 #include "utils/bitmask.h"

@@ -19,7 +19,7 @@
 #include <glib.h>
 #include <rte_config.h>
 #include <rte_ether.h>
-#include <packetgraph/nop.h>
+#include <packetgraph/packetgraph.h>
 #include "utils/bench.h"
 #include "utils/bitmask.h"
 
