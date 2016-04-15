@@ -26,6 +26,7 @@ libtool
 bench-*
 tests-*
 *.qcow
+*.rsa
 *.trs
 *~
 \#*\#
