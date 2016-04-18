@@ -468,17 +468,18 @@ int pg_brick_chained_links_int(struct pg_error **errp,
 {
 	va_list ap;
 	struct pg_brick *east;
-	int ret = 1;
+	int ret = -1;
 
 	va_start(ap, west);
-	while ((east = va_arg(ap, struct pg_brick *)) != NULL) {
+	east = va_arg(ap, struct pg_brick *);
+	if (east == NULL) {
+		*errp = pg_error_new("brick east not found");
+		goto exit;
+	}
+	for (; east != NULL; east = va_arg(ap, struct pg_brick *)) {
 		ret = pg_brick_link(west, east, errp);
-		if (ret < 0) {
-			if (!pg_error_is_set(errp))
-				*errp = pg_error_new("Fails to link %s and %s",
-						     west->name, east->name);
+		if (ret < 0)
 			goto exit;
-		}
 		west = east;
 	}
 exit:
