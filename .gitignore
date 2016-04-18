@@ -34,3 +34,5 @@ tests-*
 [._]s[a-w][a-z]
 doxygen.conf
 html
+!*.c
+!*.h
