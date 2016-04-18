@@ -85,6 +85,15 @@ static int queue_burst(struct pg_brick *brick, enum pg_side from,
 	burst->mask = pkts_mask;
 	pg_packets_incref(pkts, pkts_mask);
 	g_async_queue_push(state->rx, burst);
+
+#ifdef PG_QUEUE_BENCH
+	struct pg_brick_side *side = &brick->side;
+
+	if (side->burst_count_cb != NULL) {
+		side->burst_count_cb(side->burst_count_private_data,
+				     pg_mask_count(pkts_mask));
+	}
+#endif /* #ifdef PG_QUEUE_BENCH */
 	return 0;
 }
 
