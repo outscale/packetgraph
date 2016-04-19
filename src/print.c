@@ -87,6 +87,7 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 	FILE *o = state->output;
 	struct timeval cur;
 	uint64_t diff = 0;
+	enum pg_print_flags flags = state->flags;
 
 	if (state->flags & PG_PRINT_FLAG_TIMESTAMP) {
 		gettimeofday(&cur, 0);
@@ -109,23 +110,23 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 		if (should_skip(type_filter, eth))
 			continue;
 
-		if (state->flags & PG_PRINT_FLAG_BRICK) {
+		if (flags & PG_PRINT_FLAG_BRICK) {
 			if (from == WEST_SIDE)
 				fprintf(o, "-->[%s]", brick->name);
 			else
 				fprintf(o, "[%s]<--", brick->name);
 		}
 
-		if (state->flags & PG_PRINT_FLAG_TIMESTAMP)
+		if (flags & PG_PRINT_FLAG_TIMESTAMP)
 			fprintf(o, " [time=%"PRIu64"]", diff);
 
-		if (state->flags & PG_PRINT_FLAG_SIZE)
+		if (flags & PG_PRINT_FLAG_SIZE)
 			fprintf(o, " [size=%"PRIu64"]", size);
 
-		if (state->flags & PG_PRINT_FLAG_SUMMARY)
+		if (flags & PG_PRINT_FLAG_SUMMARY)
 			print_summary(data, size, o);
 
-		if (state->flags & PG_PRINT_FLAG_RAW)
+		if (flags & PG_PRINT_FLAG_RAW)
 			print_raw(data, size, o);
 
 		fprintf(o, "\n");
