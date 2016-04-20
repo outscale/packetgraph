@@ -97,8 +97,7 @@ static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
 		pg_packets_forget(state->pkts[i], state->pkts_mask[i]);
 		state->pkts_mask[i] = 0;
 	}
-
-	return 1;
+	return 0;
 }
 
 struct pg_brick *pg_collect_new(const char *name,
