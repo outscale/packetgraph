@@ -266,8 +266,10 @@ int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp)
 		return -1;
 	}
 
-	if (!brick->ops || !brick->ops->reset)
+	if (!brick->ops || !brick->ops->reset) {
+		*errp = pg_error_new("brick do not support reset operation");
 		return -1;
+	}
 
 	return brick->ops->reset(brick, errp);
 }
