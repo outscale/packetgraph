@@ -613,6 +613,8 @@ inline int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 			  uint16_t edge_index, struct rte_mbuf **pkts,
 			  uint64_t pkts_mask, struct pg_error **errp)
 {
+	if (unlikely(!brick))
+		return 0;
 	/* @side is the opposite side of the direction on which
 	 * we send the packets, so we flip it */
 	rte_atomic64_add(&brick->sides[pg_flip_side(from)].packet_count,
