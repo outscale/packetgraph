@@ -130,6 +130,57 @@ static void test_print_simple(void)
 		rte_pktmbuf_free(packets[i]);
 }
 
+
+static void test_print_pcap(void)
+{
+	int i;
+	struct pg_brick *gen, *print, *col;
+	struct pg_error *error = NULL;
+	struct rte_mbuf *packets[NB_PKTS];
+	struct rte_mbuf **pkts;
+	uint64_t pkts_mask;
+	FILE *output = fopen("tests.pcap", "w+");
+
+	g_assert(output);
+	build_packets(packets);
+	gen = pg_packetsgen_new("gen", 1, 1, EAST_SIDE, packets, NB_PKTS,
+				&error);
+	g_assert(!error);
+	print = pg_print_new("My print", 1, 1, output, PG_PRINT_FLAG_PCAP, NULL,
+			     &error);
+	g_assert(!error);
+	col = pg_collect_new("col", 1, 1, &error);
+	g_assert(!error);
+
+	pg_brick_chained_links(&error, gen, print, col);
+	g_assert(!error);
+
+	pg_brick_burst_to_east(gen, 0, packets,
+			       pg_mask_firsts(NB_PKTS), &error);
+	g_assert(!error);
+
+	pkts = pg_brick_west_burst_get(col, &pkts_mask, &error);
+	g_assert(!error);
+	g_assert(pkts_mask == pg_mask_firsts(NB_PKTS));
+	pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));
+
+	pg_brick_unlink(gen, &error);
+	g_assert(!error);
+	pg_brick_unlink(print, &error);
+	g_assert(!error);
+	pg_brick_unlink(col, &error);
+	g_assert(!error);
+	pg_brick_destroy(gen);
+	pg_brick_destroy(print);
+	pg_brick_destroy(col);
+	for (i = 0; i < NB_PKTS; i++)
+		rte_pktmbuf_free(packets[i]);
+	fclose(output);
+	g_assert(!system("[ $(stat -c%s ./tests.pcap) -gt 190 ]"));
+	g_assert(!system("rm tests.pcap > /dev/null"));
+}
+
+
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
@@ -143,6 +194,7 @@ int main(int argc, char **argv)
 	g_assert(!error);
 
 	g_test_add_func("/print/simple", test_print_simple);
+	g_test_add_func("/print/pcap", test_print_pcap);
 
 	r = g_test_run();
 

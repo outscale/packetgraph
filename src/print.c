@@ -22,9 +22,14 @@
 #include <rte_config.h>
 #include <rte_ether.h>
 #include <packetgraph/packetgraph.h>
+#include <pcap/pcap.h>
+#include <rte_cycles.h>
+
 #include "brick-int.h"
 #include "utils/bitmask.h"
 #include "printer.h"
+
+#define PCAP_SNAPSHOT_LEN 65535
 
 struct pg_print_config {
 	FILE *output;
@@ -35,10 +40,16 @@ struct pg_print_config {
 struct pg_print_state {
 	struct pg_brick brick;
 	FILE *output;
+	pcap_dumper_t *dumper;
 	uint16_t *type_filter;
 	int flags;
 	struct timeval start_date;
+	uint64_t start_cycles;
+	uint64_t hz;
 };
+
+static __thread char print_data[PCAP_SNAPSHOT_LEN];
+
 
 static struct pg_brick_config *pg_print_config_new(const char *name,
 						   uint32_t west_max,
@@ -69,6 +80,38 @@ static bool should_skip(uint16_t *type_filter, struct ether_hdr *eth)
 			return true;
 	}
 	return false;
+}
+
+/* Fonction from rte_eth_pcap.c inside the dpdk pcap driver */
+static inline void calculate_timestamp(struct pg_print_state *state,
+				       struct timeval *ts)
+{
+	uint64_t cycles;
+	struct timeval cur_time;
+
+	cycles = rte_get_timer_cycles() - state->start_cycles;
+	cur_time.tv_sec = cycles / state->hz;
+	cur_time.tv_usec = (cycles % state->hz) * 10e6 / state->hz;
+	timeradd(&state->start_date, &cur_time, ts);
+}
+
+static void print_pcap(struct pg_print_state *state, struct rte_mbuf *mbuf)
+{
+	uint16_t data_len = 0;
+	static struct pcap_pkthdr header;
+
+	header.len = mbuf->pkt_len;
+	header.caplen = mbuf->pkt_len;
+	calculate_timestamp(state, &header.ts);
+	while (mbuf) {
+		rte_memcpy(print_data + data_len,
+			   rte_pktmbuf_mtod(mbuf, void *),
+			   mbuf->data_len);
+		data_len += mbuf->data_len;
+		mbuf = mbuf->next;
+	}
+	pcap_dump((u_char *)state->dumper, &header,
+		  (const unsigned char *)print_data);
 }
 
 static int print_burst(struct pg_brick *brick, enum pg_side from,
@@ -103,6 +146,11 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 		size_t size;
 
 		pg_low_bit_iterate_full(it_mask, bit, i);
+
+		if (flags & PG_PRINT_FLAG_PCAP) {
+			print_pcap(state, pkts[i]);
+			continue;
+		}
 		data = rte_pktmbuf_mtod(pkts[i], void*);
 		size = rte_pktmbuf_data_len(pkts[i]);
 		eth = (struct ether_hdr *) data;
@@ -151,6 +199,24 @@ static int print_init(struct pg_brick *brick,
 	else
 		state->output = print_config->output;
 	state->flags = print_config->flags;
+	state->dumper = NULL;
+
+	if (state->flags & PG_PRINT_FLAG_PCAP) {
+		pcap_t *p = pcap_open_dead(DLT_EN10MB, PCAP_SNAPSHOT_LEN);
+
+		if (!p) {
+			*errp = pg_error_new("error initializing pcap");
+			return -1;
+		}
+		state->dumper = pcap_dump_fopen(p, state->output);
+		if (!state->dumper) {
+			*errp = pg_error_new("error when opening pcap file");
+			return -1;
+		}
+		state->start_cycles = rte_get_timer_cycles();
+		state->hz = rte_get_timer_hz();
+	}
+
 	gettimeofday(&state->start_date, 0);
 	if (!print_config->type_filter) {
 		state->type_filter = NULL;
@@ -201,9 +267,9 @@ void pg_print_set_flags(struct pg_brick *brick, int flags)
 
 static void print_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
-	struct pg_print_state *state;
+	struct pg_print_state *state =
+		pg_brick_get_state(brick, struct pg_print_state);
 
-	state = pg_brick_get_state(brick, struct pg_print_state);
 	g_free(state->type_filter);
 }
 
