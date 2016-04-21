@@ -27,8 +27,8 @@
  * http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
  */
 static bool timeval_subtract(struct timeval *result,
-			    struct timeval *x,
-			    struct timeval *y)
+			     struct timeval *x,
+			     struct timeval *y)
 {
 	int nsec;
 
