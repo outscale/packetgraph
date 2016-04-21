@@ -32,7 +32,16 @@ AS_IF([test "x$RTE_SDK" != "x"], [
     AC_MSG_RESULT([$RTE_SDK])
     AC_SUBST(RTE_SDK_CFLAGS, ["-I$RTE_SDK/build/include -D RTE_MAX_LCORE=128 -D RTE_PKTMBUF_HEADROOM=128"])
     AC_SUBST(RTE_SDK_HEADERS_FOLDER, [$RTE_SDK/build/include/])
-    AC_SUBST(RTE_SDK_LDFLAGS, ["-L$RTE_SDK/build/lib/ -lrte_pmd_vhost -lrte_hash -lrte_mbuf -lrte_mempool -lrte_table -lrte_ring -lethdev -lrte_pmd_pcap -lrte_pmd_ring -lrte_pmd_e1000 -lrte_pmd_ixgbe -lrte_kvargs -lrte_eal -lrte_vhost"])
+
+    AC_SUBST(RTE_SDK_LDFLAGS, [" -L$RTE_SDK/build/lib/ -Wl,--start-group \
+    			      -lrte_pmd_vhost -lrte_hash \
+    			      -lrte_mbuf -lrte_mempool -lrte_table \
+			      -lrte_ring -lethdev \
+			      -lrte_pmd_pcap -lrte_pmd_ring -lrte_pmd_e1000 \
+			      -lrte_pmd_ixgbe -lrte_kvargs \
+			      -lrte_eal -lrte_vhost \
+			      -Wl,--end-group"])
+
     AC_SUBST(RTE_SDK_LIBS, ["-lm -lpthread -ldl -lpcap"])
 ], [
     AC_MSG_RESULT([no])
