@@ -40,9 +40,9 @@
 		g_assert(pkts[i]);					\
 		pkts[i]->udata64 = i;					\
 	}								\
-	node1 = pg_diode_new("node1", 4, 4, output, &error);		\
+	node1 = pg_diode_new("node1", output, &error);		\
 	g_assert(!error);						\
-	node2 = pg_diode_new("node2", 4, 4, output, &error);		\
+	node2 = pg_diode_new("node2", output, &error);		\
 	g_assert(!error);						\
 	collect_west = pg_collect_new("cwest", 4, 4, &error);		\
 	g_assert(!error);						\

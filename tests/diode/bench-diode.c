@@ -43,7 +43,7 @@ void test_benchmark_diode(void)
 	uint32_t len;
 
 	pg_bench_init(&bench);
-	diode = pg_diode_new("diode", 1, 1, EAST_SIDE, &error);
+	diode = pg_diode_new("diode", EAST_SIDE, &error);
 	g_assert(!error);
 
 	bench.input_brick = diode;
