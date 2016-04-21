@@ -28,8 +28,6 @@ struct pg_diode_state {
 };
 
 static struct pg_brick_config *diode_config_new(const char *name,
-						uint32_t west_max,
-						uint32_t east_max,
 						enum pg_side output)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
@@ -38,8 +36,7 @@ static struct pg_brick_config *diode_config_new(const char *name,
 
 	diode_config->output = output;
 	config->brick_config = (void *) diode_config;
-	return pg_brick_config_init(config, name, west_max,
-				    east_max, PG_MULTIPOLE);
+	return pg_brick_config_init(config, name, 1, 1, PG_DIPOLE);
 }
 
 static int diode_burst(struct pg_brick *brick, enum pg_side from,
@@ -56,7 +53,8 @@ static int diode_burst(struct pg_brick *brick, enum pg_side from,
 	if (state->output == from)
 		return 0;
 
-	return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
+	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
+			      pkts, pkts_mask, errp);
 }
 
 static int diode_init(struct pg_brick *brick,
@@ -80,13 +78,10 @@ static int diode_init(struct pg_brick *brick,
 }
 
 struct pg_brick *pg_diode_new(const char *name,
-			   uint32_t west_max,
-			   uint32_t east_max,
-			   enum pg_side output,
-			   struct pg_error **errp)
+			      enum pg_side output,
+			      struct pg_error **errp)
 {
-	struct pg_brick_config *config = diode_config_new(name, west_max,
-							  east_max, output);
+	struct pg_brick_config *config = diode_config_new(name, output);
 	struct pg_brick *ret = pg_brick_new("diode", config, errp);
 
 	pg_brick_config_free(config);
