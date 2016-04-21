@@ -251,16 +251,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 	int ret;
 
 	state = pg_brick_get_state(brick, struct pg_nic_state);
-
 	nic_config = config->brick_config;
-
-	if (!nic_config) {
-		*errp = pg_error_new("config->nic is NULL");
-		return -1;
-	}
-
-	if (pg_error_is_set(errp))
-		return -1;
 
 	/* Setup port id */
 	if (nic_config->ifname) {

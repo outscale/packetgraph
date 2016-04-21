@@ -633,13 +633,7 @@ static int vtep_init(struct pg_brick *brick,
 	struct vtep_config *vtep_config;
 	uint16_t max;
 
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return -1;
-	}
-
 	vtep_config = config->brick_config;
-
 	state->output = vtep_config->output;
 	if (pg_side_get_max(brick, state->output) != 1) {
 		*errp = pg_error_new("brick %s number of output port is not 1",
