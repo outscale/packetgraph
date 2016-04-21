@@ -109,8 +109,8 @@ static inline int antispoof_arp(struct pg_antispoof_state *state,
 	if (memcmp(&state->arp_packet, a, PG_ANTISPOOF_ARP_CHECK_PART1) == 0 &&
 	    memcmp(&state->arp_packet.sender_mac, &a->sender_mac,
 		   PG_ANTISPOOF_ARP_CHECK_PART2) == 0)
-		return 1;
-	return 0;
+		return 0;
+	return -1;
 }
 
 static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
@@ -150,7 +150,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 			struct pg_antispoof_arp *a;
 
 			a = (struct pg_antispoof_arp *)(eth + 1);
-			if (!antispoof_arp(state, a)) {
+			if (antispoof_arp(state, a) < 0) {
 				pkts_mask &= ~bit;
 				continue;
 			}
