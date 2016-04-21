@@ -270,11 +270,6 @@ static int switch_init(struct pg_brick *brick,
 		pg_brick_get_state(brick, struct pg_switch_state);
 	enum pg_side i;
 
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return -1;
-	}
-
 	brick->burst = switch_burst;
 
 	if (pg_mac_table_init(&state->table) < 0) {

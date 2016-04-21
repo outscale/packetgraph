@@ -144,13 +144,7 @@ static int print_init(struct pg_brick *brick,
 	state = pg_brick_get_state(brick, struct pg_print_state);
 	struct pg_print_config *print_config;
 
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return -1;
-	}
-
 	print_config = (struct pg_print_config *) config->brick_config;
-
 	brick->burst = print_burst;
 
 	if (print_config->output == NULL)

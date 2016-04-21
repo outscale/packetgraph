@@ -216,20 +216,10 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 		return -1;
 	}
 
-	if (!config->brick_config) {
-		*errp = pg_error_new("config->brick_config is NULL");
-		return -1;
-	}
-
 	vhost_config = (struct pg_vhost_config *) config->brick_config;
-
 	state->output = vhost_config->output;
 
-	if (pg_error_is_set(errp))
-		return -1;
-
 	vhost_create_socket(state, errp);
-
 	if (pg_error_is_set(errp))
 		return -1;
 
