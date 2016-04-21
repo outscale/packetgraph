@@ -52,6 +52,7 @@ script:
  - make tests-vhost
  - make tests-vtep
  - make tests-rxtx
+ - make tests-pmtud
 
  - ./../tests/antispoof/test.sh
  - ./../tests/core/test.sh
@@ -63,6 +64,7 @@ script:
  - ./../tests/switch/test.sh
  - ./../tests/vtep/test.sh
  - ./../tests/rxtx/test.sh
+ - ./../tests/pmtud/test.sh
 
  - make style
 
