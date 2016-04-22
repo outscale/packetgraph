@@ -102,8 +102,6 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 		size_t size;
 
 		pg_low_bit_iterate_full(it_mask, bit, i);
-
-		/*could be separete in a diferente function*/
 		data = rte_pktmbuf_mtod(pkts[i], void*);
 		size = rte_pktmbuf_data_len(pkts[i]);
 		eth = (struct ether_hdr *) data;
