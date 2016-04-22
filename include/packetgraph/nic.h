@@ -60,6 +60,13 @@ struct pg_brick *pg_nic_new_by_id(const char *name,
 				  struct pg_error **errp);
 
 /**
+ * Get number of available DPDK ports
+ *
+ * @return:	number of DPDK ports
+ */
+int pg_nic_port_count(void);
+
+/**
  * Set a custom MTU on the nic
  *
  * @param nic	the brick nic
