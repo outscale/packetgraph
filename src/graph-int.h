@@ -1,4 +1,4 @@
-/* Copyright 2014 Nodalink EURL
+/* Copyright 2016 Outscale SAS
  *
  * This file is part of Butterfly.
  *
@@ -15,23 +15,15 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TESTS_H_
-#define _TESTS_H_
+#ifndef _PG_GRAPH_INT_H
+#define _PG_GRAPH_INT_H
 
-enum test_flags {
-	PRINT_USAGE = 1,
-	FAIL = 2
+struct pg_graph {
+	char *name;
+	/* pollable bricks */
+	GSList *pollable;
+	/* all bricks */
+	GHashTable *all;
 };
 
-void test_brick_core(void);
-void test_brick_dot(void);
-void test_brick_flow(void);
-void test_error(void);
-void test_pkts_count(void);
-void test_benchmark_nop(void);
-void test_hub(void);
-void test_graph(void);
-
-extern uint16_t  max_pkts;
-
-#endif
+#endif /* _PG_GRAPH_INT_H */

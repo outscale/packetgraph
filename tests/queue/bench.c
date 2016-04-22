@@ -15,25 +15,21 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_PACKETGRAPH_H
-#define _PG_PACKETGRAPH_H
+#include <glib.h>
+#include <packetgraph/packetgraph.h>
 
-#include <stdarg.h>
-#include <packetgraph/common.h>
-#include <packetgraph/errors.h>
-#include <packetgraph/graph.h>
-#include <packetgraph/antispoof.h>
-#include <packetgraph/diode.h>
-#include <packetgraph/firewall.h>
-#include <packetgraph/hub.h>
-#include <packetgraph/nic.h>
-#include <packetgraph/nop.h>
-#include <packetgraph/print.h>
-#include <packetgraph/switch.h>
-#include <packetgraph/vhost.h>
-#include <packetgraph/vtep.h>
-#include <packetgraph/brick.h>
-#include <packetgraph/lifecycle.h>
-#include <packetgraph/queue.h>
+void test_benchmark_queue(void);
 
-#endif /* _PG_PACKETGRAPH_H */
+int main(int argc, char **argv)
+{
+	struct pg_error *error = NULL;
+	int r;
+
+	g_test_init(&argc, &argv, NULL);
+	pg_start(argc, argv, &error);
+	g_assert(!error);
+	test_benchmark_queue();
+	r = g_test_run();
+	pg_stop();
+	return r;
+}

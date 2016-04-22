@@ -3,6 +3,7 @@ lib_LTLIBRARIES = libpacketgraph.la
 # No wildcard
 # https://www.gnu.org/software/automake/manual/html_node/Wildcards.html
 libpacketgraph_la_SOURCES = \
+	src/queue.c\
 	src/firewall.c\
 	src/printer.c\
 	src/packets.c\
@@ -50,17 +51,18 @@ pkginclude_HEADERS = \
 	include/packetgraph/firewall.h\
 	include/packetgraph/vhost.h\
 	include/packetgraph/switch.h\
+	include/packetgraph/queue.h\
 	include/packetgraph/errors.h
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-firewall tests-integration tests-nic tests-print tests-switch tests-vhost tests-vtep
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep
 
 noinst_LTLIBRARIES = libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols $(RTE_SDK_LDFLAGS)
-libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_VHOST_BENCH
+libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH
 
 tests_antispoof_SOURCES = \
 	tests/antispoof/test-arp-gratuitous.c\
@@ -72,10 +74,11 @@ tests_antispoof_LDADD = libpacketgraph-dev.la
 
 tests_core_SOURCES = \
 	tests/core/test-core.c\
-	tests/core/test-graph.c\
+	tests/core/test-dot.c\
 	tests/core/test-flow.c\
 	tests/core/test-error.c\
 	tests/core/test-pkts-count.c\
+	tests/core/test-graph.c\
 	tests/core/test-hub.c\
 	tests/core/tests.c
 tests_core_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
@@ -109,6 +112,11 @@ tests_print_SOURCES = \
 tests_print_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_print_LDFLAGS = libpacketgraph-dev.la
 
+tests_queue_SOURCES = \
+	tests/queue/tests.c
+tests_queue_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_queue_LDFLAGS = libpacketgraph-dev.la
+
 tests_switch_SOURCES = \
 	tests/switch/tests.c
 tests_switch_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
@@ -133,12 +141,13 @@ TESTS = \
 	tests/integration/test.sh\
 	tests/nic/test.sh\
 	tests/print/test.sh\
+	tests/queue/test.sh\
 	tests/switch/test.sh\
 	tests/vhost/test.sh\
 	tests/vtep/test.sh
 
 if PG_BENCHMARKS
-noinst_PROGRAMS = bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-switch bench-vhost bench-vtep
+noinst_PROGRAMS = bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
 
 bench_antispoof_SOURCES = \
 	tests/antispoof/bench.c\
@@ -177,6 +186,12 @@ bench_print_SOURCES = \
 bench_print_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_print_LDFLAGS = libpacketgraph-dev.la
 
+bench_queue_SOURCES = \
+	tests/queue/bench-queue.c\
+	tests/queue/bench.c
+bench_queue_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+bench_queue_LDFLAGS = libpacketgraph-dev.la
+
 bench_switch_SOURCES = \
 	tests/switch/bench-switch.c\
 	tests/switch/bench.c
@@ -195,13 +210,14 @@ bench_vtep_SOURCES = \
 bench_vtep_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_vtep_LDFLAGS = libpacketgraph-dev.la
 
-bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-switch bench-vhost bench-vtep
+bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
 	$(srcdir)/tests/antispoof/bench.sh
 	$(srcdir)/tests/core/bench.sh
 	$(srcdir)/tests/diode/bench.sh
 	$(srcdir)/tests/firewall/bench.sh
 	$(srcdir)/tests/nic/bench.sh
 	$(srcdir)/tests/print/bench.sh
+	$(srcdir)/tests/queue/bench.sh
 	$(srcdir)/tests/switch/bench.sh
 	$(srcdir)/tests/vtep/bench.sh
 endif

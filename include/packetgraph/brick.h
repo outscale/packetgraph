@@ -71,6 +71,18 @@ int pg_brick_chained_links_int(struct pg_error **errp,
 void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp);
 
 /**
+ * Remove link between two bricks without removing other links
+ *
+ * @param	west west brick to unlink with east brick
+ * @param	east east brick to unlink with west brick
+ * @param	error is set in case of an error
+ * @return	0 on success, -1 on error
+ */
+int pg_brick_unlink_edge(struct pg_brick *west,
+			 struct pg_brick *east,
+			 struct pg_error **error);
+
+/**
  * Poll packets from a brick a let it flow through the graph.
  * All polled packets will be free once the poll is done.
  *
@@ -114,5 +126,15 @@ const char *pg_brick_name(struct pg_brick *brick);
  * @return	string containing the type of the brick
  */
 const char *pg_brick_type(struct pg_brick *brick);
+
+/**
+ * Describe connected bricks through a dot (graphviz) graph.
+ *
+ * @param	brick any brick pointer from which to start analyse the graph
+ * @param	fd file descriptor where to write the graph description
+ * @param	errp is set in case of an error
+ * @return	0 on success, -1 on error
+ */
+int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp);
 
 #endif /* _PG_BRICK_H */

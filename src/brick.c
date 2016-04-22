@@ -353,8 +353,6 @@ void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp)
 	brick->ops->unlink(brick, errp);
 }
 
-
-
 struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
 					enum pg_side side,
 					uint32_t edge)
@@ -736,4 +734,136 @@ const char *pg_brick_type(struct pg_brick *brick)
 uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side)
 {
 	return brick->sides[side].max;
+}
+
+int pg_brick_unlink_edge(struct pg_brick *west,
+			 struct pg_brick *east,
+			 struct pg_error **error)
+{
+	int i;
+	int west_max;
+	int west_index;
+	struct pg_brick_edge *west_edge = NULL;
+
+	if (!is_brick_valid(west)) {
+		*error = pg_error_new("West brick is not valid");
+		return -1;
+	}
+
+	if (!is_brick_valid(east)) {
+		*error = pg_error_new("East brick is not valid");
+		return -1;
+	}
+
+	west_max = get_side(west, EAST_SIDE)->max;
+	for (i = 0; i < west_max; i++) {
+		struct pg_brick_edge *edge =
+			pg_brick_get_edge(west, EAST_SIDE, i);
+
+		if (edge->link == east) {
+			west_edge = edge;
+			west_index = i;
+			break;
+		}
+	}
+	if (!west_edge) {
+		*error = pg_error_new("%s does not seem to be linked with %s",
+				      west->name, east->name);
+		return -1;
+	}
+
+	/* self-unlink notify and unlink edge only */
+	unlink_notify(west_edge, EAST_SIDE, error);
+	if (*error)
+		return -1;
+	do_unlink(west, EAST_SIDE, west_index, error);
+	if (*error)
+		return -1;
+
+	return 0;
+}
+
+static GList *pg_brick_dot_add(GList *todo, GList *done,
+			       struct pg_brick *b, struct pg_brick *n,
+			       enum pg_side i, FILE *fd)
+{
+	if (!g_list_find(todo, n) &&
+	    !g_list_find(done, n))
+		todo = g_list_append(todo, n);
+	fprintf(fd, "  \"%s:%s\":%s -- \"%s:%s\":%s\n",
+		b->ops->name,
+		b->name,
+		(i == WEST_SIDE ? "west" : "east"),
+		n->ops->name,
+		n->name,
+		(i == WEST_SIDE ? "east" : "west"));
+	return todo;
+}
+
+int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
+{
+	GList *todo = NULL;
+	GList *done = NULL;
+	int i, j;
+
+	fprintf(fd, "strict graph G {\n");
+	fprintf(fd, "  rankdir=LR\n");
+	fprintf(fd, "  nodesep=1\n");
+	fprintf(fd, "  node [shape=record];\n");
+	todo = g_list_append(todo, brick);
+
+	while (todo != NULL) {
+		/* Take the first brick to analyse. */
+		struct pg_brick *b = todo->data;
+
+		todo = g_list_remove(todo, b);
+
+		/* declare node */
+		fprintf(fd,
+		"  \"%s:%s\" [ label=\"{ <west> | %s&#92;n%s |<east> }\"];\n",
+			b->ops->name,
+			b->name,
+			b->ops->name,
+			b->name);
+
+		if (b->type == PG_MONOPOLE) {
+			struct pg_brick *n = b->side.edge.link;
+
+			if (!n)
+				goto continue_while;
+			todo = pg_brick_dot_add(todo, done, b,
+						n, WEST_SIDE, fd);
+			goto continue_while;
+		}
+
+		/* populate all connected bricks */
+		for (i = 0; i < MAX_SIDE; i++)	{
+			if (b->type == PG_DIPOLE) {
+				struct pg_brick *n = b->sides[i].edge.link;
+
+				if (!n)
+					continue;
+				todo = pg_brick_dot_add(todo, done, b,
+							b->sides[i].edge.link,
+							i, fd);
+			} else {
+				for (j = 0; j < b->sides[i].max; j++) {
+					/* get target */
+					struct pg_brick *n = b->sides[i]
+						.edges[j].link;
+
+					if (!n)
+						continue;
+					/* A new brick appears */
+					todo = pg_brick_dot_add(todo, done,
+								b, n, i, fd);
+				}
+			}
+		}
+continue_while:
+		/* mark this brick as done */
+		done = g_list_append(done, b);
+	}
+	fprintf(fd, "}\n");
+	return 0;
 }

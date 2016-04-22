@@ -18,6 +18,7 @@ Here are current developped bricks available in packetgraph:
 - print: a basic print brick to show packets flowing through it
 - antispoof: a basic mac and arp anti-spoofing brick
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs
+- queue: temporally store packets between graph
 
 # Examples
 
