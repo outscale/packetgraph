@@ -18,14 +18,11 @@
 #ifndef _PG_VTEP_H
 #define _PG_VTEP_H
 
+#ifndef _RTE_ETHER_H_
+#include <net/ethernet.h>
+#endif
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/errors.h>
-
-#ifndef __cplusplus
-#include <rte_ether.h>
-#else
-struct ether_addr;
-#endif
 
 enum pg_vtep_flags {
 	NONE = 0,

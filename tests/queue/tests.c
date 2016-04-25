@@ -17,13 +17,13 @@
 
 #include <glib.h>
 #include <string.h>
-#include <packetgraph/packetgraph.h>
 #include "brick-int.h"
 #include "packets.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "utils/mac.h"
 #include "collect.h"
+#include <packetgraph/packetgraph.h>
 
 #define CHECK_ERROR(error) do {                 \
                if (error)                       \

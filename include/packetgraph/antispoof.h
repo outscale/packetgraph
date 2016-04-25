@@ -18,13 +18,9 @@
 #ifndef _PG_ANTISPOOF_H
 #define _PG_ANTISPOOF_H
 
-#ifndef __cplusplus
-#include <rte_config.h>
-#include <rte_ether.h>
-#else
-struct ether_addr;
+#ifndef _RTE_ETHER_H_
+#include <net/ethernet.h>
 #endif
-
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 
