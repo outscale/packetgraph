@@ -32,8 +32,7 @@ static int nop_burst(struct pg_brick *brick, enum pg_side from,
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 
 	return  pg_brick_burst(s->edge.link, from,
-			       s->edge.pair_index,
-			       pkts, pkts_mask, errp);
+			       s->edge.pair_index, pkts, pkts_mask, errp);
 }
 
 static int nop_init(struct pg_brick *brick,
