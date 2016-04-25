@@ -333,12 +333,17 @@ endif
 	@echo "./tests/vtep/test.sh"
 
 if PG_EXAMPLES
-noinst_PROGRAMS += example-firewall
+noinst_PROGRAMS += example-firewall example-switch
 
 example_firewall_SOURCES = \
 	examples/firewall/firewall.c
 example_firewall_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_firewall_LDFLAGS = libpacketgraph.la
+
+example_switch_SOURCES = \
+	examples/switch/switch.c
+example_switch_CFLAGS = $(libpacketgraph_la_CFLAGS)
+example_switch_LDFLAGS = libpacketgraph.la
 endif
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template
