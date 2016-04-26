@@ -72,7 +72,7 @@ static void test_antispoof_mac(void)
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
 				     inside_mac, &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(gen_west, antispoof, &error);
 	g_assert(!error);
@@ -120,7 +120,7 @@ static void test_antispoof_rarp(void)
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
 				     inside_mac, &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(gen_west, antispoof, &error);
 	g_assert(!error);
@@ -167,7 +167,7 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
 				     inside_mac, &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(gen_west, antispoof, &error);
 	g_assert(!error);
@@ -244,7 +244,7 @@ static void test_pg_antispoof_arp_disable(void)
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
 				     inside_mac, &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(gen_west, antispoof, &error);
 	g_assert(!error);

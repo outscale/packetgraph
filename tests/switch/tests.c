@@ -69,13 +69,13 @@ static void test_switch_learn(void)
 	g_assert(brick);
 	CHECK_ERROR(error);
 
-	collect1 = pg_collect_new("collect", 4, 4, &error);
+	collect1 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect2 = pg_collect_new("collect", 4, 4, &error);
+	collect2 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect3 = pg_collect_new("collect", 4, 4, &error);
+	collect3 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
@@ -244,16 +244,16 @@ static void test_switch_switching(void)
 	g_assert(brick);
 	CHECK_ERROR(error);
 
-	collect1 = pg_collect_new("collect", 4, 4, &error);
+	collect1 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect2 = pg_collect_new("collect", 4, 4, &error);
+	collect2 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect3 = pg_collect_new("collect", 4, 4, &error);
+	collect3 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect4 = pg_collect_new("collect", 4, 4, &error);
+	collect4 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
@@ -415,16 +415,16 @@ static void test_switch_unlink(void)
 	g_assert(brick);
 	CHECK_ERROR(error);
 
-	collect1 = pg_collect_new("collect", 4, 4, &error);
+	collect1 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect2 = pg_collect_new("collect", 4, 4, &error);
+	collect2 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect3 = pg_collect_new("collect", 4, 4, &error);
+	collect3 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect4 = pg_collect_new("collect", 4, 4, &error);
+	collect4 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
@@ -607,13 +607,13 @@ static void test_switch_multicast_destination(void)
 	g_assert(brick);
 	CHECK_ERROR(error);
 
-	collect1 = pg_collect_new("collect", 4, 4, &error);
+	collect1 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect2 = pg_collect_new("collect", 4, 4, &error);
+	collect2 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect3 = pg_collect_new("collect", 4, 4, &error);
+	collect3 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
@@ -789,13 +789,13 @@ static void test_switch_multicast_both(void)
 	g_assert(brick);
 	CHECK_ERROR(error);
 
-	collect1 = pg_collect_new("collect", 4, 4, &error);
+	collect1 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect2 = pg_collect_new("collect", 4, 4, &error);
+	collect2 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect3 = pg_collect_new("collect", 4, 4, &error);
+	collect3 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
@@ -972,13 +972,13 @@ static void test_switch_filtered(void)
 	g_assert(brick);
 	CHECK_ERROR(error);
 
-	collect1 = pg_collect_new("collect", 4, 4, &error);
+	collect1 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect2 = pg_collect_new("collect", 4, 4, &error);
+	collect2 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
-	collect3 = pg_collect_new("collect", 4, 4, &error);
+	collect3 = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);

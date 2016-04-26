@@ -101,7 +101,7 @@ static void test_print_simple(void)
 	print = pg_print_new("My print", NULL, PG_PRINT_FLAG_MAX, NULL,
 			     &error);
 	g_assert(!error);
-	col = pg_collect_new("col", 1, 1, &error);
+	col = pg_collect_new("col", &error);
 	g_assert(!error);
 
 	pg_brick_link(gen, print, &error);

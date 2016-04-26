@@ -141,7 +141,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	fw = pg_firewall_new("fw", 2, 2, PG_NONE, &error);
 	g_assert(!error);
-	col = pg_collect_new("col", 2, 2, &error);
+	col = pg_collect_new("col", &error);
 	g_assert(!error);
 	/* revert link if needed */
 	if (dir == WEST_SIDE) {
@@ -446,9 +446,9 @@ static void firewall_replay(const unsigned char *pkts[],
 	g_assert(!error);
 	fw = pg_firewall_new("fw", 1, 1, PG_NONE, &error);
 	g_assert(!error);
-	col_west = pg_collect_new("col_west", 1, 1, &error);
+	col_west = pg_collect_new("col_west", &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(col_west, gen_west, &error);
 	g_assert(!error);
@@ -549,7 +549,7 @@ static void firewall_noip(enum pg_side dir)
 	g_assert(!error);
 	fw = pg_firewall_new("fw", 2, 2, PG_NONE, &error);
 	g_assert(!error);
-	col = pg_collect_new("col", 2, 2, &error);
+	col = pg_collect_new("col", &error);
 	g_assert(!error);
 	/* revert link if needed */
 	if (dir == WEST_SIDE) {
