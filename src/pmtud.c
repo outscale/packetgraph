@@ -17,6 +17,9 @@
 
 
 #include <packetgraph/pmtud.h>
+#include <rte_config.h>
+#include <rte_ip.h>
+#include <rte_ether.h>
 #include "utils/bitmask.h"
 #include "brick-int.h"
 
@@ -30,6 +33,11 @@ struct pg_pmtud_state {
 	enum pg_side output;
 	uint32_t mtu_size;
 };
+
+struct eth_ipv4_hdr {
+	struct ether_hdr eth;
+	struct ipv4_hdr ip;
+} __attribute__((__packed__));
 
 static struct pg_brick_config *pmtud_config_new(const char *name,
 						enum pg_side output,
@@ -52,11 +60,21 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 	struct pg_pmtud_state *state =
 		pg_brick_get_state(brick, struct pg_pmtud_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
+	uint16_t ipv4_proto_be = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 	uint32_t mtu_size = state->mtu_size;
 
 	if (state->output == from) {
 		PG_FOREACH_BIT(pkts_mask, i) {
-			if (pkts[i]->pkt_len > mtu_size) {
+			struct  eth_ipv4_hdr *pkt_buf =
+				rte_pktmbuf_mtod(pkts[i],
+						 struct eth_ipv4_hdr *);
+			int dont_fragment = (pkt_buf->ip.fragment_offset) &
+				rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
+			int is_ipv4 =
+				(pkt_buf->eth.ether_type == ipv4_proto_be);
+
+			if (is_ipv4 && dont_fragment &&
+			    pkts[i]->pkt_len > mtu_size) {
 				pkts_mask ^= (ONE64 << i);
 				/* send packet in the other way */
 			}
