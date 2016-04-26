@@ -43,7 +43,7 @@ void test_benchmark_print(void)
 	uint32_t len;
 
 	pg_bench_init(&bench);
-	print = pg_print_new("print", 1, 1, stderr,
+	print = pg_print_new("print", stderr,
 			     PG_PRINT_FLAG_SUMMARY | PG_PRINT_FLAG_TIMESTAMP,
 			     NULL, &error);
 	g_assert(!error);

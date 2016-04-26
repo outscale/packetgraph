@@ -59,8 +59,6 @@ enum pg_print_flags {
  * @return	a pointer to a brick structure on success, NULL on error
  */
 struct pg_brick *pg_print_new(const char *name,
-			      uint32_t west_max,
-			      uint32_t east_max,
 			      FILE *output,
 			      int flags,
 			      uint16_t *type_filter,
