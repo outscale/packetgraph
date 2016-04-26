@@ -131,6 +131,8 @@ struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
 		ip_hdr.next_proto_id = proto;				\
 		ip_hdr.src_addr = src_ip;				\
 		ip_hdr.dst_addr = dst_ip;				\
+		ip_hdr.fragment_offset =				\
+			rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);		\
 		ip_hdr.hdr_checksum = rte_ipv4_cksum(&ip_hdr);		\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(ip_hdr));	\
 		if (tmp)						\
