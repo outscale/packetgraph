@@ -20,8 +20,12 @@
 #include <rte_config.h>
 #include <rte_ip.h>
 #include <rte_ether.h>
+#include "utils/mempool.h"
 #include "utils/bitmask.h"
+#include "packets.h"
 #include "brick-int.h"
+
+#define ICMP_PROTOCOL_NUMBER 0x01
 
 struct pg_pmtud_config {
 	enum pg_side output;
@@ -32,11 +36,30 @@ struct pg_pmtud_state {
 	struct pg_brick brick;
 	enum pg_side output;
 	uint32_t mtu_size;
+	struct rte_mbuf *icmp;
 };
 
 struct eth_ipv4_hdr {
 	struct ether_hdr eth;
 	struct ipv4_hdr ip;
+	/* the begin of the message */
+	uint64_t beg_msg;
+} __attribute__((__packed__));
+
+struct icmp_hdr {
+	uint8_t type;
+	uint8_t code;
+	uint16_t checksum;
+	uint16_t unused;
+	uint16_t next_hop_mtu;
+	struct ipv4_hdr ip;
+	uint64_t last_msg;
+} __attribute__((__packed__));
+
+struct icmp_full_hdr {
+	struct ether_hdr eth;
+	struct ipv4_hdr ip;
+	struct icmp_hdr icmp;
 } __attribute__((__packed__));
 
 static struct pg_brick_config *pmtud_config_new(const char *name,
@@ -53,13 +76,23 @@ static struct pg_brick_config *pmtud_config_new(const char *name,
 	return pg_brick_config_init(config, name, 1, 1, PG_DIPOLE);
 }
 
+static inline uint16_t icmp_checksum(struct icmp_hdr *msg)
+{
+	uint16_t sum = 0;
+
+	sum = rte_raw_cksum(msg, sizeof(struct icmp_hdr));
+	return ~sum;
+}
+
 static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
 		       uint64_t pkts_mask, struct pg_error **errp)
 {
 	struct pg_pmtud_state *state =
 		pg_brick_get_state(brick, struct pg_pmtud_state);
-	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
+	enum pg_side to = pg_flip_side(from);
+	struct pg_brick_side *s = &brick->sides[to];
+	struct pg_brick_side *s_from = &brick->sides[from];
 	uint16_t ipv4_proto_be = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 	uint32_t mtu_size = state->mtu_size;
 
@@ -73,10 +106,31 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 			int is_ipv4 =
 				(pkt_buf->eth.ether_type == ipv4_proto_be);
 
+
 			if (is_ipv4 && dont_fragment &&
 			    pkts[i]->pkt_len > mtu_size) {
+				struct icmp_full_hdr *icmp_buf =
+					rte_pktmbuf_mtod(
+						state->icmp,
+						struct icmp_full_hdr *);
+
 				pkts_mask ^= (ONE64 << i);
-				/* send packet in the other way */
+				icmp_buf->eth.s_addr = pkt_buf->eth.d_addr;
+				icmp_buf->eth.d_addr = pkt_buf->eth.s_addr;
+				icmp_buf->ip.src_addr = pkt_buf->ip.dst_addr;
+				icmp_buf->ip.dst_addr = pkt_buf->ip.src_addr;
+				icmp_buf->icmp.ip = pkt_buf->ip;
+				icmp_buf->icmp.last_msg = pkt_buf->beg_msg;
+				icmp_buf->icmp.checksum = 0;
+
+				icmp_buf->icmp.checksum =
+					icmp_checksum(&icmp_buf->icmp);
+				if (pg_brick_burst(s_from->edge.link, to,
+						   s_from->edge.pair_index,
+						   &state->icmp, 1, errp) < 0) {
+					return -1;
+				}
+
 			}
 		}
 	}
@@ -88,10 +142,11 @@ static int pmtud_init(struct pg_brick *brick,
 		      struct pg_brick_config *config,
 		      struct pg_error **errp)
 {
-	struct pg_pmtud_state *state;
+	struct pg_pmtud_state *state =
+		pg_brick_get_state(brick, struct pg_pmtud_state);
 	struct pg_pmtud_config *pmtud_config;
-
-	state = pg_brick_get_state(brick, struct pg_pmtud_state);
+	struct ether_addr eth = { {0} };
+	struct icmp_hdr *icmp;
 
 	pmtud_config = (struct pg_pmtud_config *) config->brick_config;
 
@@ -99,7 +154,24 @@ static int pmtud_init(struct pg_brick *brick,
 
 	state->output = pmtud_config->output;
 	state->mtu_size = pmtud_config->mtu_size;
-
+	state->icmp = rte_pktmbuf_alloc(pg_get_mempool());
+	if (!state->icmp) {
+		pg_error_new("cannot allocate icmp packet");
+		return -1;
+	}
+	pg_packets_append_ether(&state->icmp,
+				1,  &eth, &eth,
+				ETHER_TYPE_IPv4);
+	pg_packets_append_ipv4(&state->icmp, 1, 1, 2,
+			       sizeof(struct icmp_hdr) +
+			       sizeof(struct ipv4_hdr),
+			       ICMP_PROTOCOL_NUMBER);
+	icmp = (struct icmp_hdr *)rte_pktmbuf_append(state->icmp,
+						     sizeof(struct icmp_hdr));
+	icmp->type = 3;
+	icmp->code = 4;
+	icmp->unused = 0;
+	icmp->next_hop_mtu = rte_cpu_to_be_16(state->mtu_size);
 	return 0;
 }
 
@@ -116,11 +188,21 @@ struct pg_brick *pg_pmtud_new(const char *name,
 	return ret;
 }
 
+static void pmtud_destroy(struct pg_brick *brick, struct pg_error **errp)
+{
+	struct pg_pmtud_state *state =
+		pg_brick_get_state(brick, struct pg_pmtud_state);
+
+	rte_pktmbuf_free(state->icmp);
+	state->icmp = NULL;
+}
+
 static struct pg_brick_ops pmtud_ops = {
 	.name		= "pmtud",
 	.state_size	= sizeof(struct pg_pmtud_state),
 
 	.init		= pmtud_init,
+	.destroy	= pmtud_destroy,
 
 	.unlink		= pg_brick_generic_unlink,
 };
