@@ -49,6 +49,10 @@
 
 struct ether_addr;
 
+/**
+ * @return: a newly allocated array of packets,
+ *	    caller must free each packets, and the array
+ */
 struct rte_mbuf **pg_packets_create(uint64_t pkts_mask);
 
 struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
