@@ -44,7 +44,14 @@ Connecting virtual machines through VXLAN network:
 
 # Building
 
-You will need to build DPDK and install NPF before building packetgraph.
+You will need to build DPDK before building packetgraph.
+
+## Install needed tools
+
+You may adapt this depending of your linux distribution:
+```
+$ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev
+```
 
 ## Build DPDK
 
@@ -60,58 +67,6 @@ Edit build/.config and be sure to set the following parameters to 'y':
 - CONFIG_RTE_LIBRTE_PMD_PCAP
 ```
 $ make EXTRA_CFLAGS='-fPIC'
-```
-
-## Install NPF
-
-Here are some details to build npf and package it (thoses instructions has been made using CentOS 7).
-
-Get and install jemalloc:
-```
-yum install jemalloc
-```
-
-Get and install Libcdb:
-```
-$ git clone https://github.com/rmind/libcdb
-$ cd libcd
-$ make rpm
-$ rpm -ihv RPMS/x86_64/libcdb-*
-```
-
-Get, patch and build and install proplib:
-```
-$ git clone https://github.com/xtraeme/portableproplib.git
-$ cd portableproplib
-$ git checkout -b patched 73e5c8346231c0c9ad508b07dc1bae7662f61d7c
-$ wget http://noxt.eu/~rmind/proplib-centos-rpm.diff
-$ patch -p1 < proplib-centos-rpm.diff
-$ ./bootstrap
-$ make
-$ make install
-```
-
-Or install proplib RPM package (which contains patch):
-```
-$ wget http://noxt.eu/~rmind/libprop-0.6.5-1.el7.centos.x86_64.rpm
-$ rpm -ihv libprop-0.6.5-1.el7.centos.x86_64.rpm
-```
-
-Install libqsbr:
-```
-$ git clone https://github.com/rmind/libqsbr.git
-$ cd libqsbr/pkg
-$ make rpm
-$ rpm -ihv RPMS/x86_64/*.rpm
-```
-
-Finally, get the standalone version of npf and build it:
-```
-$ git clone https://github.com/rmind/npf.git
-$ cd npf/pkg
-$ make clean
-$ make npf
-$ rpm -hvi RPMS/x86_64/npf-*
 ```
 
 ## Build packetgraph
