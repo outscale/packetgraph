@@ -34,9 +34,10 @@ if [ ! -d $PACKETGRAPH_ROOT ]; then
 fi
 
 # directories and files to scan
-c_filelist=$(find $PACKETGRAPH_ROOT/src/ -type f -name "*.c" -printf %p\ )
-h_filelist=$(find $PACKETGRAPH_ROOT/{src,include} -type f -name "*.h" -printf %p\ )
-directories=$(find $PACKETGRAPH_ROOT -maxdepth 2 -type d -name "src" -o -name "packetgraph" -printf %p\ )
+# Note: using -path ./folder_to_exclude -prune
+c_filelist=$(find $PACKETGRAPH_ROOT/src/ -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.c" -printf %p\ )
+h_filelist=$(find $PACKETGRAPH_ROOT/{src,include} -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.h" -printf %p\ )
+directories=$(find $PACKETGRAPH_ROOT -maxdepth 2 -path $PACKETGRAPH_ROOT/src/npf -prune -o -type d -name "src" -o -name "packetgraph" -printf %p\ )
 
 # checkpatch tests
 

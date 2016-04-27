@@ -30,11 +30,6 @@ libpacketgraph_la_SOURCES = \
 	src/diode.c\
 	src/switch.c
 
-libpacketgraph_la_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS) -lnpf -lnpfkern
-# FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
-libpacketgraph_la_LDFLAGS = -version-info 0:0:0 -export-symbols-regex 'pg_[^_]' -no-undefined $(RTE_SDK_LDFLAGS)
-libpacketgraph_la_CFLAGS = -Ofast -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -I$(srcdir)/include -I$(srcdir)/src
-
 pkginclude_HEADERS = \
 	include/packetgraph/common.h\
 	include/packetgraph/print.h\
@@ -54,11 +49,107 @@ pkginclude_HEADERS = \
 	include/packetgraph/queue.h\
 	include/packetgraph/errors.h
 
+libpacketgraph_la_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
+# FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
+libpacketgraph_la_LDFLAGS = -version-info 0:0:0 -export-symbols-regex 'pg_[^_]' -no-undefined $(RTE_SDK_LDFLAGS)
+libpacketgraph_la_CFLAGS = -Ofast -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -I$(srcdir)/include -I$(srcdir)/src
+
+noinst_LTLIBRARIES =
+
+if PG_BUILD_NPF
+noinst_LTLIBRARIES += libprop.la libcdb.la libqsbr.la libsljit.la libbpfjit.la libnpf.la libnpfkern.la
+
+libprop_la_SOURCES = \
+	src/npf/proplib/src/prop_array.c\
+	src/npf/proplib/src/prop_array_util.c\
+	src/npf/proplib/src/prop_bool.c\
+	src/npf/proplib/src/prop_data.c\
+	src/npf/proplib/src/prop_dictionary.c\
+	src/npf/proplib/src/prop_dictionary_util.c\
+	src/npf/proplib/src/prop_ingest.c\
+	src/npf/proplib/src/prop_number.c\
+	src/npf/proplib/src/prop_object.c\
+	src/npf/proplib/src/prop_stack.c\
+	src/npf/proplib/src/prop_string.c\
+	src/npf/proplib/src/prop_zlib.c\
+	src/npf/proplib/src/rb.c
+libprop_la_includes = -Isrc/npf/proplib/include
+libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all -Ofast -std=gnu99 -fPIC
+
+libcdb_la_SOURCES = \
+	src/npf/libcdb/src/cdbr.c\
+	src/npf/libcdb/src/cdbw.c\
+	src/npf/libcdb/src/mi_vector_hash.c
+libcdb_la_includes = -Isrc/npf/libcdb/src
+libcdb_la_CFLAGS = $(libcdb_la_includes) -D__RCSID\(x\)= -std=gnu99 -O2 -W -Wextra -Werror -DNDEBUG -fPIC
+
+libqsbr_la_SOURCES = \
+	src/npf/libqsbr/src/ebr.c\
+	src/npf/libqsbr/src/gc.c\
+	src/npf/libqsbr/src/qsbr.c
+libqsbr_la_includes = -Isrc/npf/libqsbr
+libqsbr_la_CFLAGS = $(libqsbr_la_includes) -D__RCSID\(x\)= -fPIC
+
+libsljit_la_SOURCES = \
+	src/npf/sljit/regexJIT.c\
+	src/npf/sljit/sljitLir.c
+libsljit_includes = -Isrc/npf/sljit
+libsljit_la_CFLAGS = -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -Ofast -fPIC
+
+libbpfjit_la_SOURCES = src/npf/bpfjit/bpfjit.c
+libbpfjit_includes = -Isrc/npf/bpfjit
+libbpfjit_la_CFLAGS = $(libsljit_includes) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -Ofast -fPIC
+libbpfjit_la_LIBADD = libsljit.la
+
+libnpf_la_SOURCES = src/npf/npf/src/libnpf/npf.c
+libnpf_la_includes = -Isrc/npf/npf/src/libnpf
+libnpf_la_CFLAGS = $(libprop_la_includes) $(libqsbr_la_includes) $(libcdb_la_includes) -std=gnu99 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -I src/npf/npf/src/libnpf -I src/npf/npf/src/kern/stand -D__KERNEL_RCSID\(x,y\)= -D_NPF_STANDALONE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -DNDEBUG -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -fPIC
+
+libnpfkern_la_SOURCES = \
+	src/npf/npf/src/kern/npf.c\
+	src/npf/npf/src/kern/npf_conf.c\
+	src/npf/npf/src/kern/npf_ctl.c\
+	src/npf/npf/src/kern/npf_handler.c\
+	src/npf/npf/src/kern/npf_mbuf.c\
+	src/npf/npf/src/kern/npf_bpf.c\
+	src/npf/npf/src/kern/npf_ruleset.c\
+	src/npf/npf/src/kern/npf_rproc.c\
+	src/npf/npf/src/kern/npf_tableset.c\
+	src/npf/npf/src/kern/npf_tableset_ptree.c\
+	src/npf/npf/src/kern/npf_if.c\
+	src/npf/npf/src/kern/npf_inet.c\
+	src/npf/npf/src/kern/npf_conn.c\
+	src/npf/npf/src/kern/npf_conndb.c\
+	src/npf/npf/src/kern/npf_state.c\
+	src/npf/npf/src/kern/npf_state_tcp.c\
+	src/npf/npf/src/kern/npf_nat.c\
+	src/npf/npf/src/kern/npf_alg.c\
+	src/npf/npf/src/kern/npf_sendpkt.c\
+	src/npf/npf/src/kern/npf_worker.c\
+	src/npf/npf/src/kern/stand/bpf_filter.c\
+	src/npf/npf/src/kern/stand/rb.c\
+	src/npf/npf/src/kern/stand/ptree.c\
+	src/npf/npf/src/kern/stand/murmurhash.c\
+	src/npf/npf/src/kern/stand/subr_hash.c\
+	src/npf/npf/src/kern/stand/mempool.c\
+	src/npf/npf/src/kern/stand/tls_pth.c
+libnpfkern_la_includes = -Isrc/npf/npf/src/kern/stand
+libnpfkern_la_CFLAGS = $(libcdb_la_includes) $(libprop_la_includes) $(libqsbr_la_includes) $(libnpf_la_includes) $(libnpfkern_la_includes) $(libbpfjit_includes) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu99 -O2 -flto -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
+# Trick to avoid symbol conflicts
+libnpfkern_la_CFLAGS += -Dnpf_ruleset_add=_npf_ruleset_add -Dnpf_ruleset_remove=_npf_ruleset_remove -Dnpf_ruleset_remkey=_npf_ruleset_remkey -Dnpf_ruleset_flush=_npf_ruleset_flush -Dnpf_rule_setcode=_npf_rule_setcode -Dnpf_rule_getid=_npf_rule_getid -Dnpf_ext_construct=_npf_ext_construct -Dnpf_rproc_create=_npf_rproc_create -Dnpf_table_create=_npf_table_create -Dnpf_table_destroy=_npf_table_destroy -Dnpf_table_insert=_npf_table_insert -Drb_tree_init=_rb_tree_init -Drb_tree_find_node=_rb_tree_find_node -Drb_tree_find_node_geq=_rb_tree_find_node_geq -Drb_tree_find_node_leq=_rb_tree_find_node_leq -Drb_tree_insert_node=_rb_tree_insert_node -Drb_tree_iterate=_rb_tree_iterate -Drb_tree_remove_node=_rb_tree_remove_node
+libnpfkern_la_LIBADD = libqsbr.la libcdb.la libprop.la libbpfjit.la -ljemalloc -lpthread -lpcap
+
+libpacketgraph_la_LIBADD += libnpf.la libnpfkern.la
+libpacketgraph_la_CFLAGS += $(libnpf_la_includes) $(libnpfkern_la_includes) $(libprop_la_includes)
+else
+libpacketgraph_la_LIBADD += -lnpf -lnpfkern
+endif
+
 dist_doc_DATA = README.md
 
 check_PROGRAMS = tests-antispoof tests-core tests-diode tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep
 
-noinst_LTLIBRARIES = libpacketgraph-dev.la
+noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols $(RTE_SDK_LDFLAGS)
