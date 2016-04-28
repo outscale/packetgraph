@@ -34,6 +34,8 @@ enum pg_print_flags {
 	PG_PRINT_FLAG_BRICK = 8,
 	/* Print raw packet data. */
 	PG_PRINT_FLAG_RAW = 16,
+	/* Print in pcap format */
+	PG_PRINT_FLAG_PCAP = 32,
 };
 
 #define PG_PRINT_FLAG_MAX (PG_PRINT_FLAG_SUMMARY | PG_PRINT_FLAG_TIMESTAMP | \
