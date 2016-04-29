@@ -24,7 +24,7 @@
 #include "utils/bitmask.h"
 #include "brick-int.h"
 #include "packets.h"
-#include "npf_dpdk.h"
+#include "src/npf/npf/dpdk/npf_dpdk.h"
 
 #define FIREWALL_SIDE_TO_NPF(side) \
 	((side) == WEST_SIDE ? PFIL_OUT : PFIL_IN)

@@ -21,7 +21,7 @@ libpacketgraph_la_SOURCES = \
 	src/brick.c\
 	src/packetsgen.c\
 	src/vhost.c\
-	src/npf_dpdk.c\
+	src/npf/npf/dpdk/npf_dpdk.c\
 	src/antispoof.c\
 	src/collect.c\
 	src/vtep.c\
