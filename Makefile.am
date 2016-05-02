@@ -73,37 +73,37 @@ libprop_la_SOURCES = \
 	src/npf/proplib/src/prop_string.c\
 	src/npf/proplib/src/prop_zlib.c\
 	src/npf/proplib/src/rb.c
-libprop_la_includes = -Isrc/npf/proplib/include
+libprop_la_includes = -I$(srcdir)/src/npf/proplib/include
 libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all -Ofast -std=gnu99 -fPIC
 
 libcdb_la_SOURCES = \
 	src/npf/libcdb/src/cdbr.c\
 	src/npf/libcdb/src/cdbw.c\
 	src/npf/libcdb/src/mi_vector_hash.c
-libcdb_la_includes = -Isrc/npf/libcdb/src
+libcdb_la_includes = -I$(srcdir)/src/npf/libcdb/src
 libcdb_la_CFLAGS = $(libcdb_la_includes) -D__RCSID\(x\)= -std=gnu99 -O2 -W -Wextra -Werror -DNDEBUG -fPIC
 
 libqsbr_la_SOURCES = \
 	src/npf/libqsbr/src/ebr.c\
 	src/npf/libqsbr/src/gc.c\
 	src/npf/libqsbr/src/qsbr.c
-libqsbr_la_includes = -Isrc/npf/libqsbr
+libqsbr_la_includes = -I$(srcdir)/src/npf/libqsbr
 libqsbr_la_CFLAGS = $(libqsbr_la_includes) -D__RCSID\(x\)= -fPIC
 
 libsljit_la_SOURCES = \
 	src/npf/sljit/regexJIT.c\
 	src/npf/sljit/sljitLir.c
-libsljit_includes = -Isrc/npf/sljit
+libsljit_includes = -I$(srcdir)/src/npf/sljit
 libsljit_la_CFLAGS = -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -Ofast -fPIC
 
 libbpfjit_la_SOURCES = src/npf/bpfjit/bpfjit.c
-libbpfjit_includes = -Isrc/npf/bpfjit
+libbpfjit_includes = -I$(srcdir)/src/npf/bpfjit
 libbpfjit_la_CFLAGS = $(libsljit_includes) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -Ofast -fPIC
 libbpfjit_la_LIBADD = libsljit.la
 
 libnpf_la_SOURCES = src/npf/npf/src/libnpf/npf.c
-libnpf_la_includes = -Isrc/npf/npf/src/libnpf
-libnpf_la_CFLAGS = $(libprop_la_includes) $(libqsbr_la_includes) $(libcdb_la_includes) -std=gnu99 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -I src/npf/npf/src/libnpf -I src/npf/npf/src/kern/stand -D__KERNEL_RCSID\(x,y\)= -D_NPF_STANDALONE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -DNDEBUG -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -fPIC
+libnpf_la_includes = -I$(srcdir)/src/npf/npf/src/libnpf -I$(srcdir)/src/npf/npf/src/kern/stand
+libnpf_la_CFLAGS = $(libnpf_la_includes) $(libprop_la_includes) $(libqsbr_la_includes) $(libcdb_la_includes) -std=gnu99 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -D__KERNEL_RCSID\(x,y\)= -D_NPF_STANDALONE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -DNDEBUG -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -fPIC
 
 libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/npf.c\
@@ -133,7 +133,7 @@ libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/stand/subr_hash.c\
 	src/npf/npf/src/kern/stand/mempool.c\
 	src/npf/npf/src/kern/stand/tls_pth.c
-libnpfkern_la_includes = -Isrc/npf/npf/src/kern/stand
+libnpfkern_la_includes = -I$(srcdir)/src/npf/npf/src/kern/stand
 libnpfkern_la_CFLAGS = $(libcdb_la_includes) $(libprop_la_includes) $(libqsbr_la_includes) $(libnpf_la_includes) $(libnpfkern_la_includes) $(libbpfjit_includes) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu99 -O2 -flto -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
 # Trick to avoid symbol conflicts
 libnpfkern_la_CFLAGS += -Dnpf_ruleset_add=_npf_ruleset_add -Dnpf_ruleset_remove=_npf_ruleset_remove -Dnpf_ruleset_remkey=_npf_ruleset_remkey -Dnpf_ruleset_flush=_npf_ruleset_flush -Dnpf_rule_setcode=_npf_rule_setcode -Dnpf_rule_getid=_npf_rule_getid -Dnpf_ext_construct=_npf_ext_construct -Dnpf_rproc_create=_npf_rproc_create -Dnpf_table_create=_npf_table_create -Dnpf_table_destroy=_npf_table_destroy -Dnpf_table_insert=_npf_table_insert -Drb_tree_init=_rb_tree_init -Drb_tree_find_node=_rb_tree_find_node -Drb_tree_find_node_geq=_rb_tree_find_node_geq -Drb_tree_find_node_leq=_rb_tree_find_node_leq -Drb_tree_insert_node=_rb_tree_insert_node -Drb_tree_iterate=_rb_tree_iterate -Drb_tree_remove_node=_rb_tree_remove_node
