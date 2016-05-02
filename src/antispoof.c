@@ -197,14 +197,17 @@ struct pg_brick *pg_antispoof_new(const char *name,
 				  uint32_t west_max,
 				  uint32_t east_max,
 				  enum pg_side outside,
-				  struct ether_addr mac,
+				  struct ether_addr *mac,
 				  struct pg_error **errp)
 {
-	struct pg_brick_config *config = antispoof_config_new(name, west_max,
-							      east_max, outside,
-							      mac);
-	struct pg_brick *ret = pg_brick_new("antispoof", config, errp);
+	struct pg_brick_config *config;
+	struct pg_brick *ret;
 
+	g_assert(mac);
+	config = antispoof_config_new(name, west_max,
+				      east_max, outside,
+				      *mac);
+	ret = pg_brick_new("antispoof", config, errp);
 	pg_brick_config_free(config);
 	return ret;
 }

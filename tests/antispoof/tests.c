@@ -70,7 +70,7 @@ static void test_antispoof_mac(void)
 				     &packet, 1, &error);
 	g_assert(!error);
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
-				     inside_mac, &error);
+				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", 1, 1, &error);
 	g_assert(!error);
@@ -118,7 +118,7 @@ static void test_antispoof_rarp(void)
 				     &packet, 1, &error);
 	g_assert(!error);
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
-				     inside_mac, &error);
+				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", 1, 1, &error);
 	g_assert(!error);
@@ -165,7 +165,7 @@ static void test_antispoof_generic(const unsigned char **pkts,
 				     &packet, 1, &error);
 	g_assert(!error);
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
-				     inside_mac, &error);
+				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", 1, 1, &error);
 	g_assert(!error);
@@ -242,7 +242,7 @@ static void test_pg_antispoof_arp_disable(void)
 				     &packet, 1, &error);
 	g_assert(!error);
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
-				     inside_mac, &error);
+				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", 1, 1, &error);
 	g_assert(!error);

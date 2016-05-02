@@ -44,7 +44,7 @@ void test_benchmark_antispoof(void)
 
 	pg_bench_init(&bench);
 	antispoof = pg_antispoof_new("antispoof", 1, 1, EAST_SIDE,
-				     mac1, &error);
+				     &mac1, &error);
 	g_assert(!error);
 	pg_antispoof_arp_enable(antispoof, 0x000000EE);
 

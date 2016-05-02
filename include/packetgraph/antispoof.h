@@ -18,11 +18,10 @@
 #ifndef _PG_ANTISPOOF_H
 #define _PG_ANTISPOOF_H
 
-#ifndef _RTE_ETHER_H_
-#include <net/ethernet.h>
-#endif
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
+
+struct ether_addr *mac;
 
 /**
  * Create a new antispoof brick
@@ -31,7 +30,7 @@
  * @param	west_max maximum of links you can connect on the west side
  * @param	east_max maximum of links you can connect on the east side
  * @param	outside side where packets are not inspected
- * @param	mac mac address that should not be spoofed
+ * @param	mac valid pointer to a mac address that should not be spoofed
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure, on success, 0 on error
  */
@@ -39,7 +38,7 @@ struct pg_brick *pg_antispoof_new(const char *name,
 				  uint32_t west_max,
 				  uint32_t east_max,
 				  enum pg_side outside,
-				  struct ether_addr mac,
+				  struct ether_addr *mac,
 				  struct pg_error **errp);
 
 /**
