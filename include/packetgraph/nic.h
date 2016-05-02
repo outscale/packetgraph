@@ -18,9 +18,6 @@
 #ifndef _PG_NIC_H
 #define _PG_NIC_H
 
-#ifndef _RTE_ETHER_H_
-#include <net/ethernet.h>
-#endif
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 
