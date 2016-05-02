@@ -40,22 +40,34 @@ static void assert_brick_callback(struct pg_brick *brick)
  *
  * @brick: the struct pg_brick we are initializing
  */
-static void alloc_edges(struct pg_brick *brick)
+static int alloc_edges(struct pg_brick *brick, struct pg_error **errp)
 {
 	enum pg_side i;
+	bool is_other_side_empty = false;
 
 	for (i = 0; i < MAX_SIDE; i++) {
 		struct pg_brick_side *side = &brick->sides[i];
 
 		if (brick->type == PG_MULTIPOLE) {
 			side->nb = 0;
-			g_assert(side->max);
-			side->edges = g_new0(struct pg_brick_edge, side->max);
+			if (side->max == 0) {
+				if (is_other_side_empty) {
+					*errp = pg_error_new(
+						"Brick'%s',two sides empties",
+						brick->name);
+					return -1;
+				}
+				is_other_side_empty = true;
+			} else {
+				side->edges = g_new0(struct pg_brick_edge,
+						     side->max);
+			}
 		} else {
 			side->edge.link = NULL;
 			side->edge.pair_index = 0;
 		}
 	}
+	return 0;
 }
 
 /**
@@ -179,7 +191,8 @@ struct pg_brick *pg_brick_new(const char *name,
 
 	assert_brick_callback(brick);
 	/* TODO: register the brick */
-	alloc_edges(brick);
+	if (alloc_edges(brick, errp) < 0)
+		goto fail_exit;
 	return brick;
 
 fail_exit:
