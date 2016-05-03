@@ -40,7 +40,7 @@ AS_IF([test "x$RTE_SDK" != "x"], [
 ])
 
 # Checks for libraries
-PKG_CHECK_MODULES(GLIB, glib-2.0 gobject-2.0)
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.34 gobject-2.0)
 AC_SUBST(GLIB_LIBS)
 AC_SUBST(GLIB_CFLAGS)
 AC_SEARCH_LIBS([pthread_attr_init], [pthread], [], [AC_MSG_ERROR([Unable to find pthread library])])
