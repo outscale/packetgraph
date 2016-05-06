@@ -1,4 +1,4 @@
-/* Copyright 2015 Outscale SAS
+/* Copyright 2016 Outscale SAS
  *
  * This file is part of Butterfly.
  *
