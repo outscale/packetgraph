@@ -27,6 +27,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 # Available Bricks
 
 - switch: a layer 2 switch
+- rxtx: setup your own callbacks to get and sent packets
 - vhost: allow to connect a vhost NIC to a virtual machine (virtio based)
 - firewall: allow to filter traffic passing through it (based on [NPF](https://github.com/rmind/npf))
 - diode: only let packets pass in one direction

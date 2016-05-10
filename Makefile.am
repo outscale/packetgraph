@@ -21,6 +21,7 @@ libpacketgraph_la_SOURCES = \
 	src/brick.c\
 	src/packetsgen.c\
 	src/vhost.c\
+	src/rxtx.c\
 	src/npf/npf/dpdk/npf_dpdk.c\
 	src/antispoof.c\
 	src/collect.c\
@@ -45,6 +46,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/vtep.h\
 	include/packetgraph/firewall.h\
 	include/packetgraph/vhost.h\
+	include/packetgraph/rxtx.h\
 	include/packetgraph/switch.h\
 	include/packetgraph/queue.h\
 	include/packetgraph/errors.h
