@@ -70,8 +70,8 @@ static struct rte_mbuf *build_ip_packet(const char *src_ip,
 	/* FEAR ! this is CHAOS ! */
 	ip->ip_p = 16;
 	ip->ip_len = htons(sizeof(struct ip) + 1);
-	ip->ip_src.s_addr = inet_addr(src_ip);
-	ip->ip_dst.s_addr = inet_addr(dst_ip);
+	inet_pton(AF_INET, src_ip, &ip->ip_src.s_addr);
+	inet_pton(AF_INET, dst_ip, &ip->ip_dst.s_addr);
 
 	/* write some data */
 	payload_ip = (uint16_t *)(ip + 1);
@@ -196,11 +196,15 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
+		uint32_t tmp;
+
 		pg_low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0);
 		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
-		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
+
+		inet_pton(AF_INET, "10.0.0.1", &tmp);
+		g_assert(ip->ip_src.s_addr == tmp);
 	}
 
 	/* now allow packets from 10.0.0.2 */
@@ -225,12 +229,17 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb * 2 / 3);
 	for (; filtered_pkts_mask;) {
+		uint32_t tmp1;
+		uint32_t tmp2;
+
 		pg_low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0 || i % 3 == 1);
 		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
-		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1") ||
-			 ip->ip_src.s_addr == inet_addr("10.0.0.2"));
+		inet_pton(AF_INET, "10.0.0.1", &tmp1);
+		inet_pton(AF_INET, "10.0.0.2", &tmp2);
+		g_assert(ip->ip_src.s_addr == tmp1 ||
+			 ip->ip_src.s_addr == tmp2);
 	}
 
 	/* test that flush really blocks */
@@ -278,11 +287,14 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
+		uint32_t tmp;
+
 		pg_low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 1);
 		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
-		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.2"));
+		inet_pton(AF_INET, "10.0.0.2", &tmp);
+		g_assert(ip->ip_src.s_addr == tmp);
 	}
 
 	/* flush and make two rules in one */
@@ -308,12 +320,17 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb * 2 / 3);
 	for (; filtered_pkts_mask;) {
+		uint32_t tmp1;		
+		uint32_t tmp2;
+
 		pg_low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0 || i % 3 == 1);
 		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
-		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1") ||
-			 ip->ip_src.s_addr == inet_addr("10.0.0.2"));
+		inet_pton(AF_INET, "10.0.0.1", &tmp1);
+		inet_pton(AF_INET, "10.0.0.2", &tmp2);
+		g_assert(ip->ip_src.s_addr == tmp1 ||
+			 ip->ip_src.s_addr == tmp2);
 	}
 
 	/* flush and revert rules, packets should not pass */
@@ -363,11 +380,14 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
+		uint32_t tmp;
+
 		pg_low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0);
 		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
-		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
+		inet_pton(AF_INET, "10.0.0.1", &tmp);
+		g_assert(ip->ip_src.s_addr == tmp);
 	}
 
 	/* inverse generator and collector to test both sides */
@@ -399,11 +419,14 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
+		uint32_t tmp;
+
 		pg_low_bit_iterate_full(filtered_pkts_mask, bit, i);
 		g_assert(i % 3 == 0);
 		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
-		g_assert(ip->ip_src.s_addr == inet_addr("10.0.0.1"));
+		inet_pton(AF_INET, "10.0.0.1", &tmp);
+		g_assert(ip->ip_src.s_addr == tmp);
 	}
 
 	/* clean */
@@ -466,12 +489,18 @@ static void firewall_replay(const unsigned char *pkts[],
 	/* replay traffic */
 	for (i = 0; i < pkts_nb; i++) {
 		struct ip *ip;
+		uint32_t tmp1;
+		uint32_t tmp2;		
 
 		packet = build_packet(pkts[i], pkts_size[i]);
 		eth = rte_pktmbuf_mtod(packet, struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);
+		inet_pton(AF_INET, "10.0.2.15", &tmp1);
+		inet_pton(AF_INET, "173.194.40.111", &tmp2);
 
-		if (ip->ip_src.s_addr == inet_addr("10.0.2.15")) {
+		if (ip->ip_src.s_addr == tmp1) {
+			uint32_t tmp;
+
 			pg_brick_poll(gen_west, &packet_count, &error);
 			g_assert(!error);
 			g_assert(packet_count == 1);
@@ -486,8 +515,11 @@ static void firewall_replay(const unsigned char *pkts[],
 			g_assert(is_same_ether_addr(&eth->s_addr, &tmp_addr));
 			/* check ip source address */
 			ip = (struct ip *)(eth + 1);
-			g_assert(ip->ip_src.s_addr == inet_addr("10.0.2.15"));
-		} else if (ip->ip_src.s_addr == inet_addr("173.194.40.111")) {
+			inet_pton(AF_INET, "10.0.2.15", &tmp);
+			g_assert(ip->ip_src.s_addr == tmp);
+		} else if (ip->ip_src.s_addr == tmp2) {
+			uint32_t tmp;
+
 			pg_brick_poll(gen_east, &packet_count, &error);
 			g_assert(!error);
 			g_assert(packet_count == 1);
@@ -502,8 +534,8 @@ static void firewall_replay(const unsigned char *pkts[],
 			g_assert(is_same_ether_addr(&eth->s_addr, &tmp_addr));
 			/* check ip source address */
 			ip = (struct ip *)(eth + 1);
-			g_assert(ip->ip_src.s_addr ==
-				 inet_addr("173.194.40.111"));
+			inet_pton(AF_INET, "173.194.40.111", &tmp);
+			g_assert(ip->ip_src.s_addr == tmp);
 		} else
 			g_assert(0);
 
