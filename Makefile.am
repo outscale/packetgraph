@@ -155,7 +155,7 @@ noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols $(RTE_SDK_LDFLAGS)
-libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH
+libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH
 
 tests_antispoof_SOURCES = \
 	tests/antispoof/test-arp-gratuitous.c\
@@ -248,7 +248,7 @@ TESTS = \
 noinst_PROGRAMS = 
 
 if PG_BENCHMARKS
-noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
+noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
 
 bench_antispoof_SOURCES = \
 	tests/antispoof/bench.c\
@@ -268,6 +268,12 @@ bench_diode_SOURCES = \
 	tests/diode/bench-diode.c
 bench_diode_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_diode_LDFLAGS = libpacketgraph-dev.la
+
+bench_rxtx_SOURCES = \
+	tests/rxtx/bench.c\
+	tests/rxtx/bench-rxtx.c
+bench_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+bench_rxtx_LDFLAGS = libpacketgraph-dev.la
 
 bench_firewall_SOURCES = \
 	tests/firewall/bench.c\
@@ -321,6 +327,7 @@ bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-pri
 	$(srcdir)/tests/queue/bench.sh
 	$(srcdir)/tests/switch/bench.sh
 	$(srcdir)/tests/vtep/bench.sh
+	$(srcdir)/tests/rxtx/bench.sh
 endif
 
 style:
