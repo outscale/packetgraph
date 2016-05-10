@@ -149,7 +149,7 @@ endif
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep
 
 noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
@@ -181,6 +181,11 @@ tests_diode_SOURCES = \
 	tests/diode/tests.c
 tests_diode_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_diode_LDFLAGS = libpacketgraph-dev.la
+
+tests_rxtx_SOURCES = \
+	tests/rxtx/tests.c
+tests_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_rxtx_LDFLAGS = libpacketgraph-dev.la
 
 tests_firewall_SOURCES = \
 	tests/firewall/test-icmp.c\
@@ -230,6 +235,7 @@ TESTS = \
 	tests/antispoof/test.sh\
 	tests/core/test.sh\
 	tests/diode/test.sh\
+	tests/rxtx/test.sh\
 	tests/firewall/test.sh\
 	tests/integration/test.sh\
 	tests/nic/test.sh\
