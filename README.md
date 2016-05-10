@@ -10,6 +10,7 @@ infrastructure.
 Here are current developped bricks available in packetgraph:
 
 - switch: a layer 2 switch
+- rxtx: setup your own callbacks to get and sent packets
 - vhost: allow to connect a vhost NIC to a virtual machine (virtio based)
 - firewall: allow to filter traffic passing through it (based on [NPF](https://github.com/rmind/npf))
 - diode: only let packets pass in one direction
