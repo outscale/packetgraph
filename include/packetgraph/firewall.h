@@ -57,7 +57,7 @@ struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
  *		to specify both sides.
  * @param	errp is set in case of an error
  * @return	0 if the rule has been correctly built and added the the brick
- *		1 otherwise and errp is set.
+ *		-1 on error and errp is set.
  */
 int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 			 enum pg_side dir, int stateful,
