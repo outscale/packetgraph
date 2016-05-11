@@ -145,7 +145,7 @@ int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
 	struct pg_firewall_state *state;
 	struct nl_config *config;
 	void *config_build;
-	int ret;
+	int npf_ret;
 	GList *it;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
@@ -158,11 +158,14 @@ int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
 	}
 
 	config_build = npf_config_build(config);
-	ret = npf_load(state->npf, config_build, &errinfo) ? 0 : -1;
+	npf_ret = npf_load(state->npf, config_build, &errinfo);
 	npf_config_destroy(config);
-	if (ret == 0)
-		*errp = pg_error_new("NPF failed to load configuration");
-	return ret;
+	if (npf_ret != 0) {
+		*errp = pg_error_new_errno(npf_ret,
+					   "NPF failed to load configuration");
+		return -1;
+	}
+	return 0;
 }
 
 struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,

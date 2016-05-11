@@ -126,7 +126,6 @@ static void firewall_filter_rules(enum pg_side dir)
 	struct pg_brick *col;
 	struct pg_error *error = NULL;
 	uint16_t i;
-	int ret;
 	static uint16_t nb = 30;
 	struct rte_mbuf *packets[nb];
 	uint64_t filtered_pkts_mask;
@@ -174,11 +173,10 @@ static void firewall_filter_rules(enum pg_side dir)
 		}
 
 	/* configure firewall to allow traffic from 10.0.0.1 */
-	ret = pg_firewall_rule_add(fw, "src host 10.0.0.1", dir, 0, &error);
+	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.0.1", dir, 0,
+				       &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret < 0);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	/* let's burst ! */
@@ -188,11 +186,13 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
@@ -204,11 +204,10 @@ static void firewall_filter_rules(enum pg_side dir)
 	}
 
 	/* now allow packets from 10.0.0.2 */
-	ret = pg_firewall_rule_add(fw, "src host 10.0.0.2", dir, 0, &error);
+	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.0.2", dir, 0,
+				       &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret < 0);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	/* let it goooo */
@@ -236,9 +235,8 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* test that flush really blocks */
 	pg_firewall_rule_flush(fw);
-	ret = pg_firewall_reload(fw, &error);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
-	g_assert(ret < 0);
 
 	/* let it goooo */
 	pg_brick_poll(gen, &packet_count, &error);
@@ -257,11 +255,10 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* flush and only allow packets from 10.0.0.2 */
 	pg_firewall_rule_flush(fw);
-	ret = pg_firewall_rule_add(fw, "src host 10.0.0.2", dir, 0, &error);
+	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.0.2",
+				       dir, 0, &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret < 0);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	/* let it goooo */
@@ -288,12 +285,10 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* flush and make two rules in one */
 	pg_firewall_rule_flush(fw);
-	ret = pg_firewall_rule_add(fw, "src host (10.0.0.1 or 10.0.0.2)", dir, 0,
-				&error);
+	g_assert(!pg_firewall_rule_add(fw, "src host (10.0.0.1 or 10.0.0.2)",
+				       dir, 0, &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret < 0);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	/* let it goooo */
@@ -321,12 +316,10 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* flush and revert rules, packets should not pass */
 	pg_firewall_rule_flush(fw);
-	ret = pg_firewall_rule_add(fw, "src host (10.0.0.1)", pg_flip_side(dir), 0,
-				&error);
+	g_assert(!pg_firewall_rule_add(fw, "src host (10.0.0.1)",
+				       pg_flip_side(dir), 0, &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret < 0);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	/* let it goooo */
@@ -346,11 +339,10 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* flush and allow packets from both sides */
 	pg_firewall_rule_flush(fw);
-	ret = pg_firewall_rule_add(fw, "src host (10.0.0.1)", MAX_SIDE, 0, &error);
+	g_assert(!pg_firewall_rule_add(fw, "src host (10.0.0.1)",
+				       MAX_SIDE, 0, &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret < 0);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	/* let it goooo */
@@ -431,7 +423,6 @@ static void firewall_replay(const unsigned char *pkts[],
 	uint64_t filtered_pkts_mask;
 	struct rte_mbuf **filtered_pkts;
 	struct ether_addr tmp_addr;
-	int ret;
 
 	/* have some collectors and generators on each sides
 	 * [collector]--[generator>]--[firewall]--[<generator]--[collector]
@@ -462,12 +453,11 @@ static void firewall_replay(const unsigned char *pkts[],
 	/* open all traffic of 10.0.2.15 from the west side of the firewall
 	 * returning traffic should be allowed due to STATEFUL option
 	 */
-	ret = pg_firewall_rule_add(fw, "src host 10.0.2.15", WEST_SIDE, 1, &error);
+	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.2.15",
+				       WEST_SIDE, 1, &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
-	g_assert(ret < 0);
 
 	/* replay traffic */
 	for (i = 0; i < pkts_nb; i++) {
@@ -515,13 +505,11 @@ static void firewall_replay(const unsigned char *pkts[],
 
 		rte_pktmbuf_free(packet);
 		/* ensure that connexion is tracked even when reloading */
-		ret = pg_firewall_rule_add(fw, "src host 6.6.6.6", WEST_SIDE, 0,
-					&error);
+		g_assert(!pg_firewall_rule_add(fw, "src host 6.6.6.6",
+					       WEST_SIDE, 0, &error));
 		g_assert(!error);
-		g_assert(ret == 0);
-		ret = pg_firewall_reload(fw, &error);
+		g_assert(!pg_firewall_reload(fw, &error));
 		g_assert(!error);
-		g_assert(ret < 0);
 	}
 
 	/* clean */
