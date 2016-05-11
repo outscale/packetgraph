@@ -50,6 +50,7 @@ To run a specific example, check run scripts in tests directories:
 $ ./examples/switch/run_vhost.sh
 $ ./examples/switch/run.sh
 $ ./examples/firewall/run.sh
+$ ./examples/rxtx/run.sh
 ...
 ```
 
