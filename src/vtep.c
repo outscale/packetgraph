@@ -534,10 +534,11 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 	return vni_mask;
 }
 
-static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
-		      uint16_t edge_index, struct rte_mbuf **pkts,
-		      uint64_t pkts_mask,
-		      struct pg_error **errp)
+static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
+			      uint16_t edge_index,
+			      struct rte_mbuf **pkts,
+			      uint64_t pkts_mask,
+			      struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
@@ -602,6 +603,81 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 			pg_packets_free(out_pkts, vni_mask);
 	}
 	return 0;
+}
+
+static inline uint64_t check_vni_pkts(struct rte_mbuf **pkts,
+				      uint64_t mask,
+				      struct headers **hdrs,
+				      struct vtep_port *port)
+{
+	uint64_t vni_mask = 0;
+
+	for (; mask;) {
+		int j;
+		uint64_t bit;
+
+		pg_low_bit_iterate_full(mask, bit, j);
+		if (hdrs[j]->vxlan.vx_vni == port->vni) {
+			rte_pktmbuf_adj(pkts[j], HEADERS_LENGTH);
+			vni_mask |= bit;
+		}
+	}
+	return vni_mask;
+}
+
+static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
+				     uint16_t edge_index,
+				     struct rte_mbuf **pkts,
+				     uint64_t pkts_mask,
+				     struct pg_error **errp)
+{
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
+	struct vtep_port **ports =  &state->ports;
+	struct headers *hdrs[64];
+	struct pg_brick_edge *edges = s->edges;
+	uint64_t multicast_mask;
+
+	check_multicasts_pkts(pkts, pkts_mask, hdrs,
+			      &multicast_mask, &pkts_mask);
+
+	for (int i = 0, nb = s->nb; pkts_mask && i < nb; ++i) {
+		struct vtep_port *port = ports[i];
+		uint64_t vni_mask;
+
+		/* Decaspulate and check the vni*/
+		vni_mask = check_vni_pkts(pkts, pkts_mask,
+					  hdrs, port);
+		if (!vni_mask)
+			continue;
+
+		pkts_mask ^= vni_mask;
+		add_dst_iner_macs(state, port, pkts, hdrs,
+				  vni_mask, multicast_mask);
+
+		if (unlikely(pg_brick_burst(edges[i].link,
+					    from,
+					    i, pkts,
+					    vni_mask,
+					    errp) < 0))
+			return -1;
+	}
+	return 0;
+}
+
+static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
+		      uint16_t edge_index, struct rte_mbuf **pkts,
+		      uint64_t pkts_mask,
+		      struct pg_error **errp)
+{
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+
+	if (state->flags == ALL_OPTI)
+		return decapsulate_simple(brick, from, edge_index, pkts,
+					  pkts_mask, errp);
+	else
+		return decapsulate(brick, from, edge_index, pkts,
+				   pkts_mask, errp);
 }
 
 static int vtep_burst(struct pg_brick *brick, enum pg_side from,
