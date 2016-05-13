@@ -48,6 +48,8 @@ static int alloc_edges(struct pg_brick *brick, struct pg_error **errp)
 	for (i = 0; i < MAX_SIDE; i++) {
 		struct pg_brick_side *side = &brick->sides[i];
 
+		/* All sides has been g_malloc0 so having a side with 0 edge
+		 * is not a problem here. */
 		if (brick->type == PG_MULTIPOLE) {
 			side->nb = 0;
 			if (side->max == 0) {
@@ -368,14 +370,14 @@ void pg_brick_unlink(struct pg_brick *brick, struct pg_error **errp)
 	brick->ops->unlink(brick, errp);
 }
 
-
-
 struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
 					enum pg_side side,
 					uint32_t edge)
 {
 	switch (brick->type) {
 	case PG_MULTIPOLE:
+		/* All sides has been g_malloc0 so having a side with 0 edge
+		 * is not a problem here. */
 		return &brick->sides[side].edges[edge];
 	case PG_DIPOLE:
 		return &brick->sides[side].edge;

@@ -246,5 +246,85 @@ struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
  */
 uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side);
 
+
+struct pg_brick_edge_iterator {
+	struct pg_brick *brick;
+	uint32_t edge;
+	enum pg_side side;
+	bool end;
+};
+
+static inline struct pg_brick_edge *
+pg_brick_edge_iterator_get(struct pg_brick_edge_iterator *it)
+{
+	return pg_brick_get_edge(it->brick, it->side, it->edge);
+}
+
+static inline void
+pg_brick_edge_iterator_next(struct pg_brick_edge_iterator *it)
+{
+	if (it->end)
+		return;
+	if (it->brick->type == PG_MONOPOLE) {
+		it->end = true;
+		return;
+	}
+	it->edge += 1;
+	if (it->edge >= pg_side_get_max(it->brick, it->side)) {
+		it->side += 1;
+		it->edge = 0;
+	}
+	if (it->side == MAX_SIDE) {
+		it->end = true;
+		return;
+	}
+	struct pg_brick_edge *e = pg_brick_edge_iterator_get(it);
+
+	if (!e || !e->link) {
+		pg_brick_edge_iterator_next(it);
+		return;
+	}
+}
+
+static inline void
+pg_brick_edge_iterator_init(struct pg_brick_edge_iterator *it,
+			    struct pg_brick *brick)
+{
+	it->brick = brick;
+	it->end = false;
+	it->edge = 0;
+	it->side = 0;
+	struct pg_brick_edge *e = pg_brick_edge_iterator_get(it);
+
+	if (!e || !e->link)
+		pg_brick_edge_iterator_next(it);
+}
+
+static inline bool
+pg_brick_edge_iterator_is_end(struct pg_brick_edge_iterator *it)
+{
+	return it->end;
+}
+
+static inline struct pg_brick_side *
+pg_brick_edge_iterator_get_side(struct pg_brick_edge_iterator *it)
+{
+	switch (it->brick->type) {
+	case PG_MULTIPOLE:
+	case PG_DIPOLE:
+		return &it->brick->sides[it->side];
+	case PG_MONOPOLE:
+		return &it->brick->side;
+	}
+	g_assert(0);
+}
+
+#define PG_BRICK_FOREACH_EDGES(brick, it)		\
+	struct pg_brick_edge_iterator it;		\
+for (pg_brick_edge_iterator_init(&it, brick);		\
+	!pg_brick_edge_iterator_is_end(&it);		\
+	pg_brick_edge_iterator_next(&it))
+
+
 #endif /* _PG_BRICK_INT_H */
 
