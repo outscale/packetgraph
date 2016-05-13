@@ -1,13 +1,30 @@
-# Packetgraph
+# Packetgraph ?
 
-Packetgraph library is build upon [DPDK](http://dpdk.org/) making a collection
-of network bricks you can connect to form a network graph.
-The goal of this project is to provide a low-latency software defined
-network.
-Everyone is free to use this library to build up there own network
-infrastructure.
+Packetgraph is a library aiming to give the user a tool to build networks graph easily, It's built upon the fast [DPDK library](http://dpdk.org/).
 
-Here are current developped bricks available in packetgraph:
+[![Build Status](https://travis-ci.org/outscale/packetgraph.svg?branch=master)](https://travis-ci.org/outscale/packetgraph)
+
+The goal of this library is to provide a really EASY interface to
+build you own DPDK based application using [Network Function
+Virtualization](https://en.wikipedia.org/wiki/Network_function_virtualization)
+Everyone is free to use this library to build up there own network application.
+
+Once you have created and connected all bricks in you network graph,
+some bricks will be able to poll a burst of packets (max 64 packets)
+and let the burst propagate in you graph.
+
+Connections between bricks don't store any packets and each burst will
+propagate in the graph without any copy.
+
+Each graph run on one core but you can connect different graph using
+Queue bricks (which are thread safe). For example, a graph can be
+split on demand to be run on different core or even merged.
+
+If you want a graphical representation of a graph, you can generate a [dot](https://en.wikipedia.org/wiki/DOT_%28graph_description_language%29) output.
+
+![packetgraph features](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_features.svg "packetgraph features")
+
+# Available Bricks
 
 - switch: a layer 2 switch
 - vhost: allow to connect a vhost NIC to a virtual machine (virtio based)
@@ -20,23 +37,13 @@ Here are current developped bricks available in packetgraph:
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs
 - queue: temporally store packets between graph
 
+A lot of other bricks can be created, check our [wall](https://github.com/outscale/packetgraph/issues?q=is%3Aopen+is%3Aissue+label%3Awall) ;)
+
+# How should I use packetgraph ?
+
+![packetgraph usage flow](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_flow.svg "packetgraph usage flow")
+
 # Examples
-
-A simple firewall between two NIC:
-
-![A simple firewall](http://i.imgur.com/suqQAbG.png "A simple firewall between two NICS")
-
-A network switch:
-
-![A switch with several nics around](http://i.imgur.com/GT60CpA.png "A switch with several nics around")
-
-Several virtual machines connected to NIC through a switch:
-
-![Virtual machines bridged with the NIC](http://i.imgur.com/UnDYTLB.png "Virtual machines bridged with the NIC")
-
-Connecting virtual machines through VXLAN network:
-
-![Virtual machines connected to a vxlan and protected by a firewall](http://i.imgur.com/Mnxid6n.png "Virtual machines connected to a vxlan and protected by a firewall")
 
 To build and run examples, you may first check how to build packetgraph below and adjust your configure command before make:
 ```
@@ -96,7 +103,7 @@ For more information, check LICENSE file.
 
 # Question ? Contact us !
 
-Packetgraph is an open-source project, feel free to contact us on IRC:
+Packetgraph is an open-source project, feel free to [chat with us on IRC](https://webchat.freenode.net/?channels=betterfly&nick=packetgraph_user)
 
 > server: irc.freenode.org
 
