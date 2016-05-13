@@ -91,16 +91,16 @@ static void test_hub_east_dispatch(void)
 	}
 	hub = pg_hub_new("myhub", 4, 4, &error);
 	g_assert(!error);
-	collect1 = pg_collect_new("collect1", 4, 4, &error);
+	collect1 = pg_collect_new("collect1", &error);
 	g_assert(!error);
 	g_assert(collect1);
-	collect2 = pg_collect_new("collect2", 4, 4, &error);
+	collect2 = pg_collect_new("collect2", &error);
 	g_assert(!error);
 	g_assert(collect2);
-	collect3 = pg_collect_new("collect3", 4, 4, &error);
+	collect3 = pg_collect_new("collect3", &error);
 	g_assert(!error);
 	g_assert(collect3);
-	collect4 = pg_collect_new("collect4", 4, 4, &error);
+	collect4 = pg_collect_new("collect4", &error);
 	g_assert(!error);
 	g_assert(collect4);
 	pg_brick_link(collect1, hub, &error);
@@ -154,16 +154,16 @@ static void test_hub_west_dispatch(void)
 	}
 	hub = pg_hub_new("hub", 4, 4, &error);
 	g_assert(!error);
-	collect1 = pg_collect_new("collect", 1, 1, &error);
+	collect1 = pg_collect_new("collect", &error);
 	g_assert(!error);
 	g_assert(collect1);
-	collect2 = pg_collect_new("collect", 1, 1, &error);
+	collect2 = pg_collect_new("collect", &error);
 	g_assert(!error);
 	g_assert(collect2);
-	collect3 = pg_collect_new("collect", 1, 1, &error);
+	collect3 = pg_collect_new("collect", &error);
 	g_assert(!error);
 	g_assert(collect3);
-	collect4 = pg_collect_new("collect", 1, 1, &error);
+	collect4 = pg_collect_new("collect", &error);
 	g_assert(!error);
 	g_assert(collect4);
 	pg_brick_link(collect1, hub, &error);

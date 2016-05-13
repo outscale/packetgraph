@@ -98,10 +98,10 @@ static void test_print_simple(void)
 	gen = pg_packetsgen_new("gen", 1, 1, EAST_SIDE, packets, NB_PKTS,
 				&error);
 	g_assert(!error);
-	print = pg_print_new("My print", 1, 1, NULL, PG_PRINT_FLAG_MAX, NULL,
+	print = pg_print_new("My print", NULL, PG_PRINT_FLAG_MAX, NULL,
 			     &error);
 	g_assert(!error);
-	col = pg_collect_new("col", 1, 1, &error);
+	col = pg_collect_new("col", &error);
 	g_assert(!error);
 
 	pg_brick_link(gen, print, &error);

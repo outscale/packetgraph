@@ -101,13 +101,11 @@ static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
 }
 
 struct pg_brick *pg_collect_new(const char *name,
-				uint32_t west_max,
-				uint32_t east_max,
 				struct pg_error **errp)
 {
 	struct pg_brick_config *config;
 
-	config = pg_brick_config_new(name, west_max, east_max, PG_MULTIPOLE);
+	config = pg_brick_config_new(name, 1, 1, PG_DIPOLE);
 	struct pg_brick *ret = pg_brick_new("collect", config, errp);
 
 	pg_brick_config_free(config);

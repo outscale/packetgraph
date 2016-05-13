@@ -52,8 +52,6 @@ static __thread char print_data[PCAP_SNAPSHOT_LEN];
 
 
 static struct pg_brick_config *pg_print_config_new(const char *name,
-						   uint32_t west_max,
-						   uint32_t east_max,
 						   FILE *output,
 						   int flags,
 						   uint16_t *type_filter)
@@ -67,8 +65,7 @@ static struct pg_brick_config *pg_print_config_new(const char *name,
 	print_config->type_filter = type_filter;
 
 	config->brick_config = (void *) print_config;
-	return pg_brick_config_init(config, name, west_max, east_max,
-		PG_MULTIPOLE);
+	return pg_brick_config_init(config, name, 1, 1, PG_DIPOLE);
 }
 
 static bool should_skip(uint16_t *type_filter, struct ether_hdr *eth)
@@ -179,7 +176,8 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 
 		fprintf(o, "\n");
 	}
-	return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
+	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
+ 			      pkts, pkts_mask, errp);
 }
 
 static int print_init(struct pg_brick *brick,
@@ -238,8 +236,6 @@ static int print_init(struct pg_brick *brick,
 }
 
 struct pg_brick *pg_print_new(const char *name,
-			      uint32_t west_max,
-			      uint32_t east_max,
 			      FILE *output,
 			      int flags,
 			      uint16_t *type_filter,
@@ -248,8 +244,8 @@ struct pg_brick *pg_print_new(const char *name,
 	struct pg_brick_config *config;
 	struct pg_brick *ret;
 
-	config = pg_print_config_new(name, west_max,
-				     east_max, output,
+	config = pg_print_config_new(name,
+				     output,
 				     flags, type_filter);
 	ret = pg_brick_new("print", config, errp);
 
