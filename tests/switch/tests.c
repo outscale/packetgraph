@@ -125,11 +125,11 @@ static void test_switch_learn(void)
 	}
 
 	/* reset the collectors bricks to prepare for next burst */
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	/* Now send responses packets (source and dest mac address swapped) */
@@ -165,11 +165,11 @@ static void test_switch_learn(void)
 	}
 
 	/* reset the collectors bricks to prepare for next burst */
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
@@ -203,11 +203,11 @@ static void test_switch_learn(void)
 		g_assert(result_pkts[i]->udata64 == i);
 	}
 
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++)
@@ -280,13 +280,13 @@ static void test_switch_switching(void)
 			       &error);
 	CHECK_ERROR(error);
 
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect4, &error);
+	g_assert(pg_brick_reset(collect4, &error) == 0);
 	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++) {
@@ -298,13 +298,13 @@ static void test_switch_switching(void)
 			       &error);
 	CHECK_ERROR(error);
 
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect4, &error);
+	g_assert(pg_brick_reset(collect4, &error) == 0);
 	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++) {
@@ -317,13 +317,13 @@ static void test_switch_switching(void)
 			       &error);
 	CHECK_ERROR(error);
 
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect4, &error);
+	g_assert(pg_brick_reset(collect4, &error) == 0);
 	CHECK_ERROR(error);
 
 	pg_set_mac_addrs(pkts[0], "AA:AA:AA:AA:AA:AA",
@@ -484,13 +484,13 @@ static void test_switch_unlink(void)
 		g_assert(result_pkts[i]->udata64 == i);
 	}
 
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect4, &error);
+	g_assert(pg_brick_reset(collect4, &error) == 0);
 	CHECK_ERROR(error);
 
 	/* mac address "10:10:10:10:10:10" is now associated with west port 1
@@ -666,11 +666,11 @@ static void test_switch_multicast_destination(void)
 	}
 
 	/* reset the collectors bricks to prepare for next burst */
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	/* Now send responses packets (source and dest mac address swapped).
@@ -707,11 +707,11 @@ static void test_switch_multicast_destination(void)
 	}
 
 	/* reset the collectors bricks to prepare for next burst */
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
@@ -748,11 +748,11 @@ static void test_switch_multicast_destination(void)
 		g_assert(result_pkts[i]->udata64 == i);
 	}
 
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++)
@@ -847,11 +847,11 @@ static void test_switch_multicast_both(void)
 	}
 
 	/* reset the collectors bricks to prepare for next burst */
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	/* Now send responses packets (source and dest mac address swapped).
@@ -891,11 +891,11 @@ static void test_switch_multicast_both(void)
 	}
 
 	/* reset the collectors bricks to prepare for next burst */
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	CHECK_ERROR(error);
+//	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
 	for (i = 0; i < NB_PKTS; i++) {
@@ -931,11 +931,11 @@ static void test_switch_multicast_both(void)
 		g_assert(result_pkts[i]->udata64 == i);
 	}
 
-	pg_brick_reset(collect1, &error);
+	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect2, &error);
+	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-	pg_brick_reset(collect3, &error);
+	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
 
 	for (i = 0; i < NB_PKTS; i++)
