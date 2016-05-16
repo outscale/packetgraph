@@ -57,28 +57,28 @@
 	pg_brick_link(node2, collect_east, &error);			\
 	g_assert(!error)
 
-#define	TEST_DIODE_DESTROY() do {				\
-		pg_brick_unlink(node1, &error);			\
-		g_assert(!error);				\
-		pg_brick_unlink(node2, &error);			\
-		g_assert(!error);				\
-		pg_brick_unlink(collect_west, &error);		\
-		g_assert(!error);				\
-		pg_brick_unlink(collect_east, &error);		\
-		g_assert(!error);				\
-		pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));	\
-		pg_brick_decref(node1, &error);			\
-		g_assert(!error);				\
-		pg_brick_decref(node2, &error);			\
-		g_assert(!error);				\
-		pg_brick_reset(collect_west, &error);		\
-		g_assert(!error);				\
-		pg_brick_reset(collect_east, &error);		\
-		g_assert(!error);				\
-		pg_brick_decref(collect_west, &error);		\
-		g_assert(!error);				\
-		pg_brick_decref(collect_east, &error);		\
-		g_assert(!error);				\
+#define	TEST_DIODE_DESTROY() do {					\
+		pg_brick_unlink(node1, &error);				\
+		g_assert(!error);					\
+		pg_brick_unlink(node2, &error);				\
+		g_assert(!error);					\
+		pg_brick_unlink(collect_west, &error);			\
+		g_assert(!error);					\
+		pg_brick_unlink(collect_east, &error);			\
+		g_assert(!error);					\
+		pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));		\
+		pg_brick_decref(node1, &error);				\
+		g_assert(!error);					\
+		pg_brick_decref(node2, &error);				\
+		g_assert(!error);					\
+		g_assert(pg_brick_reset(collect_west, &error) == 0);	\
+		g_assert(!error);					\
+		g_assert(pg_brick_reset(collect_east, &error) == 0);	\
+		g_assert(!error);					\
+		pg_brick_decref(collect_west, &error);			\
+		g_assert(!error);					\
+		pg_brick_decref(collect_east, &error);			\
+		g_assert(!error);					\
 	} while (0)
 
 #define	DIODE_TEST(get_burst_fn, to_collect, result_to_check) do {	    \
