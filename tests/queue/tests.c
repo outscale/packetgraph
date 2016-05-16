@@ -210,7 +210,7 @@ static void test_queue_burst(void)
 			g_assert(result_pkts[i]);
 			g_assert(result_pkts[i]->udata64 == i * j);
 		}
-		pg_brick_reset(collect, &error);
+		g_assert(pg_brick_reset(collect, &error) == 0);
 		CHECK_ERROR(error);
 	}
 
@@ -286,7 +286,7 @@ static void test_queue_limit(void)
 			g_assert(result_pkts[i]);
 			g_assert(result_pkts[i]->udata64 == i);
 		}
-		pg_brick_reset(collect, &error);
+		g_assert(pg_brick_reset(collect, &error) == 0);
 	}
 	g_assert(pg_queue_pressure(queue1) == 0);
 	g_assert(pg_queue_pressure(queue2) == 0);
@@ -322,7 +322,7 @@ static void test_queue_limit(void)
 			g_assert(result_pkts[i]);
 			g_assert(result_pkts[i]->udata64 == i);
 		}
-		pg_brick_reset(collect, &error);
+		g_assert(pg_brick_reset(collect, &error) == 0);
 	}
 	g_assert(pg_queue_pressure(queue1) == 0);
 	g_assert(pg_queue_pressure(queue2) == 0);
@@ -378,7 +378,7 @@ static void test_queue_limit(void)
 			g_assert(result_pkts[i]);
 			g_assert(result_pkts[i]->udata64 == i);
 		}
-		pg_brick_reset(collect, &error);
+		g_assert(pg_brick_reset(collect, &error) == 0);
 	}
 	g_assert(pg_queue_pressure(queue1) == 0);
 	g_assert(pg_queue_pressure(queue2) == 0);
@@ -448,7 +448,7 @@ static void test_queue_reset(void)
 				       &error);
 		CHECK_ERROR(error);
 		g_assert(pg_queue_pressure(queue1) > 0);
-		g_assert(!pg_brick_reset(queue1, &error));
+		g_assert(pg_brick_reset(queue1, &error) == 0);
 		g_assert(pg_queue_get_friend(queue1) == NULL);
 		g_assert(pg_queue_get_friend(queue2) == NULL);
 		g_assert(pg_queue_pressure(queue1) == 0);
@@ -477,7 +477,7 @@ static void test_queue_reset(void)
 			g_assert(result_pkts[i]);
 			g_assert(result_pkts[i]->udata64 == i * j);
 		}
-		pg_brick_reset(collect, &error);
+		g_assert(pg_brick_reset(collect, &error) == 0);
 		CHECK_ERROR(error);
 	}
 
