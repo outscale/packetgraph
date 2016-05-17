@@ -424,6 +424,7 @@ static uint16_t insert_link(struct pg_brick *from,
 		from->side.edge.link = to;
 		return 0;
 	}
+
 	return 0;
 }
 
@@ -577,21 +578,6 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 	pair_side->nb--;
 }
 
-static void brick_generic_unlink_multipole(struct pg_brick *brick,
-					   enum pg_side side,
-					   struct pg_error **errp)
-{
-	uint16_t i;
-	int max = brick->sides[side].max;
-
-	for (i = 0; i < max; i++) {
-		do_unlink(brick, side, i, errp);
-
-		if (pg_error_is_set(errp))
-			return;
-	}
-}
-
 /**
  * This function unlinks all the link from and to this brick
  *
@@ -600,21 +586,10 @@ static void brick_generic_unlink_multipole(struct pg_brick *brick,
  */
 void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp)
 {
-	enum pg_side i;
-
-	for (i = 0; i < MAX_SIDE; i++) {
-		switch (brick->type) {
-		case PG_MULTIPOLE:
-			brick_generic_unlink_multipole(brick, i, errp);
-			break;
-		case PG_DIPOLE:
-			do_unlink(brick, i, 0, errp);
-			break;
-		case PG_MONOPOLE:
-			do_unlink(brick, 0, 0, errp);
-			/* there's only one side, so we can return now */
+	PG_BRICK_FOREACH_EDGES(brick, it) {
+		do_unlink(brick, it.side, it.edge, errp);
+		if (pg_error_is_set(errp))
 			return;
-		}
 	}
 }
 
