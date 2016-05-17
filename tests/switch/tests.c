@@ -895,7 +895,6 @@ static void test_switch_multicast_both(void)
 	CHECK_ERROR(error);
 	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
-//	CHECK_ERROR(error);
 
 	/* Now the conversation can continue */
 	for (i = 0; i < NB_PKTS; i++) {
