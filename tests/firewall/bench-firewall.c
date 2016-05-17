@@ -43,16 +43,13 @@ void test_benchmark_firewall(void)
 	uint32_t ip_src;
 	uint32_t ip_dst;
 	uint32_t len;
-	int ret;
 
 	pg_bench_init(&bench);
 	fw = pg_firewall_new("firewall", 1, 1, 0, &error);
-	ret = pg_firewall_rule_add(fw, "src host 10.0.0.1", WEST_SIDE, 0,
-				   &error);
+	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.0.1",
+				       WEST_SIDE, 0, &error));
 	g_assert(!error);
-	g_assert(ret == 0);
-	ret = pg_firewall_reload(fw, &error);
-	g_assert(ret < 0);
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	bench.input_brick = fw;
