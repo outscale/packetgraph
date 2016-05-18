@@ -16,11 +16,11 @@ before_install:
  - sudo bash -c "echo \"hugetlbfs       /mnt/huge  hugetlbfs       rw,mode=0777        0 0\">> /etc/fstab"
  - sudo apt-get update
 
- - cd ~/build
+ - cd ~
  - git clone http://dpdk.org/git/dpdk
  - cd dpdk
  - git checkout -b v16.04 v16.04
- - export RTE_SDK=/home/travis/dpdk
+ - export RTE_SDK=~/dpdk
  - make config T=x86_64-native-linuxapp-gcc
  - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_VHOST=n/CONFIG_RTE_LIBRTE_PMD_VHOST=y/g" build/.config
  - sed -i -e "s/CONFIG_RTE_LIBRTE_VHOST=n/CONFIG_RTE_LIBRTE_VHOST=y/g" build/.config
@@ -28,11 +28,11 @@ before_install:
  - make EXTRA_CFLAGS='-fPIC'
  
 script:
- - cd ~/build/outscale/packetgraph
+ - cd $TRAVIS_BUILD_DIR
  - ./autogen.sh
  - mkdir build
  - cd build
- - ./../configure RTE_SDK=/home/travis/build/dpdk
+ - ./../configure
  
  - make tests-antispoof
  - make tests-core
