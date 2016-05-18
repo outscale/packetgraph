@@ -32,7 +32,7 @@ script:
  - ./autogen.sh
  - mkdir build
  - cd build
- - ./../configure
+ - ./../configure --with-benchmarks --with-examples
  
  - make tests-antispoof
  - make tests-core
@@ -55,4 +55,5 @@ script:
  - ./../tests/queue/test.sh
  - ./../tests/switch/test.sh
  - ./../tests/vtep/test.sh
+ - make style
 
