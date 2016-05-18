@@ -273,10 +273,10 @@ static inline void *pg_mac_table_iterator_get(struct pg_mac_table_iterator *it)
 	return pg_mac_table_ptr_get(it->table, it->key);
 }
 
-#define PG_MAC_TABLE_FOREACH(ma, key, val_type, val)			\
+#define PG_MAC_TABLE_FOREACH_PTR(ma, key, val_type, val)		\
 	struct pg_mac_table_iterator it;				\
 	union pg_mac key;						\
-	val_type val;							\
+	val_type *val = NULL;						\
 	for (pg_mac_table_iterator_init(&it, (ma));			\
 	     !pg_mac_table_iterator_is_end(&it) &&			\
 		     ((key = pg_mac_table_iterator_get_key(&it)).mac || 1) && \

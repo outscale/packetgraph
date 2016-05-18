@@ -341,10 +341,9 @@ static void switch_unlink_notify(struct pg_brick *brick,
 	struct pg_switch_state *state =
 		pg_brick_get_state(brick, struct pg_switch_state);
 
-	PG_MAC_TABLE_FOREACH(&state->table, cur_mac,
-			     struct pg_address_source *, src) {
-		if (likely(src != NULL) &&
-		    src->from == side &&
+	PG_MAC_TABLE_FOREACH_PTR(&state->table, cur_mac,
+				 struct pg_address_source, src) {
+		if (src->from == side &&
 		    src->edge_index == edge_index)
 			pg_mac_table_ptr_unset(&state->table, cur_mac);
 	}
