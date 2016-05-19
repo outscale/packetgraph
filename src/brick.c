@@ -238,8 +238,6 @@ void pg_brick_destroy(struct pg_brick *brick)
  */
 struct pg_brick *pg_brick_decref(struct pg_brick *brick, struct pg_error **errp)
 {
-	enum pg_side i;
-
 	if (!brick) {
 		*errp = pg_error_new("NULL brick");
 		return NULL;
@@ -257,7 +255,7 @@ struct pg_brick *pg_brick_decref(struct pg_brick *brick, struct pg_error **errp)
 		brick->ops->destroy(brick, errp);
 
 	if (brick->type == PG_MULTIPOLE) {
-		for (i = 0; i < MAX_SIDE; i++)
+		for (int i = 0; i < MAX_SIDE; i++)
 			g_free(brick->sides[i].edges);
 	}
 
