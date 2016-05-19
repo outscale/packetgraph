@@ -7,6 +7,7 @@ before_install:
  - sudo apt-get install -y linux-headers-$(uname -r)
  - sudo apt-get install -y automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev
  - sudo apt-get install -y build-essential make git hugepages
+ - sudo apt-get install -y rats cppcheck flawfinder
 
  - sudo bash -c "echo 1024 > /proc/sys/vm/nr_hugepages"
  - sudo bash -c "mkdir -p /mnt/huge"
