@@ -168,14 +168,7 @@ static inline struct ether_addr multicast_get_dst_addr(uint32_t ip)
  */
 static inline bool is_multicast_ip(uint32_t ip)
 {
-	uint8_t byte;
-
-	byte = ((uint8_t *) &ip)[0];
-
-	if (byte >= 224 && byte <= 239)
-		return true;
-
-	return false;
+	return (((uint8_t *) &ip)[0] >= 224 && ((uint8_t *) &ip)[0] <= 239);
 }
 
 /**
@@ -489,17 +482,19 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 {
 	for (*multicast_mask = 0, *computed_mask = 0; mask;) {
 		int i;
+		struct headers *tmp;
 
 		pg_low_bit_iterate(mask, i);
-		hdrs[i] = rte_pktmbuf_mtod(pkts[i], struct headers *);
+		tmp = rte_pktmbuf_mtod(pkts[i], struct headers *);
+		hdrs[i] = tmp;
 		/* This should not hapen */
-		if (unlikely(hdrs[i]->ethernet.ether_type !=
+		if (unlikely(tmp->ethernet.ether_type !=
 			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
-			     hdrs[i]->ipv4.next_proto_id != 17 ||
-			     hdrs[i]->vxlan.vx_flags !=
+			     tmp->ipv4.next_proto_id != 17 ||
+			     tmp->vxlan.vx_flags !=
 			     rte_cpu_to_be_32(VTEP_I_FLAG)))
 			continue;
-		if (is_multicast_ip(hdrs[i]->ipv4.dst_addr))
+		if (is_multicast_ip(tmp->ipv4.dst_addr))
 			*multicast_mask |= (1LLU << i);
 		*computed_mask |= (1LLU << i);
 	}
