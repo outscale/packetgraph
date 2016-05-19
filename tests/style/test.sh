@@ -37,8 +37,6 @@ fi
 # Note: using -path ./folder_to_exclude -prune
 c_filelist=$(find $PACKETGRAPH_ROOT/src/ -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.c" -printf %p\ )
 h_filelist=$(find $PACKETGRAPH_ROOT/{src,include} -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.h" -printf %p\ )
-directories=$(find $PACKETGRAPH_ROOT -maxdepth 2 -path $PACKETGRAPH_ROOT/src/npf -prune -o -type d -name "src" -o -name "packetgraph" -printf %p\ )
-
 # checkpatch tests
 
 $PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON --show-types --no-tree -q -f $c_filelist $h_filelist
@@ -70,8 +68,7 @@ cppcheck -h &> /dev/null
 if [ $? != 0 ]; then
     echo "cppcheck is not installed, some tests will be skipped"
 else
-    cppcheck_directories="$(find $PACKETGRAPH_ROOT -maxdepth 2 -type d -name "src" -o -name "packetgraph" -printf -I%p\ ) -I$PACKETGRAPH_ROOT/antispoof -I$PACKETGRAPH_ROOT/core -I$PACKETGRAPH_ROOT/diode -I$PACKETGRAPH_ROOT/firewall -I$PACKETGRAPH_ROOT/hub -I$PACKETGRAPH_ROOT/nic -I$PACKETGRAPH_ROOT/print -I$PACKETGRAPH_ROOT/switch -I$PACKETGRAPH_ROOT/vhost -I$PACKETGRAPH_ROOT/vtep"
-    cppcheck -q  -f -I $directories --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning -i $PACKETGRAPH_ROOT/switch/src/switch.c $c_filelist 
+    cppcheck -q  -f -I $PACKETGRAPH_ROOT/src -I $PACKETGRAPH_ROOT/include --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
     if [ $? != 0 ]; then
 	echo "cppcheck tests failed"
 	exit 1
@@ -86,7 +83,7 @@ rats &> /dev/null
 if [ $? != 0 ]; then
     echo "rats is not installed, some tests will be skipped"
 else
-    rats $directories
+    rats  $c_filelist
     if [ $? != 0 ]; then
 	echo "rats tests failed"
 	exit 1
@@ -101,7 +98,7 @@ flawfinder &> /dev/null
 if [ $? != 0 ]; then
     echo "flawfinder is not installed, some tests will be skipped"
 else
-    flawfinder -D --quiet $directories
+    flawfinder --quiet $c_filelist
     if [ $? != 0 ]; then
 	echo "flawfinder tests failed"
 	exit 1
