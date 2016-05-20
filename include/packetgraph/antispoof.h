@@ -21,7 +21,7 @@
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 
-struct ether_addr *mac;
+struct ether_addr;
 
 /**
  * Create a new antispoof brick
