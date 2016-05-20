@@ -24,7 +24,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 
 ![packetgraph features](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_features.svg "packetgraph features")
 
-# Available Bricks
+# Available bricks (ipv4/ipv6):
 
 - switch: a layer 2 switch
 - rxtx: setup your own callbacks to get and sent packets
@@ -34,10 +34,10 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 - hub: act as a hub device, passing packets to all connected bricks
 - nic: allow to pass packets to a NIC of the system (accelerated by DPDK)
 - print: a basic print brick to show packets flowing through it
-- antispoof: a basic mac and arp anti-spoofing brick
+- antispoof(ipv4 only): a basic mac and arp anti-spoofing brick
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs
 - queue: temporally store packets between graph
-- pmtud: Path MTU Discovery is an implementation of [RFC 1191](https://tools.ietf.org/html/rfc1191)
+- pmtud(ipv4 only): Path MTU Discovery is an implementation of [RFC 1191](https://tools.ietf.org/html/rfc1191)
 
 A lot of other bricks can be created, check our [wall](https://github.com/outscale/packetgraph/issues?q=is%3Aopen+is%3Aissue+label%3Awall) ;)
 
