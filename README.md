@@ -22,9 +22,11 @@ Here are current developped bricks available in packetgraph:
 
 # Examples
 
-Here are some possible graphics you can do with paquetgraph. You will find
-some implementations in "examples" folder.
-Ofcourse, they are just more or less complex examples and you can program your own architecture to be dynamic.
+Here are some possible graphics you can do with paquetgraph.
+
+You will find some implementations in "examples" folder.
+
+Ofcourse, you can program your own architecture to be dynamic.
 
 A simple firewall betweek two NIC:
 
@@ -41,6 +43,20 @@ Several virtual machines connected to NIC through a switch:
 Connecting virtual machines through VXLAN network:
 
 ![Virtual machines connected to a vxlan and protected by a firewall](http://i.imgur.com/Mnxid6n.png "Virtual machines connected to a vxlan and protected by a firewall")
+
+To build and run examples, you may first check how to build packetgraph below and adjust your configure command before make:
+```
+$ ./configure --with-examples
+$ make
+```
+
+To run a specific example, check run scripts in tests directories:
+```
+$ ./examples/switch/run_vhost.sh
+$ ./examples/switch/run.sh
+$ ./examples/firewall/run.sh
+...
+```
 
 # Building
 

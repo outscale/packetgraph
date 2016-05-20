@@ -237,8 +237,10 @@ TESTS = \
 	tests/vhost/test.sh\
 	tests/vtep/test.sh
 
+noinst_PROGRAMS = 
+
 if PG_BENCHMARKS
-noinst_PROGRAMS = bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
+noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
 
 bench_antispoof_SOURCES = \
 	tests/antispoof/bench.c\
@@ -331,7 +333,17 @@ endif
 	@echo "./tests/vtep/test.sh"
 
 if PG_EXAMPLES
-# TODO
+noinst_PROGRAMS += example-firewall example-switch
+
+example_firewall_SOURCES = \
+	examples/firewall/firewall.c
+example_firewall_CFLAGS = $(libpacketgraph_la_CFLAGS)
+example_firewall_LDFLAGS = libpacketgraph.la
+
+example_switch_SOURCES = \
+	examples/switch/switch.c
+example_switch_CFLAGS = $(libpacketgraph_la_CFLAGS)
+example_switch_LDFLAGS = libpacketgraph.la
 endif
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template

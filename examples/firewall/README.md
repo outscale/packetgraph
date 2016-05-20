@@ -9,7 +9,11 @@ nics using packetgraph and DPDK:
 
 # Build
 
-TODO sorry, this part is currently under heavy build.
+Just add `--with-examples` to your ./configure options and run make.
+You can run example with a simple script:
+```
+./examples/firewall/run.sh
+```
 
 # Configure your NICs
 

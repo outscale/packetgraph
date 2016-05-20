@@ -36,3 +36,4 @@ doxygen.conf
 html
 !*.c
 !*.h
+example-*

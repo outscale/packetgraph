@@ -355,6 +355,11 @@ struct pg_brick *pg_nic_new_by_id(const char *name,
 	return ret;
 }
 
+int pg_nic_port_count(void)
+{
+	return rte_eth_dev_count();
+}
+
 static void nic_link(struct pg_brick *brick, enum pg_side side, int edge)
 {
 	struct pg_nic_state *state = pg_brick_get_state(brick,
