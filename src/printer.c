@@ -143,47 +143,25 @@ static void print_proto_ipv6_ext_mobility(void *data, size_t size, FILE *o)
 
 static void print_l4(uint8_t type, void *data, size_t size, FILE *o)
 {
-	switch (type) {
-	case IPPROTO_TCP:
-		print_proto_tcp(data, size, o);
-		break;
-	case IPPROTO_UDP:
-		print_proto_udp(data, size, o);
-		break;
-	case IPPROTO_ICMP:
-		print_proto_icmp(data, size, o);
-		break;
-	case IPPROTO_ICMPV6:
-		print_proto_icmpv6(data, size, o);
-		break;
-	case IPPROTO_IGMP:
-		print_proto_igmp(data, size, o);
-		break;
-	case 0x00:
-		print_proto_ipv6_ext_hbh(data, size, o);
-		break;
-	case 0x2b:
-		print_proto_ipv6_ext_routing(data, size, o);
-		break;
-	case 0x2c:
-		print_proto_ipv6_ext_fragment(data, size, o);
-		break;
-	case 0x32:
-		print_proto_ipv6_ext_esp(data, size, o);
-		break;
-	case 0x33:
-		print_proto_ipv6_ext_ah(data, size, o);
-		break;
-	case 0x3c:
-		print_proto_ipv6_ext_destination(data, size, o);
-		break;
-	case 0x87:
-		print_proto_ipv6_ext_mobility(data, size, o);
-		break;
-	default:
-		fprintf(o, " [type=%02x]", type);
-		break;
-	}
+	static void (*print_proto_buff[136])(void *data,
+					     size_t size, FILE *) = {
+		[IPPROTO_TCP] = print_proto_tcp,
+		[IPPROTO_UDP] = print_proto_udp,
+		[IPPROTO_ICMP] = print_proto_icmp,
+		[IPPROTO_ICMPV6] = print_proto_icmpv6,
+		[IPPROTO_IGMP] = print_proto_igmp,
+		[0x00] = print_proto_ipv6_ext_hbh,
+		[0x2b] = print_proto_ipv6_ext_routing,
+		[0x2c] = print_proto_ipv6_ext_fragment,
+		[0x32] = print_proto_ipv6_ext_esp,
+		[0x33] = print_proto_ipv6_ext_ah,
+		[0x3c] = print_proto_ipv6_ext_destination,
+		[0x87] = print_proto_ipv6_ext_mobility
+	};
+
+	if ((*print_proto_buff[type]) != NULL)
+		return (*print_proto_buff[type])(data, size, o);
+	fprintf(o, " [type=%02x]", type);
 }
 
 static void print_proto_ip(void *data, size_t size, FILE *o)
@@ -272,44 +250,59 @@ void print_summary(void *data, size_t size, FILE *o)
 	fprintf(o, "\n");
 }
 
+static void print_packet_hexa(void *data, size_t start, size_t end,
+		       size_t i, FILE *o) {
+	fprintf(o, "%04x.  ", (uint16_t) start);
+	for (i = start; i < end; i++) {
+		fprintf(o, "%02x", ((uint8_t *)data)[i]);
+		if ((i % 2 == 1) && (i != 0))
+			fprintf(o, " ");
+	}
+}
+
+static void print_white_space(size_t size, size_t end, size_t i, FILE *o)
+{
+	if (end == size) {
+		size_t n = 16 - (size % 16);
+
+		for (i = 0; i < n; i++) {
+			fprintf(o, "  ");
+			if ((i % 2 == 1) && (i != 0))
+				fprintf(o, " ");
+		}
+		if (size % 2)
+			fprintf(o, " ");
+	}
+}
+
+static void print_packet_char(void *data, size_t start, size_t end,
+		       size_t i, FILE *o) {
+	fprintf(o, "  ");
+	for (i = start; i < end; i++) {
+		uint8_t c = ((uint8_t *)data)[i];
+
+		if (c < 0x20 || c > 0x7d)
+			fprintf(o, ".");
+		else
+			fprintf(o, "%c", c);
+	}
+}
+
 void print_raw(void *data, size_t size, FILE *o)
 {
 	size_t start = 0;
 	size_t end = 0;
 
 	while (end < size) {
-		size_t i;
+		size_t i = 0;
 
 		end = start + 16;
 		if (end >= size)
 			end = size;
 
-		fprintf(o, "%04x.  ", (uint16_t) start);
-		for (i = start; i < end; i++) {
-			fprintf(o, "%02x", ((uint8_t *)data)[i]);
-			if ((i % 2 == 1) && (i != 0))
-				fprintf(o, " ");
-		}
-		if (end == size) {
-			size_t n = 16 - (size % 16);
-
-			for (i = 0; i < n; i++) {
-				fprintf(o, "  ");
-			if ((i % 2 == 1) && (i != 0))
-				fprintf(o, " ");
-			}
-			if (size % 2)
-				fprintf(o, " ");
-		}
-		fprintf(o, "  ");
-		for (i = start; i < end; i++) {
-			uint8_t c = ((uint8_t *)data)[i];
-
-			if (c < 0x20 || c > 0x7d)
-				fprintf(o, ".");
-			else
-				fprintf(o, "%c", c);
-		}
+		print_packet_hexa(data, start, end, i, o);
+		print_white_space(size, end, i, o);
+		print_packet_char(data, start, end, i, o);
 		fprintf(o, "\n");
 		start = end;
 	}
