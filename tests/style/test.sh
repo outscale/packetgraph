@@ -86,7 +86,7 @@ rats &> /dev/null
 if [ $? != 0 ]; then
     echo "rats is not installed, some tests will be skipped"
 else
-    rats $directories
+    rats $c_filelist
     if [ $? != 0 ]; then
 	echo "rats tests failed"
 	exit 1
