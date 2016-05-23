@@ -55,7 +55,7 @@ lizard &> /dev/null
 if [ $? != 0 ]; then
     echo "lizard is not installed, some tests will be skipped"
 else
-    lizard -C 10 -w $directories
+    lizard -C 10 -w $c_filelist
     if [ $? != 0 ]; then
 	echo "lizard tests failed"
 	exit 1
