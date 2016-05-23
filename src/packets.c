@@ -87,14 +87,14 @@ struct rte_mbuf **pg_packets_prepend_buf(struct rte_mbuf **pkts,
 
 #undef PG_PACKETS_OPS_BUF
 
-#define PG_PACKETS_OPS_STR(pkts, pkts_mask, str, ops)		\
-	char *tmp;						\
-	PG_FOREACH_BIT(pkts_mask, j) {				\
-		if (!pkts[j])					\
-			continue;				\
-		tmp = rte_pktmbuf_##ops(pkts[j], strlen(str));	\
-		if (tmp)					\
-			strcpy(tmp, str);			\
+#define PG_PACKETS_OPS_STR(pkts, pkts_mask, str, ops)			\
+	char *tmp;							\
+	PG_FOREACH_BIT(pkts_mask, j) {					\
+		if (!pkts[j])						\
+			continue;					\
+		tmp = rte_pktmbuf_##ops(pkts[j], strlen(str) + 1);	\
+		if (tmp)						\
+			strcpy(tmp, str);				\
 	}
 
 struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
