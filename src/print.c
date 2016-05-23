@@ -104,6 +104,8 @@ static void print_pcap(struct pg_print_state *state, struct rte_mbuf *mbuf)
 	header.caplen = mbuf->pkt_len;
 	calculate_timestamp(state, &header.ts);
 	while (mbuf) {
+		if ((data_len + mbuf->data_len) > PCAP_SNAPSHOT_LEN)
+			return;
 		rte_memcpy(print_data + data_len,
 			   rte_pktmbuf_mtod(mbuf, void *),
 			   mbuf->data_len);
