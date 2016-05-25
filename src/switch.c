@@ -65,7 +65,6 @@ static inline void flood(struct pg_switch_state *state,
 			 struct pg_address_source *source,
 			 uint64_t mask)
 {
-	struct pg_switch_side *switch_side;
 	enum pg_side i;
 	uint16_t j;
 
@@ -73,7 +72,8 @@ static inline void flood(struct pg_switch_state *state,
 		return;
 
 	for (i = 0; i < MAX_SIDE; i++) {
-		switch_side = &state->sides[i];
+		struct pg_switch_side *switch_side = &state->sides[i];
+
 		for (j = 0; j < state->brick.sides[i].max; j++)
 			switch_side->masks[j] |= mask;
 	}
