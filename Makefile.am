@@ -1,3 +1,5 @@
+include $(srcdir)/distfiles.am
+
 lib_LTLIBRARIES = libpacketgraph.la
 
 # No wildcard
@@ -325,6 +327,7 @@ help:
 	@echo "make check     : run tests"
 	@echo "make install   : install packetgraph library"
 	@echo "make uninstall : uninstall packetgraph library"
+	@echo "make dist      : build project archive"
 if PG_BENCHMARKS
 	@echo "make bench     : run benchmarks"
 endif
