@@ -68,12 +68,19 @@ cppcheck -h &> /dev/null
 if [ $? != 0 ]; then
     echo "cppcheck is not installed, some tests will be skipped"
 else
-    cppcheck -q  -f -I $PACKETGRAPH_ROOT/src -I $PACKETGRAPH_ROOT/include --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
-    if [ $? != 0 ]; then
-	echo "cppcheck tests failed"
-	exit 1
+    version=$(cppcheck --version| cut -f 2 -d ' ')
+    major=$(echo $version| cut -f 1 -d '.')
+    minor=$(echo $version| cut -f 2 -d '.')
+    if [[ $major -lt 1 || $minor -lt 71 ]]; then
+        echo "cppcheck version >= 1.71 required (currently have ${major}.${minor}), skip test"
     else
-        echo "cppcheck tests OK"
+        cppcheck -q  -f -I $PACKETGRAPH_ROOT/src -I $PACKETGRAPH_ROOT/include --error-exitcode=43 --enable=style --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
+        if [ $? != 0 ]; then
+	    echo "cppcheck tests failed"
+            exit 1
+        else
+            echo "cppcheck tests OK"
+        fi
     fi
 fi
 
