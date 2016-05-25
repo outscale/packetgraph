@@ -28,7 +28,7 @@ inline bool pg_scan_ether_addr(struct ether_addr *eth_addr, const char *buf)
 	int ret;
 
 	/* is the input string long enough */
-	if (strlen(buf) < 17)
+	if (strlen(buf) < (ETHER_ADDR_FMT_SIZE - 1))
 		return false;
 
 	ret = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
@@ -69,14 +69,14 @@ void pg_get_ether_addrs(struct rte_mbuf *mb, struct ether_hdr **dest)
 
 const char *pg_printable_mac(struct ether_addr *eth_addr, char *buf)
 {
-	ether_format_addr(buf, 32, eth_addr);
+	ether_format_addr(buf, ETHER_ADDR_FMT_SIZE, eth_addr);
 	return buf;
 }
 
 void pg_print_mac(struct ether_addr *eth_addr)
 {
-	char buf[32];
+	char buf[ETHER_ADDR_FMT_SIZE];
 
-	ether_format_addr(buf, 32, eth_addr);
+	ether_format_addr(buf, ETHER_ADDR_FMT_SIZE, eth_addr);
 	printf("%s", buf);
 }

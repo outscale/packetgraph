@@ -87,13 +87,14 @@ struct rte_mbuf **pg_packets_prepend_buf(struct rte_mbuf **pkts,
 
 #undef PG_PACKETS_OPS_BUF
 
-#define PG_PACKETS_OPS_STR(pkts, pkts_mask, str, ops)		\
-	char *tmp;						\
-	PG_FOREACH_BIT(pkts_mask, j) {				\
-		if (!pkts[j])					\
-			continue;				\
-		tmp = rte_pktmbuf_##ops(pkts[j], strlen(str));	\
-		strcpy(tmp, str);				\
+#define PG_PACKETS_OPS_STR(pkts, pkts_mask, str, ops)			\
+	char *tmp;							\
+	PG_FOREACH_BIT(pkts_mask, j) {					\
+		if (!pkts[j])						\
+			continue;					\
+		tmp = rte_pktmbuf_##ops(pkts[j], strlen(str) + 1);	\
+		if (tmp)						\
+			strcpy(tmp, str);				\
 	}
 
 struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
@@ -131,7 +132,8 @@ struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
 		ip_hdr.dst_addr = dst_ip;				\
 		ip_hdr.hdr_checksum = rte_ipv4_cksum(&ip_hdr);		\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(ip_hdr));	\
-		memcpy(tmp, &ip_hdr, sizeof(ip_hdr));			\
+		if (tmp)						\
+			memcpy(tmp, &ip_hdr, sizeof(ip_hdr));		\
 	}								\
 
 struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
@@ -168,7 +170,8 @@ struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
 		udp_hdr.dgram_len = rte_cpu_to_be_16(datagram_len);	\
 		udp_hdr.dgram_cksum = 0;				\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(udp_hdr));	\
-		memcpy(tmp, &udp_hdr, sizeof(udp_hdr));			\
+		if (tmp)						\
+			memcpy(tmp, &udp_hdr, sizeof(udp_hdr));		\
 	}								\
 
 struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
@@ -205,7 +208,8 @@ struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
 		vx_hdr.vx_flags = rte_cpu_to_be_32(VTEP_I_FLAG);	\
 		vx_hdr.vx_vni = rte_cpu_to_be_32(vni);			\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(vx_hdr));	\
-		memcpy(tmp, &vx_hdr, sizeof(vx_hdr));			\
+		if (tmp)						\
+			memcpy(tmp, &vx_hdr, sizeof(vx_hdr));		\
 	}								\
 
 struct rte_mbuf **pg_packets_append_vxlan(struct rte_mbuf **pkts,
@@ -239,7 +243,8 @@ struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
 		ether_addr_copy(dst_mac, &eth_hdr.d_addr);		\
 		eth_hdr.ether_type = rte_cpu_to_be_16(ether_type);	\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(eth_hdr));	\
-		memcpy(tmp, &eth_hdr, sizeof(eth_hdr));			\
+		if (tmp)						\
+			memcpy(tmp, &eth_hdr, sizeof(eth_hdr));		\
 	}								\
 
 struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
