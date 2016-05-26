@@ -27,6 +27,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 # Available Bricks
 
 - switch: a layer 2 switch
+- rxtx: setup your own callbacks to get and sent packets
 - vhost: allow to connect a vhost NIC to a virtual machine (virtio based)
 - firewall: allow to filter traffic passing through it (based on [NPF](https://github.com/rmind/npf))
 - diode: only let packets pass in one direction
@@ -56,6 +57,7 @@ To run a specific example, check run scripts in tests directories:
 $ ./examples/switch/run_vhost.sh
 $ ./examples/switch/run.sh
 $ ./examples/firewall/run.sh
+$ ./examples/rxtx/run.sh
 ...
 ```
 

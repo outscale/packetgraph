@@ -29,6 +29,7 @@
 #include <packetgraph/nic.h>
 #include <packetgraph/nop.h>
 #include <packetgraph/print.h>
+#include <packetgraph/rxtx.h>
 #include <packetgraph/switch.h>
 #include <packetgraph/vhost.h>
 #include <packetgraph/vtep.h>

@@ -21,6 +21,7 @@ libpacketgraph_la_SOURCES = \
 	src/brick.c\
 	src/packetsgen.c\
 	src/vhost.c\
+	src/rxtx.c\
 	src/npf/npf/dpdk/npf_dpdk.c\
 	src/antispoof.c\
 	src/collect.c\
@@ -45,6 +46,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/vtep.h\
 	include/packetgraph/firewall.h\
 	include/packetgraph/vhost.h\
+	include/packetgraph/rxtx.h\
 	include/packetgraph/switch.h\
 	include/packetgraph/queue.h\
 	include/packetgraph/errors.h
@@ -147,13 +149,13 @@ endif
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep
 
 noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols $(RTE_SDK_LDFLAGS)
-libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH
+libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH
 
 tests_antispoof_SOURCES = \
 	tests/antispoof/test-arp-gratuitous.c\
@@ -179,6 +181,11 @@ tests_diode_SOURCES = \
 	tests/diode/tests.c
 tests_diode_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_diode_LDFLAGS = libpacketgraph-dev.la
+
+tests_rxtx_SOURCES = \
+	tests/rxtx/tests.c
+tests_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_rxtx_LDFLAGS = libpacketgraph-dev.la
 
 tests_firewall_SOURCES = \
 	tests/firewall/test-icmp.c\
@@ -228,6 +235,7 @@ TESTS = \
 	tests/antispoof/test.sh\
 	tests/core/test.sh\
 	tests/diode/test.sh\
+	tests/rxtx/test.sh\
 	tests/firewall/test.sh\
 	tests/integration/test.sh\
 	tests/nic/test.sh\
@@ -240,7 +248,7 @@ TESTS = \
 noinst_PROGRAMS = 
 
 if PG_BENCHMARKS
-noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
+noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
 
 bench_antispoof_SOURCES = \
 	tests/antispoof/bench.c\
@@ -260,6 +268,12 @@ bench_diode_SOURCES = \
 	tests/diode/bench-diode.c
 bench_diode_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_diode_LDFLAGS = libpacketgraph-dev.la
+
+bench_rxtx_SOURCES = \
+	tests/rxtx/bench.c\
+	tests/rxtx/bench-rxtx.c
+bench_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+bench_rxtx_LDFLAGS = libpacketgraph-dev.la
 
 bench_firewall_SOURCES = \
 	tests/firewall/bench.c\
@@ -313,6 +327,7 @@ bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-pri
 	$(srcdir)/tests/queue/bench.sh
 	$(srcdir)/tests/switch/bench.sh
 	$(srcdir)/tests/vtep/bench.sh
+	$(srcdir)/tests/rxtx/bench.sh
 endif
 
 style:
@@ -333,7 +348,7 @@ endif
 	@echo "./tests/vtep/test.sh"
 
 if PG_EXAMPLES
-noinst_PROGRAMS += example-firewall example-switch
+noinst_PROGRAMS += example-firewall example-switch example-rxtx
 
 example_firewall_SOURCES = \
 	examples/firewall/firewall.c
@@ -344,6 +359,11 @@ example_switch_SOURCES = \
 	examples/switch/switch.c
 example_switch_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_switch_LDFLAGS = libpacketgraph.la
+
+example_rxtx_SOURCES = \
+	examples/rxtx/rxtx.c
+example_rxtx_CFLAGS = $(libpacketgraph_la_CFLAGS)
+example_rxtx_LDFLAGS = libpacketgraph.la
 endif
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template
