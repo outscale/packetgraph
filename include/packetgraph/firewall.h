@@ -33,11 +33,11 @@
  * @param	west_max maximum of links you can connect on the west side
  * @param	east_max maximum of links you can connect on the east side
  * @param	flags pass PG_NO_CONN_WORKER if you don't want NPF to spawn a
- *          separated thread to run garbage collector to clean old connexions.
- *          If you pass this flag, then you will responsible of calling
- *          pg_firewall_gc.
+ *              separated thread to run garbage collector to clean old
+ *              connexions. If you pass this flag, then you will be responsible
+ *              of calling pg_firewall_gc.
  * @param	errp is set in case of an error
- * @return	a pointer to a brick structure, on success, 0 on error
+ * @return	a pointer to a brick structure on success, NULL on error
  */
 struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
 				 uint32_t east_max, uint64_t flags,
@@ -56,7 +56,7 @@ struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
  * @param	side side where the filter will occurs, you can use SIDE_MAX
  *		to specify both sides.
  * @param	errp is set in case of an error
- * @return	0 if the rule has been correctly built and added the the brick
+ * @return	0 if the rule has been correctly built and added
  *		-1 on error and errp is set.
  */
 int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
@@ -64,8 +64,10 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 			 struct pg_error **errp);
 
 /**
- * Call maually the garbage collector.
- * Work only with the patched version of NPF
+ * Manually call the firewall garbage collector.
+ * NPF firewall tracks all connexions when stateful.
+ * To clean old connexions, we must manually call the connexion garbage
+ * collection when PG_NO_CONN_WORKER flag shas not been set at brick creation.
  *
  * @param	brick pointer to the firewall brick
  */
