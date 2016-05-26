@@ -59,5 +59,17 @@ script:
  - ./../tests/switch/test.sh
  - ./../tests/vtep/test.sh
  - ./../tests/rxtx/test.sh
+
  - make style
+
+ - ./../tests/antispoof/bench.sh
+ - ./../tests/core/bench.sh
+ - ./../tests/diode/bench.sh
+ - ./../tests/firewall/bench.sh
+ - ./../tests/nic/bench.sh
+ - ./../tests/print/bench.sh
+ - ./../tests/queue/bench.sh
+ - ./../tests/switch/bench.sh
+ - ./../tests/vtep/bench.sh
+ - ./../tests/rxtx/bench.sh
 

@@ -355,7 +355,7 @@ example_firewall_SOURCES = \
 example_firewall_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_firewall_LDFLAGS = libpacketgraph.la
 
-# Here we add libpacketgraph_la_LIBADD because of a dependency bug we saw on
+# We add libpacketgraph_la_LIBADD because of a dependency bug we saw on
 # Travis. Like this post (see below) explains, this may be due to a patched
 # version of libtool in Debian/Ubuntu.
 # https://www.midnight-commander.org/ticket/3540#comment:8
@@ -367,7 +367,7 @@ example_switch_LDFLAGS = libpacketgraph.la $(libpacketgraph_la_LIBADD)
 example_rxtx_SOURCES = \
 	examples/rxtx/rxtx.c
 example_rxtx_CFLAGS = $(libpacketgraph_la_CFLAGS)
-example_rxtx_LDFLAGS = libpacketgraph.la
+example_rxtx_LDFLAGS = libpacketgraph.la $(libpacketgraph_la_LIBADD)
 endif
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template
