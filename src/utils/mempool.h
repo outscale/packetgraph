@@ -21,6 +21,10 @@
 #include <rte_config.h>
 #include <rte_mempool.h>
 
+#define NUM_MBUFS 8191
+#define MBUF_CACHE_SIZE 250
+#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
+
 struct rte_mempool *pg_get_mempool(void);
 
 #endif /* _PG_UTILS_MEMPOOL_H */
