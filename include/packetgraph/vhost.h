@@ -31,7 +31,7 @@ struct pg_brick;
  * @east_max:	maximum of links you can connect on the east side
  * @output:	The side of the output (so the side of the "VM")
  * @errp:	set in case of an error
- * @return:	a pointer to a brick structure, on success, 0 on error
+ * @return:	a pointer to a brick structure on success, NULL on error
  */
 struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
 			      uint32_t east_max, enum pg_side output,
