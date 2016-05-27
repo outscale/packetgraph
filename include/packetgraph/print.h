@@ -54,7 +54,7 @@ enum pg_print_flags {
  * @param	type_filter ethernet type skiped at printing,
  *		NULL to skip none.
  * @param	errp is set in case of an error
- * @return	a pointer to a brick structure, on success, 0 on error
+ * @return	a pointer to a brick structure on success, NULL on error
  */
 struct pg_brick *pg_print_new(const char *name,
 			      uint32_t west_max,
