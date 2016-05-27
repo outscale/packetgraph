@@ -51,7 +51,7 @@
  *		will be dropped. If size <= 0, a default queue size of 10 will
  *		be chosen.
  * @error:	is set in case of an error
- * @return:	a pointer to a brick structure, on success, NULL on error
+ * @return:	a pointer to a brick structure on success, NULL on error
  */
 struct pg_brick *pg_queue_new(const char *name, int size,
 			      struct pg_error **error);
