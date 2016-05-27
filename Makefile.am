@@ -27,6 +27,7 @@ libpacketgraph_la_SOURCES = \
 	src/collect.c\
 	src/vtep.c\
 	src/nic.c\
+	src/tap.c\
 	src/graph.c\
 	src/diode.c\
 	src/switch.c\
@@ -40,6 +41,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/diode.h\
 	include/packetgraph/nop.h\
 	include/packetgraph/nic.h\
+	include/packetgraph/tap.h\
 	include/packetgraph/antispoof.h\
 	include/packetgraph/brick.h\
 	include/packetgraph/lifecycle.h\
