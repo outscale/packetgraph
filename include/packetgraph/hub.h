@@ -27,7 +27,7 @@
  * @param	west_max maximum of links you can connect on the west side
  * @param	east_max maximum of links you can connect on the east side
  * @param	errp is set in case of an error
- * @return	a pointer to a brick structure, on success, 0 on error
+ * @return	a pointer to a brick structure on success, NULL on error
  */
 struct pg_brick *pg_hub_new(const char *name,
 			    uint32_t west_max,
