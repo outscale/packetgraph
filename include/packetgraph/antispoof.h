@@ -32,7 +32,7 @@ struct ether_addr;
  * @param	outside side where packets are not inspected
  * @param	mac valid pointer to a mac address that should not be spoofed
  * @param	errp is set in case of an error
- * @return	a pointer to a brick structure, on success, 0 on error
+ * @return	a pointer to a brick structure on success, NULL on error
  */
 struct pg_brick *pg_antispoof_new(const char *name,
 				  uint32_t west_max,
