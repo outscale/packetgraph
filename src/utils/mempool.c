@@ -18,12 +18,7 @@
 #include <glib.h>
 #include <rte_config.h>
 #include <rte_mbuf.h>
-
 #include "utils/mempool.h"
-
-#define NUM_MBUFS 8191
-#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
-#define MBUF_CACHE_SIZE 250
 
 static struct rte_mempool *mp;
 
