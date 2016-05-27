@@ -20,6 +20,10 @@
 
 #include <packetgraph/errors.h>
 
+/**
+ * This is a dummy brick who don't do anything useful.
+ * It's purpose is to show an example of brick to new developpers.
+ */
 struct pg_brick *pg_nop_new(const char *name,
 			    struct pg_error **errp);
 
