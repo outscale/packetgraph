@@ -64,7 +64,8 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 		if (!pkts[j])					\
 			continue;				\
 		tmp = rte_pktmbuf_##ops(pkts[j], len);		\
-		memcpy(tmp, buf, len);				\
+		if (tmp)					\
+			memcpy(tmp, buf, len);			\
 	}
 
 struct rte_mbuf **pg_packets_append_buf(struct rte_mbuf **pkts,
