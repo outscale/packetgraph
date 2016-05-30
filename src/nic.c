@@ -27,8 +27,10 @@
 #include "utils/bitmask.h"
 #include "nic-int.h"
 
+#define NIC_ARGS_MAX_SIZE 1024
+
 struct pg_nic_config {
-	char *ifname;
+	char ifname[NIC_ARGS_MAX_SIZE];
 	uint8_t portid;
 };
 
@@ -80,9 +82,9 @@ static struct pg_brick_config *nic_config_new(const char *name,
 	struct pg_nic_config *nic_config = g_new0(struct pg_nic_config, 1);
 
 	if (ifname) {
-		nic_config->ifname = g_strdup(ifname);
+		g_strlcpy(nic_config->ifname, ifname, NIC_ARGS_MAX_SIZE);
 	} else {
-		nic_config->ifname = NULL;
+		nic_config->ifname[0] = '\0';
 		nic_config->portid = portid;
 	}
 	config->brick_config = (void *) nic_config;
@@ -254,7 +256,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 	nic_config = config->brick_config;
 
 	/* Setup port id */
-	if (nic_config->ifname) {
+	if (nic_config->ifname[0]) {
 		gchar *tmp = g_strdup_printf("%s", nic_config->ifname);
 
 		if (rte_eth_dev_attach(tmp, &state->portid) < 0) {
@@ -390,3 +392,5 @@ static struct pg_brick_ops nic_ops = {
 };
 
 pg_brick_register(nic, &nic_ops);
+
+#undef NIC_ARGS_MAX_SIZE
