@@ -307,6 +307,7 @@ struct pg_brick *pg_nic_new(const char *name,
 
 	struct pg_brick *ret = pg_brick_new("nic", config, errp);
 
+	g_free(config->ifname);
 	pg_brick_config_free(config);
 	return ret;
 }
