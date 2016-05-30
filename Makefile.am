@@ -159,7 +159,7 @@ noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols $(RTE_SDK_LDFLAGS)
-libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH
+libpacketgraph_dev_la_CFLAGS = -g $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH
 
 tests_antispoof_SOURCES = \
 	tests/antispoof/test-arp-gratuitous.c\
@@ -265,7 +265,7 @@ TESTS = \
 noinst_PROGRAMS = 
 
 if PG_BENCHMARKS
-noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-pmtud bench-queue bench-switch bench-vhost bench-vtep
+noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-pmtud bench-queue bench-switch bench-vhost bench-vtep bench-tap
 
 bench_antispoof_SOURCES = \
 	tests/antispoof/bench.c\
@@ -339,7 +339,13 @@ bench_vtep_SOURCES = \
 bench_vtep_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_vtep_LDFLAGS = libpacketgraph-dev.la
 
-bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep
+bench_tap_SOURCES = \
+	tests/tap/bench-tap.c\
+	tests/tap/bench.c
+bench_tap_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+bench_tap_LDFLAGS = libpacketgraph-dev.la
+
+bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap
 	$(srcdir)/tests/antispoof/bench.sh
 	$(srcdir)/tests/core/bench.sh
 	$(srcdir)/tests/diode/bench.sh
@@ -351,6 +357,7 @@ bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-pri
 	$(srcdir)/tests/vtep/bench.sh
 	$(srcdir)/tests/rxtx/bench.sh
 	$(srcdir)/tests/pmtud/bench.sh
+	$(srcdir)/tests/tap/bench.sh
 endif
 
 style:

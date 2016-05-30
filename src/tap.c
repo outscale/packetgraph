@@ -89,6 +89,15 @@ static int tap_burst(struct pg_brick *brick, enum pg_side from,
 			return -1;
 		}
 	}
+
+#ifdef PG_TAP_BENCH
+	struct pg_brick_side *side = &brick->side;
+
+	if (side->burst_count_cb != NULL) {
+		side->burst_count_cb(side->burst_count_private_data,
+				     pg_mask_count(pkts_mask));
+	}
+#endif /* #ifdef PG_TAP_BENCH */
 	return 0;
 }
 
