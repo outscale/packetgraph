@@ -153,7 +153,7 @@ endif
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap
 
 noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
@@ -192,12 +192,10 @@ tests_rxtx_SOURCES = \
 tests_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_rxtx_LDFLAGS = libpacketgraph-dev.la
 
-
 tests_pmtud_SOURCES = \
 	tests/pmtud/tests.c
 tests_pmtud_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_pmtud_LDFLAGS = libpacketgraph-dev.la
-
 
 tests_firewall_SOURCES = \
 	tests/firewall/test-icmp.c\
@@ -243,6 +241,11 @@ tests_vtep_SOURCES = \
 tests_vtep_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_vtep_LDFLAGS = libpacketgraph-dev.la
 
+tests_tap_SOURCES = \
+	tests/tap/tests.c
+tests_tap_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_tap_LDFLAGS = libpacketgraph-dev.la
+
 TESTS = \
 	tests/antispoof/test.sh\
 	tests/core/test.sh\
@@ -256,7 +259,8 @@ TESTS = \
 	tests/queue/test.sh\
 	tests/switch/test.sh\
 	tests/vhost/test.sh\
-	tests/vtep/test.sh
+	tests/vtep/test.sh\
+	tests/tap/test.sh
 
 noinst_PROGRAMS = 
 
