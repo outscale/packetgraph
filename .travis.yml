@@ -7,7 +7,7 @@ before_install:
  - sudo apt-get install -y linux-headers-$(uname -r)
  - sudo apt-get install -y automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev
  - sudo apt-get install -y build-essential make git hugepages
- - sudo apt-get install -y rats cppcheck flawfinder
+ - sudo apt-get install -y rats cppcheck flawfinder python-setuptools
 
  - sudo bash -c "echo 1024 > /proc/sys/vm/nr_hugepages"
  - sudo bash -c "mkdir -p /mnt/huge"
@@ -16,6 +16,10 @@ before_install:
  - sudo bash -c "echo \"hugetlbfs       /mnt/huge  hugetlbfs       rw,mode=0777        0 0\">> /etc/fstab"
  - sudo apt-get update
 
+ - cd ~
+ - git clone https://github.com/terryyin/lizard.git
+ - cd lizard
+ - sudo python setup.py install
  - cd ~
  - git clone http://dpdk.org/git/dpdk
  - cd dpdk
