@@ -148,7 +148,7 @@ static void add_vtep_hdr(struct pg_bench *bench)
 
 }
 
-static void vxlan_to_inside(void)
+static void vxlan_to_inside(int flags)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *vtep;
@@ -162,7 +162,7 @@ static void vxlan_to_inside(void)
 
 	vtep = pg_vtep_new("vtep", 1, 1, WEST_SIDE, 0x000000EE,
 			   mac_vtep,
-			   ALL_OPTI,
+			   flags,
 			   &error);
 	g_assert(!error);
 
@@ -175,16 +175,27 @@ static void vxlan_to_inside(void)
 	bench.output_poll = false;
 	bench.max_burst_cnt = 1000000;
 	bench.count_brick = pg_nop_new("nop-bench", &error);
-	bench.post_burst_op = add_vtep_hdr;
+	if (flags & NO_COPY)
+		bench.post_burst_op = add_vtep_hdr;
 	g_assert(!error);
 	pg_brick_link(outside_nop, vtep, &error);
 	g_assert(!error);
 	pg_brick_link(vtep, bench.count_brick, &error);
 	g_assert(!error);
+
 	pg_vtep_add_vni(vtep, bench.count_brick, 1,
 			inet_addr("224.0.0.1"), &error);
 	pg_error_print(error);
 	g_assert(!error);
+	if (pg_vtep_add_mac(vtep, 1, &mac4, &error) < 0)
+		pg_error_print(error);
+	g_assert(!error);
+	pg_vtep_add_mac(vtep, 1, &mac3, &error);
+	if (pg_vtep_add_mac(vtep, 1, &mac4, &error) < 0)
+		pg_error_print(error);
+	g_assert(!error);
+
+
 	bench.pkts_nb = 64;
 	bench.pkts_mask = pg_mask_firsts(64);
 	bench.pkts = pg_packets_create(bench.pkts_mask);
@@ -230,6 +241,13 @@ static void vxlan_to_inside(void)
 void test_benchmark_vtep(void)
 {
 	inside_to_vxlan();
-	vxlan_to_inside();
+	printf("vxlan bench all opti:\n");
+	vxlan_to_inside(ALL_OPTI);
+	printf("vxlan bench no copy:\n");
+	vxlan_to_inside(NO_COPY);
+	printf("vxlan bench no innermac check:\n");
+	vxlan_to_inside(NO_INNERMAC_CKECK);
+	printf("vxlan bench slow:\n");
+	vxlan_to_inside(0);
 }
 
