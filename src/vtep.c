@@ -832,9 +832,9 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 }
 
 void pg_vtep_add_vni(struct pg_brick *brick,
-		   struct pg_brick *neighbor,
-		   uint32_t vni, uint32_t multicast_ip,
-		   struct pg_error **errp)
+		     struct pg_brick *neighbor,
+		     uint32_t vni, uint32_t multicast_ip,
+		     struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	enum pg_side side = pg_flip_side(state->output);
