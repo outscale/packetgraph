@@ -396,7 +396,8 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 		return -1;
 	}
 
-	rte_vhost_feature_enable(1ULL << VIRTIO_NET_F_CTRL_RX);
+	rte_vhost_feature_disable(1ULL << VIRTIO_NET_F_HOST_TSO4);
+	rte_vhost_feature_disable(1ULL << VIRTIO_NET_F_HOST_TSO6);
 
 	LIST_INIT(&sockets);
 
