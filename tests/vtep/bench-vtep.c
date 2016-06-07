@@ -145,7 +145,6 @@ static void add_vtep_hdr(struct pg_bench *bench)
 		vxlan_hdr,
 		sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr));
-
 }
 
 static void vxlan_to_inside(int flags)
