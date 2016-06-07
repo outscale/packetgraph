@@ -28,10 +28,7 @@ enum pg_vtep_flags {
 	/* don't check if the VNI has the coresponding mac,
 	 * when incoming packets, just forward it */
 	NO_INNERMAC_CKECK = 2,
-	/* Don't clean the metadata of the packets */
-	NO_PACKETS_CLEANUP = 4,
-	/* Use this with care */
-	ALL_OPTI = NO_COPY | NO_INNERMAC_CKECK | NO_PACKETS_CLEANUP
+	ALL_OPTI = NO_COPY | NO_INNERMAC_CKECK
 };
 
 /**
