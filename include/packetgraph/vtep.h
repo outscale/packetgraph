@@ -31,6 +31,8 @@ enum pg_vtep_flags {
 	ALL_OPTI = NO_COPY | NO_INNERMAC_CKECK
 };
 
+struct ether_addr;
+
 /**
  * Get MAC address of the vtep
  * @param	brick a pointer to a vtep brick
@@ -54,6 +56,17 @@ void pg_vtep_add_vni(struct pg_brick *brick,
 		  struct pg_brick *neighbor,
 		  uint32_t vni, uint32_t multicast_ip,
 		  struct pg_error **errp);
+
+/**
+ * Add a MAC to the VTEP VNI
+ *
+ * @param	brick the brick we are working on
+ * @param	vni the vni on which you want to add @mac
+ * @param	mac the mac
+ * @param	errp an error pointer
+ */
+int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
+		    struct ether_addr *mac, struct pg_error **errp);
 
 /**
  * Create a new vtep

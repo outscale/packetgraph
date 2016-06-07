@@ -899,6 +899,24 @@ static void do_remove_vni(struct vtep_state *state,
 	memset(port, 0, sizeof(struct vtep_port));
 }
 
+int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
+		    struct ether_addr *mac, struct pg_error **errp)
+{
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
+
+	vni = rte_cpu_to_be_32(vni);
+	for (int i = 0; i < s->nb; ++i) {
+		if (state->ports[i].vni == vni) {
+			do_add_mac(&state->ports[i], mac);
+			return 0;
+		}
+	}
+	*errp = pg_error_new("vni '%d' not found in brick '%s'", vni,
+			     brick->name);
+	return -1;
+}
+
 static inline void do_add_mac(struct vtep_port *port, struct ether_addr *mac)
 {
 	union pg_mac tmp;
