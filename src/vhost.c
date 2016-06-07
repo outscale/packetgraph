@@ -203,6 +203,9 @@ static void vhost_create_socket(struct pg_vhost_state *state,
 	pthread_mutex_unlock(&mutex);
 }
 
+#define VHOST_NOT_READY							\
+	"vhost not ready, did you called vhost_start after packetgraph_start ?"
+
 static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 		      struct pg_error **errp)
 {
@@ -211,8 +214,7 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
 	if (!vhost_start_ok) {
-		*errp = pg_error_new(
-"vhost not ready, did you called vhost_start after packetgraph_start ?");
+		*errp = pg_error_new(VHOST_NOT_READY);
 		return -1;
 	}
 
@@ -231,6 +233,8 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	return 0;
 }
+
+#undef VHOST_NOT_READY
 
 struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
 			uint32_t east_max, enum pg_side output,
