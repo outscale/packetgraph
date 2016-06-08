@@ -23,7 +23,8 @@
 struct pg_brick;
 
 /**
- * Create a new nic brick
+ * Create a new vhost brick.
+ * vhost interface is configured with offload features disabled.
  *
  * @name:	name of the brick
  * @west_max:	maximum of links you can connect on the west side
