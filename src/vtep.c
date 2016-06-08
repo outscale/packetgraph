@@ -831,10 +831,10 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	multicast_subscribe(state, port, multicast_ip, errp);
 }
 
-void pg_vtep_add_vni(struct pg_brick *brick,
-		     struct pg_brick *neighbor,
-		     uint32_t vni, uint32_t multicast_ip,
-		     struct pg_error **errp)
+int pg_vtep_add_vni(struct pg_brick *brick,
+		    struct pg_brick *neighbor,
+		    uint32_t vni, uint32_t multicast_ip,
+		    struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	enum pg_side side = pg_flip_side(state->output);
@@ -845,23 +845,23 @@ void pg_vtep_add_vni(struct pg_brick *brick,
 
 	if (!brick) {
 		*errp = pg_error_new("brick is NULL");
-		return;
+		return -1;
 	}
 
 	if (!neighbor) {
 		*errp = pg_error_new("VTEP brick is NULL");
-		return;
+		return -1;
 	}
 
 	if (!is_vni_valid(vni)) {
 		*errp = pg_error_new("Invalid VNI");
-		return;
+		return -1;
 	}
 
 	if (!is_multicast_ip(multicast_ip)) {
 		*errp = pg_error_new(
 			"Provided IP is not in the multicast range");
-		return;
+		return -1;
 	}
 
 	/* lookup for the vtep brick index */
@@ -874,11 +874,12 @@ void pg_vtep_add_vni(struct pg_brick *brick,
 
 	if (!found) {
 		*errp = pg_error_new("VTEP brick index not found");
-		return;
+		return -1;
 	}
 
 	do_add_vni(state, i, vni, multicast_ip, errp);
 	do_add_mac(&state->ports[i], &mac);
+	return 0;
 }
 
 static void do_remove_vni(struct vtep_state *state,

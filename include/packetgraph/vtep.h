@@ -52,10 +52,10 @@ struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick);
  * @param	multicast_ip the multicast ip to associate to the VNI
  * @param	errp an error pointer
  */
-void pg_vtep_add_vni(struct pg_brick *brick,
-		  struct pg_brick *neighbor,
-		  uint32_t vni, uint32_t multicast_ip,
-		  struct pg_error **errp);
+int pg_vtep_add_vni(struct pg_brick *brick,
+		    struct pg_brick *neighbor,
+		    uint32_t vni, uint32_t multicast_ip,
+		    struct pg_error **errp);
 
 /**
  * Add a MAC to the VTEP VNI
