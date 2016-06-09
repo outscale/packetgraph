@@ -78,4 +78,5 @@ script:
  - ./../tests/switch/bench.sh
  - ./../tests/vtep/bench.sh
  - ./../tests/rxtx/bench.sh
+ - ./../tests/pmtud/bench.sh
 

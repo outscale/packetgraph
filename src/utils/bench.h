@@ -20,6 +20,7 @@
 
 #include <sys/time.h>
 #include <stdbool.h>
+#include <string.h>
 #include <packetgraph/common.h>
 #include "brick-int.h"
 
