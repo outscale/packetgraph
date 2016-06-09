@@ -259,7 +259,7 @@ TESTS = \
 noinst_PROGRAMS = 
 
 if PG_BENCHMARKS
-noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
+noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-pmtud bench-queue bench-switch bench-vhost bench-vtep
 
 bench_antispoof_SOURCES = \
 	tests/antispoof/bench.c\
@@ -285,6 +285,11 @@ bench_rxtx_SOURCES = \
 	tests/rxtx/bench-rxtx.c
 bench_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_rxtx_LDFLAGS = libpacketgraph-dev.la
+
+bench_pmtud_SOURCES = \
+	tests/pmtud/bench.c
+bench_pmtud_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+bench_pmtud_LDFLAGS = libpacketgraph-dev.la
 
 bench_firewall_SOURCES = \
 	tests/firewall/bench.c\
@@ -328,7 +333,7 @@ bench_vtep_SOURCES = \
 bench_vtep_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_vtep_LDFLAGS = libpacketgraph-dev.la
 
-bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-vtep
+bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep
 	$(srcdir)/tests/antispoof/bench.sh
 	$(srcdir)/tests/core/bench.sh
 	$(srcdir)/tests/diode/bench.sh
@@ -339,6 +344,7 @@ bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-pri
 	$(srcdir)/tests/switch/bench.sh
 	$(srcdir)/tests/vtep/bench.sh
 	$(srcdir)/tests/rxtx/bench.sh
+	$(srcdir)/tests/pmtud/bench.sh
 endif
 
 style:
