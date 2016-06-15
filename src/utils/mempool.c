@@ -24,8 +24,8 @@ static struct rte_mempool *mp;
 
 static void pg_alloc_mempool(void)
 {
-	mp = rte_mempool_create("test_mempool", NUM_MBUFS, MBUF_SIZE,
-				MBUF_CACHE_SIZE,
+	mp = rte_mempool_create("test_mempool", PG_NUM_MBUFS, PG_MBUF_SIZE,
+				PG_MBUF_CACHE_SIZE,
 				sizeof(struct rte_pktmbuf_pool_private),
 				rte_pktmbuf_pool_init, NULL,
 				rte_pktmbuf_init, NULL,
