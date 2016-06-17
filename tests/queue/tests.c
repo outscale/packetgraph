@@ -174,7 +174,7 @@ static void test_queue_burst(void)
 	CHECK_ERROR(error);
 	queue2 = pg_queue_new("q2", 10, &error);
 	CHECK_ERROR(error);
-	collect = pg_collect_new("collect", 1, 1, &error);
+	collect = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(queue2, collect, &error);
@@ -245,7 +245,7 @@ static void test_queue_limit(void)
 	CHECK_ERROR(error);
 	queue2 = pg_queue_new("q2", 10, &error);
 	CHECK_ERROR(error);
-	collect = pg_collect_new("collect", 1, 1, &error);
+	collect = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(queue2, collect, &error);
@@ -423,7 +423,7 @@ static void test_queue_reset(void)
 	CHECK_ERROR(error);
 	queue2 = pg_queue_new("q2", 10, &error);
 	CHECK_ERROR(error);
-	collect = pg_collect_new("collect", 1, 1, &error);
+	collect = pg_collect_new("collect", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(queue2, collect, &error);
