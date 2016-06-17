@@ -104,6 +104,7 @@ static enum pg_side collect_get_side(struct pg_brick *brick)
 }
 
 static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
+
 {
 	enum pg_side i;
 	struct pg_collect_state *state =

@@ -45,13 +45,13 @@
 		pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));		\
 		pg_brick_decref(hub, &error);				\
 		g_assert(!error);					\
-		pg_brick_reset(collect0_1, &error);			\
+		g_assert(pg_brick_reset(collect0_1, &error) == 0);	\
 		g_assert(!error);					\
-		pg_brick_reset(collect0_2, &error);			\
+		g_assert(pg_brick_reset(collect0_2, &error) == 0);	\
 		g_assert(!error);					\
-		pg_brick_reset(collect1_1, &error);			\
+		g_assert(pg_brick_reset(collect1_1, &error) == 0);	\
 		g_assert(!error);					\
-		pg_brick_reset(collect1_2, &error);			\
+		g_assert(pg_brick_reset(collect1_2, &error) == 0);	\
 		g_assert(!error);					\
 		pg_brick_decref(collect0_1, &error);			\
 		g_assert(!error);					\
