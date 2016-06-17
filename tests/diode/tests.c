@@ -44,10 +44,10 @@
 	g_assert(!error);						\
 	node2 = pg_diode_new("node2", output, &error);		\
 	g_assert(!error);						\
-	collect_west = pg_collect_new("cwest", 4, 4, &error);		\
+	collect_west = pg_collect_new("cwest", &error);		\
 	g_assert(!error);						\
 	g_assert(collect_west);						\
-	collect_east = pg_collect_new("ceast", 4, 4, &error);		\
+	collect_east = pg_collect_new("ceast", &error);		\
 	g_assert(!error);						\
 	g_assert(collect_east);						\
 	pg_brick_link(collect_west, node1, &error);				\
