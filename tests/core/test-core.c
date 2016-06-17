@@ -849,6 +849,4 @@ void test_brick_core(void)
 			test_brick_core_verify_multiple_link);
 	g_test_add_func("/core/verify/re-link",
 			test_brick_core_verify_re_link);
-
-
 }

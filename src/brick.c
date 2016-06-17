@@ -455,11 +455,11 @@ int pg_brick_link(struct pg_brick *west,
 	}
 	/* check if each sides have places */
 	if (!is_place_available(east, WEST_SIDE)) {
-		*errp = pg_error_new("%s:WEST side full", east->name);
+		*errp = pg_error_new("%s: West side full", east->name);
 		return -1;
 	}
 	if (!is_place_available(west, EAST_SIDE)) {
-		*errp = pg_error_new("%s:EAST side full", west->name);
+		*errp = pg_error_new("%s: East side full", west->name);
 		return -1;
 	}
 
@@ -549,23 +549,17 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 	}
 	if (!edge->link)
 		return;
-
 	pair_side = get_side(edge->link, pg_flip_side(side));
 	pair_edge = pg_brick_get_edge(edge->link,
 				      pg_flip_side(side),
 				      edge->pair_index);
-
 	unlink_notify(edge, side, errp);
 	if (pg_error_is_set(errp))
 		return;
-
 	pg_brick_decref(brick, errp);
-
 	if (pg_error_is_set(errp))
 		return;
-
 	pg_brick_decref(edge->link, errp);
-
 	if (pg_error_is_set(errp))
 		return;
 
@@ -574,11 +568,11 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 
 	if (brick->type == PG_MONOPOLE) {
 		brick->side.nb--;
-	}
-	else {
+		pair_side->nb--;
+	} else {
 		brick->sides[side].nb--;
+		pair_side->nb--;
 	}
-	pair_side.nb--;
 }
 
 /**

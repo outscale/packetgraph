@@ -153,24 +153,24 @@ static void test_vtep_simple(void)
 	g_assert(!error);
 	g_assert(vtep_east);
 
- 	collect_east1 = pg_collect_new("collect-east1", 1, 1, &error);
+ 	collect_east1 = pg_collect_new("collect-east1", &error);
 	if (error)
 		pg_error_print(error);
 	g_assert(!error);
 	g_assert(collect_east1);
-	collect_east2 = pg_collect_new("collect-east2", 1, 1, &error);
+	collect_east2 = pg_collect_new("collect-east2", &error);
 	if (error)
 		pg_error_print(error);
 	g_assert(!error);
 	g_assert(collect_east2);
 
-	collect_west1 = pg_collect_new("collect-west1", 1, 1, &error);
+	collect_west1 = pg_collect_new("collect-west1", &error);
 	g_assert(!error);
 	g_assert(collect_west1);
-	collect_west2 = pg_collect_new("collect-west2", 1, 1, &error);
+	collect_west2 = pg_collect_new("collect-west2", &error);
 	g_assert(!error);
 	g_assert(collect_west2);
-	collect_hub = pg_collect_new("collect-hub", 3, 3, &error);
+	collect_hub = pg_collect_new("collect-hub", &error);
 	g_assert(!error);
 	g_assert(collect_hub);
 	hub = pg_hub_new("hub", 3, 3, &error);

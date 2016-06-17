@@ -15,7 +15,9 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include <rte_config.h>
+#include <rte_ethdev.h>
+#include <rte_cycles.h>
 #include <string.h>
 #include "utils/ccan/build_assert/build_assert.h"
 #include <packetgraph/common.h>
@@ -28,7 +30,10 @@ struct pg_collect_state {
 	struct pg_brick brick;
 	/* arrays of collected incoming packets */
 	struct rte_mbuf *pkts[MAX_SIDE][PG_MAX_PKTS_BURST];
+	struct rte_mbuf *exit_pkts[PG_MAX_PKTS_BURST];
 	uint64_t pkts_mask[MAX_SIDE];
+	uint8_t portid;
+	enum pg_side output;
 };
 
 static int collect_burst(struct pg_brick *brick, enum pg_side from,
@@ -83,7 +88,34 @@ static int collect_init(struct pg_brick *brick,
 	return 0;
 }
 
+static void collect_link(struct pg_brick *brick, enum pg_side side, int edge)
+{
+	struct pg_collect_state *state =
+	pg_brick_get_state(brick, struct pg_collect_state);
+
+	state->output = pg_flip_side(side);
+}
+
+static enum pg_side collect_get_side(struct pg_brick *brick)
+
+{
+	struct pg_collect_state *state =
+	pg_brick_get_state(brick, struct pg_collect_state);
+
+	return pg_flip_side(state->output);
+}
+
+static void collect_destroy(struct pg_brick *brick, struct pg_error **errp)
+{
+	struct pg_collect_state *state =
+	pg_brick_get_state(brick, struct pg_collect_state);
+	rte_eth_xstats_reset(state->portid);
+	rte_eth_dev_stop(state->portid);
+	rte_eth_dev_close(state->portid);
+}
+
 static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
+
 {
 	enum pg_side i;
 	struct pg_collect_state *state =
@@ -101,13 +133,11 @@ static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
 }
 
 struct pg_brick *pg_collect_new(const char *name,
-				uint32_t west_max,
-				uint32_t east_max,
 				struct pg_error **errp)
 {
 	struct pg_brick_config *config;
 
-	config = pg_brick_config_new(name, west_max, east_max, PG_MULTIPOLE);
+	config = pg_brick_config_new(name, 1, 1, PG_MONOPOLE);
 	struct pg_brick *ret = pg_brick_new("collect", config, errp);
 
 	pg_brick_config_free(config);
@@ -119,7 +149,9 @@ static struct pg_brick_ops collect_ops = {
 	.state_size	= sizeof(struct pg_collect_state),
 
 	.init		= collect_init,
-
+	.destroy        = collect_destroy,
+	.link_notify    = collect_link,
+	.get_side       = collect_get_side,
 	.unlink		= pg_brick_generic_unlink,
 
 	.reset		= collect_reset,
