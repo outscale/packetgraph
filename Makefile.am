@@ -354,6 +354,7 @@ bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-pri
 	$(srcdir)/tests/print/bench.sh
 	$(srcdir)/tests/queue/bench.sh
 	$(srcdir)/tests/switch/bench.sh
+	$(srcdir)/tests/vhost/bench.sh
 	$(srcdir)/tests/vtep/bench.sh
 	$(srcdir)/tests/rxtx/bench.sh
 	$(srcdir)/tests/pmtud/bench.sh
