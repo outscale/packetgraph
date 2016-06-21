@@ -105,8 +105,8 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 		hugepages_path, ",share=on",
 		" -numa node,memdev=mem -mem-prealloc",
 		" -drive file=", vm_image_path,
-		" -redir tcp:", vm_id + 65000, "::22",
-		" -netdev user,id=network0 -device e1000,netdev=network0",
+		" -netdev user,id=net0,hostfwd=tcp::", vm_id + 65000, "-:22",
+		" -device e1000,netdev=net0",
 		argv_sock_0, argv_sock_1);
 
 	argv = g_strsplit(argv_qemu, " ", 0);
