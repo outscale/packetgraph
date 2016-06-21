@@ -21,6 +21,7 @@
 #include "utils/config.h"
 #include "brick-int.h"
 #include "tests.h"
+#include "packetgraph/queue.h"
 
 static void test_brick_core_simple_lifecycle(void)
 {
@@ -830,6 +831,33 @@ static void test_brick_core_verify_re_link(void)
 	pg_brick_destroy(s);
 }
 
+static void test_brick_verify_re_link_monopole(void)
+{
+	struct pg_brick *west_brick, *east_brick;
+	struct pg_error *error = NULL;
+
+	west_brick = pg_queue_new("q1", 1, &error);
+	g_assert(!error);
+	east_brick = pg_queue_new("q2", 1, &error);
+	g_assert(!error);
+
+	/* We link the 2 bricks */
+	pg_brick_link(west_brick, east_brick, &error);
+	g_assert(!error);
+
+	/* We unlink them  */
+	pg_brick_unlink(west_brick, &error);
+	g_assert(!error);
+
+	/* We relink them to make sure unlink works */
+	pg_brick_link(west_brick, east_brick, &error);
+	g_assert(!error);
+
+	pg_brick_destroy(west_brick);
+	pg_brick_destroy(east_brick);
+
+	
+}
 void test_brick_core(void)
 {
 	/* tests in the same order as the header function declarations */
@@ -849,4 +877,6 @@ void test_brick_core(void)
 			test_brick_core_verify_multiple_link);
 	g_test_add_func("/core/verify/re-link",
 			test_brick_core_verify_re_link);
+	g_test_add_func("/core/verify/re_link_monopole",
+			test_brick_verify_re_link_monopole);
 }
