@@ -633,7 +633,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
-	struct vtep_port **ports =  &state->ports;
+	struct vtep_port *ports =  state->ports;
 	struct headers *hdrs[64];
 	struct pg_brick_edge *edges = s->edges;
 	uint64_t multicast_mask;
@@ -642,7 +642,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 			      &multicast_mask, &pkts_mask);
 
 	for (int i = 0, nb = s->nb; pkts_mask && i < nb; ++i) {
-		struct vtep_port *port = ports[i];
+		struct vtep_port *port = &ports[i];
 		uint64_t vni_mask;
 
 		/* Decaspulate and check the vni*/
