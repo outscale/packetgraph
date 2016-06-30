@@ -487,7 +487,6 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 		pg_low_bit_iterate(mask, i);
 		tmp = rte_pktmbuf_mtod(pkts[i], struct headers *);
 		hdrs[i] = tmp;
-		/* This should not hapen */
 		if (unlikely(tmp->ethernet.ether_type !=
 			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
 			     tmp->ipv4.next_proto_id != 17 ||
@@ -716,9 +715,6 @@ static int vtep_init(struct pg_brick *brick,
 	state->flags = vtep_config->flags;
 
 	rte_atomic16_set(&state->packet_id, 0);
-
-	if (pg_error_is_set(errp))
-		return -1;
 
 	if (pg_error_is_set(errp))
 		return -1;
