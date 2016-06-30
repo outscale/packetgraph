@@ -237,6 +237,8 @@ static void firewall_filter_rules(enum pg_side dir)
 	pg_firewall_rule_flush(fw);
 	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
+	g_assert(pg_brick_reset(col, &error) >= 0);
+	g_assert(!error);
 
 	/* let it goooo */
 	pg_brick_poll(gen, &packet_count, &error);
@@ -320,6 +322,8 @@ static void firewall_filter_rules(enum pg_side dir)
 				       pg_flip_side(dir), 0, &error));
 	g_assert(!error);
 	g_assert(!pg_firewall_reload(fw, &error));
+	g_assert(!error);
+	g_assert(pg_brick_reset(col, &error) >= 0);
 	g_assert(!error);
 
 	/* let it goooo */

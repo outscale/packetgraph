@@ -232,7 +232,8 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		/* set back layer 2 */
 		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
 	}
-
+	if (unlikely(pkts_mask == 0))
+		return 0;
 	ret = pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
 	return ret;
 }
