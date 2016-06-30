@@ -114,6 +114,8 @@ static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	/* let user write in packets */
 	state->tx(brick, tx_burst, &count, state->private_data);
 	*pkts_cnt = count;
+	if (unlikely(count == 0))
+		return 0;
 	return pg_brick_burst(s->edge.link, state->output,
 			      s->edge.pair_index,
 			      mbuf, pg_mask_firsts(count), error);
