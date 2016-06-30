@@ -545,12 +545,10 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	struct headers *hdrs[64];
 	struct rte_mbuf **out_pkts = state->pkts;
 	uint64_t multicast_mask;
-	uint64_t computed_pkts;
 
 	check_multicasts_pkts(pkts, pkts_mask, hdrs,
-			      &multicast_mask, &computed_pkts);
+			      &multicast_mask, &pkts_mask);
 
-	pkts_mask &= computed_pkts;
 	for (i = 0; i < s->nb; ++i) {
 		struct vtep_port *port = &state->ports[i];
 		uint64_t hitted_mask = 0;
