@@ -134,6 +134,8 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 			}
 		}
 	}
+	if (unlikely(pkts_mask == 0))
+		return 0;
 	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
 			      pkts, pkts_mask, errp);
 }
