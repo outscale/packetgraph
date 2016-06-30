@@ -198,6 +198,8 @@ static void test_antispoof_generic(const unsigned char **pkts,
 
 	/* replay traffic */
 	for (i = 0; i < pkts_nb; i++) {
+		g_assert(pg_brick_reset(col_east, &error) >= 0);
+		g_assert(!error);
 		packet = build_packet(pkts[i], pkts_size[i]);
 		pg_brick_poll(gen_west, &packet_count, &error);
 		g_assert(!error);
