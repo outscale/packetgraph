@@ -162,6 +162,8 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 			continue;
 		}
 	}
+	if (unlikely(pkts_mask == 0))
+		return 0;
 	return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
 }
 
