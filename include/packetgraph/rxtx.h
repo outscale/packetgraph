@@ -58,7 +58,7 @@ typedef void (*pg_rxtx_tx_callback_t)(struct pg_brick *brick,
 
 /* maximal burst lenght when sending packets. */
 #define PG_RXTX_MAX_TX_BURST_LEN 64
-/* maximan packet lenght user can write. */
+/* maximal packet lenght user can write. */
 #define PG_RXTX_MAX_TX_PACKET_LEN 1500
 
 /**
