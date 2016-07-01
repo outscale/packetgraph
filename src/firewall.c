@@ -200,23 +200,21 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 
 		pg_low_bit_iterate_full(it_mask, bit, i);
 		tmp = pkts[i];
-
 		/* Firewall only manage IPv4 or IPv6 filtering.
 		 * Let non-ip packets (like ARP) pass.
 		 */
+
 		eth = rte_pktmbuf_mtod(tmp, struct ether_hdr *);
 		if (eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv4) &&
 		    eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv6)) {
 			continue;
 		}
-
 		/* NPF only manage layer 3 so we temporaly cut off layer 2.
 		 * Note that this trick is not thread safe. To do so, we will
 		 * have to clone packets just for filtering and will have to
 		 * restroy cloned packets after handling them in NPF.
 		 */
 		rte_pktmbuf_adj(tmp, sizeof(struct ether_hdr));
-
 		/* filter packet */
 		ret = npf_packet_handler(state->npf,
 					 (struct mbuf **) &tmp,
@@ -224,7 +222,6 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 					 pf_side);
 		if (ret)
 			pkts_mask &= ~bit;
-
 		/* set back layer 2 */
 		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
 	}

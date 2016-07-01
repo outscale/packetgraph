@@ -658,7 +658,6 @@ static void firewall_noip(enum pg_side dir)
 	pg_brick_destroy(fw);
 	pg_brick_destroy(col);
 }
-
 static void test_firewall_filter(void)
 {
 	firewall_filter_rules(PG_WEST_SIDE);
