@@ -39,6 +39,42 @@
 #include "utils/mac.h"
 #include "utils/bitmask.h"
 
+static void test_firewall_rules(void)
+{
+	struct pg_error *error = NULL;
+	struct pg_brick *fw = pg_firewall_new("fw", 1, 1, PG_NONE, &error);
+	const char *r[] = {
+		"src host 10.0.0.1",
+		"udp",
+		"tcp",
+		"icmp",
+		"icmp or udp or tcp",
+		"udp dst portrange 4000-6000",
+		"tcp dst portrange 0-65535",
+		"tcp dst port 42",
+		"src host 10.0.0.1 and (icmp or udp or tcp)",
+		"((src net 0.0.0.0/0 and udp dst portrange 4000-6000))",
+		"((src net 0.0.0.0/0 && udp dst portrange 4000-6000))",
+		"((src net 0.0.0.0/0 or udp dst portrange 4000-6000))",
+		"((src net 0.0.0.0/0 || udp dst portrange 4000-6000))",
+		NULL
+	};
+
+	for (int i = 0; r[i]; i++) {
+		if (pg_firewall_rule_add(fw, r[i], WEST_SIDE, 0, &error) < 0) {
+			g_assert(error);
+			pg_error_print(error);
+			g_assert(0);
+		}
+		g_assert(!pg_firewall_reload(fw, &error));
+		g_assert(!error);
+		pg_firewall_rule_flush(fw);
+		g_assert(!pg_firewall_reload(fw, &error));
+		g_assert(!error);
+	}
+	pg_brick_destroy(fw);
+}
+
 static struct rte_mbuf *build_ip_packet(const char *src_ip,
 					const char *dst_ip, uint16_t data)
 {
@@ -617,6 +653,7 @@ static void test_firewall_noip(void)
 
 static void test_firewall(void)
 {
+	g_test_add_func("/firewall/rules", test_firewall_rules);
 	g_test_add_func("/firewall/filter", test_firewall_filter);
 	g_test_add_func("/firewall/tcp", test_firewall_tcp);
 	g_test_add_func("/firewall/icmp", test_firewall_icmp);
