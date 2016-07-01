@@ -253,14 +253,14 @@ TESTS = \
 	tests/rxtx/test.sh\
 	tests/pmtud/test.sh\
 	tests/firewall/test.sh\
-	tests/integration/test.sh\
 	tests/nic/test.sh\
 	tests/print/test.sh\
 	tests/queue/test.sh\
 	tests/switch/test.sh\
-	tests/vhost/test.sh\
 	tests/vtep/test.sh\
-	tests/tap/test.sh
+	tests/tap/test.sh\
+	tests/integration/test.sh\
+	tests/vhost/test.sh
 
 noinst_PROGRAMS = 
 
