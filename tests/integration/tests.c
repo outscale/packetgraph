@@ -235,8 +235,7 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	branch->id = id;
 	branch->mac = mac;
 	g_string_printf(tmp, "fw-%d", id);
-	branch->firewall = pg_firewall_new(tmp->str, 1, 1,
-					   PG_NO_CONN_WORKER, &error);
+	branch->firewall = pg_firewall_new(tmp->str, PG_NO_CONN_WORKER, &error);
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "antispoof-%d", id);
