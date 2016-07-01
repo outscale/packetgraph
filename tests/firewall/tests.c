@@ -181,7 +181,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	gen = pg_packetsgen_new("gen", 2, 2, pg_flip_side(dir),
 				packets, nb, &error);
 	g_assert(!error);
-	fw = pg_firewall_new("fw", 2, 2, PG_NONE, &error);
+	fw = pg_firewall_new("fw", PG_NONE, &error);
 	g_assert(!error);
 	col = pg_collect_new("col", 2, 2, &error);
 	g_assert(!error);
@@ -226,13 +226,15 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == WEST_SIDE)
+	{
 		filtered_pkts = pg_brick_west_burst_get(col,
 							&filtered_pkts_mask,
 							&error);
-	else
+	} else {
 		filtered_pkts = pg_brick_east_burst_get(col,
 							&filtered_pkts_mask,
 							&error);
+	}
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
@@ -505,7 +507,7 @@ static void firewall_replay(const unsigned char *pkts[],
 	gen_east = pg_packetsgen_new("gen_east", 1, 1, WEST_SIDE, &packet, 1,
 				  &error);
 	g_assert(!error);
-	fw = pg_firewall_new("fw", 1, 1, PG_NONE, &error);
+	fw = pg_firewall_new("fw", PG_NONE, &error);
 	g_assert(!error);
 	col_west = pg_collect_new("col_west", 1, 1, &error);
 	g_assert(!error);
@@ -614,7 +616,7 @@ static void firewall_noip(enum pg_side dir)
 	/* create and connect 3 bricks: generator -> firewall -> collector */
 	gen = pg_packetsgen_new("gen", 2, 2, pg_flip_side(dir), packets, nb, &error);
 	g_assert(!error);
-	fw = pg_firewall_new("fw", 2, 2, PG_NONE, &error);
+	fw = pg_firewall_new("fw", PG_NONE, &error);
 	g_assert(!error);
 	col = pg_collect_new("col", 2, 2, &error);
 	g_assert(!error);
@@ -657,7 +659,6 @@ static void firewall_noip(enum pg_side dir)
 	pg_brick_destroy(fw);
 	pg_brick_destroy(col);
 }
-
 static void test_firewall_filter(void)
 {
 	firewall_filter_rules(WEST_SIDE);
@@ -693,7 +694,7 @@ static void test_firewall_noip(void)
 static void test_firewall_rules(void)
 {
 	struct pg_error *error = NULL;
-	struct pg_brick *fw = pg_firewall_new("fw", 1, 1, PG_NONE, &error);
+	struct pg_brick *fw = pg_firewall_new("fw", PG_NONE, &error);
 	const char *r[] = {
 		"src host 10.0.0.1",
 		"udp",

@@ -45,7 +45,7 @@ void test_benchmark_firewall(void)
 	uint32_t len;
 
 	pg_bench_init(&bench);
-	fw = pg_firewall_new("firewall", 1, 1, 0, &error);
+	fw = pg_firewall_new("firewall", 0, &error);
 	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.0.1",
 				       WEST_SIDE, 0, &error));
 	g_assert(!error);
