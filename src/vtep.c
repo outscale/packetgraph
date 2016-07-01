@@ -542,6 +542,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	int i;
+	struct vtep_port *ports =  state->ports;
 	struct headers *hdrs[64];
 	struct rte_mbuf **out_pkts = state->pkts;
 	uint64_t multicast_mask;
@@ -550,7 +551,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			      &multicast_mask, &pkts_mask);
 
 	for (i = 0; i < s->nb; ++i) {
-		struct vtep_port *port = &state->ports[i];
+		struct vtep_port *port = &ports[i];
 		uint64_t hitted_mask = 0;
 		uint64_t vni_mask;
 
