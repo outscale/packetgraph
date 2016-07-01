@@ -40,8 +40,7 @@
  * @return	a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
-struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
-				 uint32_t east_max, uint64_t flags,
+struct pg_brick *pg_firewall_new(const char *name, uint64_t flags,
 				 struct pg_error **errp);
 
 /**
