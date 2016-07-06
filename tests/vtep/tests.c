@@ -378,17 +378,6 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(!error);
 
 }
-#define PRINT_RESULT(test_name)	do {				\
-		printf(test_name				\
-		       "\ntotal pkts send: %lu\n"		\
-		       "in %lu,%lusec\n"			\
-		       "%lu,%luM pkts/s\n", tot_send_pkts,	\
-		       end.tv_sec - start.tv_sec,		\
-		       end.tv_usec - start.tv_usec,		\
-		       tot_send_pkts / 5 / 1000000,			\
-		       tot_send_pkts / 5 % 1000000);		\
-	} while (0)
-
 
 static void test_vtep_simple_no_flags(void)
 {
@@ -417,7 +406,7 @@ struct speed_test_headers {
 	char *data;
 } __attribute__((__packed__));
 
-static void test_vtep_speed(void)
+static void test_vtep_flood_encap_decap(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_east, *vtep_west;
@@ -503,14 +492,13 @@ static void test_vtep_speed(void)
 
 	g_assert(pg_brick_pkts_count_get(nop_east, EAST_SIDE) ==
 		 tot_send_pkts);
-	PRINT_RESULT("both dir");
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
 	pg_brick_destroy(vtep_east);
 	pg_brick_destroy(vtep_west);
 }
 
-static void test_vtep_vxlanise(void)
+static void test_vtep_flood_encapsulate(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_west;
@@ -588,7 +576,6 @@ static void test_vtep_vxlanise(void)
 
 	g_assert(pg_brick_pkts_count_get(nop_east, EAST_SIDE) ==
 		 tot_send_pkts + 1);
-	PRINT_RESULT("vxlanise");
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
 	pg_brick_destroy(vtep_west);
@@ -611,8 +598,8 @@ int main(int argc, char **argv)
 			test_vtep_simple_no_inner_check);
 	g_test_add_func("/vtep/simple/no-copy", test_vtep_simple_no_copy);
 	g_test_add_func("/vtep/simple/all-opti", test_vtep_simple_all_opti);
-	g_test_add_func("/vtep/vxlanise/speed", test_vtep_vxlanise);
-	g_test_add_func("/vtep/both/speed", test_vtep_speed);
+	g_test_add_func("/vtep/flood/encapsulate", test_vtep_flood_encapsulate);
+	g_test_add_func("/vtep/flood/encap-decap", test_vtep_flood_encap_decap);
 
 	r = g_test_run();
 
