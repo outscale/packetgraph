@@ -571,7 +571,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			PG_FOREACH_BIT(vni_mask, it) {
 				void *entry;
 				struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(
-					out_pkts[i],
+					out_pkts[it],
 					struct ether_hdr *);
 
 				entry = pg_mac_table_ptr_get(
