@@ -235,7 +235,7 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	branch->id = id;
 	branch->mac = mac;
 	g_string_printf(tmp, "fw-%d", id);
-	branch->firewall = pg_firewall_new(tmp->str, 1, 1,
+	branch->firewall = pg_firewall_new(tmp->str,
 					   PG_NO_CONN_WORKER, &error);
 	CHECK_ERROR(error);
 
@@ -255,11 +255,11 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "collect-reader-%d", id);
-	branch->collect = pg_collect_new(tmp->str, 1, 1, &error);
+	branch->collect = pg_collect_new(tmp->str, &error);
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "print-%d", id);
-	branch->print = pg_print_new(tmp->str, 1, 1, NULL, PG_PRINT_FLAG_MAX,
+	branch->print = pg_print_new(tmp->str, NULL, PG_PRINT_FLAG_MAX,
 				     NULL, &error);
 	CHECK_ERROR(error);
 
@@ -330,7 +330,7 @@ static void test_graph_type1(void)
 			   0x000000EE, mac_vtep, ALL_OPTI, &error);
 	CHECK_ERROR(error);
 
-	print = pg_print_new("print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
+	print = pg_print_new("print", NULL, PG_PRINT_FLAG_MAX,
 			     NULL, &error);
 	CHECK_ERROR(error);
 
@@ -483,7 +483,7 @@ static void test_graph_firewall_intense(void)
 			   0x000000EE, mac_vtep, ALL_OPTI, &error);
 	CHECK_ERROR(error);
 
-	print = pg_print_new("main-print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
+	print = pg_print_new("main-print", NULL, PG_PRINT_FLAG_MAX,
 			     NULL, &error);
 	CHECK_ERROR(error);
 	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
@@ -531,7 +531,7 @@ static void test_graph_firewall_intense_multiple(void)
 			   0x000000EE, mac_vtep, ALL_OPTI, &error);
 	CHECK_ERROR(error);
 
-	print = pg_print_new("main-print", 1, 1, NULL, PG_PRINT_FLAG_MAX,
+	print = pg_print_new("main-print", NULL, PG_PRINT_FLAG_MAX,
 			     NULL, &error);
 	CHECK_ERROR(error);
 	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);

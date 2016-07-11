@@ -455,11 +455,11 @@ int pg_brick_link(struct pg_brick *west,
 	}
 	/* check if each sides have places */
 	if (!is_place_available(east, WEST_SIDE)) {
-		*errp = pg_error_new("%s: Side full", east->name);
+		*errp = pg_error_new("%s: West side full", east->name);
 		return -1;
 	}
 	if (!is_place_available(west, EAST_SIDE)) {
-		*errp = pg_error_new("%s: Side full", west->name);
+		*errp = pg_error_new("%s: East side full", west->name);
 		return -1;
 	}
 
@@ -549,31 +549,30 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 	}
 	if (!edge->link)
 		return;
-
 	pair_side = get_side(edge->link, pg_flip_side(side));
 	pair_edge = pg_brick_get_edge(edge->link,
 				      pg_flip_side(side),
 				      edge->pair_index);
-
 	unlink_notify(edge, side, errp);
 	if (pg_error_is_set(errp))
 		return;
-
 	pg_brick_decref(brick, errp);
-
 	if (pg_error_is_set(errp))
 		return;
-
 	pg_brick_decref(edge->link, errp);
-
 	if (pg_error_is_set(errp))
 		return;
 
 	reset_edge(pair_edge);
 	reset_edge(edge);
 
-	brick->sides[side].nb--;
-	pair_side->nb--;
+	if (brick->type == PG_MONOPOLE) {
+		brick->side.nb--;
+		pair_side->nb--;
+	} else {
+		brick->sides[side].nb--;
+		pair_side->nb--;
+	}
 }
 
 /**
@@ -606,8 +605,8 @@ inline int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 {
 	if (unlikely(!brick))
 		return 0;
-	/* @side is the opposite side of the direction on which
-	 * we send the packets, so we flip it */
+	/* @from is the opposite side of the direction on which
+	* we send the packets, so we flip it */
 	rte_atomic64_add(&brick->sides[pg_flip_side(from)].packet_count,
 			 pg_mask_count(pkts_mask));
 	return brick->burst(brick, from, edge_index, pkts, pkts_mask, errp);
@@ -704,14 +703,7 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 {
 	if (!brick)
 		return 0;
-	switch (brick->type) {
-	case PG_MULTIPOLE:
-	case PG_DIPOLE:
-		return rte_atomic64_read(&brick->sides[side].packet_count);
-	case PG_MONOPOLE:
-		return rte_atomic64_read(&brick->side.packet_count);
-	}
-	return 0;
+	return rte_atomic64_read(&brick->sides[side].packet_count);
 }
 
 const char *pg_brick_name(struct pg_brick *brick)

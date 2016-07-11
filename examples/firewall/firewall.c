@@ -42,10 +42,10 @@ int main(int argc, char **argv)
 
 	/* create bricks */
 	nic_west = pg_nic_new_by_id("nic-west", 0, &error);
-	fw = pg_firewall_new("fw", 1, 1, PG_NO_CONN_WORKER, &error);
-	print_west = pg_print_new("print-west", 1, 1, 0,
+	fw = pg_firewall_new("fw", PG_NO_CONN_WORKER, &error);
+	print_west = pg_print_new("print-west", 0,
 				  PG_PRINT_FLAG_MAX, 0, &error);
-	print_east = pg_print_new("print-east", 1, 1, 0,
+	print_east = pg_print_new("print-east", 0,
 				  PG_PRINT_FLAG_MAX, 0, &error);
 	nic_east = pg_nic_new_by_id("nic_east", 1, &error);
 
