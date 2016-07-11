@@ -37,6 +37,7 @@ int pg_mask_count(uint64_t pkts_mask);
 /**
  * Made as a macro for performance reason since a function would imply a 10%
  * performance hit and a function in a separate module would not be inlined.
+ * Undefine behavior if mask is NULL
  */
 #define pg_low_bit_iterate_full(mask, bit, index) do {	\
 		index =  ctz64(mask);			\
@@ -44,6 +45,9 @@ int pg_mask_count(uint64_t pkts_mask);
 	mask &= ~bit;					\
 	} while (0)
 
+/**
+ * Undefine behavior if mask is NULL
+ */
 #define pg_low_bit_iterate(mask, index) do {	\
 	uint64_t bit;				\
 	index =  ctz64(mask);			\
@@ -51,6 +55,9 @@ int pg_mask_count(uint64_t pkts_mask);
 	mask &= ~bit;				\
 	} while (0)
 
+/**
+ * Undefine behavior if mask is NULL
+ */
 #define PG_FOREACH_BIT(mask, it)					\
 	for (uint64_t tmpmask = mask, it;				\
 	     ((it = ctz64(tmpmask)) || 1) &&				\
