@@ -64,6 +64,7 @@ int pg_mask_count(uint64_t pkts_mask);
 		     tmpmask;						\
 	     tmpmask &= ~(ONE64 << it))
 
-#define pg_last_bit_pos(mask)	(64 - clz64(mask))
+#define pg_last_bit_pos(mask, ret_mask_null)		\
+	(!mask ? ret_mask_null : (64 - clz64(mask)))
 
 #endif /* _PG_UTILS_BITMASK_H */
