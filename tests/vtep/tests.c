@@ -33,6 +33,7 @@
 #include "utils/mempool.h"
 #include "utils/mac.h"
 #include "utils/bitmask.h"
+#include "packets.h"
 #include "packetsgen.h"
 #include "collect.h"
 
@@ -119,7 +120,7 @@ static struct ether_addr multicast_get_dst_addr(uint32_t ip)
 	return dst;
 }
 
-static void test_vtep_simple(void)
+static void test_vtep_simple_internal(int flag)
 {
 	struct ether_addr mac_dest = {{0xb0, 0xb1, 0xb2,
 				      0xb3, 0xb4, 0xb5} };
@@ -140,14 +141,16 @@ static void test_vtep_simple(void)
 	uint16_t i;
 
 	/*For testing purpose this vtep ip is 1*/
-	vtep_west = pg_vtep_new("vtep", 2, 1, EAST_SIDE, 1, mac_src, 0, &error);
+	vtep_west = pg_vtep_new("vtep", 2, 1, EAST_SIDE, 1, mac_src,
+				flag, &error);
 	if (error)
 		pg_error_print(error);
 	g_assert(!error);
 	g_assert(vtep_west);
 
 	/*For testing purpose this vtep ip is 2*/
-	vtep_east = pg_vtep_new("vtep", 1, 2, WEST_SIDE, 2, mac_dest, 0, &error);
+	vtep_east = pg_vtep_new("vtep", 1, 2, WEST_SIDE, 2, mac_dest,
+				flag, &error);
 	if (error)
 		pg_error_print(error);
 	g_assert(!error);
@@ -292,23 +295,26 @@ static void test_vtep_simple(void)
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
 				      NB_PKTS);
 
-	for (i = 0; i < NB_PKTS; i++) {
-		char buf[32];
-		char buf2[32];
-		struct headers *hdr;
-		struct ether_addr mac_multicast = multicast_get_dst_addr(
-			inet_addr("224.0.0.5"));
+	if (!(flag & NO_COPY)) {
+		for (i = 0; i < NB_PKTS; i++) {
+			char buf[32];
+			char buf2[32];
+			struct headers *hdr;
+			struct ether_addr mac_multicast =
+				multicast_get_dst_addr(inet_addr("224.0.0.5"));
 
-		hdr = rte_pktmbuf_mtod(result_pkts[i], struct headers *);
-		g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
-					    &mac_multicast));
-		g_assert(hdr->ipv4.dst_addr == inet_addr("224.0.0.5"));
-		pg_set_mac_addrs(pkts[i],
-			      pg_printable_mac(&mac_dest, buf),
-			      pg_printable_mac(&mac_src, buf2));
-		pg_get_ether_addrs(pkts[i], &tmp);
-		g_assert(is_same_ether_addr(&tmp->s_addr, &mac_dest));
-		g_assert(is_same_ether_addr(&tmp->d_addr, &mac_src));
+			hdr = rte_pktmbuf_mtod(result_pkts[i],
+					       struct headers *);
+			g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
+						    &mac_multicast));
+			g_assert(hdr->ipv4.dst_addr == inet_addr("224.0.0.5"));
+			pg_set_mac_addrs(pkts[i],
+					 pg_printable_mac(&mac_dest, buf),
+					 pg_printable_mac(&mac_src, buf2));
+			pg_get_ether_addrs(pkts[i], &tmp);
+			g_assert(is_same_ether_addr(&tmp->s_addr, &mac_dest));
+			g_assert(is_same_ether_addr(&tmp->d_addr, &mac_src));
+		}
 	}
 	pg_brick_burst_to_east(vtep_west, 0, pkts,
 			    pg_mask_firsts(NB_PKTS), &error);
@@ -325,13 +331,15 @@ static void test_vtep_simple(void)
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
 				      NB_PKTS);
 
-	for (i = 0; i < NB_PKTS; i++) {
-		struct headers *hdr;
+	if (!(flag & NO_COPY)) {
+		for (i = 0; i < NB_PKTS; i++) {
+			struct headers *hdr;
 
-		hdr = rte_pktmbuf_mtod(result_pkts[i], struct headers *);
-		g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
-					    pg_vtep_get_mac(vtep_east)));
-		g_assert(hdr->ipv4.dst_addr == 2);
+			hdr = rte_pktmbuf_mtod(result_pkts[i], struct headers *);
+			g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
+						    pg_vtep_get_mac(vtep_east)));
+			g_assert(hdr->ipv4.dst_addr == 2);
+		}
 	}
 
 	/* kill'em all */
@@ -371,16 +379,153 @@ static void test_vtep_simple(void)
 	g_assert(!error);
 
 }
-#define PRINT_RESULT(test_name)	do {				\
-		printf(test_name				\
-		       "\ntotal pkts send: %lu\n"		\
-		       "in %lu,%lusec\n"			\
-		       "%lu,%luM pkts/s\n", tot_send_pkts,	\
-		       end.tv_sec - start.tv_sec,		\
-		       end.tv_usec - start.tv_usec,		\
-		       tot_send_pkts / 5 / 1000000,			\
-		       tot_send_pkts / 5 % 1000000);		\
-	} while (0)
+
+static void test_vtep_simple_no_flags(void)
+{
+	test_vtep_simple_internal(0);
+}
+
+static void test_vtep_simple_no_inner_check(void)
+{
+	test_vtep_simple_internal(NO_INNERMAC_CKECK);
+}
+
+static void test_vtep_simple_no_copy(void)
+{
+	test_vtep_simple_internal(NO_COPY);
+}
+
+static void test_vtep_simple_all_opti(void)
+{
+	test_vtep_simple_internal(NO_COPY);
+}
+
+#define NB_VNIS 20
+#define NB_ITERATION 60
+
+static void test_vtep_vnis(int flag)
+{
+	struct pg_brick *vtep, *collects[NB_VNIS];
+	struct ether_addr mac1 = {{0xf1, 0xf2, 0xf3,
+				   0xf4, 0xf5, 0xf6}};
+	struct pg_error *error = NULL;
+	struct rte_mbuf **pkts;
+	uint64_t mask = pg_mask_firsts(64);
+	uint32_t len;
+
+	/*            / --- [collect   0] */
+	/* [vtep] ---{------[collect X-1] */
+	/*            \ --- [collect   X] */
+	vtep = pg_vtep_new("vt", 1, NB_VNIS, WEST_SIDE,
+			   15, mac1, flag, &error);
+	g_assert(!error);
+	for (int i = 0; i < NB_VNIS; ++i) {
+		collects[i] = pg_collect_new("collect", 1, 1, &error);
+		g_assert(!error);
+		pg_brick_link(vtep, collects[i], &error);
+		g_assert(!error);
+		pg_vtep_add_vni(vtep, collects[i], i,
+				rte_cpu_to_be_32(0xe1e1e1e1 + i), &error);
+		g_assert(!error);
+ 	}
+	pkts = pg_packets_create(mask);
+
+	/* packet content */
+	pg_packets_append_ether(pkts, mask, &mac1, &mac1, ETHER_TYPE_IPv4);
+	pg_packets_append_blank(pkts, mask, 1400);
+	for (uint32_t i = 0; i < NB_ITERATION; ++i) {
+		uint64_t tmp_mask;
+		len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
+			sizeof(struct vxlan_hdr) +
+			sizeof(struct ether_hdr) + 1400;
+
+		for (uint32_t j = 0; j < NB_VNIS; ++j) {
+			pg_brick_reset(collects[j], &error);
+			g_assert(!error);
+		}
+
+		pg_packets_prepend_vxlan(pkts, mask & 0x0000ff,
+					 (i - 1) % NB_VNIS);
+		pg_packets_prepend_vxlan(pkts, mask & 0x00ff00,
+					 i % NB_VNIS);
+		pg_packets_prepend_vxlan(pkts, mask & 0xff0000,
+					 (i + 1) % NB_VNIS);
+
+		pg_packets_prepend_udp(pkts, mask, 1000, 2000, 1400);
+		pg_packets_prepend_ipv4(pkts, mask, 0x000000EE,
+					0x000000CC, len, 17);
+		pg_packets_prepend_ether(pkts, mask, &mac1, &mac1,
+					 ETHER_TYPE_IPv4);
+
+		pg_brick_burst_to_east(vtep, 0,  pkts, mask, &error);
+		g_assert(!error);
+		for (uint32_t j = 0; j < NB_VNIS; ++j) {
+			tmp_mask = 0;
+			pg_brick_west_burst_get(collects[j],
+						&tmp_mask, &error);
+
+			/*
+			 * For now if innermac check is activate, no packets
+			 * should pass.
+			 */
+			if (!(flag & NO_INNERMAC_CKECK)) {
+				g_assert(!tmp_mask);
+				continue;
+			}
+
+			if (j == ((i - 1) % NB_VNIS))
+				g_assert(tmp_mask == 0x0000ff);
+			else if (j == i % NB_VNIS)
+				g_assert(tmp_mask == 0x00ff00);
+			else if (j == ((i + 1) % NB_VNIS))
+				g_assert(tmp_mask == 0xff0000);
+			else
+				g_assert(!tmp_mask);
+		}
+
+		if (!(flag & NO_COPY)) {
+			PG_FOREACH_BIT(mask, it) {
+				rte_pktmbuf_adj(pkts[it],
+						sizeof(struct ipv4_hdr) +
+						sizeof(struct udp_hdr) +
+						sizeof(struct vxlan_hdr) +
+						sizeof(struct ether_hdr));
+			}
+		}
+	}
+
+	g_assert(pg_brick_pkts_count_get(vtep, EAST_SIDE) == 60 * 64);
+	for (int i = 0; i < NB_VNIS; ++i) {
+		pg_brick_destroy(collects[i]);
+	}
+	pg_brick_destroy(vtep);
+	pg_packets_free(pkts, mask);
+	free(pkts);
+}
+
+
+static void test_vtep_vnis_all_opti(void)
+{
+	test_vtep_vnis(ALL_OPTI);
+}
+
+static void test_vtep_vnis_no_copy(void)
+{
+	test_vtep_vnis(NO_COPY);
+}
+
+static void test_vtep_vnis_no_flags(void)
+{
+	test_vtep_vnis(0);
+}
+
+static void test_vtep_vnis_no_inner_check(void)
+{
+	test_vtep_vnis(NO_INNERMAC_CKECK);
+}
+
+#undef NB_ITERATION
+#undef NB_VNIS
 
 struct speed_test_headers {
 	struct ether_hdr ethernet; /* define in rte_ether.h */
@@ -389,63 +534,7 @@ struct speed_test_headers {
 	char *data;
 } __attribute__((__packed__));
 
-
-static void test_nop_speed(void)
-{
-	struct pg_error *error = NULL;
-	struct pg_brick *nop_east, *pktgen_west;
-
-	/*TODO: pregenerate pkts for pkggen*/
-	uint64_t tot_send_pkts = 0;
-	struct timeval start, end;
-	struct rte_mbuf *pkts[64];
-
-	for (int i = 0; i < NB_PKTS; ++i) {
-		struct speed_test_headers *hdr;
-		struct ether_addr src = {{0,0,0,0,0,1}};
-		struct ether_addr dst = {{0xf,0xf,0xf,0xf,0xf,0xf}};
-
-		pkts[i] = rte_pktmbuf_alloc(pg_get_mempool());
-		g_assert(pkts[i]);
-		hdr = (struct speed_test_headers *) rte_pktmbuf_append(pkts[i],
-								       sizeof(struct speed_test_headers));
-		hdr->ethernet.ether_type = rte_cpu_to_be_16(0xCAFE);
-		ether_addr_copy(&dst, &hdr->ethernet.d_addr);
-		ether_addr_copy(&src, &hdr->ethernet.s_addr);
-		strcpy(((char *)hdr + sizeof(struct ether_hdr)), "hello");
-	}
-
-	CHECK_ERROR(error);
-	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
-				     pkts, NB_PKTS, &error);
-	CHECK_ERROR(error);
-	nop_east = pg_nop_new("nop-east", &error);
-	CHECK_ERROR(error);
-
-	pg_brick_chained_links(&error, pktgen_west , nop_east);
-
-
-	gettimeofday(&end, 0);
-	gettimeofday(&start, 0);
-	while (end.tv_sec - start.tv_sec < 5) {
-		uint16_t nb_send_pkts;
-
-		for (int i = 0; i < 100; ++i) {
-			g_assert(pg_brick_poll(pktgen_west, &nb_send_pkts, &error) == 0);
-			tot_send_pkts += nb_send_pkts;
-		}
-		gettimeofday(&end, 0);
-	}
-
-	g_assert(pg_brick_pkts_count_get(nop_east, EAST_SIDE) ==
-		 tot_send_pkts);
-	PRINT_RESULT("nop: ");
-	pg_brick_destroy(nop_east);
-	pg_brick_destroy(pktgen_west);
-
-}
-
-static void test_vtep_speed(void)
+static void test_vtep_flood_encap_decap(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_east, *vtep_west;
@@ -531,14 +620,13 @@ static void test_vtep_speed(void)
 
 	g_assert(pg_brick_pkts_count_get(nop_east, EAST_SIDE) ==
 		 tot_send_pkts);
-	PRINT_RESULT("both dir");
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
 	pg_brick_destroy(vtep_east);
 	pg_brick_destroy(vtep_west);
 }
 
-static void test_vtep_vxlanise(void)
+static void test_vtep_flood_encapsulate(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_west;
@@ -616,7 +704,6 @@ static void test_vtep_vxlanise(void)
 
 	g_assert(pg_brick_pkts_count_get(nop_east, EAST_SIDE) ==
 		 tot_send_pkts + 1);
-	PRINT_RESULT("vxlanise");
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
 	pg_brick_destroy(vtep_west);
@@ -634,10 +721,20 @@ int main(int argc, char **argv)
 	g_assert(r >= 0);
 	g_assert(!error);
 
-	g_test_add_func("/vtep/simple", test_vtep_simple);
-	g_test_add_func("/nop/speed", test_nop_speed);
-	g_test_add_func("/vtep/vxlanise/speed", test_vtep_vxlanise);
-	g_test_add_func("/vtep/both/speed", test_vtep_speed);
+	g_test_add_func("/vtep/simple/no-flags", test_vtep_simple_no_flags);
+	g_test_add_func("/vtep/simple/no-inner-check",
+			test_vtep_simple_no_inner_check);
+	g_test_add_func("/vtep/simple/no-copy", test_vtep_simple_no_copy);
+	g_test_add_func("/vtep/simple/all-opti", test_vtep_simple_all_opti);
+
+	g_test_add_func("/vtep/vnis/all-opti", test_vtep_vnis_all_opti);
+	g_test_add_func("/vtep/vnis/no-copy", test_vtep_vnis_no_copy);
+	g_test_add_func("/vtep/vnis/no-flags", test_vtep_vnis_no_flags);
+	g_test_add_func("/vtep/vnis/no-inner-check",
+			test_vtep_vnis_no_inner_check);
+
+	g_test_add_func("/vtep/flood/encapsulate", test_vtep_flood_encapsulate);
+	g_test_add_func("/vtep/flood/encap-decap", test_vtep_flood_encap_decap);
 
 	r = g_test_run();
 

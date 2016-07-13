@@ -487,7 +487,6 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 		pg_low_bit_iterate(mask, i);
 		tmp = rte_pktmbuf_mtod(pkts[i], struct headers *);
 		hdrs[i] = tmp;
-		/* This should not hapen */
 		if (unlikely(tmp->ethernet.ether_type !=
 			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
 			     tmp->ipv4.next_proto_id != 17 ||
@@ -543,17 +542,16 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	int i;
+	struct vtep_port *ports =  state->ports;
 	struct headers *hdrs[64];
 	struct rte_mbuf **out_pkts = state->pkts;
 	uint64_t multicast_mask;
-	uint64_t computed_pkts;
 
 	check_multicasts_pkts(pkts, pkts_mask, hdrs,
-			      &multicast_mask, &computed_pkts);
+			      &multicast_mask, &pkts_mask);
 
-	pkts_mask &= computed_pkts;
 	for (i = 0; i < s->nb; ++i) {
-		struct vtep_port *port = &state->ports[i];
+		struct vtep_port *port = &ports[i];
 		uint64_t hitted_mask = 0;
 		uint64_t vni_mask;
 
@@ -572,7 +570,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			PG_FOREACH_BIT(vni_mask, it) {
 				void *entry;
 				struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(
-					out_pkts[i],
+					out_pkts[it],
 					struct ether_hdr *);
 
 				entry = pg_mac_table_ptr_get(
@@ -716,9 +714,6 @@ static int vtep_init(struct pg_brick *brick,
 	state->flags = vtep_config->flags;
 
 	rte_atomic16_set(&state->packet_id, 0);
-
-	if (pg_error_is_set(errp))
-		return -1;
 
 	if (pg_error_is_set(errp))
 		return -1;
