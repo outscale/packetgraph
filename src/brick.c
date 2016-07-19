@@ -707,14 +707,7 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 {
 	if (!brick)
 		return 0;
-	switch (brick->type) {
-	case PG_MULTIPOLE:
-	case PG_DIPOLE:
-		return rte_atomic64_read(&brick->sides[side].packet_count);
-	case PG_MONOPOLE:
-		return rte_atomic64_read(&brick->side.packet_count);
-	}
-	return 0;
+	return rte_atomic64_read(&brick->sides[side].packet_count);
 }
 
 const char *pg_brick_name(struct pg_brick *brick)
