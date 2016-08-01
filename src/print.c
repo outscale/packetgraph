@@ -273,6 +273,8 @@ static void print_destroy(struct pg_brick *brick, struct pg_error **errp)
 		pg_brick_get_state(brick, struct pg_print_state);
 
 	g_free(state->type_filter);
+	if (state->flags & PG_PRINT_FLAG_CLOSE_FILE)
+		fclose(state->output);
 }
 
 static struct pg_brick_ops print_ops = {
