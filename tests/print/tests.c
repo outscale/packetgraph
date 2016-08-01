@@ -139,7 +139,7 @@ static void test_print_pcap(void)
 	struct rte_mbuf *packets[NB_PKTS];
 	struct rte_mbuf **pkts;
 	uint64_t pkts_mask;
-	FILE *output = fopen("tests.pcap", "w+");
+	FILE *output = fopen("tests.pcap", "w");
 
 	g_assert(output);
 	build_packets(packets);
@@ -175,7 +175,7 @@ static void test_print_pcap(void)
 	pg_brick_destroy(col);
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(packets[i]);
-	fclose(output);
+	g_assert(!fclose(output));
 	g_assert(!system("[ $(stat -c%s ./tests.pcap) -gt 190 ]"));
 	g_assert(!system("rm tests.pcap > /dev/null"));
 }
