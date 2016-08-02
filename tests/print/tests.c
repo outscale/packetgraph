@@ -178,6 +178,14 @@ static void test_print_pcap(void)
 	g_assert(!fclose(output));
 	g_assert(!system("[ $(stat -c%s ./tests.pcap) -gt 190 ]"));
 	g_assert(!system("rm tests.pcap > /dev/null"));
+
+	output = fopen("tests.pcap", "w");
+	print = pg_print_new("My print", 1, 1, output,
+			     PG_PRINT_FLAG_PCAP | PG_PRINT_FLAG_CLOSE_FILE,
+			     NULL, &error);
+	pg_brick_destroy(print);
+	g_assert(fileno(output) == -1);
+	g_assert(!system("rm tests.pcap > /dev/null"));
 }
 
 
