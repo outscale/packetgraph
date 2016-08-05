@@ -36,8 +36,6 @@ struct ether_addr;
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_antispoof_new(const char *name,
-				  uint32_t west_max,
-				  uint32_t east_max,
 				  enum pg_side outside,
 				  struct ether_addr *mac,
 				  struct pg_error **errp);
