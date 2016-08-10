@@ -102,7 +102,6 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	/* Prepare VM's bridge. */
 #	define SSH(c) \
 		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) == 0)
-	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
@@ -263,7 +262,6 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 
 #	define SSH(c) \
 		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) == 0)
-	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
@@ -285,7 +283,6 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	/* Prepare VM's bridge. */
 #	define SSH(c) \
 		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) == 0)
-	SSH("'yes | pacman -Sq bridge-utils'");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
@@ -479,7 +476,6 @@ static void test_vhost_reco(void)
 #	define SSH(c) \
 		g_assert(!pg_util_ssh("localhost", ssh_port_id, \
 				      glob_vm_key_path, c))
-		SSH("'yes | pacman -Sq bridge-utils'");
 		SSH("brctl addbr br0");
 		SSH("ifconfig br0 up");
 		SSH("ifconfig ens4 up");
