@@ -114,7 +114,6 @@ enum operation {
 struct vtep_state {
 	struct pg_brick brick;
 	uint32_t ip;			/* IP of the VTEP */
-	uint64_t *masks;		/* internal port packet masks */
 	enum pg_side output;		/* the side the VTEP packets will go */
 	uint16_t dst_port;		/* the UDP destination port */
 	struct ether_addr mac;		/* MAC address of the VTEP */
@@ -723,7 +722,6 @@ static int vtep_init(struct pg_brick *brick,
 	 */
 	max = pg_side_get_max(brick, pg_flip_side(state->output));
 	state->ports = g_new0(struct vtep_port, max);
-	state->masks = g_new0(uint64_t, max);
 
 	brick->burst = vtep_burst;
 
