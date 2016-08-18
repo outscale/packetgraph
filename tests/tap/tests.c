@@ -210,6 +210,23 @@ static void test_tap_com(void)
 	run("ip netns del ns0");
 	run("ip netns del ns1");
 }
+
+static void test_tap_mac(void)
+{
+	struct pg_brick *tap;
+	struct pg_error *error = NULL;
+	struct ether_addr mac;
+	char tmp[18];
+
+	tap = pg_tap_new("tap", "but-test-0", &error);
+	g_assert(tap);
+	g_assert(!error);
+	run_ok("ip link set dev but-test-0 address 42:42:AB:AC:CA:FE");
+	g_assert(!pg_tap_get_mac(tap, &mac));
+	pg_printable_mac(&mac, tmp);
+	g_assert(g_strcmp0(tmp, "42:42:AB:AC:CA:FE") == 0);
+	pg_brick_destroy(tap);
+}
 #undef run_ok
 #undef run_ko
 #undef run
@@ -228,6 +245,7 @@ int main(int argc, char **argv)
 
 	g_test_add_func("/tap/lifecycle", test_tap_lifecycle);
 	g_test_add_func("/tap/com", test_tap_com);
+	g_test_add_func("/tap/mac", test_tap_mac);
 	r = g_test_run();
 
 	pg_stop();
