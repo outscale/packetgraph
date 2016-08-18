@@ -54,6 +54,19 @@ const char *pg_tap_ifname(struct pg_brick *brick)
 	return state->ifr.ifr_name;
 }
 
+int pg_tap_get_mac(struct pg_brick *tap, struct ether_addr *addr)
+{
+	struct ifreq i;
+	int fd;
+
+	strcpy(i.ifr_name, pg_tap_ifname(tap));
+	fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if (ioctl(fd, SIOCGIFHWADDR, &i) < 0)
+		return -1;
+	memcpy(addr, i.ifr_addr.sa_data, 6);
+	return 0;
+}
+
 static struct pg_brick_config *tap_config_new(const char *name,
 					      const char *ifname)
 {

@@ -46,4 +46,13 @@ struct pg_brick *pg_tap_new(const char *name,
  */
 const char *pg_tap_ifname(struct pg_brick *brick);
 
+/** get the mac address of the tap brick
+ *
+ * @param tap	a pointer to a tap brick
+ * @param addr	a pointer to a ether_addr structure to to filled with the
+ *		Ethernet address
+ * @return	0 on success, -1 on error
+ */
+int pg_tap_get_mac(struct pg_brick *tap, struct ether_addr *addr);
+
 #endif  /* _PG_TAP_H */
