@@ -509,6 +509,8 @@ exit:
 	g_assert(!ret);
 }
 
+#define PG_BRANCHES_NB 64
+
 static void test_graph_firewall_intense_multiple(void)
 {
 	struct pg_brick *nic, *vtep, *print;
@@ -516,8 +518,7 @@ static void test_graph_firewall_intense_multiple(void)
 	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
 				       0xb3, 0xb4, 0xb5}};
 	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	int branches_nb = 64;
-	struct branch branches[branches_nb];
+	struct branch branches[PG_BRANCHES_NB];
 	int ret = -1;
 	GList *brick_gc = NULL;
 
@@ -526,7 +527,7 @@ static void test_graph_firewall_intense_multiple(void)
 
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
 	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", 1, branches_nb, WEST_SIDE,
+	vtep = pg_vtep_new("vt", 1, PG_BRANCHES_NB, WEST_SIDE,
 			   0x000000EE, mac_vtep, ALL_OPTI, &error);
 	CHECK_ERROR(error);
 
@@ -539,7 +540,7 @@ static void test_graph_firewall_intense_multiple(void)
 	CHECK_ERROR(error);
 
 	for (int i = 0; i < 100; ++i) {
-		for (int j = 0; j < branches_nb; j++) {
+		for (int j = 0; j < PG_BRANCHES_NB; j++) {
 			g_assert(add_graph_branch(&branches[j], j, mac1, 0, 0));
 			g_assert(link_graph_branch(&branches[j], vtep));
 
@@ -547,7 +548,7 @@ static void test_graph_firewall_intense_multiple(void)
 			ASSERT(pg_firewall_rule_add(branches[j].firewall, "icmp",
 						     MAX_SIDE, 1, &error) == 0);
 		}
-		for (int j = 0; j < branches_nb; j++) {
+		for (int j = 0; j < PG_BRANCHES_NB; j++) {
 			rm_graph_branch(&branches[j]);
 		}
 	}
