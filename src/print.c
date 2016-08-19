@@ -40,6 +40,7 @@ struct pg_print_config {
 struct pg_print_state {
 	struct pg_brick brick;
 	FILE *output;
+	pcap_t *pcap;
 	pcap_dumper_t *dumper;
 	uint16_t *type_filter;
 	int flags;
@@ -202,13 +203,13 @@ static int print_init(struct pg_brick *brick,
 	state->dumper = NULL;
 
 	if (state->flags & PG_PRINT_FLAG_PCAP) {
-		pcap_t *p = pcap_open_dead(DLT_EN10MB, PCAP_SNAPSHOT_LEN);
+		state->pcap = pcap_open_dead(DLT_EN10MB, PCAP_SNAPSHOT_LEN);
 
-		if (!p) {
+		if (!state->pcap) {
 			*errp = pg_error_new("error initializing pcap");
 			return -1;
 		}
-		state->dumper = pcap_dump_fopen(p, state->output);
+		state->dumper = pcap_dump_fopen(state->pcap, state->output);
 		if (!state->dumper) {
 			*errp = pg_error_new("error when opening pcap file");
 			return -1;
@@ -269,8 +270,13 @@ static void print_destroy(struct pg_brick *brick, struct pg_error **errp)
 		pg_brick_get_state(brick, struct pg_print_state);
 
 	g_free(state->type_filter);
-	if (state->flags & PG_PRINT_FLAG_CLOSE_FILE)
+	if (state->flags & PG_PRINT_FLAG_CLOSE_FILE) {
+		pcap_dump_close(state->dumper);
 		fclose(state->output);
+	}
+	if (state->flags & PG_PRINT_FLAG_PCAP) {
+		pcap_close(state->pcap);
+	}
 }
 
 static struct pg_brick_ops print_ops = {
