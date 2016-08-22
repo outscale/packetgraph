@@ -171,20 +171,13 @@ static void test_print_pcap(void)
 	pg_brick_unlink(col, &error);
 	g_assert(!error);
 	pg_brick_destroy(gen);
+	g_assert(fileno(output) > 2);
 	pg_brick_destroy(print);
+	g_assert(fileno(output) == -1);
 	pg_brick_destroy(col);
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(packets[i]);
-	g_assert(!fclose(output));
 	g_assert(!system("[ $(stat -c%s ./tests.pcap) -gt 190 ]"));
-	g_assert(!system("rm tests.pcap > /dev/null"));
-
-	output = fopen("tests.pcap", "w");
-	print = pg_print_new("My print", output,
-			     PG_PRINT_FLAG_PCAP | PG_PRINT_FLAG_CLOSE_FILE,
-			     NULL, &error);
-	pg_brick_destroy(print);
-	g_assert(fileno(output) == -1);
 	g_assert(!system("rm tests.pcap > /dev/null"));
 }
 

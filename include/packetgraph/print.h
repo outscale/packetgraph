@@ -34,7 +34,7 @@ enum pg_print_flags {
 	PG_PRINT_FLAG_BRICK = 8,
 	/* Print raw packet data. */
 	PG_PRINT_FLAG_RAW = 16,
-	/* Print in pcap format */
+	/* Print in pcap format, imply PG_PRINT_FLAG_CLOSE_FILE */
 	PG_PRINT_FLAG_PCAP = 32,
 	/* close output */
 	PG_PRINT_FLAG_CLOSE_FILE = 64,
