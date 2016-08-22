@@ -935,7 +935,7 @@ static void multicast_internal(struct vtep_state *state,
 		goto error_invalid_address;
 
 	/* The all-systems group (224.0.0.1) is handled as a special case. */
-  /* The host never sends a report for that group */
+	/* The host never sends a report for that group */
 	if (multicast_ip == IPv4(224, 0, 0, 1))
 		goto error_invalid_address;
 
@@ -997,7 +997,7 @@ error:
 	rte_pktmbuf_free(pkt[0]);
 	return;
 error_invalid_address:
-	pg_error_new("invalide multicast adress");
+	*errp = pg_error_new("invalide multicast adress");
 }
 
 static void vtep_unlink_notify(struct pg_brick *brick,
