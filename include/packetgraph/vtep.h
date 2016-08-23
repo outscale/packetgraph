@@ -81,6 +81,7 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
  * @errp:	an error pointer
  * @return	a pointer to a brick structure on success, NULL on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
 			     uint32_t east_max, enum pg_side output,
 			     uint32_t ip, struct ether_addr mac,
