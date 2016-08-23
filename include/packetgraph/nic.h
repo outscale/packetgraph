@@ -38,6 +38,7 @@ void pg_nic_start(void);
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure on success, NULL on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_nic_new(const char *name,
 			    const char *ifname,
 			    struct pg_error **errp);
@@ -51,6 +52,7 @@ struct pg_brick *pg_nic_new(const char *name,
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure, on success, 0 on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_nic_new_by_id(const char *name,
 				  uint8_t portid,
 				  struct pg_error **errp);
