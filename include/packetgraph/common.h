@@ -46,4 +46,7 @@ static inline enum pg_side pg_flip_side(enum pg_side side)
 	return (enum pg_side)(side ^ 1);
 }
 
+/* Be sure to have result used. */
+#define PG_WARN_UNUSED __attribute__((warn_unused_result))
+
 #endif /* _PG_COMMON_H */
