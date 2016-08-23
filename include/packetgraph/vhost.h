@@ -33,6 +33,7 @@ struct pg_brick;
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure on success, NULL on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
 			      uint32_t east_max, enum pg_side output,
 			      struct pg_error **errp);
