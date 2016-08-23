@@ -34,6 +34,7 @@
  * @errp:	is set in case of an error
  * @return:	a pointer to a brick structure on success, 0 on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_tap_new(const char *name,
 			    const char *ifname,
 			    struct pg_error **errp);
