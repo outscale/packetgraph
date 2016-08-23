@@ -30,6 +30,7 @@
  * @errp:	is set in case of an error
  * @return:	a pointer to a brick, NULL on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_pmtud_new(const char *name,
 			      enum pg_side output,
 			      uint32_t mtu_size,
