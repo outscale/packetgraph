@@ -942,7 +942,7 @@ static void multicast_internal(struct vtep_state *state,
 	/* Allocate a memory buffer to hold an IGMP message */
 	pkt[0] = rte_pktmbuf_alloc(mp);
 	if (!pkt[0]) {
-		pg_error_new("Packet allocation faild");
+		*errp = pg_error_new("Packet allocation faild");
 		return;
 	}
 
@@ -985,7 +985,7 @@ static void multicast_internal(struct vtep_state *state,
 		hdr->ipv4.dst_addr = IPv4(224, 0, 0, 2);
 		break;
 	default:
-		pg_error_new("action not handle");
+		*errp = pg_error_new("action not handle");
 		goto error;
 	}
 

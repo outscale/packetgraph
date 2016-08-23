@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "common.h"
 /* To use the error infrastructure pass a struct pg_error **errp with
  * *errp == NULL to the various functions.
  * Then when an error occurs the functions will do *errp = error_new_errno() or
@@ -52,6 +53,7 @@ struct pg_error {
 
 #define pg_error_new(...) pg_error_new_errno(0, __VA_ARGS__)
 
+PG_WARN_UNUSED
 struct pg_error *__pg_error_new(int err_no, const char *file,
 				uint64_t line, const char *function,
 				const char *format, ...);

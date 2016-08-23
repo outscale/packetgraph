@@ -158,7 +158,7 @@ static int pmtud_init(struct pg_brick *brick,
 	state->mtu_size = pmtud_config->mtu_size;
 	state->icmp = rte_pktmbuf_alloc(pg_get_mempool());
 	if (!state->icmp) {
-		pg_error_new("cannot allocate icmp packet");
+		*errp = pg_error_new("cannot allocate icmp packet");
 		return -1;
 	}
 	pg_packets_append_ether(&state->icmp,
