@@ -24,6 +24,7 @@
  * This is a dummy brick who don't do anything useful.
  * It's purpose is to show an example of brick to new developpers.
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_nop_new(const char *name,
 			    struct pg_error **errp);
 
