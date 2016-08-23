@@ -74,6 +74,7 @@ typedef void (*pg_rxtx_tx_callback_t)(struct pg_brick *brick,
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure on success, NULL on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_rxtx_new(const char *name,
 			     pg_rxtx_rx_callback_t rx,
 			     pg_rxtx_tx_callback_t tx,
