@@ -58,6 +58,7 @@ enum pg_print_flags {
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure on success, NULL on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_print_new(const char *name,
 			      FILE *output,
 			      int flags,
