@@ -177,6 +177,7 @@ extern GList *pg_all_bricks;
 	}
 
  /* lifecycle */
+PG_WARN_UNUSED
 struct pg_brick *pg_brick_new(const char *name,
 			      struct pg_brick_config *config,
 			      struct pg_error **errp);
