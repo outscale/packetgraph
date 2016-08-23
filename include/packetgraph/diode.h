@@ -29,6 +29,7 @@
  * @errp:	is set in case of an error
  * @return:	a pointer to a brick structure on success, NULL on error
  */
+PG_WARN_UNUSED
 struct pg_brick *pg_diode_new(const char *name,
 			      enum pg_side output,
 			      struct pg_error **errp);
