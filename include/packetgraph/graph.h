@@ -43,6 +43,7 @@ struct pg_graph;
  *		Create a empty graph if set to NULL.
  * @return      new allocated and initialized graph, NULL on fail.
  */
+PG_WARN_UNUSED
 struct pg_graph *pg_graph_new(const char *name, struct pg_brick *explore,
 			      struct pg_error **error);
 
