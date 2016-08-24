@@ -883,6 +883,9 @@ static void do_remove_vni(struct vtep_state *state,
 {
 	struct vtep_port *port = &state->ports[edge_index];
 
+	if (!port->multicast_ip)
+		return;
+
 	multicast_unsubscribe(state, port, port->multicast_ip, errp);
 
 	if (pg_error_is_set(errp))
