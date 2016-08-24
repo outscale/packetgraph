@@ -983,7 +983,7 @@ static void multicast_internal(struct vtep_state *state,
 		hdr->ipv4.dst_addr = multicast_ip;
 		break;
 	case IGMP_UNSUBSCRIBE:
-		hdr->ipv4.dst_addr = IPv4(224, 0, 0, 2);
+		hdr->ipv4.dst_addr = rte_cpu_to_be_32(IPv4(224, 0, 0, 2));
 		break;
 	default:
 		*errp = pg_error_new("action not handle");
