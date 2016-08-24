@@ -943,7 +943,7 @@ static void multicast_internal(struct vtep_state *state,
 	/* Allocate a memory buffer to hold an IGMP message */
 	pkt[0] = rte_pktmbuf_alloc(mp);
 	if (!pkt[0]) {
-		*errp = pg_error_new("Packet allocation faild");
+		*errp = pg_error_new("packet allocation failed");
 		return;
 	}
 
