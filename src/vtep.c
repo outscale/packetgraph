@@ -975,14 +975,7 @@ static void multicast_internal(struct vtep_state *state,
 	hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER;
 	hdr->ipv4.hdr_checksum = 0;
 	hdr->ipv4.src_addr = state->ip;
-	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
 
-	/* Version 2 Membership Report = 0x16 */
-	hdr->igmp.type = action;
-	hdr->igmp.max_resp_time = 0;
-	hdr->igmp.checksum = 0;
-	hdr->igmp.group_addr = multicast_ip;
-	hdr->igmp.checksum = igmp_checksum(&hdr->igmp);
 	switch (action) {
 	case IGMP_SUBSCRIBE:
 		hdr->ipv4.dst_addr = multicast_ip;
@@ -994,6 +987,14 @@ static void multicast_internal(struct vtep_state *state,
 		*errp = pg_error_new("action not handle");
 		goto error;
 	}
+	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
+
+	/* Version 2 Membership Report = 0x16 */
+	hdr->igmp.type = action;
+	hdr->igmp.max_resp_time = 0;
+	hdr->igmp.checksum = 0;
+	hdr->igmp.group_addr = multicast_ip;
+	hdr->igmp.checksum = igmp_checksum(&hdr->igmp);
 
 	pg_brick_side_forward(&state->brick.sides[state->output],
 			      pg_flip_side(state->output),
