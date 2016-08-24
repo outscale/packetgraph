@@ -779,7 +779,7 @@ static bool is_vni_valid(uint32_t vni)
 	return vni <= (UINT32_MAX >> 8);
 }
 
-static inline uint16_t igmp_checksum(struct igmp_hdr *msg, size_t size)
+static inline uint16_t igmp_checksum(struct igmp_hdr *msg)
 {
 	uint16_t sum = 0;
 
@@ -982,7 +982,7 @@ static void multicast_internal(struct vtep_state *state,
 	hdr->igmp.max_resp_time = 0;
 	hdr->igmp.checksum = 0;
 	hdr->igmp.group_addr = multicast_ip;
-	hdr->igmp.checksum = igmp_checksum(&hdr->igmp, sizeof(struct igmp_hdr));
+	hdr->igmp.checksum = igmp_checksum(&hdr->igmp);
 	switch (action) {
 	case IGMP_SUBSCRIBE:
 		hdr->ipv4.dst_addr = multicast_ip;
