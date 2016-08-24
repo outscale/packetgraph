@@ -872,6 +872,8 @@ int pg_vtep_add_vni(struct pg_brick *brick,
 	}
 
 	do_add_vni(state, i, vni, multicast_ip, errp);
+	if (pg_error_is_set(errp))
+		return -1;
 	do_add_mac(&state->ports[i], &mac);
 	return 0;
 }
