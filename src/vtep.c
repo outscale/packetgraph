@@ -40,6 +40,7 @@
 #include <rte_table_hash.h>
 #include <rte_prefetch.h>
 #include <rte_udp.h>
+#include <arpa/inet.h>
 
 #include <packetgraph/common.h>
 #include <packetgraph/vtep.h>
@@ -931,13 +932,13 @@ static void multicast_internal(struct vtep_state *state,
 	struct multicast_pkt *hdr;
 	struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
 
-	if (!is_multicast_ip(multicast_ip))
-		goto error_invalid_address;
+	if (!is_multicast_ip(multicast_ip)) {
+		char tmp[20];
 
-	/* The all-systems group (224.0.0.1) is handled as a special case. */
-	/* The host never sends a report for that group */
-	if (multicast_ip == IPv4(224, 0, 0, 1))
-		goto error_invalid_address;
+		inet_ntop(AF_INET, (void *) &multicast_ip, (char *) tmp, 20);
+		*errp = pg_error_new("invalid multicast address %s", tmp);
+		return;
+	}
 
 	/* Allocate a memory buffer to hold an IGMP message */
 	pkt[0] = rte_pktmbuf_alloc(mp);
@@ -995,9 +996,6 @@ static void multicast_internal(struct vtep_state *state,
 
 error:
 	rte_pktmbuf_free(pkt[0]);
-	return;
-error_invalid_address:
-	*errp = pg_error_new("invalide multicast adress");
 }
 
 static void vtep_unlink_notify(struct pg_brick *brick,
