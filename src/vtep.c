@@ -706,7 +706,7 @@ static int vtep_init(struct pg_brick *brick,
 	state->output = vtep_config->output;
 	if (pg_side_get_max(brick, state->output) != 1) {
 		*errp = pg_error_new("brick %s number of output port is not 1",
-				  brick->name);
+				     brick->name);
 		return -1;
 	}
 	state->ip = vtep_config->ip;
