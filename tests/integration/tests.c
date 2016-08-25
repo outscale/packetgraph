@@ -400,7 +400,8 @@ static void test_graph_type1(void)
 	pg_packets_append_udp(pg_packets_append_ipv4(pkts, 1,
 						     0x000000EE,
 						     0x000000CC, len, 17),
-			      1, 152, 153, len - sizeof(struct ipv4_hdr));
+			      1, 50000, PG_VTEP_DST_PORT,
+			      len - sizeof(struct ipv4_hdr));
 	pg_packets_append_vxlan(pkts, 1, VNI_1);
 	pg_packets_append_ether(pkts, 1, &mac2, &mac_vtep, 4);
 	pg_packets_append_str(pkts, 1, "hello :)");

@@ -116,7 +116,7 @@ static void inside_to_vxlan(void)
 	bench.pkts = pg_packets_append_udp(
 		bench.pkts,
 		bench.pkts_mask,
-		1000, 2000, 1356);
+		1000, PG_VTEP_DST_PORT, 1356);
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1356);
 
 	//g_assert(pg_bench_run(&bench, &stats, &error));
@@ -208,7 +208,7 @@ static void vxlan_to_inside(int flags)
 	bench.pkts = pg_packets_append_udp(
 		bench.pkts,
 		bench.pkts_mask,
-		1000, 2000, 1400);
+		1000, PG_VTEP_DST_PORT, 1400);
 	pg_packets_append_vxlan(bench.pkts, bench.pkts_mask, 1);
 	bench.pkts = pg_packets_append_ether(
 		bench.pkts,

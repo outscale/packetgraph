@@ -451,7 +451,7 @@ static void test_vtep_vnis(int flag)
 		pg_packets_prepend_vxlan(pkts, mask & 0xff0000,
 					 (i + 1) % NB_VNIS);
 
-		pg_packets_prepend_udp(pkts, mask, 1000, 2000, 1400);
+		pg_packets_prepend_udp(pkts, mask, 1000, PG_VTEP_DST_PORT, 1400);
 		pg_packets_prepend_ipv4(pkts, mask, 0x000000EE,
 					0x000000CC, len, 17);
 		pg_packets_prepend_ether(pkts, mask, &mac1, &mac1,
