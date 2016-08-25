@@ -142,7 +142,7 @@ static void test_vtep_simple_internal(int flag)
 
 	/*For testing purpose this vtep ip is 1*/
 	vtep_west = pg_vtep_new("vtep", 2, 1, EAST_SIDE, 1, mac_src,
-				flag, &error);
+				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
 		pg_error_print(error);
 	g_assert(!error);
@@ -150,7 +150,7 @@ static void test_vtep_simple_internal(int flag)
 
 	/*For testing purpose this vtep ip is 2*/
 	vtep_east = pg_vtep_new("vtep", 1, 2, WEST_SIDE, 2, mac_dest,
-				flag, &error);
+				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
 		pg_error_print(error);
 	g_assert(!error);
@@ -417,7 +417,7 @@ static void test_vtep_vnis(int flag)
 	/* [vtep] ---{------[collect X-1] */
 	/*            \ --- [collect   X] */
 	vtep = pg_vtep_new("vt", 1, NB_VNIS, WEST_SIDE,
-			   15, mac1, flag, &error);
+			   15, mac1, PG_VTEP_DST_PORT, flag, &error);
 	g_assert(!error);
 	for (int i = 0; i < NB_VNIS; ++i) {
 		collects[i] = pg_collect_new("collect", 1, 1, &error);
@@ -565,10 +565,12 @@ static void test_vtep_flood_encap_decap(void)
 	pg_scan_ether_addr(&multicast_mac2, "01:00:5e:00:00:06");
 
 	vtep_east = pg_vtep_new("vt-e", 1, 1, WEST_SIDE,
-			     15, multicast_mac1, ALL_OPTI, &error);
+			     15, multicast_mac1, PG_VTEP_DST_PORT,
+			     ALL_OPTI, &error);
 	CHECK_ERROR(error);
 	vtep_west = pg_vtep_new("vt-w", 1, 1, EAST_SIDE,
-			     240, multicast_mac2, ALL_OPTI, &error);
+			     240, multicast_mac2, PG_VTEP_DST_PORT,
+			     ALL_OPTI, &error);
 	CHECK_ERROR(error);
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
@@ -655,7 +657,8 @@ static void test_vtep_flood_encapsulate(void)
 	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
 
 	vtep_west = pg_vtep_new("vt-w", 1, 1, EAST_SIDE,
-			     15, multicast_mac1, ALL_OPTI, &error);
+			     15, multicast_mac1, PG_VTEP_DST_PORT,
+			     ALL_OPTI, &error);
 	CHECK_ERROR(error);
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);

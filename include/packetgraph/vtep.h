@@ -21,6 +21,8 @@
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/errors.h>
 
+#define PG_VTEP_DST_PORT 4789
+
 enum pg_vtep_flags {
 	NONE = 0,
 	/* modify the packets instead of copy it */
@@ -71,19 +73,22 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
 /**
  * Create a new vtep
  *
- * @name:	the name
- * @west_max:	the maximum number of connections to the west
- * @east_max:	The maximum number of connections to the east
- * @output:	Side where packets are encapsuled in VXLAN
- * @ip:		the vtep ip
- * @mac:	the vtep mac
- * @flag:	the vtep flag options(see pg_vtep_flags)
- * @errp:	an error pointer
- * @return	a pointer to a brick structure on success, NULL on error
+ * @name:	  brick name
+ * @west_max:	  maximum number of connections to the west
+ * @east_max:	  maximum number of connections to the east
+ * @output:	  side where packets are encapsuled in VXLAN
+ * @ip:		  vtep ip
+ * @mac:	  vtep mac
+ * @udp_dst_port: udp destination port of vxlan packets (in cpu endinaness)
+ *                default port is PG_VTEP_DST_PORT
+ * @flag:	  vtep flags (see pg_vtep_flags)
+ * @errp:	  error pointer set on error
+ * @return	  pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
 			     uint32_t east_max, enum pg_side output,
 			     uint32_t ip, struct ether_addr mac,
+			     uint16_t udp_dst_port,
 			     int flag, struct pg_error **errp);
 #endif /* _PG_VTEP_H */
