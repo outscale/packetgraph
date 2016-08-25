@@ -80,7 +80,7 @@ static void inside_to_vxlan(void)
 
 	pg_bench_init(&bench);
 	vtep = pg_vtep_new("vtep", 1, 1, EAST_SIDE, inet_addr("192.168.0.1"),
-			   mac3, ALL_OPTI, &error);
+			   mac3, PG_VTEP_DST_PORT, ALL_OPTI, &error);
 	g_assert(!error);
 
 	inside_nop = pg_nop_new("nop-input", &error);
@@ -160,9 +160,7 @@ static void vxlan_to_inside(int flags)
 	uint32_t len;
 
 	vtep = pg_vtep_new("vtep", 1, 1, WEST_SIDE, 0x000000EE,
-			   mac_vtep,
-			   flags,
-			   &error);
+			   mac_vtep, PG_VTEP_DST_PORT, flags, &error);
 	g_assert(!error);
 
 	pg_bench_init(&bench);

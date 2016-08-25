@@ -61,12 +61,12 @@ struct vtep_config {
 	enum pg_side output;
 	int32_t ip;
 	struct ether_addr mac;
+	uint16_t udp_dst_port;
 	int flags;
 };
 
 			/* 0000 1000 0000 ... */
 #define VTEP_I_FLAG	0x08000000
-#define VTEP_DST_PORT	4789
 
 #define UDP_MIN_PORT 49152
 #define UDP_PORT_RANGE 16383
@@ -115,8 +115,8 @@ enum operation {
 struct vtep_state {
 	struct pg_brick brick;
 	uint32_t ip;			/* IP of the VTEP */
-	enum pg_side output;		/* the side the VTEP packets will go */
-	uint16_t dst_port;		/* the UDP destination port */
+	enum pg_side output;		/* side the VTEP packets will go */
+	uint16_t udp_dst_port;		/* UDP destination port */
 	struct ether_addr mac;		/* MAC address of the VTEP */
 	struct vtep_port *ports;
 	rte_atomic16_t packet_id;	/* IP identification number */
@@ -223,19 +223,19 @@ static inline uint16_t src_port_compute(uint16_t ether_hash)
  *
  * @param	udp_hdr pointer to the UDP header
  * @param	inner_eth_hdr pointer to the ethernet frame to encapsulate
- * @param	dst_port UDP destination port
+ * @param	udp_dst_port UDP destination port
  * @param	datagram_len length of the UDP datagram
  */
 static inline void udp_build(struct udp_hdr *udp_hdr,
 		      struct ether_hdr *inner_eth_hdr,
-		      uint16_t dst_port,
+		      uint16_t udp_dst_port,
 		      uint16_t datagram_len)
 {
 	uint32_t ether_hash = ethernet_header_hash(inner_eth_hdr);
-	uint16_t src_port = src_port_compute(ether_hash);
+	uint16_t udp_src_port = src_port_compute(ether_hash);
 
-	udp_hdr->src_port = rte_cpu_to_be_16(src_port);
-	udp_hdr->dst_port = rte_cpu_to_be_16(dst_port);
+	udp_hdr->src_port = rte_cpu_to_be_16(udp_src_port);
+	udp_hdr->dst_port = rte_cpu_to_be_16(udp_dst_port);
 	udp_hdr->dgram_len = rte_cpu_to_be_16(datagram_len);
 
 	/* UDP checksum SHOULD be transmited as zero */
@@ -333,7 +333,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	}
 
 	vxlan_build(&headers->vxlan, port->vni);
-	udp_build(&headers->udp, eth_hdr, state->dst_port,
+	udp_build(&headers->udp, eth_hdr, state->udp_dst_port,
 		  packet_len + udp_overhead());
 
 	/* select destination IP and MAC address */
@@ -712,7 +712,7 @@ static int vtep_init(struct pg_brick *brick,
 	state->ip = vtep_config->ip;
 	ether_addr_copy(&vtep_config->mac, &state->mac);
 	state->flags = vtep_config->flags;
-	state->dst_port = VTEP_DST_PORT;
+	state->udp_dst_port = vtep_config->udp_dst_port;
 
 	rte_atomic16_set(&state->packet_id, 0);
 
@@ -733,6 +733,7 @@ static struct pg_brick_config *vtep_config_new(const char *name,
 					       enum pg_side output,
 					       uint32_t ip,
 					       struct ether_addr mac,
+					       uint16_t udp_dst_port,
 					       int flags)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
@@ -741,6 +742,7 @@ static struct pg_brick_config *vtep_config_new(const char *name,
 	vtep_config->output = output;
 	vtep_config->ip = ip;
 	vtep_config->flags = flags;
+	vtep_config->udp_dst_port = udp_dst_port;
 	ether_addr_copy(&mac, &vtep_config->mac);
 	config->brick_config = vtep_config;
 	return pg_brick_config_init(config, name, west_max,
@@ -750,11 +752,13 @@ static struct pg_brick_config *vtep_config_new(const char *name,
 struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
 		       uint32_t east_max, enum pg_side output,
 		       uint32_t ip, struct ether_addr mac,
-		       int flags, struct pg_error **errp)
+		       uint16_t udp_dst_port, int flags,
+		       struct pg_error **errp)
 {
 	struct pg_brick_config *config = vtep_config_new(name, west_max,
 							 east_max, output,
-							 ip, mac, flags);
+							 ip, mac, udp_dst_port,
+							 flags);
 	struct pg_brick *ret = pg_brick_new("vtep", config, errp);
 
 	pg_brick_config_free(config);
