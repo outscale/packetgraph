@@ -716,9 +716,6 @@ static int vtep_init(struct pg_brick *brick,
 
 	rte_atomic16_set(&state->packet_id, 0);
 
-	if (pg_error_is_set(errp))
-		return -1;
-
 	/* do a lazy allocation of the VTEP ports: the code will init them
 	 * at VNI port add
 	 */
