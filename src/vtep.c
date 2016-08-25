@@ -712,6 +712,7 @@ static int vtep_init(struct pg_brick *brick,
 	state->ip = vtep_config->ip;
 	ether_addr_copy(&vtep_config->mac, &state->mac);
 	state->flags = vtep_config->flags;
+	state->dst_port = VTEP_DST_PORT;
 
 	rte_atomic16_set(&state->packet_id, 0);
 
