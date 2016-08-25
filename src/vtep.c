@@ -478,7 +478,8 @@ static inline int from_vtep_failure(struct rte_mbuf **pkts,
 static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 					 struct headers **hdrs,
 					 uint64_t *multicast_mask,
-					 uint64_t *computed_mask)
+					 uint64_t *computed_mask,
+					 uint16_t udp_dst_port_be)
 {
 	for (*multicast_mask = 0, *computed_mask = 0; mask;) {
 		int i;
@@ -490,6 +491,7 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 		if (unlikely(tmp->ethernet.ether_type !=
 			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
 			     tmp->ipv4.next_proto_id != 17 ||
+			     tmp->udp.dst_port != udp_dst_port_be ||
 			     tmp->vxlan.vx_flags !=
 			     rte_cpu_to_be_32(VTEP_I_FLAG)))
 			continue;
@@ -548,7 +550,8 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	uint64_t multicast_mask;
 
 	check_multicasts_pkts(pkts, pkts_mask, hdrs,
-			      &multicast_mask, &pkts_mask);
+			      &multicast_mask, &pkts_mask,
+			      rte_cpu_to_be_16(state->udp_dst_port));
 
 	for (i = 0; i < s->nb; ++i) {
 		struct vtep_port *port = &ports[i];
@@ -637,7 +640,8 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 	uint64_t multicast_mask;
 
 	check_multicasts_pkts(pkts, pkts_mask, hdrs,
-			      &multicast_mask, &pkts_mask);
+			      &multicast_mask, &pkts_mask,
+			      rte_cpu_to_be_16(state->udp_dst_port));
 
 	for (int i = 0, nb = s->nb; pkts_mask && i < nb; ++i) {
 		struct vtep_port *port = &ports[i];
