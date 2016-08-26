@@ -33,7 +33,6 @@
 #include <rte_config.h>
 #include <rte_errno.h>
 #include <rte_ether.h>
-#include <rte_hash_crc.h>
 #include <rte_ip.h>
 #include <rte_memcpy.h>
 #include <rte_table.h>
@@ -137,12 +136,6 @@ static void  multicast_internal(struct vtep_state *state,
 				struct pg_error **errp,
 				enum operation action);
 
-static inline uint64_t hash_64(void *key, uint32_t key_size, uint64_t seed)
-{
-	return _mm_crc32_u64(seed, *((uint64_t *) key));
-}
-
-
 static inline struct ether_addr multicast_get_dst_addr(uint32_t ip)
 {
 	struct ether_addr dst;
@@ -190,54 +183,36 @@ static inline void vxlan_build(struct vxlan_hdr *header, uint32_t vni)
 }
 
 /**
- * Compute a hash on the ethernet header that will be used for
- * ECMP/load-balancing
+ * Compute UDP source port to respect good practice from RFC6335:
+ * "the Dynamic Ports, also known as the Private or Ephemeral Ports,
+ *  from 49152-65535 (never assigned)".
  *
- * @param	eth_hdr the ethernet header that must be hashed
- * @return	the hash of 16 first bytes of the ethernet frame
- */
-static inline  uint16_t ethernet_header_hash(struct ether_hdr *eth_hdr)
-{
-	uint64_t *data = (uint64_t *) eth_hdr;
-	/* TODO: set the seed */
-	uint64_t result = hash_64(data, 8, 0);
-
-	result |= hash_64(data + 1, 8, 0);
-
-	return (uint16_t) result;
-}
-
-/**
- * Compute the udp source port for ECMP/load-balancing
- *
- * @param	ether_hash the ethernet hash to use as a basis for the src port
+ * @param	seed seed for the src port computation.
  * @return	the resulting UDP source port
  */
-static inline uint16_t src_port_compute(uint16_t ether_hash)
+static inline uint16_t src_port_compute(uint16_t seed)
 {
-	return (ether_hash % UDP_PORT_RANGE) + UDP_MIN_PORT;
+	_Static_assert((UDP_PORT_RANGE & (UDP_PORT_RANGE + 1)) == 0,
+		       "value must be power of 2 minus 1");
+	return (seed & UDP_PORT_RANGE) + UDP_MIN_PORT;
 }
 
 /**
  * Build the UDP header
  *
  * @param	udp_hdr pointer to the UDP header
- * @param	inner_eth_hdr pointer to the ethernet frame to encapsulate
  * @param	udp_dst_port UDP destination port
  * @param	datagram_len length of the UDP datagram
+ * @param	seed seed for udp src port building
  */
 static inline void udp_build(struct udp_hdr *udp_hdr,
-		      struct ether_hdr *inner_eth_hdr,
-		      uint16_t udp_dst_port,
-		      uint16_t datagram_len)
+			     uint16_t udp_dst_port,
+			     uint16_t datagram_len,
+			     uint16_t seed)
 {
-	uint32_t ether_hash = ethernet_header_hash(inner_eth_hdr);
-	uint16_t udp_src_port = src_port_compute(ether_hash);
-
-	udp_hdr->src_port = rte_cpu_to_be_16(udp_src_port);
+	udp_hdr->src_port = rte_cpu_to_be_16(src_port_compute(seed));
 	udp_hdr->dst_port = rte_cpu_to_be_16(udp_dst_port);
 	udp_hdr->dgram_len = rte_cpu_to_be_16(datagram_len);
-
 	/* UDP checksum SHOULD be transmited as zero */
 }
 
@@ -331,10 +306,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		*errp = pg_error_new("No enough headroom to add VTEP headers");
 		return -1;
 	}
-
 	vxlan_build(&headers->vxlan, port->vni);
-	udp_build(&headers->udp, eth_hdr, state->udp_dst_port,
-		  packet_len + udp_overhead());
 
 	/* select destination IP and MAC address */
 	if (likely(unicast)) {
@@ -352,6 +324,13 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		 packet_len + ip_overhead());
 	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
 	pkt->l2_len = HEADERS_LENGTH + sizeof(struct ether_hdr);
+
+	/* It is recommanded to have UDP source port randomized to be
+	 * ECMP/load-balancing friendly. Let's use computed hash from
+	 * IP header. */
+	udp_build(&headers->udp, state->udp_dst_port,
+		  packet_len + udp_overhead(), headers->ipv4.hdr_checksum);
+
 	return 0;
 }
 
