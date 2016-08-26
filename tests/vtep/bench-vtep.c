@@ -121,7 +121,7 @@ static void inside_to_vxlan(void)
 
 	//g_assert(pg_bench_run(&bench, &stats, &error));
 	pg_bench_run(&bench, &stats, &error);
-	pg_error_print(error);
+	g_assert(!pg_error_is_set(&error));
 
 	/* We know that this brick burst all packets. */
 	stats.pkts_burst = stats.pkts_sent;
@@ -184,16 +184,14 @@ static void vxlan_to_inside(int flags)
 
 	pg_vtep_add_vni(vtep, bench.count_brick, 1,
 			inet_addr("224.0.0.1"), &error);
-	pg_error_print(error);
-	g_assert(!error);
+	g_assert(!pg_error_is_set(&error));
 	if (pg_vtep_add_mac(vtep, 1, &mac4, &error) < 0)
 		pg_error_print(error);
-	g_assert(!error);
+	g_assert(!pg_error_is_set(&error));
 	pg_vtep_add_mac(vtep, 1, &mac3, &error);
 	if (pg_vtep_add_mac(vtep, 1, &mac4, &error) < 0)
 		pg_error_print(error);
-	g_assert(!error);
-
+	g_assert(!pg_error_is_set(&error));
 
 	bench.pkts_nb = 64;
 	bench.pkts_mask = pg_mask_firsts(64);
