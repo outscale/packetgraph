@@ -82,3 +82,9 @@ script:
  - ./../tests/pmtud/bench.sh
  - ./../tests/tap/bench.sh
 
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.net#betterfly"
+    on_success: always
+    use_notice: true
