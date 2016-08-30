@@ -56,11 +56,6 @@ struct pg_switch_config {
 	enum pg_side output;
 };
 
-static inline uint64_t ether_hash(void *key, uint32_t key_size, uint64_t seed)
-{
-	return _mm_crc32_u64(seed, *((uint64_t *) key));
-}
-
 static inline void flood(struct pg_switch_state *state,
 			 struct pg_address_source *source,
 			 uint64_t mask)
