@@ -18,6 +18,8 @@
 #ifndef _PG_LIFECYCLE_H
 #define _PG_LIFECYCLE_H
 
+void mp_hdlr_init_ops_stack(void);
+
 /**
  * Initialize packetgraph.
  * This function should be called before any other packetgraph function.

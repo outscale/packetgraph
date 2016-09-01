@@ -23,6 +23,7 @@
 
 int pg_start(int argc, char **argv, struct pg_error **errp)
 {
+	mp_hdlr_init_ops_stack();
 	int r = rte_eal_init(argc, argv);
 
 	if (r < 0)

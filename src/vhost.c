@@ -55,7 +55,7 @@ struct pg_vhost_state {
 	enum pg_side output;
 	struct pg_vhost_socket *socket;
 	rte_atomic32_t allow_queuing;
-	struct virtio_net *virtio_net;
+	int vid;
 	struct rte_mbuf *in[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
 };
@@ -89,7 +89,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		       uint64_t pkts_mask, struct pg_error **errp)
 {
 	struct pg_vhost_state *state;
-	struct virtio_net *virtio_net;
+	int virtio_net;
 	uint16_t pkts_count;
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
@@ -104,7 +104,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
 		return 0;
 
-	virtio_net = state->virtio_net;
+	virtio_net = state->vid;
 
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
 
@@ -138,7 +138,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
 	struct rte_mempool *mp = pg_get_mempool();
-	struct virtio_net *virtio_net;
+	int virtio_net;
 	uint64_t pkts_mask;
 	uint16_t count;
 	int ret;
@@ -149,7 +149,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		return 0;
 
 	rte_atomic32_set(&state->allow_queuing, 0);
-	virtio_net = state->virtio_net;
+	virtio_net = state->vid;
 	*pkts_cnt = 0;
 
 	count = rte_vhost_dequeue_burst(virtio_net, VIRTIO_TXQ, mp, state->in,
@@ -180,7 +180,7 @@ static void vhost_create_socket(struct pg_vhost_state *state,
 
 	printf("New vhost-user socket: %s\n", path);
 
-	ret = rte_vhost_driver_register(path);
+	ret = rte_vhost_driver_register(path, 0);
 
 	if (ret) {
 		*errp = pg_error_new_errno(-ret,
@@ -220,6 +220,7 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	vhost_config = (struct pg_vhost_config *) config->brick_config;
 	state->output = vhost_config->output;
+	state->vid = -1;
 
 	vhost_create_socket(state, errp);
 	if (pg_error_is_set(errp))
@@ -274,17 +275,19 @@ const char *pg_vhost_socket_path(struct pg_brick *brick,
 	return state->socket->path;
 }
 
-static int new_vm(struct virtio_net *dev)
+static int new_vm(int dev)
 {
 	struct pg_vhost_socket *s;
+	char buf[256];
 
-	printf("VM connecting to socket: %s\n", dev->ifname);
+	rte_vhost_get_ifname(dev, buf, 256);
+	printf("VM connecting to socket: %s\n", buf);
 
 	pthread_mutex_lock(&mutex);
 
 	LIST_FOREACH(s, &sockets, socket_list) {
-		if (!strcmp(s->path, dev->ifname)) {
-			s->state->virtio_net = dev;
+		if (!strcmp(s->path, buf)) {
+			s->state->vid = dev;
 			rte_atomic32_clear(&s->state->allow_queuing);
 			break;
 		}
@@ -292,36 +295,32 @@ static int new_vm(struct virtio_net *dev)
 
 	pthread_mutex_unlock(&mutex);
 
-	dev->flags |= VIRTIO_DEV_RUNNING;
 	return 0;
 }
 
-/* silence checkpatch.pl warning for volatile */
-#define CONCAT_VOLATILE(X, Y) X##Y
-#define VOLATILE CONCAT_VOLATILE(vola, tile)
-
-static void destroy_vm(VOLATILE struct virtio_net *dev)
+static void destroy_vm(int dev)
 {
-	const char *path = (char *) dev->ifname;
 	struct pg_vhost_socket *s;
+	char buf[256];
 
-	printf("VM disconnecting from socket: %s\n", path);
+	rte_vhost_get_ifname(dev, buf, 256);
+
+	printf("VM disconnecting from socket: %s\n", buf);
 
 	pthread_mutex_lock(&mutex);
 
 	LIST_FOREACH(s, &sockets, socket_list) {
-		if (!strcmp(s->path, path)) {
+		if (!strcmp(s->path, buf)) {
 			while (!rte_atomic32_test_and_set(&s->state->
 							  allow_queuing))
 				sched_yield();
-			s->state->virtio_net = NULL;
+			s->state->vid = -1;
 			break;
 		}
 	}
 
 	pthread_mutex_unlock(&mutex);
 
-	dev->flags &= ~VIRTIO_DEV_RUNNING;
 }
 
 #undef CONCAT_VOLATILE
