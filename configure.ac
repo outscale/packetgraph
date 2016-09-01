@@ -37,7 +37,8 @@ AS_IF([test "x$RTE_SDK" != "x"], [
     			      -lrte_pmd_vhost -lrte_hash \
     			      -lrte_mbuf -lrte_mempool -lrte_table \
 			      -lrte_ring -lethdev \
-			      -lrte_pmd_pcap -lrte_pmd_ring -lrte_pmd_e1000 \
+			      -lrte_pmd_pcap -lrte_ring \
+			      -lrte_pmd_ring -lrte_ring -lrte_pmd_e1000 \
 			      -lrte_pmd_ixgbe -lrte_kvargs \
 			      -lrte_eal -lrte_vhost \
 			      -Wl,--end-group"])
