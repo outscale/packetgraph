@@ -1,4 +1,4 @@
-/* Copyright 2015 Outscale SAS
+/* Copyright 2016 Outscale SAS
  *
  * This file is part of Butterfly.
  *
@@ -15,28 +15,26 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_PACKETGRAPH_H
-#define _PG_PACKETGRAPH_H
+#ifndef _PG_IP_FRAGMENT_H
+#define _PG_IP_FRAGMENT_H
 
-#include <stdarg.h>
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
-#include <packetgraph/graph.h>
-#include <packetgraph/antispoof.h>
-#include <packetgraph/diode.h>
-#include <packetgraph/firewall.h>
-#include <packetgraph/hub.h>
-#include <packetgraph/nic.h>
-#include <packetgraph/nop.h>
-#include <packetgraph/print.h>
-#include <packetgraph/rxtx.h>
-#include <packetgraph/switch.h>
-#include <packetgraph/vhost.h>
-#include <packetgraph/vtep.h>
-#include <packetgraph/brick.h>
-#include <packetgraph/lifecycle.h>
-#include <packetgraph/queue.h>
-#include <packetgraph/tap.h>
-#include <packetgraph/ip-fragment.h>
 
-#endif /* _PG_PACKETGRAPH_H */
+/**
+ * Create a new ip fragment brick
+ *
+ * @name:	name of the brick
+ * @output:	side where packets can be fragmented,
+ *		the oposite side is where packets are reasemble
+ * @mtu_size:	allowed MTU size, must be a multiple of 8
+ * @errp:	is set in case of an error
+ * @return:	a pointer to a brick, NULL on error
+ */
+PG_WARN_UNUSED
+struct pg_brick *pg_ip_fragment_new(const char *name,
+			      enum pg_side output,
+			      uint32_t mtu_size,
+			      struct pg_error **errp);
+
+#endif  /* _PG_IP_FRAGMENT_H */

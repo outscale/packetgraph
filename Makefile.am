@@ -32,7 +32,8 @@ libpacketgraph_la_SOURCES = \
 	src/graph.c\
 	src/diode.c\
 	src/switch.c\
-	src/pmtud.c
+	src/pmtud.c\
+	src/ip-fragment.c
 
 pkginclude_HEADERS = \
 	include/packetgraph/common.h\
@@ -54,6 +55,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/switch.h\
 	include/packetgraph/queue.h\
 	include/packetgraph/pmtud.h\
+	include/packetgraph/ip-fragment.h\
 	include/packetgraph/errors.h
 
 libpacketgraph_la_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)

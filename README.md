@@ -39,6 +39,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs
 - queue: temporally store packets between graph
 - pmtud(ipv4 only): Path MTU Discovery is an implementation of [RFC 1191](https://tools.ietf.org/html/rfc1191)
+- fragment-ip: fragment and reassemble packets
 
 A lot of other bricks can be created, check our [wall](https://github.com/outscale/packetgraph/issues?q=is%3Aopen+is%3Aissue+label%3Awall) ;)
 
