@@ -156,7 +156,7 @@ endif
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-ip-fragment
 
 noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
@@ -203,6 +203,12 @@ tests_pmtud_SOURCES = \
 tests_pmtud_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_pmtud_LDFLAGS = libpacketgraph-dev.la
 EXTRA_tests_pmtud_DEPENDENCIES = libpacketgraph-dev.la
+
+tests_ip_fragment_SOURCES = \
+	tests/ip-fragment/tests.c
+tests_ip_fragment_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_ip_fragment_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_ip_fragment_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_firewall_SOURCES = \
 	tests/firewall/test-icmp.c\
@@ -268,6 +274,7 @@ TESTS = \
 	tests/diode/test.sh\
 	tests/rxtx/test.sh\
 	tests/pmtud/test.sh\
+	tests/ip-fragment/test.sh\
 	tests/firewall/test.sh\
 	tests/nic/test.sh\
 	tests/print/test.sh\

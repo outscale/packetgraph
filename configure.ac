@@ -40,7 +40,7 @@ AS_IF([test "x$RTE_SDK" != "x"], [
 			      -lrte_pmd_pcap -lrte_ring \
 			      -lrte_pmd_ring -lrte_ring -lrte_pmd_e1000 \
 			      -lrte_pmd_ixgbe -lrte_kvargs \
-			      -lrte_eal -lrte_vhost \
+			      -lrte_eal -lrte_vhost -lrte_ip_frag\
 			      -Wl,--end-group"])
 
     AC_SUBST(RTE_SDK_LIBS, ["-lm -lpthread -ldl -lpcap"])

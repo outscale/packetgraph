@@ -53,6 +53,7 @@ script:
  - make tests-rxtx
  - make tests-pmtud
  - make tests-tap
+ - make tests-ip-fragment
 
  - ./../tests/antispoof/test.sh
  - ./../tests/core/test.sh
@@ -66,6 +67,7 @@ script:
  - ./../tests/rxtx/test.sh
  - ./../tests/pmtud/test.sh
  - ./../tests/tap/test.sh
+ - ./../tests/ip-fragment/test.sh
 
  - make style
 
