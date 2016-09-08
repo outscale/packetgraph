@@ -243,12 +243,11 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "vhost-%d", id);
-	branch->vhost = pg_vhost_new(tmp->str, 1, 1, EAST_SIDE, &error);
+	branch->vhost = pg_vhost_new(tmp->str, EAST_SIDE, &error);
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "vhost-reader-%d", id);
-	branch->vhost_reader = pg_vhost_new(tmp->str, 1, 1, WEST_SIDE,
-					    &error);
+	branch->vhost_reader = pg_vhost_new(tmp->str, WEST_SIDE, &error);
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "collect-reader-%d", id);

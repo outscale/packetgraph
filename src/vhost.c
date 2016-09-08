@@ -52,6 +52,7 @@ struct pg_vhost_socket {
 
 struct pg_vhost_state {
 	struct pg_brick brick;
+
 	enum pg_side output;
 	struct pg_vhost_socket *socket;
 	rte_atomic32_t allow_queuing;
@@ -70,8 +71,6 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t vhost_session_thread;
 
 static struct pg_brick_config *vhost_config_new(const char *name,
-					     uint32_t west_max,
-					     uint32_t east_max,
 					     enum pg_side output)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
@@ -80,8 +79,7 @@ static struct pg_brick_config *vhost_config_new(const char *name,
 
 	vhost_config->output = output;
 	config->brick_config = (void *) vhost_config;
-	return pg_brick_config_init(config, name, west_max,
-				    east_max, PG_MULTIPOLE);
+	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
 }
 
 static int vhost_burst(struct pg_brick *brick, enum pg_side from,
@@ -125,7 +123,6 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		side->burst_count_cb(side->burst_count_private_data,
 				     bursted_pkts);
 #endif /* #ifdef PG_VHOST_BENCH */
-
 	rte_atomic32_clear(&state->allow_queuing);
 	return 0;
 }
@@ -136,7 +133,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	struct pg_vhost_state *state;
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
-	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
+	struct pg_brick_side *s = &brick->side;
 	struct rte_mempool *mp = pg_get_mempool();
 	int virtio_net;
 	uint64_t pkts_mask;
@@ -161,10 +158,9 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		return 0;
 
 	pkts_mask = pg_mask_firsts(count);
-	ret = pg_brick_side_forward(s, state->output,
-				 state->in, pkts_mask, errp);
+	ret = pg_brick_burst(s->edge.link, state->output, s->edge.pair_index,
+			     state->in, pkts_mask, errp);
 	pg_packets_free(state->in, pkts_mask);
-
 	return ret;
 }
 
@@ -237,12 +233,18 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 #undef VHOST_NOT_READY
 
-struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
-			uint32_t east_max, enum pg_side output,
+static enum pg_side vhost_get_side(struct pg_brick *brick)
+{
+	struct pg_vhost_state *state =
+	pg_brick_get_state(brick, struct pg_vhost_state);
+
+	return pg_flip_side(state->output);
+}
+
+struct pg_brick *pg_vhost_new(const char *name, enum pg_side output,
 			struct pg_error **errp)
 {
-	struct pg_brick_config *config = vhost_config_new(name, west_max,
-						       east_max, output);
+	struct pg_brick_config *config = vhost_config_new(name, output);
 	struct pg_brick *ret = pg_brick_new("vhost", config, errp);
 
 	pg_brick_config_free(config);
@@ -429,6 +431,14 @@ free_exit:
 	return -1;
 }
 
+static void vhost_link(struct pg_brick *brick, enum pg_side side, int edge)
+{
+	struct pg_vhost_state *state =
+	pg_brick_get_state(brick, struct pg_vhost_state);
+
+	state->output = pg_flip_side(side);
+}
+
 void pg_vhost_stop(void)
 {
 	void *ret;
@@ -448,8 +458,10 @@ static struct pg_brick_ops vhost_ops = {
 
 	.init		= vhost_init,
 	.destroy	= vhost_destroy,
-
+	.link_notify    = vhost_link,
+	.get_side       = vhost_get_side,
 	.unlink		= pg_brick_generic_unlink,
+
 };
 
 pg_brick_register(vhost, &vhost_ops);
