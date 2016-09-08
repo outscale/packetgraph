@@ -58,16 +58,11 @@ struct pg_brick;
  * Note: this brick support pg_brick_rx_bytes and pg_brick_tx_bytes.
  *
  * @name:	name of the brick
- * @west_max:	maximum of links you can connect on the west side
- * @east_max:	maximum of links you can connect on the east side
- * @output:	The side of the output (so the side of the "VM")
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
-struct pg_brick *pg_vhost_new(const char *name, uint32_t west_max,
-			      uint32_t east_max, enum pg_side output,
-			      struct pg_error **errp);
+struct pg_brick *pg_vhost_new(const char *name, struct pg_error **errp);
 
 /**
  * Initialize vhost-user at program startup
