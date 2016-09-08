@@ -475,7 +475,6 @@ int pg_brick_link(struct pg_brick *west,
 	/* finish the pairing of the edge */
 	pg_brick_get_edge(east, WEST_SIDE, east_index)->pair_index = west_index;
 	pg_brick_get_edge(west, EAST_SIDE, west_index)->pair_index = east_index;
-
 	return 0;
 }
 

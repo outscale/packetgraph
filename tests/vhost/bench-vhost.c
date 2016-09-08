@@ -60,9 +60,9 @@ void test_benchmark_vhost(char *vm_image_path,
 	g_assert(ret == 0);
 	g_assert(!error);
 
-	vhost_enter = pg_vhost_new("vhost-enter", 1, 1, EAST_SIDE, &error);
+	vhost_enter = pg_vhost_new("vhost-enter", EAST_SIDE, &error);
 	g_assert(!error);
-	vhost_exit = pg_vhost_new("vhost-exit", 1, 1, EAST_SIDE, &error);
+	vhost_exit = pg_vhost_new("vhost-exit", EAST_SIDE, &error);
 	g_assert(!error);
 
 	socket_path_enter = pg_vhost_socket_path(vhost_enter, &error);
