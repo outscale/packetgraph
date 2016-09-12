@@ -53,7 +53,8 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 		if (!pkts[j])
 			continue;
 		tmp = rte_pktmbuf_append(pkts[j], len);
-		memset(tmp, 0, len);
+		if (tmp)
+			memset(tmp, 0, len);
 	}
 	return pkts;
 }
