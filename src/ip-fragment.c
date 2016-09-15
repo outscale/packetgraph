@@ -17,6 +17,7 @@
 
 #include <packetgraph/ip-fragment.h>
 #include <rte_config.h>
+#include <rte_cycles.h>
 #include <rte_ip.h>
 #include <rte_ip_frag.h>
 #include <rte_ether.h>
@@ -35,6 +36,8 @@ struct pg_ip_fragment_state {
 	enum pg_side output;
 	struct rte_mbuf *pkts_out[64];
 	uint32_t mtu_size;
+	struct rte_ip_frag_tbl *tbl;
+	struct rte_ip_frag_death_row dr;
 };
 
 struct eth_ipv4_hdr {
@@ -83,17 +86,63 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 		return -1;
 	mask = pg_mask_firsts(nb_frags);
 
-	rte_pktmbuf_prepend(pkt, sizeof(struct  ether_hdr));
+	rte_pktmbuf_prepend(pkt, l2_size);
 	PG_FOREACH_BIT(mask, i) {
 		memcpy(rte_pktmbuf_prepend(pkts_out[i],
-					   sizeof(struct  ether_hdr)),
-		       &eth, sizeof(struct  ether_hdr));
+					   l2_size),
+		       &eth, l2_size);
 		pkts_out[i]->l2_len = l2_size;
 	}
 
 	ret = pg_brick_burst(edge->link, from, edge->pair_index,
 			     pkts_out, mask, errp);
 	pg_packets_free(pkts_out, mask);
+	return ret;
+}
+
+static inline int do_reassemble(struct pg_ip_fragment_state *state,
+				struct rte_mbuf **pkts, struct pg_brick_side *s,
+				enum pg_side from, uint64_t *pkts_mask,
+				struct pg_error **errp)
+{
+	int j = 0;
+	uint64_t snd_mask = 0;
+	uint64_t remove_mask = 0;
+	int ret = 0;
+	uint64_t cur_time = rte_rdtsc();
+
+	PG_FOREACH_BIT(*pkts_mask, i) {
+		struct  eth_ipv4_hdr *pkt_buf =
+			rte_pktmbuf_mtod(pkts[i],
+					 struct eth_ipv4_hdr *);
+
+		if (rte_ipv4_frag_pkt_is_fragmented(&pkt_buf->ip)) {
+			struct rte_mbuf *tmp;
+
+			remove_mask |= (ONE64 << i);
+			tmp = rte_ipv4_frag_reassemble_packet(state->tbl,
+							      &state->dr,
+							      pkts[i],
+							      cur_time,
+							      &pkt_buf->
+							      ip);
+			if (tmp) {
+				state->pkts_out[j] = tmp;
+				snd_mask |= (ONE64 << j);
+				++j;
+			}
+		}
+	}
+
+	if (unlikely(snd_mask)) {
+		ret = pg_brick_burst(s->edge.link, from, s->edge.pair_index,
+				     state->pkts_out, snd_mask, errp);
+		pg_packets_free(state->pkts_out, snd_mask);
+	}
+	if (remove_mask) {
+		rte_ip_frag_free_death_row(&state->dr, 0);
+		(*pkts_mask) ^= remove_mask;
+	}
 	return ret;
 }
 
@@ -122,9 +171,10 @@ static int ip_fragment_burst(struct pg_brick *brick, enum pg_side from,
 					pkts_mask ^= (ONE64 << i);
 			}
 		}
+	} else if (do_reassemble(state, pkts, s, from, &pkts_mask, errp) < 0) {
+		return -1;
 	}
 	if (!pkts_mask)
-
 		return 0;
 	return  pg_brick_burst(s->edge.link, from, s->edge.pair_index,
 			       pkts, pkts_mask, errp);
@@ -143,6 +193,12 @@ struct pg_brick *pg_ip_fragment_new(const char *name,
 	return ret;
 }
 
+#define FRAG_TIMEOUT_IN_S 3
+#define FRAG_TBL_NB_PKTS_PER_BUCKETS (1 << 15)
+#define FRAG_TBL_NB_BUCKETS 1
+#define FRAG_TBL_TOTAL_MAX_PKTS					\
+	(FRAG_TBL_NB_BUCKETS * FRAG_TBL_NB_PKTS_PER_BUCKETS)
+
 static int ip_fragment_init(struct pg_brick *brick,
 		      struct pg_brick_config *config,
 		      struct pg_error **errp)
@@ -158,18 +214,46 @@ static int ip_fragment_init(struct pg_brick *brick,
 		return -1;
 	}
 
+	if (ip_fragment_config->mtu_size % 8) {
+		*errp = pg_error_new("mtu must be a  multiplier");
+		return -1;
+	}
 	brick->burst = ip_fragment_burst;
 	state->output = ip_fragment_config->output;
 	state->mtu_size = ip_fragment_config->mtu_size;
+	state->tbl = rte_ip_frag_table_create(FRAG_TBL_NB_PKTS_PER_BUCKETS,
+					      FRAG_TBL_NB_BUCKETS,
+					      FRAG_TBL_TOTAL_MAX_PKTS,
+					      /* ~3s of timeout per segment */
+					      rte_get_timer_hz() *
+					      FRAG_TIMEOUT_IN_S,
+					      SOCKET_ID_ANY);
+	if (!state->tbl) {
+		*errp = pg_error_new("can't create ip frag table");
+		return -1;
+	}
 	return 0;
 }
 
+#undef FRAG_TBL_NB_PKTS_PER_BUCKETS
+#undef FRAG_TBL_NB_BUCKETS
+#undef FRAG_TBL_TOTAL_MAX_PKTS
+#undef FRAG_TIMEOUT_IN_S
+
+static void ip_fragment_destroy(struct pg_brick *brick, struct pg_error **errp)
+{
+	struct pg_ip_fragment_state *state =
+		pg_brick_get_state(brick, struct pg_ip_fragment_state);
+
+	rte_ip_frag_table_destroy(state->tbl);
+}
 
 static struct pg_brick_ops ip_fragment_ops = {
 	.name		= "ip_fragment",
 	.state_size	= sizeof(struct pg_ip_fragment_state),
 
 	.init		= ip_fragment_init,
+	.destroy	= ip_fragment_destroy,
 
 	.unlink		= pg_brick_generic_unlink,
 };
