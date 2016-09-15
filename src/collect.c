@@ -56,7 +56,7 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 	/* Flawfinder: ignore */
 	memcpy(state->pkts[from], pkts, pg_last_bit_pos(pkts_mask) *
 	       sizeof(struct rte_mbuf *));
-	pg_packets_incref(state->pkts[from], pkts_mask);
+	pg_packets_incref(pkts, pkts_mask);
 
 	return 0;
 }
