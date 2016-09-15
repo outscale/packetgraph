@@ -310,7 +310,7 @@ void pg_packets_incref(struct rte_mbuf **pkts, uint64_t pkts_mask)
 		uint16_t i;
 
 		pg_low_bit_iterate(pkts_mask, i);
-		rte_mbuf_refcnt_update(pkts[i], 1);
+		rte_pktmbuf_refcnt_update(pkts[i], 1);
 	}
 }
 
