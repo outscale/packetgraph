@@ -359,23 +359,22 @@ static void check_and_store_base_dir(const char *base_dir,
 	/* Flawfinder: ignore we notified the user base_dir must be valid */
 	if (strlen(base_dir) >= PATH_MAX) {
 		*errp = pg_error_new("base_dir too long");
-		goto free_exit;
+		goto unlock_mutex;
 	}
 
 	/* Flawfinder: ignore */
 	sockets_path = realpath(base_dir, resolved_path);
 	/* Neither base_dir nor resolved_path is smaller than PATH_MAX. */
 	if (!sockets_path) {
-		pthread_mutex_unlock(&mutex);
 		*errp = pg_error_new_errno(errno, "Cannot resolve path of %s",
-					base_dir);
-		goto free_exit;
+					   base_dir);
+		goto unlock_mutex;
 	}
 
 	sockets_path = g_strdup(sockets_path);
 
+unlock_mutex:
 	pthread_mutex_unlock(&mutex);
-
 free_exit:
 	g_free(resolved_path);
 }
