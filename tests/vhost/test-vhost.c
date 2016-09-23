@@ -569,6 +569,59 @@ static void test_vhost_reco(void)
 	pg_vhost_stop();
 }
 
+static void test_vhost_destroy(void)
+{
+	const char mac_addr_0[18] = "52:54:00:12:34:11";
+	const char mac_addr_1[18] = "52:54:00:12:34:12";
+	struct pg_brick *vhost_0, *vhost_1;
+	const char *socket_path_0, *socket_path_1;
+	struct pg_error *error = NULL;
+	int ret, qemu_pid;
+
+	/* start vhost */
+	ret = pg_vhost_start("/tmp", &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	/* instanciate brick */
+	vhost_0 = pg_vhost_new("vhost-0", 1, 1, EAST_SIDE, &error);
+	g_assert(!error);
+	g_assert(vhost_0);
+
+	vhost_1 = pg_vhost_new("vhost-1", 1, 1, EAST_SIDE, &error);
+	g_assert(!error);
+	g_assert(vhost_1);
+
+	/* spawn QEMU */
+	socket_path_0 = pg_vhost_socket_path(vhost_0, &error);
+	g_assert(!error);
+	g_assert(socket_path_0);
+	socket_path_1 = pg_vhost_socket_path(vhost_1, &error);
+	g_assert(!error);
+	g_assert(socket_path_1);
+
+	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
+				      mac_addr_0, mac_addr_1,
+				      glob_vm_path,
+				      glob_vm_key_path,
+				      glob_hugepages_path, &error);
+
+	g_assert(!error);
+	g_assert(qemu_pid);
+
+	/* try to destroy vhost brick before qemu is killed */
+	pg_brick_destroy(vhost_0);
+	g_assert(!error);
+	pg_brick_destroy(vhost_1);
+	g_assert(!error);
+
+	/* kill QEMU */
+	pg_util_stop_qemu(qemu_pid);
+
+	/* stop vhost */
+	pg_vhost_stop();
+}
+
 void test_vhost(void)
 {
 	g_test_add_func("/vhost/flow", test_vhost_flow);
@@ -576,4 +629,5 @@ void test_vhost(void)
 	g_test_add_func("/vhost/fd", test_vhost_fd_loop);
 	if (glob_long_tests)
 		g_test_add_func("/vhost/reco", test_vhost_reco);
+	g_test_add_func("/vhost/destroy", test_vhost_destroy);
 }
