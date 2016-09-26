@@ -254,7 +254,7 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "collect-reader-%d", id);
-	branch->collect = pg_collect_new(tmp->str, 1, 1, &error);
+	branch->collect = pg_collect_new(tmp->str, &error);
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "print-%d", id);

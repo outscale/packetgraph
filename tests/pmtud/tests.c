@@ -56,7 +56,7 @@ static void test_sorting_pmtud(void)
 				sizeof(struct ether_hdr));
 	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 430, &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
@@ -98,7 +98,7 @@ static void test_sorting_pmtud_df(void)
 	pg_packets_append_blank(pkts, pg_mask_firsts(64), 400);
 	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 430, &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
@@ -171,10 +171,10 @@ static void test_icmp_pmtud(void)
 
 	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 430, &error);
 	g_assert(!error);
-	col_east = pg_collect_new("col_east", 1, 1, &error);
+	col_east = pg_collect_new("col_east", &error);
 	g_assert(col_east);
 	g_assert(!error);
-	col_west = pg_collect_new("col_west", 1, 1, &error);
+	col_west = pg_collect_new("col_west", &error);
 	g_assert(!error);
 	g_assert(col_west);
 
