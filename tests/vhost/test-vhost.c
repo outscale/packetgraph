@@ -148,7 +148,7 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	g_assert(result_pkts);
 
 	/* kill QEMU */
-	pg_util_stop_qemu(qemu_pid);
+	pg_util_stop_qemu(qemu_pid, qemu_exit_signal);
 
 	/* free result packets */
 	pg_packets_free(result_pkts, pkts_mask);
@@ -347,8 +347,8 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 		rte_pktmbuf_free(pkts[i]);
 
 	/* kill QEMU */
-	pg_util_stop_qemu(qemu_pid0);
-	pg_util_stop_qemu(qemu_pid1);
+	pg_util_stop_qemu(qemu_pid0, qemu_exit_signal);
+	pg_util_stop_qemu(qemu_pid1, qemu_exit_signal);
 
 	/* break the graph */
 	pg_brick_unlink(collect0, &error);
@@ -616,7 +616,7 @@ static void test_vhost_destroy(void)
 	g_assert(!error);
 
 	/* kill QEMU */
-	pg_util_stop_qemu(qemu_pid);
+	pg_util_stop_qemu(qemu_pid, SIGKILL);
 
 	/* stop vhost */
 	pg_vhost_stop();

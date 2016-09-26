@@ -113,7 +113,7 @@ void test_benchmark_vhost(char *vm_image_path,
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
 	g_assert(pg_bench_print(&stats, NULL) == 0);
 
-	pg_util_stop_qemu(qemu_pid);
+	pg_util_stop_qemu(qemu_pid, SIGKILL);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(vhost_enter);

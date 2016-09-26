@@ -36,6 +36,6 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 		       const char *hugepages_path,
 		       struct pg_error **errp);
 
-void pg_util_stop_qemu(int qemu_pid);
+void pg_util_stop_qemu(int qemu_pid, int signal);
 
 #endif /* _PG_UTILS_MEMPOOL_H */
