@@ -25,6 +25,7 @@ struct pg_brick;
 /**
  * Create a new vhost brick.
  * vhost interface is configured with offload features disabled.
+ * Note: this brick support pg_brick_rx_bytes and pg_brick_tx_bytes.
  *
  * @name:	name of the brick
  * @west_max:	maximum of links you can connect on the west side

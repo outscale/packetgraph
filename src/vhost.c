@@ -58,6 +58,8 @@ struct pg_vhost_state {
 	int vid;
 	struct rte_mbuf *in[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
+	rte_atomic64_t tx_bytes; /* TX: [vhost] --> VM */
+	rte_atomic64_t rx_bytes; /* RX: [vhost] <-- VM */
 };
 
 /* head of the socket list */
@@ -91,6 +93,8 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	struct pg_vhost_state *state;
 	int virtio_net;
 	uint16_t pkts_count;
+	uint16_t bursted_pkts;
+	uint64_t tx_bytes = 0;
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
 
@@ -105,28 +109,25 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		return 0;
 
 	virtio_net = state->vid;
-
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
+	bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
+					       VIRTIO_RXQ,
+					       state->out,
+					       pkts_count);
+	rte_atomic32_clear(&state->allow_queuing);
 
-#ifndef PG_VHOST_BENCH
-	rte_vhost_enqueue_burst(virtio_net,
-				VIRTIO_RXQ,
-				state->out,
-				pkts_count);
-#else
-	uint16_t bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
-							VIRTIO_RXQ,
-							state->out,
-							pkts_count);
+	/* count tx bytes: burst is packed so we can directly iterate */
+	for (int i = 0; i < bursted_pkts; i++)
+		tx_bytes += rte_pktmbuf_pkt_len(pkts[i]);
+	rte_atomic64_add(&state->tx_bytes, tx_bytes);
 
+#ifdef PG_VHOST_BENCH
 	struct pg_brick_side *side = &brick->sides[pg_flip_side(from)];
 
 	if (side->burst_count_cb != NULL)
 		side->burst_count_cb(side->burst_count_private_data,
 				     bursted_pkts);
 #endif /* #ifdef PG_VHOST_BENCH */
-
-	rte_atomic32_clear(&state->allow_queuing);
 	return 0;
 }
 
@@ -142,6 +143,8 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	uint64_t pkts_mask;
 	uint16_t count;
 	int ret;
+	struct rte_mbuf **in;
+	uint64_t rx_bytes = 0;
 
 	*pkts_cnt = 0;
 	/* Try lock */
@@ -162,8 +165,14 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 
 	pkts_mask = pg_mask_firsts(count);
 	ret = pg_brick_side_forward(s, state->output,
-				 state->in, pkts_mask, errp);
+				    state->in, pkts_mask, errp);
 	pg_packets_free(state->in, pkts_mask);
+
+	/* count rx bytes: burst is packed so we can directly iterate */
+	in = state->in;
+	for (int i = 0; i < count; i++)
+		rx_bytes += rte_pktmbuf_pkt_len(in[i]);
+	rte_atomic64_add(&state->rx_bytes, rx_bytes);
 
 	return ret;
 }
@@ -221,6 +230,8 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	vhost_config = (struct pg_vhost_config *) config->brick_config;
 	state->output = vhost_config->output;
 	state->vid = -1;
+	rte_atomic64_set(&state->rx_bytes, 0);
+	rte_atomic64_set(&state->tx_bytes, 0);
 
 	vhost_create_socket(state, errp);
 	if (pg_error_is_set(errp))
@@ -273,6 +284,18 @@ const char *pg_vhost_socket_path(struct pg_brick *brick,
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
 	return state->socket->path;
+}
+
+static uint64_t rx_bytes(struct pg_brick *brick)
+{
+	return rte_atomic64_read(
+		&pg_brick_get_state(brick, struct pg_vhost_state)->rx_bytes);
+}
+
+static uint64_t tx_bytes(struct pg_brick *brick)
+{
+	return rte_atomic64_read(
+		&pg_brick_get_state(brick, struct pg_vhost_state)->tx_bytes);
 }
 
 static int new_vm(int dev)
@@ -450,6 +473,8 @@ static struct pg_brick_ops vhost_ops = {
 	.destroy	= vhost_destroy,
 
 	.unlink		= pg_brick_generic_unlink,
+	.rx_bytes	= rx_bytes,
+	.tx_bytes	= tx_bytes,
 };
 
 pg_brick_register(vhost, &vhost_ops);

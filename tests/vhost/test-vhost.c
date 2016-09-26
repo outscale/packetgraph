@@ -146,6 +146,10 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	result_pkts = pg_brick_east_burst_get(collect, &pkts_mask, &error);
 	g_assert(!error);
 	g_assert(result_pkts);
+	g_assert(pg_brick_rx_bytes(vhost_0) == 0);
+	g_assert(pg_brick_tx_bytes(vhost_0) != 0);
+	g_assert(pg_brick_rx_bytes(vhost_1) != 0);
+	g_assert(pg_brick_tx_bytes(vhost_1) == 0);
 
 	/* kill QEMU */
 	pg_util_stop_qemu(qemu_pid, qemu_exit_signal);
