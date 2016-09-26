@@ -140,11 +140,11 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	return child_pid;
 }
 
-void pg_util_stop_qemu(int qemu_pid)
+void pg_util_stop_qemu(int qemu_pid, int signal)
 {
 	int exit_status;
 
-	kill(qemu_pid, SIGKILL);
+	kill(qemu_pid, signal);
 	waitpid(qemu_pid, &exit_status, 0);
 	g_spawn_close_pid(qemu_pid);
 }
