@@ -358,6 +358,7 @@ static void check_and_store_base_dir(const char *base_dir,
 	/* guard against implementation issues */
 	/* Flawfinder: ignore we notified the user base_dir must be valid */
 	if (strlen(base_dir) >= PATH_MAX) {
+		pthread_mutex_unlock(&mutex);
 		*errp = pg_error_new("base_dir too long");
 		goto unlock_mutex;
 	}
