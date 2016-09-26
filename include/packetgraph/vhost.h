@@ -60,7 +60,10 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp);
  */
 const char *pg_vhost_socket_path(struct pg_brick *brick,
 				 struct pg_error **errp);
-
+/**
+ * Un-initialize vhost-user.
+ * You should have call pg_vhost_start in the past before calling this.
+ */
 void pg_vhost_stop(void);
 
 #endif  /* _PG_VHOST_H */
