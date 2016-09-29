@@ -62,7 +62,6 @@ static void pg_bench_burst_cb(void *private_data, uint16_t pkts_burst)
 int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 		 struct pg_error **error)
 {
-	uint64_t bit;
 	uint64_t it_mask;
 	uint64_t i;
 	uint16_t cnt;
@@ -117,8 +116,9 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	/* Compute average size of packets. */
 	it_mask = bench->pkts_mask;
 	for (; it_mask;) {
-		pg_low_bit_iterate_full(it_mask, bit, i);
-		result->pkts_average_size += bench->pkts[i]->data_len;
+		pg_low_bit_iterate(it_mask, i);
+		result->pkts_average_size +=
+			rte_pktmbuf_pkt_len(bench->pkts[i]);
 	}
 	result->pkts_average_size /= bench->pkts_nb;
 
@@ -127,15 +127,15 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	gettimeofday(&result->date_start, NULL);
 	for (i = 0; i < bl.max_burst_cnt; i++) {
 		/* Burst packets. */
-		pg_brick_burst(bl.input_brick,
-			       bl.input_side,
-			       0,
-			       bl.pkts,
-			       bl.pkts_mask,
-			       error);
-		sched_yield();
-		if (*error)
+		if (unlikely(pg_brick_burst(bl.input_brick,
+					    bl.input_side,
+					    0,
+					    bl.pkts,
+					    bl.pkts_mask,
+					    error) < 0)) {
 			return -1;
+		}
+
 		/* Poll back packets if needed. */
 		if (bl.output_poll)
 			pg_brick_poll(bl.output_brick, &cnt, error);

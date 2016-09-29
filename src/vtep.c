@@ -94,7 +94,6 @@ struct multicast_pkt {
 	struct igmp_hdr igmp;
 } __attribute__((__packed__));
 
-
 #define HEADERS_LENGTH sizeof(struct headers)
 #define IGMP_PKT_LEN sizeof(struct multicast_pkt)
 
