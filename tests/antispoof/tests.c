@@ -28,6 +28,7 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "collect.h"
+#include "fail.h"
 #include "utils/mac.h"
 
 static struct rte_mbuf *build_packet(const unsigned char *data, size_t len)
@@ -365,6 +366,41 @@ static void test_antispoof_arp_gratuitous(void)
 	test_antispoof_generic(pkts, pkts_size, pkts_nb, inside_mac, inside_ip);
 }
 
+static void test_antispoof_empty_burst(void)
+{
+	struct pg_brick *antispoof;
+	struct pg_brick *fail;
+	struct ether_addr inside_mac;
+	struct rte_mbuf **pkts;
+	struct pg_error *error = NULL;
+	struct ether_addr eth;
+
+	pg_scan_ether_addr(&eth, "00:18:b9:56:2e:73");
+	pg_scan_ether_addr(&inside_mac, "00:26:df:ff:c9:44");
+	
+	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
+				     &inside_mac, &error);
+	g_assert(!error);
+
+	fail = pg_fail_new("fail", &error);
+	g_assert(!error);
+
+	pg_brick_link(antispoof, fail, &error);
+	g_assert(!error);
+
+	pkts = pg_packets_append_ether(pg_packets_create(pg_mask_firsts(64)),
+				       pg_mask_firsts(64), &eth, &eth,
+				       ETHER_TYPE_IPv4);
+	pg_packets_append_ipv4(pkts, pg_mask_firsts(32), 1, 2, 0, 0);
+	pg_brick_burst_to_east(antispoof, 0, pkts, pg_mask_firsts(64), &error);
+	g_assert(!error);
+
+	pg_brick_destroy(antispoof);
+	pg_brick_destroy(fail);
+	pg_packets_free(pkts, pg_mask_firsts(64));
+	g_free(pkts);
+}
+
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
@@ -389,7 +425,8 @@ int main(int argc, char **argv)
 			test_antispoof_arp_gratuitous);
 	g_test_add_func("/antispoof/arp/disable",
 			test_pg_antispoof_arp_disable);
-
+	g_test_add_func("/antispoof/mac/burst_not_propagate",
+			test_antispoof_empty_burst);
 	r = g_test_run();
 
 	pg_stop();
