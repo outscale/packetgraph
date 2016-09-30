@@ -74,7 +74,7 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	g_assert(!error);
 	g_assert(vhost_1);
 
-	collect = pg_collect_new("collect", 1, 1, &error);
+	collect = pg_collect_new("collect", &error);
 	g_assert(!error);
 	g_assert(collect);
 
@@ -226,11 +226,11 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 	g_assert(vhost_11);
 
-	collect0 = pg_collect_new("collect0", 1, 1, &error);
+	collect0 = pg_collect_new("collect0", &error);
 	g_assert(!error);
 	g_assert(collect0);
 
-	collect1 = pg_collect_new("collect1", 1, 1, &error);
+	collect1 = pg_collect_new("collect1", &error);
 	g_assert(!error);
 	g_assert(collect1);
 
@@ -445,7 +445,7 @@ static void test_vhost_reco(void)
 	g_assert(!error);
 	g_assert(vhost_1);
 
-	collect = pg_collect_new("collect", 1, 1, &error);
+	collect = pg_collect_new("collect", &error);
 	g_assert(!error);
 	g_assert(collect);
 

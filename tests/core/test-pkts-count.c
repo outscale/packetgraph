@@ -46,10 +46,10 @@
 	}								\
 	brick = pg_nop_new("nop", &error);				\
 	g_assert(!error);						\
-	collect_west = pg_collect_new("mybrick", 4, 4, &error);		\
+	collect_west = pg_collect_new("mybrick-w", &error);		\
 	g_assert(!error);						\
 	g_assert(collect_west);						\
-	collect_east = pg_collect_new("mybrick", 4, 4, &error);		\
+	collect_east = pg_collect_new("mybrick-e", &error);		\
 	g_assert(!error);						\
 	g_assert(collect_east);						\
 	pg_brick_link(collect_west, brick, &error);			\
