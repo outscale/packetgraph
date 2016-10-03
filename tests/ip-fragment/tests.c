@@ -38,6 +38,7 @@ static void test_fragment(void)
 	struct pg_error *error = NULL;
 	struct pg_brick *frag;
 	struct pg_brick *col_east;
+	struct pg_brick *col_west;
 	uint64_t mask = pg_mask_firsts(16);
 	struct rte_mbuf **pkts = pg_packets_create(mask);
 	struct rte_mbuf **tmp_pkts;
@@ -46,7 +47,8 @@ static void test_fragment(void)
 
 	pg_packets_append_ether(pkts, mask,  &eth, &eth,
 				ETHER_TYPE_IPv4);
-	pg_packets_append_ipv4(pkts, mask, 1, 2, 0, 0);
+	pg_packets_append_ipv4(pkts, mask, 1, 2,
+			       1600 - sizeof(struct eth_ipv4_hdr), 0);
 
 	PG_FOREACH_BIT(mask, i) {
 		pkt_buf = rte_pktmbuf_mtod(pkts[i], struct eth_ipv4_hdr *);
@@ -62,8 +64,10 @@ static void test_fragment(void)
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
+	col_west = pg_collect_new("col_west", &error);
+	g_assert(!error);
 
-	pg_brick_chained_links(&error, frag, col_east);
+	pg_brick_chained_links(&error, col_west, frag, col_east);
 	g_assert(!error);
 
 	for (uint32_t i = 0; i < 4; ++i) {
@@ -87,10 +91,15 @@ static void test_fragment(void)
 		}
 	}
 
+	pg_brick_burst_to_west(frag, 0, tmp_pkts, mask, &error);
+	g_assert(!error);
+	tmp_pkts = pg_brick_east_burst_get(col_west, &mask, &error);
+	g_assert(!error);
+	g_assert(pg_mask_count(mask) == 1);
+
 	pg_brick_destroy(col_east);
 	pg_brick_destroy(frag);
 	pg_packets_free(pkts, mask);
-	pg_packets_free(tmp_pkts, mask);
 	g_free(pkts);
 }
 
