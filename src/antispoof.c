@@ -126,7 +126,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 
 	/* lets all packets from outside pass. */
 	if (state->outside == from)
-		return pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
+		goto forward;
 
 	/* packets come from inside, let's check few things */
 	it_mask = pkts_mask;
@@ -161,6 +161,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 	}
 	if (unlikely(pkts_mask == 0))
 		return 0;
+forward:
 	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
 			      pkts, pkts_mask, errp);
 }

@@ -213,6 +213,35 @@ static void test_antispoof_generic(const unsigned char **pkts,
 		rte_pktmbuf_free(packet);
 	}
 
+	/* reverse brick 'outside', packets must pass now */
+	pg_brick_unlink(antispoof, &error);
+	g_assert(!error);
+	pg_brick_destroy(antispoof);
+	antispoof = pg_antispoof_new("antispoof", WEST_SIDE,
+				     &inside_mac, &error);
+	pg_antispoof_arp_enable(antispoof, inside_ip);
+	pg_brick_link(gen_west, antispoof, &error);
+	g_assert(!error);
+	pg_brick_link(antispoof, col_east, &error);
+	g_assert(!error);
+
+	/* replay traffic */
+	for (i = 0; i < pkts_nb; i++) {
+		g_assert(pg_brick_reset(col_east, &error) >= 0);
+		g_assert(!error);
+		packet = build_packet(pkts[i], pkts_size[i]);
+		pg_brick_poll(gen_west, &packet_count, &error);
+		g_assert(!error);
+		g_assert(packet_count == 1);
+		filtered_pkts = pg_brick_west_burst_get(col_east,
+							&filtered_pkts_mask,
+							&error);
+		g_assert(!error);
+		g_assert(pg_mask_count(filtered_pkts_mask) == 1);
+		pg_packets_free(filtered_pkts, filtered_pkts_mask);
+		rte_pktmbuf_free(packet);
+	}
+
 	pg_brick_destroy(gen_west);
 	pg_brick_destroy(antispoof);
 	pg_brick_destroy(col_east);
