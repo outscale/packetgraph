@@ -22,9 +22,12 @@
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
 #include <packetgraph/ip-fragment.h>
+
 #include "utils/bench.h"
 #include "utils/bitmask.h"
 #include "packets.h"
+#include "collect.h"
+#include "utils/mempool.h"
 
 struct eth_ipv4_hdr {
 	struct ether_hdr eth;
@@ -83,6 +86,71 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt)
 	pg_brick_destroy(ip_fragment);
 }
 
+static void test_benchmark_ip_defragment(int mtu)
+{
+	struct pg_error *error = NULL;
+	struct pg_brick *ip_fragment;
+	struct pg_brick *collect;
+	struct pg_bench bench;
+	struct ether_addr mac = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+	uint32_t len;
+	struct pg_bench_stats stats;
+	int pkt_len = 1500;
+	struct rte_mbuf **tmp_pkts;
+	uint64_t tmp_mask = 1;
+
+	pg_bench_init(&bench);
+	ip_fragment = pg_ip_fragment_new("ip_fragment",
+					 WEST_SIDE, mtu, &error);
+	g_assert(!error);
+	collect = pg_collect_new("col_west", &error);
+	g_assert(!error);
+
+	pg_brick_link(collect, ip_fragment, &error);
+	g_assert(!error);
+
+	tmp_pkts = pg_packets_create(tmp_mask);
+	tmp_pkts = pg_packets_append_ether(
+		tmp_pkts,
+		tmp_mask,
+		&mac, &mac,
+		ETHER_TYPE_IPv4);
+
+	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) + pkt_len;
+	pg_packets_append_ipv4(
+		tmp_pkts,
+		tmp_mask,
+		0x000000EE, 0x000000CC, len, 17);
+	tmp_pkts = pg_packets_append_blank(tmp_pkts, tmp_mask,
+					   pkt_len);
+	PG_FOREACH_BIT(tmp_mask, i) {
+		struct eth_ipv4_hdr *pkt_buf =
+			rte_pktmbuf_mtod(tmp_pkts[i], struct eth_ipv4_hdr *);
+		pkt_buf->ip.fragment_offset = 0;
+	}
+
+	pg_brick_burst_to_west(ip_fragment, 0, tmp_pkts, tmp_mask, &error);
+	bench.pkts = pg_brick_east_burst_get(collect, &bench.pkts_mask, &error);
+	pg_packets_incref(bench.pkts, bench.pkts_mask ^ 1);
+
+	bench.input_brick = ip_fragment;
+	bench.input_side = WEST_SIDE;
+	bench.output_brick = ip_fragment;
+	bench.output_side = EAST_SIDE;
+	bench.output_poll = false;
+	bench.max_burst_cnt = 100000000;
+	bench.count_brick = NULL;
+	bench.pkts_nb = pg_mask_count(bench.pkts_mask);
+	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
+	/* We know that this brick burst all packets. */
+	stats.pkts_burst = stats.pkts_sent;
+	g_assert(pg_bench_print(&stats, NULL) == 0);
+
+	pg_packets_free(bench.pkts, bench.pkts_mask);
+	pg_brick_destroy(ip_fragment);
+	pg_brick_destroy(collect);
+}
+
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
@@ -97,6 +165,8 @@ int main(int argc, char **argv)
 	test_benchmark_ip_fragment(96, 100000);
 	printf("fragment packets, mtu: 3000\n");
 	test_benchmark_ip_fragment(3000, 10000000);
+	printf("reassemble packets, mtu: 3000\n");
+	test_benchmark_ip_defragment(3000);
 	r = g_test_run();
 	pg_stop();
 	return r;
