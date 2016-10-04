@@ -34,6 +34,7 @@
 #include <packetgraph/firewall.h>
 #include "brick-int.h"
 #include "collect.h"
+#include "fail.h"
 #include "packetsgen.h"
 #include "packets.h"
 #include "utils/mempool.h"
@@ -724,6 +725,42 @@ static void test_firewall_rules(void)
 	pg_brick_destroy(fw);
 }
 
+static void test_firewall_empty_burst(void)
+{
+	struct pg_error *error = NULL;
+	struct pg_brick *fw;
+	struct pg_brick *fail;
+	struct rte_mbuf **pkts;
+	struct ether_addr eth;
+
+	pg_scan_ether_addr(&eth, "00:18:b9:56:2e:73");
+
+	fw = pg_firewall_new("fw", PG_NONE, &error);
+	g_assert(!error);
+	fail = pg_fail_new("fail", &error);
+	g_assert(!error);
+
+	pg_brick_link(fw, fail, &error);
+	g_assert(!error);
+
+	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.2.15",
+				       PG_EAST_SIDE, 0, &error));
+	g_assert(!pg_firewall_reload(fw, &error));
+	g_assert(!error);
+
+	pkts = pg_packets_append_ether(pg_packets_create(pg_mask_firsts(64)),
+				       pg_mask_firsts(64), &eth, &eth,
+				       ETHER_TYPE_IPv4);
+	pg_packets_append_ipv4(pkts, pg_mask_firsts(32), 1, 2, 0, 0);
+	pg_brick_burst_to_east(fw, 0, pkts, pg_mask_firsts(64), &error);
+	g_assert(!error);
+
+	pg_brick_destroy(fw);
+	pg_brick_destroy(fail);
+	pg_packets_free(pkts, pg_mask_firsts(64));
+	g_free(pkts);
+}
+
 static void test_firewall(void)
 {
 	g_test_add_func("/firewall/filter", test_firewall_filter);
@@ -731,6 +768,7 @@ static void test_firewall(void)
 	g_test_add_func("/firewall/icmp", test_firewall_icmp);
 	g_test_add_func("/firewall/noip", test_firewall_noip);
 	g_test_add_func("/firewall/rules", test_firewall_rules);
+	g_test_add_func("/firewall/empty_burst", test_firewall_empty_burst);
 }
 
 int main(int argc, char **argv)
