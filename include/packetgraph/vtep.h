@@ -29,8 +29,8 @@ enum pg_vtep_flags {
 	NO_COPY = 1,
 	/* don't check if the VNI has the coresponding mac,
 	 * when incoming packets, just forward it */
-	NO_INNERMAC_CKECK = 2,
-	ALL_OPTI = NO_COPY | NO_INNERMAC_CKECK
+	NO_INNERMAC_CHECK = 2,
+	ALL_OPTI = NO_COPY | NO_INNERMAC_CHECK
 };
 
 struct ether_addr;
