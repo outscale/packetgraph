@@ -91,18 +91,24 @@ static struct pg_brick_config *nic_config_new(const char *name,
 	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
 }
 
-void pg_nic_get_stats(struct pg_brick *nic,
-		      struct pg_nic_stats *stats)
+static uint64_t rx_bytes(struct pg_brick *brick)
 {
+	struct pg_nic_state *state;
 	struct rte_eth_stats tmp;
-	struct pg_nic_state *state = pg_brick_get_state(nic,
-							struct pg_nic_state);
 
+	state = pg_brick_get_state(brick, struct pg_nic_state);
 	rte_eth_stats_get(state->portid, &tmp);
-	stats->ipackets = tmp.ipackets;
-	stats->opackets = tmp.opackets;
-	stats->ibytes = tmp.ibytes;
-	stats->obytes = tmp.obytes;
+	return tmp.ibytes;
+}
+
+static uint64_t tx_bytes(struct pg_brick *brick)
+{
+	struct pg_nic_state *state;
+	struct rte_eth_stats tmp;
+
+	state = pg_brick_get_state(brick, struct pg_nic_state);
+	rte_eth_stats_get(state->portid, &tmp);
+	return tmp.obytes;
 }
 
 /* The fastpath data function of the nic_brick just forward the bursts */
@@ -392,6 +398,8 @@ static struct pg_brick_ops nic_ops = {
 	.link_notify	= nic_link,
 	.get_side	= nic_get_side,
 	.unlink		= pg_brick_generic_unlink,
+	.rx_bytes	= rx_bytes,
+	.tx_bytes	= tx_bytes,
 };
 
 pg_brick_register(nic, &nic_ops);

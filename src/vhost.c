@@ -143,7 +143,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	uint64_t pkts_mask;
 	uint16_t count;
 	int ret;
-	struct rte_mbuf **in;
+	struct rte_mbuf **in = state->in;
 	uint64_t rx_bytes = 0;
 
 	*pkts_cnt = 0;
@@ -155,7 +155,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	virtio_net = state->vid;
 	*pkts_cnt = 0;
 
-	count = rte_vhost_dequeue_burst(virtio_net, VIRTIO_TXQ, mp, state->in,
+	count = rte_vhost_dequeue_burst(virtio_net, VIRTIO_TXQ, mp, in,
 					MAX_BURST);
 	*pkts_cnt = count;
 
@@ -163,17 +163,14 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	if (!count)
 		return 0;
 
-	pkts_mask = pg_mask_firsts(count);
-	ret = pg_brick_side_forward(s, state->output,
-				    state->in, pkts_mask, errp);
-	pg_packets_free(state->in, pkts_mask);
-
 	/* count rx bytes: burst is packed so we can directly iterate */
-	in = state->in;
 	for (int i = 0; i < count; i++)
 		rx_bytes += rte_pktmbuf_pkt_len(in[i]);
 	rte_atomic64_add(&state->rx_bytes, rx_bytes);
 
+	pkts_mask = pg_mask_firsts(count);
+	ret = pg_brick_side_forward(s, state->output, in, pkts_mask, errp);
+	pg_packets_free(in, pkts_mask);
 	return ret;
 }
 

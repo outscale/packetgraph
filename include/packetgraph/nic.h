@@ -28,6 +28,7 @@ void pg_nic_start(void);
 
 /**
  * Create a new nic brick
+ * Note: this brick support pg_brick_rx_bytes and pg_brick_tx_bytes.
  *
  * @name:	name of the brick
  * @ifname:	the name of the interface you want to use.
@@ -85,41 +86,6 @@ int pg_nic_set_mtu(struct pg_brick *brick, uint16_t mtu,
  */
 int pg_nic_get_mtu(struct pg_brick *brick, uint16_t *mtu,
 		   struct pg_error **errp);
-
-/**
- * A structure used to retrieve statistics for an Ethernet port.
- * This is a copy from rte_eth_stats at V2.0.0.
- * TODO: handly copy fiel instead of memcpy.
- * this will assur us futur dpdk versions compatibility.
- */
-struct pg_nic_stats {
-	/**< Total number of successfully received packets. */
-	uint64_t ipackets;
-	/**< Total number of successfully transmitted packets.*/
-	uint64_t opackets;
-	/**< Total number of successfully received bytes. */
-	uint64_t ibytes;
-	/**< Total number of successfully transmitted bytes. */
-	uint64_t obytes;
-};
-
-/**
- * get the stats of a nic
- *
- * @param nic	the brick nic
- * @param stats
- *   A pointer to a structure of type *nic_stats* to be filled with
- *   the values of device counters for the following set of statistics:
- *   - *ipackets* with the total of successfully received packets.
- *   - *opackets* with the total of successfully transmitted packets.
- *   - *ibytes*   with the total of successfully received bytes.
- *   - *obytes*   with the total of successfully transmitted bytes.
- *   - *ierrors*  with the total of erroneous received packets.
- *   - *oerrors*  with the total of failed transmitted packets.
- * @return:	nothig, this function should alway work
- */
-void pg_nic_get_stats(struct pg_brick *nic,
-		      struct pg_nic_stats *stats);
 
 /** get the mac address of the nic brick
  *
