@@ -313,7 +313,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		dst_mac = &entry->mac;
 		dst_ip = entry->ip;
 	} else {
-		if (!(state->flags & NO_INNERMAC_CKECK))
+		if (!(state->flags & NO_INNERMAC_CHECK))
 			do_add_mac(port, &eth_hdr->s_addr);
 
 		dst_ip = port->multicast_ip;
@@ -546,7 +546,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			continue;
 
 		pkts_mask ^= vni_mask;
-		if (state->flags & NO_INNERMAC_CKECK) {
+		if (state->flags & NO_INNERMAC_CHECK) {
 			hitted_mask = vni_mask;
 		} else {
 			PG_FOREACH_BIT(vni_mask, it) {

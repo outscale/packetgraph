@@ -241,7 +241,7 @@ void test_benchmark_vtep(void)
 	printf("vxlan bench no copy:\n");
 	vxlan_to_inside(NO_COPY);
 	printf("vxlan bench no innermac check:\n");
-	vxlan_to_inside(NO_INNERMAC_CKECK);
+	vxlan_to_inside(NO_INNERMAC_CHECK);
 	printf("vxlan bench slow:\n");
 	vxlan_to_inside(0);
 }

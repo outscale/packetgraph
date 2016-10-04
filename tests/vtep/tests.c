@@ -387,7 +387,7 @@ static void test_vtep_simple_no_flags(void)
 
 static void test_vtep_simple_no_inner_check(void)
 {
-	test_vtep_simple_internal(NO_INNERMAC_CKECK);
+	test_vtep_simple_internal(NO_INNERMAC_CHECK);
 }
 
 static void test_vtep_simple_no_copy(void)
@@ -468,7 +468,7 @@ static void test_vtep_vnis(int flag)
 			 * For now if innermac check is activate, no packets
 			 * should pass.
 			 */
-			if (!(flag & NO_INNERMAC_CKECK)) {
+			if (!(flag & NO_INNERMAC_CHECK)) {
 				g_assert(!tmp_mask);
 				continue;
 			}
@@ -521,7 +521,7 @@ static void test_vtep_vnis_no_flags(void)
 
 static void test_vtep_vnis_no_inner_check(void)
 {
-	test_vtep_vnis(NO_INNERMAC_CKECK);
+	test_vtep_vnis(NO_INNERMAC_CHECK);
 }
 
 #undef NB_ITERATION
