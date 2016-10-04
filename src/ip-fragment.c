@@ -92,6 +92,7 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 					   l2_size),
 		       &eth, l2_size);
 		pkts_out[i]->l2_len = l2_size;
+		pkts_out[i]->udata64 |= PG_FRAGMENTED_MBUF;
 	}
 
 	ret = pg_brick_burst(edge->link, from, edge->pair_index,
