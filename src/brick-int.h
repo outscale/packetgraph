@@ -160,6 +160,13 @@ struct pg_brick_ops {
 	struct rte_mbuf **(*burst_get)(struct pg_brick *brick,
 				       enum pg_side side,
 				       uint64_t *pkts_mask);
+
+	/* If set, the brick is able to return the number of transfered bytes
+	 * This is useful for some monopole bricks.
+	 * See pg_brick_rx_bytes and pg_brick_tx_bytes
+	 */
+	uint64_t (*rx_bytes)(struct pg_brick *brick);
+	uint64_t (*tx_bytes)(struct pg_brick *brick);
 };
 
 extern GList *pg_all_bricks;
