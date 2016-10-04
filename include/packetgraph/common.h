@@ -24,6 +24,10 @@ enum pg_side {
 	MAX_SIDE  = 2
 };
 
+enum pg_mbuf_metaflag {
+	PG_FRAGMENTED_MBUF = 1
+};
+
 static inline const char *pg_side_to_string(enum pg_side side)
 {
 	static const char * const sides[] = {"WEST_SIDE",
