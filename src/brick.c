@@ -710,6 +710,20 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
 	return rte_atomic64_read(&brick->sides[side].packet_count);
 }
 
+uint64_t pg_brick_rx_bytes(struct pg_brick *brick)
+{
+	if (!brick || !brick->ops->rx_bytes)
+		return 0;
+	return brick->ops->rx_bytes(brick);
+}
+
+uint64_t pg_brick_tx_bytes(struct pg_brick *brick)
+{
+	if (!brick || !brick->ops->tx_bytes)
+		return 0;
+	return brick->ops->tx_bytes(brick);
+}
+
 const char *pg_brick_name(struct pg_brick *brick)
 {
 	return brick->name;

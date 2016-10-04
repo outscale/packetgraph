@@ -105,6 +105,24 @@ int pg_brick_poll(struct pg_brick *brick, uint16_t *count,
 uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side);
 
 /**
+ * Data received by brick from outside world.
+ * May be implemented only by some monopole bricks.
+ *
+ * @param	brick brick pointer
+ * @return	number of transfered bytes
+ */
+uint64_t pg_brick_rx_bytes(struct pg_brick *brick);
+
+/**
+ * Data transmited by brick to outside world.
+ * May be implemented only by some monopole bricks.
+ *
+ * @param	brick brick pointer
+ * @return	number of transfered bytes
+ */
+uint64_t pg_brick_tx_bytes(struct pg_brick *brick);
+
+/**
  * Delete a brick.
  *
  * @param	brick brick pointer
