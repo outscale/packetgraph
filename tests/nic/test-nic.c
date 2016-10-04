@@ -51,7 +51,6 @@ static void test_nic_simple_flow(void)
 	uint16_t total_send_pkts = 0;
 	uint16_t total_get_pkts = 0;
 	struct pg_error *error = NULL;
-	struct pg_nic_stats info;
 
 	/* create a chain of a few nop brick with collectors on each sides */
 	/*
@@ -88,8 +87,6 @@ static void test_nic_simple_flow(void)
 		/* check no pkts end here */
 		CHECK_ERROR(error);
 	}
-	pg_nic_get_stats(nic_ring, &info);
-	g_assert(info.opackets == total_send_pkts);
 	max_pkts = 64;
 	for (i = 0; i < nb_iteration; ++i) {
 		/* poll packet to the west */
@@ -99,7 +96,6 @@ static void test_nic_simple_flow(void)
 	}
 	/* This assert allow us to check nb_send_pkts*/
 	g_assert(total_get_pkts == total_send_pkts);
-	g_assert(info.opackets == total_send_pkts);
 	/* use packets_count in collect_west here to made
 	 * another check when merge*/
 
