@@ -98,8 +98,7 @@ int pg_brick_poll(struct pg_brick *brick, uint16_t *count,
  * Number packets received by a specific side.
  *
  * @param	brick brick pointer
- * @param	side wi
- * @param	errp is set in case of an error
+ * @param	side specific side
  * @return	number of packets the brick got on the specified side.
  */
 uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side);
