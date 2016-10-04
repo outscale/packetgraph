@@ -44,7 +44,7 @@ uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 static void test_nic_simple_flow(void)
 {
-	struct pg_brick *nic_west, *nic_ring;
+	struct pg_brick *nic_west, *nic_east;
 	int i = 0;
 	int nb_iteration = 32;
 	uint16_t nb_send_pkts;
@@ -52,7 +52,6 @@ static void test_nic_simple_flow(void)
 	uint16_t total_get_pkts = 0;
 	struct pg_error *error = NULL;
 
-	/* create a chain of a few nop brick with collectors on each sides */
 	/*
 	 * [nic_west] ------- [nic_east]
 	 */
@@ -66,9 +65,9 @@ static void test_nic_simple_flow(void)
 
 	nic_west = pg_nic_new("nic", "eth_pcap0,rx_pcap=in.pcap,tx_pcap=out.pcap", &error);
 	CHECK_ERROR(error);
-	nic_ring = pg_nic_new_by_id("nic", 0, &error);
+	nic_east = pg_nic_new_by_id("nic", 0, &error);
 	CHECK_ERROR(error);
-	pg_brick_link(nic_west, nic_ring, &error);
+	pg_brick_link(nic_west, nic_east, &error);
 	CHECK_ERROR(error);
 
 	for (i = 0; i < nb_iteration * 6; ++i) {
@@ -90,7 +89,7 @@ static void test_nic_simple_flow(void)
 	max_pkts = 64;
 	for (i = 0; i < nb_iteration; ++i) {
 		/* poll packet to the west */
-		pg_brick_poll(nic_ring, &nb_send_pkts, &error);
+		pg_brick_poll(nic_east, &nb_send_pkts, &error);
 		CHECK_ERROR(error);
 		total_get_pkts += nb_send_pkts;
 	}
@@ -101,7 +100,7 @@ static void test_nic_simple_flow(void)
 
 	/* break the chain */
 	pg_brick_destroy(nic_west);
-	pg_brick_destroy(nic_ring);
+	pg_brick_destroy(nic_east);
 
 	/* remove pcap files */
 	g_assert(g_unlink("in.pcap") == 0);
