@@ -168,6 +168,7 @@ tests_antispoof_SOURCES = \
 	tests/antispoof/tests.c
 tests_antispoof_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_antispoof_LDADD = libpacketgraph-dev.la
+EXTRA_tests_antispoof_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_core_SOURCES = \
 	tests/core/test-core.c\
@@ -180,22 +181,25 @@ tests_core_SOURCES = \
 	tests/core/tests.c
 tests_core_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_core_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_core_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_diode_SOURCES = \
 	tests/diode/tests.c
 tests_diode_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_diode_LDFLAGS = libpacketgraph-dev.la
-
+EXTRA_tests_diode_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_rxtx_SOURCES = \
 	tests/rxtx/tests.c
 tests_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_rxtx_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_rxtx_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_pmtud_SOURCES = \
 	tests/pmtud/tests.c
 tests_pmtud_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_pmtud_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_pmtud_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_firewall_SOURCES = \
 	tests/firewall/test-icmp.c\
@@ -203,48 +207,57 @@ tests_firewall_SOURCES = \
 	tests/firewall/test-tcp.c
 tests_firewall_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_firewall_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_firewall_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_integration_SOURCES = \
 	tests/integration/tests.c
 tests_integration_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_integration_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_integration_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_nic_SOURCES = \
 	tests/nic/test-nic.c\
 	tests/nic/tests.c
 tests_nic_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_nic_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_nic_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_print_SOURCES = \
 	tests/print/tests.c
 tests_print_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_print_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_print_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_queue_SOURCES = \
 	tests/queue/tests.c
 tests_queue_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_queue_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_queue_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_switch_SOURCES = \
 	tests/switch/tests.c
 tests_switch_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_switch_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_switch_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_vhost_SOURCES = \
 	tests/vhost/tests.c\
 	tests/vhost/test-vhost.c
 tests_vhost_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_vhost_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_vhost_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_vtep_SOURCES = \
 	tests/vtep/tests.c
 tests_vtep_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_vtep_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_vtep_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_tap_SOURCES = \
 	tests/tap/tests.c
 tests_tap_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_tap_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_tap_DEPENDENCIES = libpacketgraph-dev.la
 
 TESTS = \
 	tests/antispoof/test.sh\
@@ -272,6 +285,7 @@ bench_antispoof_SOURCES = \
 	tests/antispoof/bench-antispoof.c
 bench_antispoof_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_antispoof_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_antispoof_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_core_SOURCES = \
 	tests/core/bench-hub.c\
@@ -279,71 +293,83 @@ bench_core_SOURCES = \
 	tests/core/bench.c
 bench_core_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_core_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_core_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_diode_SOURCES = \
 	tests/diode/bench.c\
 	tests/diode/bench-diode.c
 bench_diode_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_diode_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_diode_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_rxtx_SOURCES = \
 	tests/rxtx/bench.c\
 	tests/rxtx/bench-rxtx.c
 bench_rxtx_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_rxtx_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_rxtx_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_pmtud_SOURCES = \
 	tests/pmtud/bench.c
 bench_pmtud_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_pmtud_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_pmtud_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_firewall_SOURCES = \
 	tests/firewall/bench.c\
 	tests/firewall/bench-firewall.c
 bench_firewall_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_firewall_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_firewall_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_nic_SOURCES = \
 	tests/nic/bench.c\
 	tests/nic/bench-nic.c
 bench_nic_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_nic_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_nic_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_print_SOURCES = \
 	tests/print/bench-print.c\
 	tests/print/bench.c
 bench_print_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_print_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_print_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_queue_SOURCES = \
 	tests/queue/bench-queue.c\
 	tests/queue/bench.c
 bench_queue_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_queue_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_queue_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_switch_SOURCES = \
 	tests/switch/bench-switch.c\
 	tests/switch/bench.c
 bench_switch_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_switch_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_switch_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_vhost_SOURCES = \
 	tests/vhost/bench-vhost.c\
 	tests/vhost/bench.c
 bench_vhost_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_vhost_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_vhost_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_vtep_SOURCES = \
 	tests/vtep/bench-vtep.c\
 	tests/vtep/bench.c
 bench_vtep_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_vtep_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_vtep_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_tap_SOURCES = \
 	tests/tap/bench-tap.c\
 	tests/tap/bench.c
 bench_tap_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_tap_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_tap_DEPENDENCIES = libpacketgraph-dev.la
 
 bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx
 	$(srcdir)/tests/antispoof/bench.sh
@@ -385,6 +411,7 @@ example_firewall_SOURCES = \
 	examples/firewall/firewall.c
 example_firewall_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_firewall_LDFLAGS = libpacketgraph.la
+EXTRA_example_firewall_DEPENDENCIES = libpacketgraph.la
 
 # We add libpacketgraph_la_LIBADD because of a dependency bug we saw on
 # Travis. Like this post (see below) explains, this may be due to a patched
@@ -394,11 +421,13 @@ example_switch_SOURCES = \
 	examples/switch/switch.c
 example_switch_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_switch_LDFLAGS = libpacketgraph.la $(libpacketgraph_la_LIBADD)
+EXTRA_example_switch_DEPENDENCIES = libpacketgraph.la
 
 example_rxtx_SOURCES = \
 	examples/rxtx/rxtx.c
 example_rxtx_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_rxtx_LDFLAGS = libpacketgraph.la $(libpacketgraph_la_LIBADD)
+EXTRA_example_rxtx_DEPENDENCIES = libpacketgraph.la
 endif
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template
