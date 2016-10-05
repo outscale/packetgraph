@@ -150,8 +150,7 @@ int main(int argc, char **argv)
 		}
 		for (int i = 0; i < n; i++) {
 			tmp = g_strdup_printf("vhost%i", i);
-			struct pg_brick *vh = pg_vhost_new(tmp, 1, 1,
-							   WEST_SIDE, &error);
+			struct pg_brick *vh = pg_vhost_new(tmp, WEST_SIDE, &error);
 			g_free(tmp);
 			if (error) {
 				pg_error_print(error);

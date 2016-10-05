@@ -46,10 +46,7 @@ struct pg_firewall_config {
 
 static uint64_t nb_firewall;
 
-static struct pg_brick_config *firewall_config_new(const char *name,
-						   uint32_t west_max,
-						   uint32_t east_max,
-						   int flags)
+static struct pg_brick_config *firewall_config_new(const char *name, int flags)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 	struct pg_firewall_config *firewall_config =
@@ -57,8 +54,7 @@ static struct pg_brick_config *firewall_config_new(const char *name,
 
 	firewall_config->flags = flags;
 	config->brick_config = (void *) firewall_config;
-	return pg_brick_config_init(config, name, west_max, east_max,
-				    PG_MULTIPOLE);
+	return pg_brick_config_init(config, name, 1, 1, PG_DIPOLE);
 }
 
 void pg_firewall_gc(struct pg_brick *brick)
@@ -169,14 +165,13 @@ int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
 	return 0;
 }
 
-struct pg_brick *pg_firewall_new(const char *name, uint32_t west_max,
-				 uint32_t east_max, uint64_t flags,
+struct pg_brick *pg_firewall_new(const char *name, uint64_t flags,
 				 struct pg_error **errp)
 {
 	struct pg_brick_config *config;
 	struct pg_brick *ret;
 
-	config = firewall_config_new(name, west_max, east_max, flags);
+	config = firewall_config_new(name, flags);
 	ret = pg_brick_new("firewall", config, errp);
 	pg_brick_config_free(config);
 	return ret;
@@ -205,23 +200,21 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 
 		pg_low_bit_iterate_full(it_mask, bit, i);
 		tmp = pkts[i];
-
 		/* Firewall only manage IPv4 or IPv6 filtering.
 		 * Let non-ip packets (like ARP) pass.
 		 */
+
 		eth = rte_pktmbuf_mtod(tmp, struct ether_hdr *);
 		if (eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv4) &&
 		    eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv6)) {
 			continue;
 		}
-
 		/* NPF only manage layer 3 so we temporaly cut off layer 2.
 		 * Note that this trick is not thread safe. To do so, we will
 		 * have to clone packets just for filtering and will have to
 		 * restroy cloned packets after handling them in NPF.
 		 */
 		rte_pktmbuf_adj(tmp, sizeof(struct ether_hdr));
-
 		/* filter packet */
 		ret = npf_packet_handler(state->npf,
 					 (struct mbuf **) &tmp,
@@ -229,13 +222,13 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 					 pf_side);
 		if (ret)
 			pkts_mask &= ~bit;
-
 		/* set back layer 2 */
 		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
 	}
 	if (unlikely(pkts_mask == 0))
 		return 0;
-	ret = pg_brick_side_forward(s, from, pkts, pkts_mask, errp);
+	ret = pg_brick_burst(s->edge.link, from, s->edge.pair_index,
+				pkts, pkts_mask, errp);
 	return ret;
 }
 
