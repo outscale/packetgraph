@@ -25,6 +25,7 @@ libpacketgraph_la_SOURCES = \
 	src/npf/npf/dpdk/npf_dpdk.c\
 	src/antispoof.c\
 	src/collect.c\
+	src/fail.c\
 	src/vtep.c\
 	src/nic.c\
 	src/tap.c\
