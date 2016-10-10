@@ -288,7 +288,7 @@ TESTS = \
 noinst_PROGRAMS = 
 
 if PG_BENCHMARKS
-noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-pmtud bench-queue bench-switch bench-vhost bench-vtep bench-tap
+noinst_PROGRAMS += bench-antispoof bench-core bench-diode bench-rxtx bench-firewall bench-nic bench-print bench-pmtud bench-queue bench-switch bench-vhost bench-vtep bench-tap bench-ip-fragment
 
 bench_antispoof_SOURCES = \
 	tests/antispoof/bench.c\
@@ -324,6 +324,12 @@ bench_pmtud_SOURCES = \
 bench_pmtud_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_pmtud_LDFLAGS = libpacketgraph-dev.la
 EXTRA_bench_pmtud_DEPENDENCIES = libpacketgraph-dev.la
+
+bench_ip_fragment_SOURCES = \
+	tests/ip-fragment/bench.c
+bench_ip_fragment_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+bench_ip_fragment_LDFLAGS = libpacketgraph-dev.la
+EXTRA_bench_ip_fragment_DEPENDENCIES = libpacketgraph-dev.la
 
 bench_firewall_SOURCES = \
 	tests/firewall/bench.c\
@@ -381,7 +387,7 @@ bench_tap_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_tap_LDFLAGS = libpacketgraph-dev.la
 EXTRA_bench_tap_DEPENDENCIES = libpacketgraph-dev.la
 
-bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx
+bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx bench-ip-fragment
 	$(srcdir)/tests/antispoof/bench.sh
 	$(srcdir)/tests/core/bench.sh
 	$(srcdir)/tests/diode/bench.sh
@@ -395,6 +401,7 @@ bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-pri
 	$(srcdir)/tests/rxtx/bench.sh
 	$(srcdir)/tests/pmtud/bench.sh
 	$(srcdir)/tests/tap/bench.sh
+	$(srcdir)/tests/ip-fragment/bench.sh
 endif
 
 style:

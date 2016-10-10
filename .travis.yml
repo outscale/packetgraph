@@ -83,4 +83,5 @@ script:
  - ./../tests/rxtx/bench.sh
  - ./../tests/pmtud/bench.sh
  - ./../tests/tap/bench.sh
+ - ./../tests/ip-fragment/bench.sh
 
