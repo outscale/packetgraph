@@ -106,6 +106,11 @@ $ make install
 Packetgraph project is published under [GNU GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.en.html).
 For more information, check LICENSE file.
 
+# Contribute
+
+New to packetgraph ? Want to contribute and/or create a new brick ?
+Some [developper guidelines](docs/contrib.md) are available.
+
 # Question ? Contact us !
 
 Packetgraph is an open-source project, feel free to [chat with us on IRC](https://webchat.freenode.net/?channels=betterfly&nick=packetgraph_user)
