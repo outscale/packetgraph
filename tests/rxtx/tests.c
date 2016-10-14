@@ -22,6 +22,7 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "utils/mac.h"
+#include "fail.h"
 #include "collect.h"
 #include <packetgraph/packetgraph.h>
 
@@ -181,7 +182,38 @@ static void test_rxtx_rxtx_to_rxtx(void)
 	}
 	pg_graph_destroy(g);
 }
+static void mytx_empty(struct pg_brick *brick,
+                 struct pg_rxtx_packet *tx_burst,
+                 uint16_t *tx_burst_len,
+                 void *private_data)
+{
+	*tx_burst_len = 0;
+}
 
+static void test_rxtx_empty_burst(void)
+{
+	struct pg_error *error = NULL;
+	struct pg_brick *rxtx;
+	struct pg_brick *fail;
+	struct test_rxtx pd;
+	struct pg_graph *g;
+
+	rxtx = pg_rxtx_new("rxtx", NULL, &mytx_empty, (void*) &pd);
+	CHECK_ERROR(error);
+	fail = pg_fail_new("fail", &error);
+	CHECK_ERROR(error);
+
+	pg_brick_link(rxtx, fail, &error);
+	CHECK_ERROR(error);
+
+	g = pg_graph_new("graph", rxtx, &error);
+        CHECK_ERROR(error);
+
+	pg_graph_poll(g, &error);
+	CHECK_ERROR(error);
+
+	pg_graph_destroy(g);
+}
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
@@ -197,6 +229,8 @@ int main(int argc, char **argv)
 	g_test_add_func("/rxtx/lifecycle", test_rxtx_lifecycle);
 	g_test_add_func("/rxtx/rx_to_tx", test_rxtx_rx_to_tx);
 	g_test_add_func("/rxtx/rxtx_to_rxtx", test_rxtx_rxtx_to_rxtx);
+	g_test_add_func("/rxtx/rxtx_burst_not_propagate",
+			test_rxtx_empty_burst);
 	r = g_test_run();
 
 	pg_stop();
