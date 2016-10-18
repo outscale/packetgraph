@@ -60,6 +60,8 @@ struct pg_bench {
 	uint64_t pkts_mask;
 	/* Number of burst to make */
 	uint64_t max_burst_cnt;
+	/* Does this brick bursts all it's packets ? */
+	int brick_full_burst;
 	/* A nop brick is connected to output_brick in order to count
 	 * incomming packets. If you set count_brick to NULL, a nop brick
 	 * will be linked during the benchmark. If you set your own brick,
