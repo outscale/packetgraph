@@ -156,6 +156,10 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 		if (*error)
 			return -1;
 	}
+
+	/* We know that this brick burst all packets. */
+	if (bench->brick_full_burst)
+		result->pkts_burst = result->pkts_sent;
 	return 0;
 }
 

@@ -61,6 +61,7 @@ void test_benchmark_diode(void)
 		bench.pkts_mask,
 		&mac1, &mac2,
 		ETHER_TYPE_IPv4);
+	bench.brick_full_burst = 1;
 	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) + 1400;
 	pg_packets_append_ipv4(
@@ -74,8 +75,6 @@ void test_benchmark_diode(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	/* We know that this brick burst all packets. */
-	stats.pkts_burst = stats.pkts_sent;
 	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);

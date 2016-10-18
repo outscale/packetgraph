@@ -118,13 +118,12 @@ static void inside_to_vxlan(void)
 		bench.pkts_mask,
 		1000, PG_VTEP_DST_PORT, 1356);
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1356);
+	bench.brick_full_burst = 1;
 
 	//g_assert(pg_bench_run(&bench, &stats, &error));
 	pg_bench_run(&bench, &stats, &error);
 	g_assert(!pg_error_is_set(&error));
 
-	/* We know that this brick burst all packets. */
-	stats.pkts_burst = stats.pkts_sent;
 	printf("[inside] ==> [vtep] ==> [count] (VXLAN side)\n");
 	g_assert(pg_bench_print(&stats, NULL) == 0);
 
@@ -199,6 +198,7 @@ static void vxlan_to_inside(int flags)
 		bench.pkts_mask,
 		&mac_vtep, &mac_vtep,
 		ETHER_TYPE_IPv4);
+	bench.brick_full_burst = 1;
 	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) + 1400;
 	pg_packets_append_ipv4(
@@ -222,8 +222,6 @@ static void vxlan_to_inside(int flags)
 		  sizeof(struct ether_hdr)] = '\0';
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	/* We know that this brick burst all packets. */
-	stats.pkts_burst = stats.pkts_sent;
 	printf("[outside] ==> [vtep] ==> [count] (no VXLAN side)\n");
 	g_assert(pg_bench_print(&stats, NULL) == 0);
 

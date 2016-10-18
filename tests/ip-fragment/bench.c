@@ -64,6 +64,7 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt)
 		bench.pkts_mask,
 		&mac, &mac,
 		ETHER_TYPE_IPv4);
+	bench.brick_full_burst = 1;
 	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) + pkt_len;
 	pg_packets_append_ipv4(
 		bench.pkts,
@@ -78,8 +79,6 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt)
 	}
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	/* We know that this brick burst all packets. */
-	stats.pkts_burst = stats.pkts_sent;
 	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
@@ -141,9 +140,8 @@ static void test_benchmark_ip_defragment(int mtu)
 	bench.max_burst_cnt = 100000000;
 	bench.count_brick = NULL;
 	bench.pkts_nb = pg_mask_count(bench.pkts_mask);
+	bench.brick_full_burst = 1;
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	/* We know that this brick burst all packets. */
-	stats.pkts_burst = stats.pkts_sent;
 	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
@@ -204,10 +202,9 @@ static void benchmark_ip_frag_and_defragment(int mtu)
 	bench.max_burst_cnt = 100000;
 	bench.count_brick = NULL;
 	bench.pkts_nb = pg_mask_count(bench.pkts_mask);
+	bench.brick_full_burst = 1;
 	pg_bench_run(&bench, &stats, &error);
 	pg_error_print(error);
-	/* We know that this brick burst all packets. */
-	stats.pkts_burst = stats.pkts_sent;
 	g_assert(pg_bench_print(&stats, NULL) == 0);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
