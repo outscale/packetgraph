@@ -55,7 +55,8 @@ int pg_bench_init(struct pg_bench *bench, const char *title,
 	}
 
 	if (bench->output_format &&
-	    g_strcmp0("default", bench->output_format)) {
+	    g_strcmp0("default", bench->output_format) &&
+	    g_strcmp0("csv", bench->output_format)) {
 		*error = pg_error_new("%s format not supported\n",
 				      bench->output_format);
 		return -1;
@@ -241,7 +242,11 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 
 void pg_bench_print(struct pg_bench_stats *result)
 {
-	pg_bench_print_default(result);
+	if (result->output_format == NULL ||
+	    !g_strcmp0("default", result->output_format))
+		pg_bench_print_default(result);
+	else if (!g_strcmp0("csv", result->output_format))
+		pg_bench_print_csv(result);
 }
 
 void pg_bench_print_default(struct pg_bench_stats *r)
@@ -265,4 +270,47 @@ void pg_bench_print_default(struct pg_bench_stats *r)
 	fprintf(o, "packet lost (after burst): %.2lf%%\n",
 		r->packet_lost_after_burst);
 	fprintf(o, "total packet lost: %.2lf%%\n", r->total_packet_lost);
+}
+
+void pg_bench_print_csv_header(FILE *o)
+{
+	if (o == NULL)
+		o = stdout;
+	fprintf(o, "test name;");
+	fprintf(o, "burst count;");
+	fprintf(o, "paquets send;");
+	fprintf(o, "packets burst;");
+	fprintf(o, "packets received;");
+	fprintf(o, "packet average size;");
+	fprintf(o, "test duration (s);");
+	fprintf(o, "received packet speed (MPkts/s);");
+	fprintf(o, "received data speed (MB/s);");
+	fprintf(o, "Kbursts/s;");
+	fprintf(o, "Bursted packets (%%);");
+	fprintf(o, "packet lost after burst (%%);");
+	fprintf(o, "total packet lost (%%);");
+	fprintf(o, "\n");
+}
+
+void pg_bench_print_csv(struct pg_bench_stats *r)
+{
+	FILE *o = r->output;
+
+	if (o == NULL)
+		o = stdout;
+	pg_bench_print_csv_header(o);
+	fprintf(o, "%s;", r->title);
+	fprintf(o, "%"PRIu64";", r->burst_cnt);
+	fprintf(o, "%"PRIu64";", r->pkts_sent);
+	fprintf(o, "%"PRIu64";", r->pkts_burst);
+	fprintf(o, "%"PRIu64";", r->pkts_received);
+	fprintf(o, "%"PRIu64";", r->pkts_average_size);
+	fprintf(o, "%lf;", r->duration_s);
+	fprintf(o, "%.2lf;", r->received_packet_speed);
+	fprintf(o, "%.4lf;", r->received_data_speed);
+	fprintf(o, "%.2lf;", r->kburst_s);
+	fprintf(o, "%.2lf;", r->burst_packets);
+	fprintf(o, "%.2lf;", r->packet_lost_after_burst);
+	fprintf(o, "%.2lf;", r->total_packet_lost);
+	fprintf(o, "\n");
 }

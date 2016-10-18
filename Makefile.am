@@ -426,14 +426,15 @@ style:
 	$(srcdir)/tests/style/test.sh $(srcdir)
 
 help:
-	@echo "make           : build packetgraph"
-	@echo "make doc       : generate public documentation using doxygen"
-	@echo "make style     : run style tests"
-	@echo "make check     : run tests"
-	@echo "make install   : install packetgraph library"
-	@echo "make uninstall : uninstall packetgraph library"
+	@echo "make               : build packetgraph"
+	@echo "make doc           : generate public documentation using doxygen"
+	@echo "make style         : run style tests"
+	@echo "make check         : run tests"
+	@echo "make install       : install packetgraph library"
+	@echo "make uninstall     : uninstall packetgraph library"
 if PG_BENCHMARKS
-	@echo "make bench     : run benchmarks"
+	@echo "make bench         : run benchmarks"
+	@echo "make benchmark.csv : output results to benchmark.csv"
 endif
 	@echo ""
 	@echo "if you need to run a specific test, i.e. vtep:"

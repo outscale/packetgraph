@@ -140,4 +140,19 @@ void pg_bench_print(struct pg_bench_stats *result);
  */
 void pg_bench_print_default(struct pg_bench_stats *result);
 
+/**
+ * Print header of benchmark result in csv format.
+ *
+ * @param   output where to write the output. NULL will print to stdout.
+ */
+void pg_bench_print_csv_header(FILE *output);
+
+/**
+ * Print result of a benchmark in csv format.
+ *
+ * @param   name test name printed in csv format
+ * @param   output where to write the output. NULL will print to stdout.
+ */
+void pg_bench_print_csv(struct pg_bench_stats *r);
+
 #endif /* _PG_UTILS_BENCH_H */
