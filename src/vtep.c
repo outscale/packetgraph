@@ -213,6 +213,7 @@ static inline void udp_build(struct udp_hdr *udp_hdr,
 	udp_hdr->dst_port = rte_cpu_to_be_16(udp_dst_port);
 	udp_hdr->dgram_len = rte_cpu_to_be_16(datagram_len);
 	/* UDP checksum SHOULD be transmited as zero */
+	udp_hdr->dgram_cksum = 0;
 }
 
 /**
