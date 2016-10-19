@@ -32,7 +32,7 @@
 #include "utils/bitmask.h"
 #include "utils/qemu.h"
 
-void test_benchmark_rxtx(void);
+void test_benchmark_rxtx(int argc, char **argv);
 
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
@@ -79,7 +79,7 @@ static void mytx(struct pg_brick *brick,
 		init = 1;
 }
 
-void test_benchmark_rxtx(void)
+void test_benchmark_rxtx(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *rxtx_enter;
@@ -94,7 +94,7 @@ void test_benchmark_rxtx(void)
 	rxtx_enter = pg_rxtx_new("enter", &myrx, NULL, pd);
 	rxtx_exit = pg_rxtx_new("exit", NULL, &mytx, pd);
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "rxtx", argc, argv, &error));
 	bench.input_brick = rxtx_enter;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = rxtx_exit;
@@ -123,7 +123,7 @@ void test_benchmark_rxtx(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(!pg_bench_run(&bench, &stats, &error));
-	g_assert(!pg_bench_print(&stats, NULL));
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(rxtx_enter);

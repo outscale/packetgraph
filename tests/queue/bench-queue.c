@@ -32,11 +32,11 @@
 #include "utils/bitmask.h"
 #include "utils/qemu.h"
 
-void test_benchmark_queue(void);
+void test_benchmark_queue(int argc, char **argv);
 
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
-void test_benchmark_queue(void)
+void test_benchmark_queue(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *queue_enter;
@@ -62,7 +62,7 @@ void test_benchmark_queue(void)
 		g_assert(0);
 	}
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "queue", argc, argv, &error));
 	bench.input_brick = queue_enter;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = queue_exit;
@@ -91,7 +91,7 @@ void test_benchmark_queue(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(!pg_bench_run(&bench, &stats, &error));
-	g_assert(!pg_bench_print(&stats, NULL));
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(queue_enter);

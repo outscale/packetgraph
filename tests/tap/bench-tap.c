@@ -32,14 +32,14 @@
 #include "utils/bitmask.h"
 #include "utils/qemu.h"
 
-void test_benchmark_tap(void);
+void test_benchmark_tap(int argc, char **argv);
 
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 #define run_ok(command) g_assert(system("bash -c \"" command "\"") == 0)
 #define run_ko(command) g_assert(system("bash -c \"" command "\"") != 0)
 #define run(command) {int nop = system(command); (void) nop;}
-void test_benchmark_tap(void)
+void test_benchmark_tap(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *tap_enter;
@@ -68,7 +68,7 @@ void test_benchmark_tap(void)
 	run_ok("ip netns exec bench brctl addif br0 bench1");
 	run_ok("ip netns exec bench ip link set br0 up");
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "tap", argc, argv, &error));
 	bench.input_brick = tap_enter;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = tap_exit;
@@ -96,7 +96,7 @@ void test_benchmark_tap(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(!pg_bench_run(&bench, &stats, &error));
-	g_assert(!pg_bench_print(&stats, NULL));
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(tap_enter);

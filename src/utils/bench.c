@@ -17,11 +17,51 @@
 
 #include <stdio.h>
 #include <glib.h>
+#include <glib/gstdio.h>
 #include <rte_config.h>
 #include <rte_ether.h>
 #include <packetgraph/packetgraph.h>
 #include "utils/bench.h"
 #include "utils/bitmask.h"
+
+int pg_bench_init(struct pg_bench *bench, const char *title,
+		  int argc, char **argv, struct pg_error **error)
+{
+	char *output_path = NULL;
+
+	memset(bench, 0, sizeof(struct pg_bench));
+	g_strlcpy((char *)bench->title, title, PG_UTILS_BENCH_TITLE_MAX_SIZE);
+
+	for (int i = 1; argv && (i < argc); i++) {
+		if (!g_strcmp0("-o", argv[i]) && i + 1 < argc) {
+			output_path = argv[i + 1];
+			i++;
+		} else if (!g_strcmp0("-f", argv[i]) && i + 1 < argc) {
+			bench->output_format = argv[i + 1];
+			i++;
+		}
+	}
+
+	if (output_path) {
+		bench->output = g_fopen(output_path, "a");
+		if (bench->output == NULL) {
+			*error = pg_error_new(
+					"failed openning %s for writing\n",
+					output_path);
+			return -1;
+		}
+	} else {
+		bench->output = stdout;
+	}
+
+	if (bench->output_format &&
+	    g_strcmp0("default", bench->output_format)) {
+		*error = pg_error_new("%s format not supported\n",
+				      bench->output_format);
+		return -1;
+	}
+	return 0;
+}
 
 /* This function has been copied from glibc examples
  * http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
@@ -69,6 +109,8 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	struct pg_brick_side *side = NULL;
 	struct pg_brick *count_brick;
 	struct pg_bench bl;
+	uint64_t data_received;
+	struct timeval duration;
 
 	if (bench == NULL || result == NULL ||
 	    bench->pkts == NULL || bench->pkts_nb == 0 ||
@@ -160,46 +202,67 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	/* We know that this brick burst all packets. */
 	if (bench->brick_full_burst)
 		result->pkts_burst = result->pkts_sent;
+
+	/* Compute derivated values from result */
+	timeval_subtract(&duration, &result->date_end, &result->date_start);
+	result->duration_s = (uint16_t) duration.tv_sec +
+		duration.tv_usec / 1000000.0;
+
+	if (result->pkts_burst == 0 ||
+	    result->pkts_sent == 0 ||
+	    result->duration_s <= 0) {
+		printf("pkts_burst: %"PRIu64"\n", result->pkts_burst);
+		printf("pkts_received: %"PRIu64"\n", result->pkts_received);
+		printf("pkts_received: %lf\n", result->duration_s);
+		return -1;
+	}
+
+	data_received = result->pkts_received * result->pkts_average_size;
+
+	result->received_packet_speed =
+		result->pkts_received / 1000000.0 / result->duration_s;
+	result->received_data_speed =
+		data_received / 1000000.0 / result->duration_s;
+	result->kburst_s =
+		result->burst_cnt / result->duration_s / 1000.0;
+	result->burst_packets =
+		result->pkts_burst * 100.0 / (result->pkts_sent * 1.0);
+	result->packet_lost_after_burst =
+	100 - result->pkts_received * 100.0 / (result->pkts_burst * 1.0);
+	result->total_packet_lost =
+		100 - result->pkts_received * 100.0 / (result->pkts_sent * 1.0);
+	g_strlcpy(result->title, bench->title, PG_UTILS_BENCH_TITLE_MAX_SIZE);
+
+	/* transfert output parameters */
+	result->output = bench->output;
+	result->output_format = bench->output_format;
 	return 0;
 }
 
-int pg_bench_print(struct pg_bench_stats *r, FILE *o)
+void pg_bench_print(struct pg_bench_stats *result)
 {
-	uint64_t data_received;
-	double duration_s;
-	struct timeval duration;
+	pg_bench_print_default(result);
+}
 
-	if (!r)
-		return -1;
+void pg_bench_print_default(struct pg_bench_stats *r)
+{
+	FILE *o = r->output;
 
 	if (o == NULL)
 		o = stdout;
-
-	timeval_subtract(&duration, &r->date_end, &r->date_start);
-	duration_s = (uint16_t) duration.tv_sec + duration.tv_usec / 1000000.0;
-	if (r->pkts_burst == 0 || r->pkts_sent == 0 || duration_s < 0)
-		return -1;
-
-	data_received = r->pkts_received * r->pkts_average_size;
-
+	fprintf(o, "================= %s =================\n", r->title);
 	fprintf(o, "burst_cnt: %"PRIu64"\n", r->burst_cnt);
 	fprintf(o, "pkts_sent: %"PRIu64"\n", r->pkts_sent);
 	fprintf(o, "pkts_burst: %"PRIu64"\n", r->pkts_burst);
 	fprintf(o, "pkts_received: %"PRIu64"\n", r->pkts_received);
 	fprintf(o, "pkts_average_size: %"PRIu64"\n", r->pkts_average_size);
-	fprintf(o, "test duration: %lfs\n", duration_s);
+	fprintf(o, "test duration: %lfs\n", r->duration_s);
 	fprintf(o, "received packet speed: %.2lf MPkts/s\n",
-		r->pkts_received / 1000000.0 / duration_s);
-	fprintf(o, "received data speed: %.4lf MB/s\n",
-		data_received / 1000000.0 / duration_s);
-	fprintf(o, "%.2lf Kbursts/s\n", r->burst_cnt / duration_s / 1000.0);
-	fprintf(o, "Burst packets: %.2lf%%\n",
-		r->pkts_burst * 100.0 / (r->pkts_sent * 1.0));
+		r->received_packet_speed);
+	fprintf(o, "received data speed: %.4lf MB/s\n", r->received_data_speed);
+	fprintf(o, "%.2lf Kbursts/s\n", r->kburst_s);
+	fprintf(o, "Burst packets: %.2lf%%\n", r->burst_packets);
 	fprintf(o, "packet lost (after burst): %.2lf%%\n",
-		100 - r->pkts_received * 100.0 / (r->pkts_burst * 1.0));
-	fprintf(o, "total packet lost: %.2lf%%\n",
-		100 - r->pkts_received * 100.0 / (r->pkts_sent * 1.0));
-
-	return 0;
+		r->packet_lost_after_burst);
+	fprintf(o, "total packet lost: %.2lf%%\n", r->total_packet_lost);
 }
-

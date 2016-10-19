@@ -30,9 +30,9 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 
-void test_benchmark_switch(void);
+void test_benchmark_switch(int argc, char **argv);
 
-void test_benchmark_switch(void)
+void test_benchmark_switch(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *sw;
@@ -44,8 +44,7 @@ void test_benchmark_switch(void)
 
 	sw = pg_switch_new("switch", 20, 20, DEFAULT_SIDE, &error);
 	g_assert(!error);
-	pg_bench_init(&bench);
-
+	g_assert(!pg_bench_init(&bench, "switch", argc, argv, &error));
 	bench.input_brick = sw;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = sw;
@@ -75,7 +74,7 @@ void test_benchmark_switch(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(sw);

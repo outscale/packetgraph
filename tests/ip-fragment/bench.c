@@ -34,7 +34,9 @@ struct eth_ipv4_hdr {
 	struct ipv4_hdr ip;
 } __attribute__((__packed__));
 
-static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt)
+static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt,
+				       const char *title,
+				       int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *ip_fragment;
@@ -44,7 +46,7 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt)
 	struct pg_bench_stats stats;
 	int pkt_len = 1500;
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	ip_fragment = pg_ip_fragment_new("ip_fragment",
 					 EAST_SIDE, mtu, &error);
 	g_assert(!error);
@@ -79,13 +81,14 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt)
 	}
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(ip_fragment);
 }
 
-static void test_benchmark_ip_defragment(int mtu)
+static void test_benchmark_ip_defragment(int mtu, const char *title,
+					 int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *ip_fragment;
@@ -98,7 +101,7 @@ static void test_benchmark_ip_defragment(int mtu)
 	struct rte_mbuf **tmp_pkts;
 	uint64_t tmp_mask = 1;
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	ip_fragment = pg_ip_fragment_new("ip_fragment",
 					 WEST_SIDE, mtu, &error);
 	g_assert(!error);
@@ -142,14 +145,15 @@ static void test_benchmark_ip_defragment(int mtu)
 	bench.pkts_nb = pg_mask_count(bench.pkts_mask);
 	bench.brick_full_burst = 1;
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(ip_fragment);
 	pg_brick_destroy(collect);
 }
 
-static void benchmark_ip_frag_and_defragment(int mtu)
+static void benchmark_ip_frag_and_defragment(int mtu, const char *title,
+					     int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *ip_fragment;
@@ -162,7 +166,7 @@ static void benchmark_ip_frag_and_defragment(int mtu)
 	struct rte_mbuf **tmp_pkts;
 	uint64_t tmp_mask = pg_mask_firsts(64);
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	ip_fragment = pg_ip_fragment_new("ip_fragment",
 					 EAST_SIDE, mtu, &error);
 
@@ -205,7 +209,7 @@ static void benchmark_ip_frag_and_defragment(int mtu)
 	bench.brick_full_burst = 1;
 	pg_bench_run(&bench, &stats, &error);
 	pg_error_print(error);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(ip_fragment);
@@ -220,16 +224,21 @@ int main(int argc, char **argv)
 	g_test_init(&argc, &argv, NULL);
 	pg_start(argc, argv, &error);
 	g_assert(!error);
-	printf("fragment packets, mtu: 1000\n");
-	test_benchmark_ip_fragment(1000, 1000000);
-	printf("fragment packets, mtu: 96\n");
-	test_benchmark_ip_fragment(96, 100000);
-	printf("fragment packets, mtu: 3000\n");
-	test_benchmark_ip_fragment(3000, 10000000);
-	printf("reassemble packets, mtu: 3000\n");
-	test_benchmark_ip_defragment(3000);
-	printf("fragment and reassemble packets, mtu: 1000\n");
-	benchmark_ip_frag_and_defragment(1000);
+	test_benchmark_ip_fragment(1000, 1000000,
+				   "fragment packets, mtu: 1000",
+				   argc, argv);
+	test_benchmark_ip_fragment(96, 100000,
+				   "fragment packets, mtu: 96",
+				   argc, argv);
+	test_benchmark_ip_fragment(3000, 10000000,
+				   "fragment packets, mtu: 3000",
+				   argc, argv);
+	test_benchmark_ip_defragment(3000,
+				     "reassemble packets, mtu: 3000",
+				     argc, argv);
+	benchmark_ip_frag_and_defragment(1000,
+				 "fragment and reassemble packets, mtu: 1000",
+				 argc, argv);
 	r = g_test_run();
 	pg_stop();
 	return r;

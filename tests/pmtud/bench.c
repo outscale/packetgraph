@@ -26,7 +26,7 @@
 #include "utils/bitmask.h"
 #include "packets.h"
 
-static void test_benchmark_pmtud(void)
+static void test_benchmark_pmtud(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *pmtud;
@@ -35,7 +35,7 @@ static void test_benchmark_pmtud(void)
 	uint32_t len;
 	struct pg_bench_stats stats;
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "pmtud", argc, argv, &error));
 	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 1500, &error);
 	g_assert(!error);
 
@@ -67,7 +67,7 @@ static void test_benchmark_pmtud(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(pmtud);
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 	g_test_init(&argc, &argv, NULL);
 	pg_start(argc, argv, &error);
 	g_assert(!error);
-	test_benchmark_pmtud();
+	test_benchmark_pmtud(argc, argv);
 	r = g_test_run();
 	pg_stop();
 	return r;

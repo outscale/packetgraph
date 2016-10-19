@@ -33,11 +33,11 @@
 #include "utils/bitmask.h"
 #include "utils/qemu.h"
 
-void test_benchmark_nic(void);
+void test_benchmark_nic(int argc, char **argv);
 
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
-void test_benchmark_nic(void)
+void test_benchmark_nic(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nic_enter;
@@ -67,7 +67,7 @@ void test_benchmark_nic(void)
 		}
 	}
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "nic", argc, argv, &error));
 	bench.input_brick = nic_enter;
 	bench.input_side = WEST_SIDE;
 	bench.output_brick = nic_exit;
@@ -96,7 +96,7 @@ void test_benchmark_nic(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(nic_enter);
