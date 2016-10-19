@@ -31,7 +31,7 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 
-void test_benchmark_vtep(void);
+void test_benchmark_vtep(int argc, char **argv);
 
 /**
  * Composite structure of all the headers required to wrap a packet in VTEP
@@ -66,7 +66,7 @@ static void remove_vtep_hdr(struct pg_bench *bench)
 	}
 }
 
-static void inside_to_vxlan(void)
+static void inside_to_vxlan(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *vtep;
@@ -78,7 +78,8 @@ static void inside_to_vxlan(void)
 	struct ether_addr mac3 = {{0x52,0x54,0x00,0x12,0x34,0x31}};
 	uint32_t len;
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "vtep inside to vxlan",
+				argc, argv, &error));
 	vtep = pg_vtep_new("vtep", 1, 1, EAST_SIDE, inet_addr("192.168.0.1"),
 			   mac3, PG_VTEP_DST_PORT, ALL_OPTI, &error);
 	g_assert(!error);
@@ -124,8 +125,7 @@ static void inside_to_vxlan(void)
 	pg_bench_run(&bench, &stats, &error);
 	g_assert(!pg_error_is_set(&error));
 
-	printf("[inside] ==> [vtep] ==> [count] (VXLAN side)\n");
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(vtep);
@@ -146,7 +146,7 @@ static void add_vtep_hdr(struct pg_bench *bench)
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr));
 }
 
-static void vxlan_to_inside(int flags)
+static void vxlan_to_inside(int flags, const char *title, int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *vtep;
@@ -162,7 +162,7 @@ static void vxlan_to_inside(int flags)
 			   mac_vtep, PG_VTEP_DST_PORT, flags, &error);
 	g_assert(!error);
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	outside_nop = pg_nop_new("nop-outside", &error);
 	bench.input_brick = outside_nop;
 	bench.input_side = WEST_SIDE;
@@ -222,8 +222,7 @@ static void vxlan_to_inside(int flags)
 		  sizeof(struct ether_hdr)] = '\0';
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	printf("[outside] ==> [vtep] ==> [count] (no VXLAN side)\n");
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(vtep);
@@ -231,16 +230,13 @@ static void vxlan_to_inside(int flags)
 	pg_brick_destroy(bench.count_brick);
 }
 
-void test_benchmark_vtep(void)
+void test_benchmark_vtep(int argc, char **argv)
 {
-	inside_to_vxlan();
-	printf("vxlan bench all opti:\n");
-	vxlan_to_inside(ALL_OPTI);
-	printf("vxlan bench no copy:\n");
-	vxlan_to_inside(NO_COPY);
-	printf("vxlan bench no innermac check:\n");
-	vxlan_to_inside(NO_INNERMAC_CHECK);
-	printf("vxlan bench slow:\n");
-	vxlan_to_inside(0);
+	inside_to_vxlan(argc, argv);
+	vxlan_to_inside(ALL_OPTI, "vxlan all opti", argc, argv);
+	vxlan_to_inside(NO_COPY, "vxlan bench no copy", argc, argv);
+	vxlan_to_inside(NO_INNERMAC_CHECK, "vxlan bench no innermac check",
+			argc, argv);
+	vxlan_to_inside(0, "vxlan bench slow", argc, argv);
 }
 

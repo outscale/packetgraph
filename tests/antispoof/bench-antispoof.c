@@ -30,9 +30,9 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 
-void test_benchmark_antispoof(void);
+void test_benchmark_antispoof(int argc, char **argv);
 
-void test_benchmark_antispoof(void)
+void test_benchmark_antispoof(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *antispoof;
@@ -42,7 +42,7 @@ void test_benchmark_antispoof(void)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	uint32_t len;
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "antispoof", argc, argv, &error));
 	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
 				     &mac1, &error);
 	g_assert(!error);
@@ -77,7 +77,7 @@ void test_benchmark_antispoof(void)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, 1400);
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(antispoof);

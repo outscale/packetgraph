@@ -24,6 +24,8 @@
 #include <packetgraph/common.h>
 #include "brick-int.h"
 
+#define PG_UTILS_BENCH_TITLE_MAX_SIZE 1000
+
 struct pg_bench_stats {
 	/* Burst count. */
 	uint64_t burst_cnt;
@@ -39,6 +41,26 @@ struct pg_bench_stats {
 	struct timeval date_start;
 	/* End date of the test. */
 	struct timeval date_end;
+	/* test duration in seconds */
+	double duration_s;
+	/* received packet speed in MPkts */
+	double received_packet_speed;
+	/* received data speed in MB/s */
+	double received_data_speed;
+	/* Number of bursts made (Kburst/s) */
+	double kburst_s;
+	/* Number of successfully burst packets (%) */
+	double burst_packets;
+	/* Number of lost packets after burst (%) */
+	double packet_lost_after_burst;
+	/* Total number of lost packets (%) */
+	double total_packet_lost;
+	/* Test title */
+	char title[PG_UTILS_BENCH_TITLE_MAX_SIZE];
+	/* Output where to write benchmark, NULL will write to stdout */
+	FILE *output;
+	/* Output format, can be: NULL or "default" */
+	char *output_format;
 };
 
 struct pg_bench {
@@ -70,13 +92,26 @@ struct pg_bench {
 	 */
 	struct pg_brick *count_brick;
 	void (*post_burst_op)(struct pg_bench *);
+	/* Test title */
+	char title[PG_UTILS_BENCH_TITLE_MAX_SIZE];
+	/* Output where to write benchmark, NULL will write to stdout */
+	FILE *output;
+	/* Output format, can be: NULL or "default" */
+	char *output_format;
 };
 
 /**
- * @param  bench struct pg_bench * to init
+ * Initialize benchmark
+ *
+ * @param   bench benchmark configuration to init.
+ * @param   title benchmark title.
+ * @param   argc program's argc (ignored if argv is NULL)
+ * @param   argv program's argv (optional, can be NULL)
+ * @param   error is set in case of an error
+ * @return  0 on success, -1 on error.
  */
-#define pg_bench_init(bench)				\
-	(memset((bench), 0, sizeof(struct pg_bench)))
+int pg_bench_init(struct pg_bench *bench, const char *title,
+		  int argc, char **argv, struct pg_error **error);
 
 /**
  * Run a benchmark on a brick.
@@ -91,12 +126,18 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 		 struct pg_error **error);
 
 /**
+ * Print results of a benchmark using a specific format.
+ *
+ * @param   result results to print.
+ */
+void pg_bench_print(struct pg_bench_stats *result);
+
+/**
  * Print results of a benchmark.
  *
  * @param   result results to print.
  * @param   output where to write the output. NULL will print to stdout.
- * @return  0 on success, -1 on error.
  */
-int pg_bench_print(struct pg_bench_stats *result, FILE *output);
+void pg_bench_print_default(struct pg_bench_stats *result);
 
 #endif /* _PG_UTILS_BENCH_H */

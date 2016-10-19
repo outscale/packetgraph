@@ -35,11 +35,15 @@
 
 void test_benchmark_vhost(char *vm_image_path,
 			  char *vm_ssh_key_path,
-			  char *hugepages_path);
+			  char *hugepages_path,
+			  int argc,
+			  char **argv);
 
 void test_benchmark_vhost(char *vm_image_path,
 			  char *vm_ssh_key_path,
-			  char *hugepages_path)
+			  char *hugepages_path,
+			  int argc,
+			  char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *vhost_enter;
@@ -55,7 +59,7 @@ void test_benchmark_vhost(char *vm_image_path,
 	int ret;
 	int qemu_pid;
 
-	pg_bench_init(&bench);
+	g_assert(!pg_bench_init(&bench, "vhost", argc, argv, &error));
 	ret = pg_vhost_start("/tmp", &error);
 	g_assert(ret == 0);
 	g_assert(!error);
@@ -111,7 +115,7 @@ void test_benchmark_vhost(char *vm_image_path,
 					     1500 - sizeof(struct ether_hdr));
 
 	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	g_assert(pg_bench_print(&stats, NULL) == 0);
+	pg_bench_print(&stats);
 
 	pg_util_stop_qemu(qemu_pid, SIGKILL);
 
