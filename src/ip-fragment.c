@@ -214,10 +214,6 @@ static int ip_fragment_init(struct pg_brick *brick,
 		return -1;
 	}
 
-	if (ip_fragment_config->mtu_size % 8) {
-		*errp = pg_error_new("mtu must be a  multiplier");
-		return -1;
-	}
 	brick->burst = ip_fragment_burst;
 	state->output = ip_fragment_config->output;
 	state->mtu_size = ip_fragment_config->mtu_size;
