@@ -208,7 +208,7 @@ tests_ip_fragment_SOURCES = \
 	tests/ip-fragment/tests.c
 tests_ip_fragment_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_ip_fragment_LDFLAGS = libpacketgraph-dev.la
-EXTRA_bench_ip_fragment_DEPENDENCIES = libpacketgraph-dev.la
+EXTRA_tests_ip_fragment_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_firewall_SOURCES = \
 	tests/firewall/test-icmp.c\
