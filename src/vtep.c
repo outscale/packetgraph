@@ -941,11 +941,7 @@ static void multicast_internal(struct vtep_state *state,
 							  IGMP_PKT_LEN);
 
 	ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
-	/* Because of the conversion from le to be, we need to
-	 * skip the first
-	 * byte of dst when making the copy*/
-	ether_addr_copy(&dst,
-			&hdr->ethernet.d_addr);
+	ether_addr_copy(&dst, &hdr->ethernet.d_addr);
 	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 
 	/* 4-5 = 0x45 */
@@ -969,11 +965,10 @@ static void multicast_internal(struct vtep_state *state,
 		break;
 	default:
 		*errp = pg_error_new("action not handle");
-		goto error;
+		goto clear;
 	}
 	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
 
-	/* Version 2 Membership Report = 0x16 */
 	hdr->igmp.type = action;
 	hdr->igmp.max_resp_time = 0;
 	hdr->igmp.checksum = 0;
@@ -984,7 +979,7 @@ static void multicast_internal(struct vtep_state *state,
 			      pg_flip_side(state->output),
 			      pkt, pg_mask_firsts(1), errp);
 
-error:
+clear:
 	rte_pktmbuf_free(pkt[0]);
 }
 
