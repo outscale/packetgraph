@@ -92,6 +92,7 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 					   l2_size),
 		       &eth, l2_size);
 		pkts_out[i]->l2_len = l2_size;
+		pkts_out[i]->udata64 |= PG_FRAGMENTED_MBUF;
 	}
 
 	ret = pg_brick_burst(edge->link, from, edge->pair_index,
@@ -214,10 +215,6 @@ static int ip_fragment_init(struct pg_brick *brick,
 		return -1;
 	}
 
-	if (ip_fragment_config->mtu_size % 8) {
-		*errp = pg_error_new("mtu must be a  multiplier");
-		return -1;
-	}
 	brick->burst = ip_fragment_burst;
 	state->output = ip_fragment_config->output;
 	state->mtu_size = ip_fragment_config->mtu_size;

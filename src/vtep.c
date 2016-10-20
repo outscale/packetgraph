@@ -213,6 +213,7 @@ static inline void udp_build(struct udp_hdr *udp_hdr,
 	udp_hdr->dst_port = rte_cpu_to_be_16(udp_dst_port);
 	udp_hdr->dgram_len = rte_cpu_to_be_16(datagram_len);
 	/* UDP checksum SHOULD be transmited as zero */
+	udp_hdr->dgram_cksum = 0;
 }
 
 /**
@@ -322,13 +323,20 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	ip_build(state, &headers->ipv4, state->ip, dst_ip,
 		 packet_len + ip_overhead());
 	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
-	pkt->l2_len = HEADERS_LENGTH + sizeof(struct ether_hdr);
-
 	/* It is recommanded to have UDP source port randomized to be
 	 * ECMP/load-balancing friendly. Let's use computed hash from
 	 * IP header. */
 	udp_build(&headers->udp, state->udp_dst_port,
 		  packet_len + udp_overhead(), headers->ipv4.hdr_checksum);
+
+	if (pkt->udata64 & PG_FRAGMENTED_MBUF) {
+		pkt->l2_len = sizeof(struct ether_hdr);
+		pkt->l3_len = sizeof(struct ipv4_hdr);
+		pkt->ol_flags = PKT_TX_UDP_CKSUM;
+	} else {
+		pkt->l2_len = HEADERS_LENGTH + sizeof(struct ether_hdr);
+	}
+
 
 	return 0;
 }
@@ -453,7 +461,19 @@ static inline int from_vtep_failure(struct rte_mbuf **pkts,
 	return -1;
 }
 
-static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
+/**
+ * @return false if checksum is not valid
+ */
+static inline bool check_udp_checksum(struct headers *hdr)
+{
+	uint16_t cksum = hdr->udp.dgram_cksum;
+
+	hdr->udp.dgram_cksum = 0;
+	return (rte_ipv4_udptcp_cksum(&hdr->ipv4, &hdr->udp) == cksum);
+}
+
+static inline void check_multicasts_pkts(struct rte_mbuf **pkts,
+					 uint64_t mask,
 					 struct headers **hdrs,
 					 uint64_t *multicast_mask,
 					 uint64_t *computed_mask,
@@ -473,6 +493,12 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts, uint64_t mask,
 			     tmp->vxlan.vx_flags !=
 			     rte_cpu_to_be_32(VTEP_I_FLAG)))
 			continue;
+		if (tmp->udp.dgram_cksum) {
+			if (unlikely(!check_udp_checksum(hdrs[i])))
+				continue;
+			pkts[i]->ol_flags |= PKT_TX_UDP_CKSUM;
+			pkts[i]->ol_flags |= PKT_TX_TCP_CKSUM;
+		}
 		if (is_multicast_ip(tmp->ipv4.dst_addr))
 			*multicast_mask |= (1LLU << i);
 		*computed_mask |= (1LLU << i);
@@ -512,6 +538,22 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 	}
 	return vni_mask;
 }
+
+static inline void restore_metadata(struct rte_mbuf **pkts,
+				    struct headers **hdrs, uint64_t vni_mask)
+{
+	PG_FOREACH_BIT(vni_mask, it) {
+		pkts[it]->l2_len = sizeof(struct ether_hdr);
+		uint16_t eth_type =
+			rte_cpu_to_be_16(hdrs[it]->ethernet.ether_type);
+
+		if (eth_type == ETHER_TYPE_IPv4)
+			pkts[it]->l3_len = sizeof(struct ipv4_hdr);
+		else if (eth_type == ETHER_TYPE_IPv6)
+			pkts[it]->l3_len = sizeof(struct ipv6_hdr);
+	}
+}
+
 
 static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			      uint16_t edge_index,
@@ -567,6 +609,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			add_dst_iner_macs(state, port, out_pkts, hdrs,
 					  hitted_mask, multicast_mask);
 
+			restore_metadata(out_pkts, hdrs, hitted_mask);
 			if (unlikely(pg_brick_burst(s->edges[i].link,
 						    from,
 						    i, out_pkts,
@@ -634,6 +677,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 		pkts_mask ^= vni_mask;
 		add_dst_iner_macs(state, port, pkts, hdrs,
 				  vni_mask, multicast_mask);
+		restore_metadata(pkts, hdrs, vni_mask);
 
 		if (unlikely(pg_brick_burst(edges[i].link,
 					    from,
