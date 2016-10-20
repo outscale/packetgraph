@@ -626,6 +626,7 @@ static void test_vtep_flood_encap_decap(void)
 	pg_brick_destroy(pktgen_west);
 	pg_brick_destroy(vtep_east);
 	pg_brick_destroy(vtep_west);
+	pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));
 }
 
 static void test_vtep_flood_encapsulate(void)
@@ -710,6 +711,7 @@ static void test_vtep_flood_encapsulate(void)
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
 	pg_brick_destroy(vtep_west);
+	pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));
 }
 
 #undef NB_PKTS
