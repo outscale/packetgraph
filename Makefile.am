@@ -387,7 +387,8 @@ bench_tap_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 bench_tap_LDFLAGS = libpacketgraph-dev.la
 EXTRA_bench_tap_DEPENDENCIES = libpacketgraph-dev.la
 
-bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx bench-ip-fragment
+bench_dependencies = bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx bench-ip-fragment
+bench: $(bench_dependencies)
 	$(srcdir)/tests/antispoof/bench.sh
 	$(srcdir)/tests/core/bench.sh
 	$(srcdir)/tests/diode/bench.sh
@@ -402,6 +403,23 @@ bench: bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-pri
 	$(srcdir)/tests/pmtud/bench.sh
 	$(srcdir)/tests/tap/bench.sh
 	$(srcdir)/tests/ip-fragment/bench.sh
+
+benchmark.%: $(bench_dependencies)
+	echo -n > $@
+	$(srcdir)/tests/antispoof/bench.sh -f $* -o $@
+	$(srcdir)/tests/core/bench.sh -f $* -o $@
+	$(srcdir)/tests/diode/bench.sh -f $* -o $@
+	$(srcdir)/tests/firewall/bench.sh -f $* -o $@
+	$(srcdir)/tests/nic/bench.sh -f $* -o $@
+	$(srcdir)/tests/print/bench.sh -f $* -o $@
+	$(srcdir)/tests/queue/bench.sh -f $* -o $@
+	$(srcdir)/tests/switch/bench.sh -f $* -o $@
+	$(srcdir)/tests/vhost/bench.sh -f $* -o $@
+	$(srcdir)/tests/vtep/bench.sh -f $* -o $@
+	$(srcdir)/tests/rxtx/bench.sh -f $* -o $@
+	$(srcdir)/tests/pmtud/bench.sh -f $* -o $@
+	$(srcdir)/tests/tap/bench.sh -f $* -o $@
+	$(srcdir)/tests/ip-fragment/bench.sh -f $* -o $@
 endif
 
 style:
