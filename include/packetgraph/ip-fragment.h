@@ -33,8 +33,8 @@
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_ip_fragment_new(const char *name,
-			      enum pg_side output,
-			      uint32_t mtu_size,
-			      struct pg_error **errp);
+				    enum pg_side output,
+				    uint32_t mtu_size,
+				    struct pg_error **errp);
 
 #endif  /* _PG_IP_FRAGMENT_H */

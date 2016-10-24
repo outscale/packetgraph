@@ -42,17 +42,17 @@ int pg_mask_count(uint64_t pkts_mask);
 #define pg_low_bit_iterate_full(mask, bit, index) do {	\
 		index =  ctz64(mask);			\
 		bit = ONE64 << index;			\
-	mask &= ~bit;					\
+		mask &= ~bit;				\
 	} while (0)
 
 /**
  * Undefine behavior if mask is NULL
  */
 #define pg_low_bit_iterate(mask, index) do {	\
-	uint64_t bit;				\
-	index =  ctz64(mask);			\
-	bit = ONE64 << index;			\
-	mask &= ~bit;				\
+		uint64_t bit;			\
+		index =  ctz64(mask);		\
+		bit = ONE64 << index;		\
+		mask &= ~bit;			\
 	} while (0)
 
 /**
