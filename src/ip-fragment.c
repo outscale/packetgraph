@@ -101,6 +101,14 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 	return ret;
 }
 
+static inline bool
+should_be_reassemble(struct eth_ipv4_hdr const * const restrict pkt_buf)
+{
+	return rte_cpu_to_be_16(pkt_buf->eth.ether_type) ==
+		ETHER_TYPE_IPv4 &&
+		rte_ipv4_frag_pkt_is_fragmented(&pkt_buf->ip);
+}
+
 static inline int do_reassemble(struct pg_ip_fragment_state *state,
 				struct rte_mbuf **pkts, struct pg_brick_side *s,
 				enum pg_side from, uint64_t *pkts_mask,
@@ -117,7 +125,7 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 			rte_pktmbuf_mtod(pkts[i],
 					 struct eth_ipv4_hdr *);
 
-		if (rte_ipv4_frag_pkt_is_fragmented(&pkt_buf->ip)) {
+		if (should_be_reassemble(pkt_buf)) {
 			struct rte_mbuf *tmp;
 
 			remove_mask |= (ONE64 << i);
@@ -147,6 +155,18 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 	return ret;
 }
 
+static inline bool should_be_fragmented(struct rte_mbuf const * const pkt,
+	const struct pg_ip_fragment_state * const restrict state)
+{
+	struct eth_ipv4_hdr *pkt_buf = rte_pktmbuf_mtod(pkt,
+							struct eth_ipv4_hdr *);
+	int dont_fragment = (pkt_buf->ip.fragment_offset) &
+		rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
+
+	return rte_cpu_to_be_16(pkt_buf->eth.ether_type) == ETHER_TYPE_IPv4 &&
+		(!dont_fragment) && pkt->pkt_len > state->mtu_size;
+}
+
 static int ip_fragment_burst(struct pg_brick *brick, enum pg_side from,
 			     uint16_t edge_index, struct rte_mbuf **pkts,
 			     uint64_t pkts_mask, struct pg_error **errp)
@@ -158,14 +178,7 @@ static int ip_fragment_burst(struct pg_brick *brick, enum pg_side from,
 
 	if (from != state->output) {
 		PG_FOREACH_BIT(pkts_mask, i) {
-			struct  eth_ipv4_hdr *pkt_buf =
-				rte_pktmbuf_mtod(pkts[i],
-						 struct eth_ipv4_hdr *);
-			int dont_fragment = (pkt_buf->ip.fragment_offset) &
-				rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
-
-			if ((!dont_fragment) &&
-			    pkts[i]->pkt_len > state->mtu_size) {
+			if (should_be_fragmented(pkts[i], state)) {
 				if (likely(do_fragmentation(state, pkts[i],
 							    &s->edge, from,
 							    errp) >= 0))
