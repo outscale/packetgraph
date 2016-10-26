@@ -24,13 +24,13 @@
 #define PG_VTEP_DST_PORT 4789
 
 enum pg_vtep_flags {
-	NONE = 0,
+	PG_VTEP_NONE = 0,
 	/* modify the packets instead of copy it */
-	NO_COPY = 1,
+	PG_VTEP_NO_COPY = 1,
 	/* don't check if the VNI has the coresponding mac,
 	 * when incoming packets, just forward it */
-	NO_INNERMAC_CHECK = 2,
-	ALL_OPTI = NO_COPY | NO_INNERMAC_CHECK
+	PG_VTEP_NO_INNERMAC_CHECK = 2,
+	PG_VTEP_ALL_OPTI = PG_VTEP_NO_COPY | PG_VTEP_NO_INNERMAC_CHECK
 };
 
 struct ether_addr;

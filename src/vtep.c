@@ -338,7 +338,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		dst_mac = &entry->mac;
 		dst_ip = entry->ip;
 	} else {
-		if (!(state->flags & NO_INNERMAC_CHECK))
+		if (!(state->flags & PG_VTEP_NO_INNERMAC_CHECK))
 			do_add_mac(port, &eth_hdr->s_addr);
 
 		dst_ip = port->multicast_ip;
@@ -420,7 +420,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 				unicast = 0;
 		}
 
-		if (unlikely(!(state->flags & NO_COPY)))
+		if (unlikely(!(state->flags & PG_VTEP_NO_COPY)))
 			tmp = rte_pktmbuf_clone(pkt, mp);
 		else
 			tmp = pkt;
@@ -460,7 +460,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 		return 0;
 
 	ret =  pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
-	if (!(state->flags & NO_COPY))
+	if (!(state->flags & PG_VTEP_NO_COPY))
 		pg_packets_free(state->pkts, pkts_mask);
 	return ret;
 }
@@ -565,7 +565,7 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 		if (hdrs[j]->vxlan.vx_vni == port->vni) {
 			struct rte_mbuf *tmp;
 
-			if (unlikely(!(state->flags & NO_COPY))) {
+			if (unlikely(!(state->flags & PG_VTEP_NO_COPY))) {
 				struct rte_mempool *mp = pg_get_mempool();
 
 				tmp = rte_pktmbuf_clone(pkts[j], mp);
@@ -631,7 +631,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			continue;
 
 		pkts_mask ^= vni_mask;
-		if (state->flags & NO_INNERMAC_CHECK) {
+		if (state->flags & PG_VTEP_NO_INNERMAC_CHECK) {
 			hitted_mask = vni_mask;
 		} else {
 			PG_FOREACH_BIT(vni_mask, it) {
@@ -662,10 +662,10 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 				return from_vtep_failure(out_pkts,
 							 vni_mask,
 							 state->flags &
-							 NO_COPY);
+							 PG_VTEP_NO_COPY);
 		}
 
-		if (unlikely(!(state->flags & NO_COPY)))
+		if (unlikely(!(state->flags & PG_VTEP_NO_COPY)))
 			pg_packets_free(out_pkts, vni_mask);
 	}
 	return 0;
@@ -740,7 +740,7 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
-	if (state->flags == ALL_OPTI)
+	if (state->flags == PG_VTEP_ALL_OPTI)
 		return decapsulate_simple(brick, from, edge_index, pkts,
 					  pkts_mask, errp);
 	else
