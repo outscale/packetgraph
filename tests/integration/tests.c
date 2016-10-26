@@ -326,7 +326,7 @@ static void test_graph_type1(void)
 	CHECK_ERROR(error);
 	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
-			   ALL_OPTI, &error);
+			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
 
 	print = pg_print_new("print", NULL, PG_PRINT_FLAG_MAX,
@@ -481,7 +481,7 @@ static void test_graph_firewall_intense(void)
 	CHECK_ERROR(error);
 	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
-			   ALL_OPTI, &error);
+			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
 
 	print = pg_print_new("main-print", NULL, PG_PRINT_FLAG_MAX,
@@ -531,7 +531,7 @@ static void test_graph_firewall_intense_multiple(void)
 	CHECK_ERROR(error);
 	vtep = pg_vtep_new("vt", 1, PG_BRANCHES_NB, WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
-			   ALL_OPTI, &error);
+			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
 
 	print = pg_print_new("main-print", NULL, PG_PRINT_FLAG_MAX,

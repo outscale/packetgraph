@@ -81,7 +81,7 @@ static void inside_to_vxlan(int argc, char **argv)
 	g_assert(!pg_bench_init(&bench, "vtep inside to vxlan",
 				argc, argv, &error));
 	vtep = pg_vtep_new("vtep", 1, 1, EAST_SIDE, inet_addr("192.168.0.1"),
-			   mac3, PG_VTEP_DST_PORT, ALL_OPTI, &error);
+			   mac3, PG_VTEP_DST_PORT, PG_VTEP_ALL_OPTI, &error);
 	g_assert(!error);
 
 	inside_nop = pg_nop_new("nop-input", &error);
@@ -171,7 +171,7 @@ static void vxlan_to_inside(int flags, const char *title, int argc, char **argv)
 	bench.output_poll = false;
 	bench.max_burst_cnt = 1000000;
 	bench.count_brick = pg_nop_new("nop-bench", &error);
-	if (flags & NO_COPY)
+	if (flags & PG_VTEP_NO_COPY)
 		bench.post_burst_op = add_vtep_hdr;
 	g_assert(!error);
 	pg_brick_link(outside_nop, vtep, &error);
@@ -233,9 +233,9 @@ static void vxlan_to_inside(int flags, const char *title, int argc, char **argv)
 void test_benchmark_vtep(int argc, char **argv)
 {
 	inside_to_vxlan(argc, argv);
-	vxlan_to_inside(ALL_OPTI, "vxlan all opti", argc, argv);
-	vxlan_to_inside(NO_COPY, "vxlan bench no copy", argc, argv);
-	vxlan_to_inside(NO_INNERMAC_CHECK, "vxlan bench no innermac check",
+	vxlan_to_inside(PG_VTEP_ALL_OPTI, "vxlan all opti", argc, argv);
+	vxlan_to_inside(PG_VTEP_NO_COPY, "vxlan bench no copy", argc, argv);
+	vxlan_to_inside(PG_VTEP_NO_INNERMAC_CHECK, "vxlan bench no innermac check",
 			argc, argv);
 	vxlan_to_inside(0, "vxlan bench slow", argc, argv);
 }

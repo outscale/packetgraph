@@ -298,7 +298,7 @@ static void test_vtep_simple_internal(int flag)
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
 				      NB_PKTS);
 
-	if (!(flag & NO_COPY)) {
+	if (!(flag & PG_VTEP_NO_COPY)) {
 		for (i = 0; i < NB_PKTS; i++) {
 			char buf[32];
 			char buf2[32];
@@ -335,7 +335,7 @@ static void test_vtep_simple_internal(int flag)
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
 				      NB_PKTS);
 
-	if (!(flag & NO_COPY)) {
+	if (!(flag & PG_VTEP_NO_COPY)) {
 		for (i = 0; i < NB_PKTS; i++) {
 			struct headers *hdr;
 
@@ -391,17 +391,17 @@ static void test_vtep_simple_no_flags(void)
 
 static void test_vtep_simple_no_inner_check(void)
 {
-	test_vtep_simple_internal(NO_INNERMAC_CHECK);
+	test_vtep_simple_internal(PG_VTEP_NO_INNERMAC_CHECK);
 }
 
 static void test_vtep_simple_no_copy(void)
 {
-	test_vtep_simple_internal(NO_COPY);
+	test_vtep_simple_internal(PG_VTEP_NO_COPY);
 }
 
 static void test_vtep_simple_all_opti(void)
 {
-	test_vtep_simple_internal(NO_COPY);
+	test_vtep_simple_internal(PG_VTEP_NO_COPY);
 }
 
 #define NB_VNIS 20
@@ -472,7 +472,7 @@ static void test_vtep_vnis(int flag)
 			 * For now if innermac check is activate, no packets
 			 * should pass.
 			 */
-			if (!(flag & NO_INNERMAC_CHECK)) {
+			if (!(flag & PG_VTEP_NO_INNERMAC_CHECK)) {
 				g_assert(!tmp_mask);
 				continue;
 			}
@@ -487,7 +487,7 @@ static void test_vtep_vnis(int flag)
 				g_assert(!tmp_mask);
 		}
 
-		if (!(flag & NO_COPY)) {
+		if (!(flag & PG_VTEP_NO_COPY)) {
 			PG_FOREACH_BIT(mask, it) {
 				rte_pktmbuf_adj(pkts[it],
 						sizeof(struct ipv4_hdr) +
@@ -510,12 +510,12 @@ static void test_vtep_vnis(int flag)
 
 static void test_vtep_vnis_all_opti(void)
 {
-	test_vtep_vnis(ALL_OPTI);
+	test_vtep_vnis(PG_VTEP_ALL_OPTI);
 }
 
 static void test_vtep_vnis_no_copy(void)
 {
-	test_vtep_vnis(NO_COPY);
+	test_vtep_vnis(PG_VTEP_NO_COPY);
 }
 
 static void test_vtep_vnis_no_flags(void)
@@ -525,7 +525,7 @@ static void test_vtep_vnis_no_flags(void)
 
 static void test_vtep_vnis_no_inner_check(void)
 {
-	test_vtep_vnis(NO_INNERMAC_CHECK);
+	test_vtep_vnis(PG_VTEP_NO_INNERMAC_CHECK);
 }
 
 
@@ -571,11 +571,11 @@ static void test_vtep_flood_encap_decap(void)
 
 	vtep_east = pg_vtep_new("vt-e", 1, 1, WEST_SIDE,
 			     15, multicast_mac1, PG_VTEP_DST_PORT,
-			     ALL_OPTI, &error);
+			     PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
 	vtep_west = pg_vtep_new("vt-w", 1, 1, EAST_SIDE,
 			     240, multicast_mac2, PG_VTEP_DST_PORT,
-			     ALL_OPTI, &error);
+			     PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
@@ -664,7 +664,7 @@ static void test_vtep_flood_encapsulate(void)
 
 	vtep_west = pg_vtep_new("vt-w", 1, 1, EAST_SIDE,
 			     15, multicast_mac1, PG_VTEP_DST_PORT,
-			     ALL_OPTI, &error);
+			     PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
 	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
 				     pkts, NB_PKTS, &error);
@@ -742,7 +742,7 @@ static void test_vtep_fragment_encap_decap(void)
 	collect_east = pg_collect_new("east col", &error);
 	ip_fragment = pg_ip_fragment_new("frag", EAST_SIDE, 448, &error);
 	vtep = pg_vtep_new("vtep", 20, 1, EAST_SIDE, 1, mac, PG_VTEP_DST_PORT,
-			   ALL_OPTI, &error);
+			   PG_VTEP_ALL_OPTI, &error);
 
 	g_assert(ip_fragment);
 	g_assert(vtep);
