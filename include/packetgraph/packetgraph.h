@@ -37,6 +37,7 @@
 #include <packetgraph/lifecycle.h>
 #include <packetgraph/queue.h>
 #include <packetgraph/tap.h>
+#include <packetgraph/pmtud.h>
 #include <packetgraph/ip-fragment.h>
 
 #endif /* _PG_PACKETGRAPH_H */
