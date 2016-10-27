@@ -119,6 +119,9 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 				icmp_buf->eth.d_addr = pkt_buf->eth.s_addr;
 				icmp_buf->ip.src_addr = pkt_buf->ip.dst_addr;
 				icmp_buf->ip.dst_addr = pkt_buf->ip.src_addr;
+				icmp_buf->ip.hdr_checksum = 0;
+				icmp_buf->ip.hdr_checksum =
+					rte_ipv4_cksum(&icmp_buf->ip);
 				icmp_buf->icmp.ip = pkt_buf->ip;
 				icmp_buf->icmp.last_msg = pkt_buf->beg_msg;
 				icmp_buf->icmp.checksum = 0;
