@@ -74,8 +74,7 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
  * Create a new vtep
  *
  * @name:	  brick name
- * @west_max:	  maximum number of connections to the west
- * @east_max:	  maximum number of connections to the east
+ * @max:	  maximum number of connections
  * @output:	  side where packets are encapsuled in VXLAN
  * @ip:		  vtep ip
  * @mac:	  vtep mac
@@ -86,9 +85,8 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
  * @return	  pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
-struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
-			     uint32_t east_max, enum pg_side output,
-			     uint32_t ip, struct ether_addr mac,
-			     uint16_t udp_dst_port,
+struct pg_brick *pg_vtep_new(const char *name, uint32_t max,
+			     enum pg_side output, uint32_t ip,
+			     struct ether_addr mac, uint16_t udp_dst_port,
 			     int flag, struct pg_error **errp);
 #endif /* _PG_VTEP_H */
