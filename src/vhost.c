@@ -30,6 +30,7 @@
 #include <linux/virtio_net.h>
 #include <linux/virtio_ring.h>
 #include <rte_virtio_net.h>
+#include <rte_ip.h>
 
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
@@ -164,8 +165,19 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		return 0;
 
 	/* count rx bytes: burst is packed so we can directly iterate */
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < count; i++) {
+		in[i]->l2_len = sizeof(struct ether_hdr);
+		uint16_t eth_type =
+			rte_cpu_to_be_16(rte_pktmbuf_mtod(in[i],
+							  struct ether_hdr *)->
+					 ether_type);
+
+		if (eth_type == ETHER_TYPE_IPv4)
+			in[i]->l3_len = sizeof(struct ipv4_hdr);
+		else if (eth_type == ETHER_TYPE_IPv6)
+			in[i]->l3_len = sizeof(struct ipv6_hdr);
 		rx_bytes += rte_pktmbuf_pkt_len(in[i]);
+	}
 	rte_atomic64_add(&state->rx_bytes, rx_bytes);
 
 	pkts_mask = pg_mask_firsts(count);
