@@ -80,7 +80,7 @@ static void inside_to_vxlan(int argc, char **argv)
 
 	g_assert(!pg_bench_init(&bench, "vtep inside to vxlan",
 				argc, argv, &error));
-	vtep = pg_vtep_new("vtep", 1, 1, EAST_SIDE, inet_addr("192.168.0.1"),
+	vtep = pg_vtep_new("vtep", 1, EAST_SIDE, inet_addr("192.168.0.1"),
 			   mac3, PG_VTEP_DST_PORT, PG_VTEP_ALL_OPTI, &error);
 	g_assert(!error);
 
@@ -158,7 +158,7 @@ static void vxlan_to_inside(int flags, const char *title, int argc, char **argv)
 	static struct ether_addr mac_vtep = {{0xb0,0xb1,0xb2,0xb3,0xb4,0xb5}};
 	uint32_t len;
 
-	vtep = pg_vtep_new("vtep", 1, 1, WEST_SIDE, 0x000000EE,
+	vtep = pg_vtep_new("vtep", 1, WEST_SIDE, 0x000000EE,
 			   mac_vtep, PG_VTEP_DST_PORT, flags, &error);
 	g_assert(!error);
 
