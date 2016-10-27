@@ -17,6 +17,11 @@
 
 #include <rte_config.h>
 #include <rte_ethdev.h>
+#include <rte_ether.h>
+#include <rte_ip.h>
+#include <rte_udp.h>
+#include <rte_tcp.h>
+
 #include <rte_cycles.h>
 #include <net/if.h>
 
@@ -28,6 +33,8 @@
 #include "nic-int.h"
 
 #define NIC_ARGS_MAX_SIZE 1024
+#define TCP_PROTOCOL_NUMBER 6
+#define UDP_PROTOCOL_NUMBER 17
 
 struct pg_nic_config {
 	char ifname[NIC_ARGS_MAX_SIZE];
@@ -42,6 +49,16 @@ struct pg_nic_state {
 	/* side of the physical NIC/PMD */
 	enum pg_side output;
 };
+
+struct headers_eth_ipv4_l4 {
+	struct ether_hdr ethernet;
+	struct ipv4_hdr ipv4; /* define in rte_ip.h */
+	union {
+		struct udp_hdr udp;
+		struct tcp_hdr tcp;
+	};
+} __attribute__((__packed__));
+
 
 void pg_nic_start(void)
 {
@@ -156,6 +173,56 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 	return 0;
 }
 
+static int nic_burst_no_offload(struct pg_brick *brick, enum pg_side from,
+				    uint16_t edge_index,
+				    struct rte_mbuf **pkts,
+				    uint64_t pkts_mask,
+				    struct pg_error **errp)
+{
+	uint64_t mask = pkts_mask;
+
+	for (; mask;) {
+		uint16_t i;
+		struct rte_mbuf *pkt;
+		struct headers_eth_ipv4_l4 *hdr;
+
+		pg_low_bit_iterate(mask, i);
+		pkt = pkts[i];
+		if (pkt->ol_flags | PKT_TX_UDP_CKSUM) {
+			uint16_t ipv4_csum;
+			uint8_t *hdr_byte;
+			uint8_t next_proto_id;
+
+			hdr_byte = rte_pktmbuf_mtod(pkt, uint8_t *);
+			hdr_byte += (pkt->l2_len - sizeof(struct ether_hdr));
+			hdr = (void *)hdr_byte;
+
+			next_proto_id = hdr->ipv4.next_proto_id;
+			if (rte_cpu_to_be_16(hdr->ethernet.ether_type) !=
+			    ETHER_TYPE_IPv4 ||
+			    (next_proto_id != TCP_PROTOCOL_NUMBER &&
+			     next_proto_id != UDP_PROTOCOL_NUMBER)) {
+				continue;
+			}
+			ipv4_csum = hdr->ipv4.hdr_checksum;
+			hdr->ipv4.hdr_checksum = 0;
+			if (next_proto_id == TCP_PROTOCOL_NUMBER) {
+				hdr->tcp.cksum = 0;
+				hdr->tcp.cksum =
+					rte_ipv4_udptcp_cksum(&hdr->ipv4,
+							      &hdr->tcp);
+			} else {
+				hdr->udp.dgram_cksum = 0;
+				hdr->udp.dgram_cksum =
+					rte_ipv4_udptcp_cksum(&hdr->ipv4,
+							      &hdr->udp);
+			}
+			hdr->ipv4.hdr_checksum = ipv4_csum;
+		}
+	}
+	return nic_burst(brick, from, edge_index, pkts, pkts_mask, errp);
+}
+
 static int nic_poll_forward(struct pg_nic_state *state,
 			    struct pg_brick *brick,
 			    uint16_t nb_pkts,
@@ -259,6 +326,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 {
 	struct pg_nic_state *state;
 	struct pg_nic_config *nic_config;
+	struct rte_eth_txq_info qinfo;
 	int ret;
 
 	state = pg_brick_get_state(brick, struct pg_nic_state);
@@ -294,8 +362,14 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 	}
 	rte_eth_promiscuous_enable(state->portid);
 
-
-	brick->burst = nic_burst;
+	/* check if nic supports offloading */
+	if (rte_eth_tx_queue_info_get(state->portid, 0, &qinfo) == 0 &&
+	    ((qinfo.conf.txq_flags & ETH_TXQ_FLAGS_NOXSUMUDP) == 0 ||
+	     (qinfo.conf.txq_flags & ETH_TXQ_FLAGS_NOXSUMTCP) == 0)) {
+		brick->burst = nic_burst;
+	} else {
+		brick->burst = nic_burst_no_offload;
+	}
 	brick->poll = nic_poll;
 
 	return 0;
@@ -405,3 +479,5 @@ static struct pg_brick_ops nic_ops = {
 pg_brick_register(nic, &nic_ops);
 
 #undef NIC_ARGS_MAX_SIZE
+#undef TCP_PROTOCOL_NUMBER
+#undef UDP_PROTOCOL_NUMBER
