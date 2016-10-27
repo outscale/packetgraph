@@ -774,11 +774,6 @@ static int vtep_init(struct pg_brick *brick,
 
 	vtep_config = config->brick_config;
 	state->output = vtep_config->output;
-	if (pg_side_get_max(brick, state->output) != 1) {
-		*errp = pg_error_new("brick %s number of output port is not 1",
-				     brick->name);
-		return -1;
-	}
 	state->ip = vtep_config->ip;
 	ether_addr_copy(&vtep_config->mac, &state->mac);
 	state->flags = vtep_config->flags;
@@ -819,12 +814,22 @@ static struct pg_brick_config *vtep_config_new(const char *name,
 				    east_max, PG_MULTIPOLE);
 }
 
-struct pg_brick *pg_vtep_new(const char *name, uint32_t west_max,
-		       uint32_t east_max, enum pg_side output,
+struct pg_brick *pg_vtep_new(const char *name, uint32_t max,
+		       enum pg_side output,
 		       uint32_t ip, struct ether_addr mac,
 		       uint16_t udp_dst_port, int flags,
 		       struct pg_error **errp)
 {
+	uint32_t west_max;
+	uint32_t east_max;
+
+	if (output == WEST_SIDE) {
+		west_max = 1;
+		east_max = max;
+	} else {
+		west_max = max;
+		east_max = 1;
+	}
 	struct pg_brick_config *config = vtep_config_new(name, west_max,
 							 east_max, output,
 							 ip, mac, udp_dst_port,

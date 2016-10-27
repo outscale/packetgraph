@@ -324,7 +324,7 @@ static void test_graph_type1(void)
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
 	if (error) pg_error_print(error);
 	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
+	vtep = pg_vtep_new("vt", 50, WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
 			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
@@ -479,7 +479,7 @@ static void test_graph_firewall_intense(void)
 
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
 	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", 1, 50, WEST_SIDE,
+	vtep = pg_vtep_new("vt", 50, WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
 			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
@@ -529,7 +529,7 @@ static void test_graph_firewall_intense_multiple(void)
 
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
 	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", 1, PG_BRANCHES_NB, WEST_SIDE,
+	vtep = pg_vtep_new("vt", PG_BRANCHES_NB, WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
 			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
