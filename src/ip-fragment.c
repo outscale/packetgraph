@@ -136,6 +136,12 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 							      &pkt_buf->
 							      ip);
 			if (tmp) {
+				struct eth_ipv4_hdr *tmp_buf =
+					rte_pktmbuf_mtod(tmp,
+							 struct eth_ipv4_hdr *);
+				tmp_buf->ip.hdr_checksum = 0;
+				tmp_buf->ip.hdr_checksum =
+					rte_ipv4_cksum(&tmp_buf->ip);
 				state->pkts_out[j] = tmp;
 				snd_mask |= (ONE64 << j);
 				++j;
