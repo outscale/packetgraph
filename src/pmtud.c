@@ -35,7 +35,8 @@ struct pg_pmtud_config {
 struct pg_pmtud_state {
 	struct pg_brick brick;
 	enum pg_side output;
-	uint32_t mtu_size;
+	uint32_t eth_mtu_size;
+	uint32_t icmp_mtu_size;
 	struct rte_mbuf *icmp;
 };
 
@@ -94,7 +95,7 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 	struct pg_brick_side *s = &brick->sides[to];
 	struct pg_brick_side *s_from = &brick->sides[from];
 	uint16_t ipv4_proto_be = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
-	uint32_t mtu_size = state->mtu_size;
+	uint32_t eth_mtu_size = state->eth_mtu_size;
 
 	if (state->output == from) {
 		PG_FOREACH_BIT(pkts_mask, i) {
@@ -108,7 +109,7 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 
 
 			if (is_ipv4 && dont_fragment &&
-			    pkts[i]->pkt_len > mtu_size) {
+			    pkts[i]->pkt_len > eth_mtu_size) {
 				struct icmp_full_hdr *icmp_buf =
 					rte_pktmbuf_mtod(
 						state->icmp,
@@ -158,7 +159,17 @@ static int pmtud_init(struct pg_brick *brick,
 	brick->burst = pmtud_burst;
 
 	state->output = pmtud_config->output;
-	state->mtu_size = pmtud_config->mtu_size;
+	/* (from rfc1191)
+	 * The value carried in the Next-Hop MTU field is:
+	 * The size in octets of the largest datagram that could be
+	 * forwarded, along the path of the original datagram, without
+	 * being fragmented at this router.  The size includes the IP
+	 * header and IP data, and does not include any lower-level
+	 * headers.
+	 */
+	state->eth_mtu_size = pmtud_config->mtu_size;
+	state->icmp_mtu_size = pmtud_config->mtu_size -
+		sizeof(struct ether_hdr);
 	state->icmp = rte_pktmbuf_alloc(pg_get_mempool());
 	if (!state->icmp) {
 		*errp = pg_error_new("cannot allocate icmp packet");
@@ -176,7 +187,7 @@ static int pmtud_init(struct pg_brick *brick,
 	icmp->type = 3;
 	icmp->code = 4;
 	icmp->unused = 0;
-	icmp->next_hop_mtu = rte_cpu_to_be_16(state->mtu_size);
+	icmp->next_hop_mtu = rte_cpu_to_be_16(state->icmp_mtu_size);
 	return 0;
 }
 
