@@ -215,7 +215,7 @@ struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
 			continue;					\
 		/* mark the VNI as valid */				\
 		vx_hdr.vx_flags = rte_cpu_to_be_32(VTEP_I_FLAG);	\
-		vx_hdr.vx_vni = rte_cpu_to_be_32(vni);			\
+		vx_hdr.vx_vni = rte_cpu_to_be_32(vni << 8);		\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(vx_hdr));	\
 		if (!tmp)						\
 			return NULL;					\

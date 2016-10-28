@@ -50,7 +50,7 @@ struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick);
  *
  * @param	brick the brick we are working on
  * @param	neighbor a brick connected to the VTEP port
- * @param	vni the VNI to add
+ * @param	vni the VNI to add, must be < 2^24
  * @param	multicast_ip the multicast ip to associate to the VNI
  * @param	errp an error pointer
  */

@@ -803,8 +803,8 @@ static void vtep_destroy(struct pg_brick *brick, struct pg_error **errp)
  */
 static bool is_vni_valid(uint32_t vni)
 {
-	/* VNI is coded on 24 bits */
-	return vni <= (UINT32_MAX >> 8);
+	/* VNI is coded on 24 bits, must be < 2^24 */
+	return vni < 16777216;
 }
 
 static inline uint16_t igmp_checksum(struct igmp_hdr *msg)
@@ -842,7 +842,8 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	/* TODO: return 1 ? */
 	g_assert(!port->vni);
 	g_assert(!port->multicast_ip);
-	vni = rte_cpu_to_be_32(vni);
+	/* vni is on the first 24 bits */
+	vni = rte_cpu_to_be_32(vni << 8);
 
 	port->vni = vni;
 	port->multicast_ip = multicast_ip;
@@ -933,7 +934,7 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
 
-	vni = rte_cpu_to_be_32(vni);
+	vni = rte_cpu_to_be_32(vni << 8);
 	for (int i = 0; i < s->nb; ++i) {
 		if (state->ports[i].vni == vni) {
 			do_add_mac(&state->ports[i], mac);
