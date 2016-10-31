@@ -188,7 +188,7 @@ static int nic_burst_no_offload(struct pg_brick *brick, enum pg_side from,
 
 		pg_low_bit_iterate(mask, i);
 		pkt = pkts[i];
-		if (pkt->ol_flags | PKT_TX_UDP_CKSUM) {
+		if (pkt->ol_flags & (PKT_TX_UDP_CKSUM | PKT_TX_TCP_CKSUM)) {
 			uint16_t ipv4_csum;
 			uint8_t *hdr_byte;
 			uint8_t next_proto_id;
