@@ -31,6 +31,8 @@
 #include <linux/virtio_ring.h>
 #include <rte_virtio_net.h>
 #include <rte_ip.h>
+#include <rte_udp.h>
+#include <rte_tcp.h>
 
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
@@ -50,6 +52,26 @@ struct pg_vhost_socket {
 
 	LIST_ENTRY(pg_vhost_socket) socket_list; /* sockets list */
 };
+
+struct eth_ip_l4 {
+	struct ether_hdr ethernet;
+	union {
+		struct {
+			struct ipv4_hdr ipv4;
+			union {
+				struct udp_hdr v4udp;
+				struct tcp_hdr v4tcp;
+			} __attribute__((__packed__));
+		} __attribute__((__packed__));
+		struct {
+			struct ipv6_hdr ipv6;
+			union {
+				struct udp_hdr v6udp;
+				struct tcp_hdr v6tcp;
+			} __attribute__((__packed__));
+		} __attribute__((__packed__));
+	} __attribute__((__packed__));
+} __attribute__((__packed__));
 
 struct pg_vhost_state {
 	struct pg_brick brick;
@@ -132,6 +154,9 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	return 0;
 }
 
+#define TCP_PROTOCOL_NUMBER 6
+#define UDP_PROTOCOL_NUMBER 17
+
 static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		      struct pg_error **errp)
 {
@@ -167,15 +192,30 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	/* count rx bytes: burst is packed so we can directly iterate */
 	for (int i = 0; i < count; i++) {
 		in[i]->l2_len = sizeof(struct ether_hdr);
-		uint16_t eth_type =
-			rte_cpu_to_be_16(rte_pktmbuf_mtod(in[i],
-							  struct ether_hdr *)->
-					 ether_type);
+		struct eth_ip_l4 *hdr =
+			rte_pktmbuf_mtod(in[i],
+					 struct eth_ip_l4 *);
+		uint16_t eth_type = rte_cpu_to_be_16(hdr->ethernet.ether_type);
+		uint8_t proto;
 
-		if (eth_type == ETHER_TYPE_IPv4)
+		if (eth_type == ETHER_TYPE_IPv4) {
+			proto = hdr->ipv4.next_proto_id;
 			in[i]->l3_len = sizeof(struct ipv4_hdr);
-		else if (eth_type == ETHER_TYPE_IPv6)
+
+			if (proto == TCP_PROTOCOL_NUMBER)
+				in[i]->l4_len = (hdr->v4tcp.data_off >> 4) * 4;
+			else if (proto == UDP_PROTOCOL_NUMBER)
+				in[i]->l4_len = sizeof(struct udp_hdr);
+
+		} else if (eth_type == ETHER_TYPE_IPv6) {
+			proto = hdr->ipv6.proto;
 			in[i]->l3_len = sizeof(struct ipv6_hdr);
+
+			if (proto == TCP_PROTOCOL_NUMBER)
+				in[i]->l4_len = (hdr->v6tcp.data_off >> 4) * 4;
+			else if (proto == UDP_PROTOCOL_NUMBER)
+				in[i]->l4_len = sizeof(struct udp_hdr);
+		}
 		rx_bytes += rte_pktmbuf_pkt_len(in[i]);
 	}
 	rte_atomic64_add(&state->rx_bytes, rx_bytes);
@@ -185,6 +225,9 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	pg_packets_free(in, pkts_mask);
 	return ret;
 }
+
+#undef TCP_PROTOCOL_NUMBER
+#undef UDP_PROTOCOL_NUMBER
 
 static void vhost_create_socket(struct pg_vhost_state *state,
 				struct pg_error **errp)
