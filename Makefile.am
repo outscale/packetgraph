@@ -422,7 +422,7 @@ endif
 	@echo "./tests/vtep/test.sh"
 
 if PG_EXAMPLES
-noinst_PROGRAMS += example-firewall example-switch example-rxtx
+noinst_PROGRAMS += example-firewall example-switch example-rxtx example-nic
 
 example_firewall_SOURCES = \
 	examples/firewall/firewall.c
@@ -445,6 +445,12 @@ example_rxtx_SOURCES = \
 example_rxtx_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_rxtx_LDFLAGS = libpacketgraph.la $(libpacketgraph_la_LIBADD)
 EXTRA_example_rxtx_DEPENDENCIES = libpacketgraph.la
+
+example_nic_SOURCES = \
+	examples/nic/nic.c
+example_nic_CFLAGS = $(libpacketgraph_la_CFLAGS)
+example_nic_LDFLAGS = libpacketgraph.la $(libpacketgraph_la_LIBADD)
+EXTRA_example_nic_DEPENDENCIES = libpacketgraph.la
 endif
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template
