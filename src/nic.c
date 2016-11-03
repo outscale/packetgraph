@@ -91,6 +91,18 @@ void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr)
 	rte_eth_macaddr_get(state->portid, addr);
 }
 
+void pg_nic_capabilities(struct pg_brick *nic, uint32_t *rx, uint32_t *tx)
+{
+	struct pg_nic_state *state;
+	struct rte_eth_dev_info dev_info;
+
+	state = pg_brick_get_state(nic, struct pg_nic_state);
+	rte_eth_dev_info_get(state->portid, &dev_info);
+
+	*rx = dev_info.rx_offload_capa;
+	*tx = dev_info.tx_offload_capa;
+}
+
 static struct pg_brick_config *nic_config_new(const char *name,
 					      const char *ifname,
 					      uint8_t portid)
