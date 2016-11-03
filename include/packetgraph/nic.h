@@ -95,4 +95,31 @@ int pg_nic_get_mtu(struct pg_brick *brick, uint16_t *mtu,
  */
 void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr);
 
+#define PG_NIC_RX_OFFLOAD_VLAN_STRIP  0x00000001
+#define PG_NIC_RX_OFFLOAD_IPV4_CKSUM  0x00000002
+#define PG_NIC_RX_OFFLOAD_UDP_CKSUM   0x00000004
+#define PG_NIC_RX_OFFLOAD_TCP_CKSUM   0x00000008
+#define PG_NIC_RX_OFFLOAD_TCP_LRO     0x00000010
+#define PG_NIC_RX_OFFLOAD_QINQ_STRIP  0x00000020
+#define PG_NIC_RX_OFFLOAD_OUTER_IPV4_CKSUM 0x00000040
+
+#define PG_NIC_TX_OFFLOAD_VLAN_INSERT 0x00000001
+#define PG_NIC_TX_OFFLOAD_IPV4_CKSUM  0x00000002
+#define PG_NIC_TX_OFFLOAD_UDP_CKSUM   0x00000004
+#define PG_NIC_TX_OFFLOAD_TCP_CKSUM   0x00000008
+#define PG_NIC_TX_OFFLOAD_SCTP_CKSUM  0x00000010
+#define PG_NIC_TX_OFFLOAD_TCP_TSO     0x00000020
+#define PG_NIC_TX_OFFLOAD_UDP_TSO     0x00000040
+#define PG_NIC_TX_OFFLOAD_OUTER_IPV4_CKSUM 0x00000080
+#define PG_NIC_TX_OFFLOAD_QINQ_INSERT 0x00000100
+
+/**
+ * Get capabilities of the nic
+ *
+ * @nic     pointer to a nic brick
+ * @rx      rx capabilities, see PG_NIC_RX_* flags
+ * @tx      tx capabilities, see PG_NIC_TX_* flags
+ */
+void pg_nic_capabilities(struct pg_brick *nic, uint32_t *rx, uint32_t *tx);
+
 #endif  /* _PG_NIC_H */
