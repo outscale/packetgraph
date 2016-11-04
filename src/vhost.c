@@ -426,8 +426,8 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 		return -1;
 	}
 
-	rte_vhost_feature_disable(1ULL << VIRTIO_NET_F_HOST_TSO4);
-	rte_vhost_feature_disable(1ULL << VIRTIO_NET_F_HOST_TSO6);
+	pg_vhost_disable(1ULL << VIRTIO_NET_F_HOST_TSO4);
+	pg_vhost_disable(1ULL << VIRTIO_NET_F_HOST_TSO6);
 
 	LIST_INIT(&sockets);
 
@@ -459,6 +459,16 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 free_exit:
 	g_free(sockets_path);
 	return -1;
+}
+
+int pg_vhost_enable(uint64_t feature_mask)
+{
+	return rte_vhost_feature_enable(feature_mask) ? -1 : 0;
+}
+
+int pg_vhost_disable(uint64_t feature_mask)
+{
+	return rte_vhost_feature_disable(feature_mask) ? -1 : 0;
 }
 
 void pg_vhost_stop(void)

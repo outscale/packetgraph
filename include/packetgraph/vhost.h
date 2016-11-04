@@ -19,6 +19,7 @@
 #define _PG_VHOST_H
 
 #include <packetgraph/errors.h>
+#include <linux/virtio_net.h>
 
 struct pg_brick;
 
@@ -65,5 +66,21 @@ const char *pg_vhost_socket_path(struct pg_brick *brick,
  * You should have call pg_vhost_start in the past before calling this.
  */
 void pg_vhost_stop(void);
+
+/**
+ * Enable virtio features.
+ * @feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
+ * @return 0 on success, -1 on error
+ */
+int pg_vhost_enable(uint64_t feature_mask);
+
+/**
+ * Disable virtio features.
+ * @feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
+ * @return: 0 on success, -1 on error
+ *
+ * example: pg_vhost_disable(1ULL << VIRTIO_NET_F_HOST_TSO4)
+ */
+int pg_vhost_disable(uint64_t feature_mask);
 
 #endif  /* _PG_VHOST_H */
