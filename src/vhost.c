@@ -426,9 +426,6 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 		return -1;
 	}
 
-	pg_vhost_disable(1ULL << VIRTIO_NET_F_HOST_TSO4);
-	pg_vhost_disable(1ULL << VIRTIO_NET_F_HOST_TSO6);
-
 	LIST_INIT(&sockets);
 
 	check_and_store_base_dir(base_dir, errp);
