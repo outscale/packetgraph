@@ -24,6 +24,7 @@
 #include "brick-int.h"
 #include "packets.h"
 #include "collect.h"
+#include "utils/mempool.h"
 #include "utils/bitmask.h"
 
 struct pg_collect_state {
@@ -39,9 +40,10 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 			 uint64_t pkts_mask,
 			 struct pg_error **errp)
 {
-	struct pg_collect_state *state;
+	struct pg_collect_state *state =
+		pg_brick_get_state(brick, struct pg_collect_state);
+	struct rte_mbuf **collector = state->pkts[from];
 
-	state = pg_brick_get_state(brick, struct pg_collect_state);
 	BUILD_ASSERT(PG_MAX_PKTS_BURST == 64);
 	if (pg_last_bit_pos(pkts_mask) > PG_MAX_PKTS_BURST) {
 		*errp = pg_error_new("Burst too big");
@@ -52,12 +54,12 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 		pg_packets_free(state->pkts[from], state->pkts_mask[from]);
 
 	state->pkts_mask[from] = pkts_mask;
-	/* We made sure nb <= PG_MAX_PKTS_BURST */
-	/* Flawfinder: ignore */
-	memcpy(state->pkts[from], pkts, pg_last_bit_pos(pkts_mask) *
-	       sizeof(struct rte_mbuf *));
-	pg_packets_incref(pkts, pkts_mask);
-
+	PG_FOREACH_BIT(pkts_mask, it) {
+		collector[it] = rte_pktmbuf_clone(pkts[it], pg_get_mempool());
+		collector[it]->udata64 = pkts[it]->udata64;
+		collector[it]->tx_offload = pkts[it]->tx_offload;
+		collector[it]->ol_flags = pkts[it]->ol_flags;
+	}
 	return 0;
 }
 
