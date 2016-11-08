@@ -39,6 +39,7 @@
 #include <rte_table_hash.h>
 #include <rte_prefetch.h>
 #include <rte_udp.h>
+#include <rte_tcp.h>
 #include <arpa/inet.h>
 
 #include <packetgraph/common.h>
@@ -71,6 +72,8 @@ struct vtep_config {
 #define UDP_PORT_RANGE 16383
 #define UDP_PROTOCOL_NUMBER 17
 #define IGMP_PROTOCOL_NUMBER 0x02
+#define TCP_PROTOCOL_NUMBER 6
+
 /**
  * Composite structure of all the headers required to wrap a packet in VTEP
  */
@@ -79,6 +82,25 @@ struct headers {
 	struct ipv4_hdr	 ipv4; /* define in rte_ip.h */
 	struct udp_hdr	 udp; /* define in rte_udp.h */
 	struct vxlan_hdr vxlan; /* define in rte_ether.h */
+} __attribute__((__packed__));
+
+struct eth_ip_l4 {
+	struct ether_hdr ethernet;
+	union {
+		struct {
+			struct ipv4_hdr ipv4;
+			struct tcp_hdr v4tcp;
+		} __attribute__((__packed__));
+		struct {
+			struct ipv6_hdr ipv6;
+			struct tcp_hdr v6tcp;
+		} __attribute__((__packed__));
+	} __attribute__((__packed__));
+} __attribute__((__packed__));
+
+struct full_header {
+	struct headers outer;
+	struct eth_ip_l4 inner;
 } __attribute__((__packed__));
 
 struct igmp_hdr {
@@ -296,11 +318,14 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	uint16_t packet_len = rte_pktmbuf_data_len(pkt);
 	/* TODO: double check this value */
 	struct ether_addr *dst_mac;
+	struct full_header *full_header;
 	struct headers *headers;
 	struct ether_addr dst;
 	uint32_t dst_ip;
 
-	headers = (struct headers *) rte_pktmbuf_prepend(pkt, HEADERS_LENGTH);
+	full_header = (struct full_header *)rte_pktmbuf_prepend(pkt,
+								HEADERS_LENGTH);
+	headers = &full_header->outer;
 
 	if (unlikely(!headers)) {
 		*errp = pg_error_new("No enough headroom to add VTEP headers");
@@ -329,12 +354,30 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	udp_build(&headers->udp, state->udp_dst_port,
 		  packet_len + udp_overhead(), headers->ipv4.hdr_checksum);
 
-	if (pkt->udata64 & PG_FRAGMENTED_MBUF) {
+	pkt->l2_len = HEADERS_LENGTH + sizeof(struct ether_hdr);
+
+	if (unlikely(pkt->udata64 & PG_FRAGMENTED_MBUF)) {
 		pkt->l2_len = sizeof(struct ether_hdr);
 		pkt->l3_len = sizeof(struct ipv4_hdr);
 		pkt->ol_flags = PKT_TX_UDP_CKSUM;
-	} else {
-		pkt->l2_len = HEADERS_LENGTH + sizeof(struct ether_hdr);
+	} else if (pkt->ol_flags & PKT_TX_TCP_SEG) {
+		struct eth_ip_l4 *inner = &full_header->inner;
+		uint16_t eth_type =
+			rte_cpu_to_be_16(inner->ethernet.ether_type);
+
+		/* printf("you will be cur\n"); */
+		pkt->ol_flags = PKT_TX_IPV4 | PKT_TX_IP_CKSUM |
+			PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
+		if (eth_type == ETHER_TYPE_IPv4) {
+			inner->ipv4.hdr_checksum = 0;
+			inner->v4tcp.cksum = rte_ipv4_phdr_cksum(
+				&inner->ipv4,
+				pkt->ol_flags);
+		} else {
+			inner->v6tcp.cksum = rte_ipv6_phdr_cksum(
+				&inner->ipv6,
+				pkt->ol_flags);
+		}
 	}
 
 
