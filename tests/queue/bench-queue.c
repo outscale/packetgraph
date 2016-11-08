@@ -78,8 +78,7 @@ void test_benchmark_queue(int argc, char **argv)
 		bench.pkts_mask,
 		&mac1, &mac2,
 		ETHER_TYPE_IPv4);
-	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
-		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) + 1400;
+	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) + 1400;
 	pg_packets_append_ipv4(
 		bench.pkts,
 		bench.pkts_mask,
