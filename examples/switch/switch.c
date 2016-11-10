@@ -79,6 +79,12 @@ int main(int argc, char **argv)
 	}
 	int n = nb > 0 ? nb : pg_nic_port_count();
 
+	if (!n) {
+		printf("You don't have any dpdk port to use\n");
+		printf("If you want to use vhost-user, use --vhost\n");
+		return 0;
+	}
+
 	/* init packetgraph */
 	pg_start(argc, argv, &error);
 	if (error) {
@@ -88,7 +94,7 @@ int main(int argc, char **argv)
 	}
 
 	/* init switch */
-	sw = pg_switch_new("switch", nb, 0, WEST_SIDE, &error);
+	sw = pg_switch_new("switch", n, 0, WEST_SIDE, &error);
 	g_assert(!error);
 	graph = pg_graph_new("graph", sw, &error);
 	g_assert(!error);
@@ -169,6 +175,9 @@ int main(int argc, char **argv)
 				pg_brick_link(vh, sw, &error);
 				g_assert(!error);
 			}
+			printf("vhost-user socket created at %s\n",
+			       pg_vhost_socket_path(vh, &error));
+			g_assert(!error);
 		}
 	}
 	pg_graph_explore(graph, NULL, &error);
