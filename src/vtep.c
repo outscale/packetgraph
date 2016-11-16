@@ -528,7 +528,9 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts,
 		pg_low_bit_iterate(mask, i);
 		tmp = rte_pktmbuf_mtod(pkts[i], struct headers *);
 		hdrs[i] = tmp;
-		if (unlikely(tmp->ethernet.ether_type !=
+		if (unlikely(rte_pktmbuf_pkt_len(pkts[i]) <
+			     sizeof(struct headers) ||
+			     tmp->ethernet.ether_type !=
 			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
 			     tmp->ipv4.next_proto_id != 17 ||
 			     tmp->udp.dst_port != udp_dst_port_be ||
