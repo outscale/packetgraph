@@ -22,7 +22,7 @@ split on demand to be run on different core or even merged.
 
 If you want a graphical representation of a graph, you can generate a [dot](https://en.wikipedia.org/wiki/DOT_%28graph_description_language%29) output.
 
-![packetgraph features](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_features.svg "packetgraph features")
+![packetgraph features](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_features.png "packetgraph features")
 
 # Available bricks (ipv4/ipv6):
 
@@ -45,7 +45,7 @@ A lot of other bricks can be created, check our [wall](https://github.com/outsca
 
 # How should I use packetgraph ?
 
-![packetgraph usage flow](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_flow.svg "packetgraph usage flow")
+![packetgraph usage flow](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_flow.png "packetgraph usage flow")
 
 # Examples
 
