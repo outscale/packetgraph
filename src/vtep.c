@@ -877,15 +877,24 @@ static void multicast_unsubscribe(struct vtep_state *state,
 
 #undef UINT64_TO_MAC
 
-static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
+static int do_add_vni(struct vtep_state *state, uint16_t edge_index,
 		       int32_t vni, uint32_t multicast_ip,
 		       struct pg_error **errp)
 {
 	struct vtep_port *port = &state->ports[edge_index];
 
-	/* TODO: return 1 ? */
-	g_assert(!port->vni);
-	g_assert(!port->multicast_ip);
+	if (unlikely(!port)) {
+		*errp = pg_error_new("bad vtep internal port provided");
+		return -1;
+	}
+	if (unlikely(port->vni)) {
+		*errp = pg_error_new("port already attached to a vni");
+		return -1;
+	}
+	if (unlikely(port->multicast_ip)) {
+		*errp = pg_error_new("port alread have a mutlicast IP");
+		return -1;
+	}
 	/* vni is on the first 24 bits */
 	vni = rte_cpu_to_be_32(vni << 8);
 
@@ -896,6 +905,7 @@ static void do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	g_assert(!pg_mac_table_init(&port->known_mac));
 
 	multicast_subscribe(state, port, multicast_ip, errp);
+	return 0;
 }
 
 int pg_vtep_add_vni(struct pg_brick *brick,
@@ -944,8 +954,7 @@ int pg_vtep_add_vni(struct pg_brick *brick,
 		return -1;
 	}
 
-	do_add_vni(state, i, vni, multicast_ip, errp);
-	if (pg_error_is_set(errp))
+	if (do_add_vni(state, i, vni, multicast_ip, errp) < 0)
 		return -1;
 	do_add_mac(&state->ports[i], &mac);
 	return 0;
