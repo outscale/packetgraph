@@ -488,7 +488,7 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 		pkt_addr = rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
 		ether_addr_copy(&hdrs[i]->ethernet.s_addr, &dst.mac);
 		dst.ip = hdrs[i]->ipv4.src_addr;
-		memcpy(tmp.bytes, &pkt_addr->s_addr.addr_bytes, 6);
+		rte_memcpy(tmp.bytes, &pkt_addr->s_addr.addr_bytes, 6);
 		pg_mac_table_elem_set(&port->mac_to_dst, tmp, &dst,
 				      sizeof(struct dest_addresses));
 	}
