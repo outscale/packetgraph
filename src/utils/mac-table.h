@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <rte_memcpy.h>
 #include "utils/mac.h"
 #include "utils/bitmask.h"
 
@@ -122,8 +123,8 @@ static inline void pg_mac_table_elem_set(struct pg_mac_table *ma,
 		return;
 
 	pg_mac_table_mask_set(*ma->elems[part1], part2);
-	memcpy(ma->elems[part1]->entries + (part2 * elem_size),
-	       entry, elem_size);
+	rte_memcpy(ma->elems[part1]->entries + (part2 * elem_size),
+		   entry, elem_size);
 }
 
 static inline void pg_mac_table_ptr_set(struct pg_mac_table *ma,

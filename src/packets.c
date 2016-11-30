@@ -22,6 +22,7 @@
 #include <rte_udp.h>
 #include <rte_ip.h>
 #include <rte_ether.h>
+#include <rte_memcpy.h>
 
 #include <glib.h>
 #include <string.h>
@@ -67,7 +68,7 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], len);		\
 		if (!tmp)					\
 			return NULL;				\
-		memcpy(tmp, buf, len);				\
+		rte_memcpy(tmp, buf, len);				\
 	}
 
 struct rte_mbuf **pg_packets_append_buf(struct rte_mbuf **pkts,
@@ -140,7 +141,7 @@ struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(ip_hdr));	\
 		if (!tmp)						\
 			return NULL;					\
-		memcpy(tmp, &ip_hdr, sizeof(ip_hdr));			\
+		rte_memcpy(tmp, &ip_hdr, sizeof(ip_hdr));		\
 		pkts[j]->l3_len = sizeof(struct ipv4_hdr);		\
 	}								\
 
@@ -219,7 +220,7 @@ struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(vx_hdr));	\
 		if (!tmp)						\
 			return NULL;					\
-		memcpy(tmp, &vx_hdr, sizeof(vx_hdr));			\
+		rte_memcpy(tmp, &vx_hdr, sizeof(vx_hdr));		\
 	}								\
 
 struct rte_mbuf **pg_packets_append_vxlan(struct rte_mbuf **pkts,
@@ -255,7 +256,7 @@ struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(eth_hdr));	\
 		if (!tmp)						\
 			return NULL;					\
-		memcpy(tmp, &eth_hdr, sizeof(eth_hdr));			\
+		rte_memcpy(tmp, &eth_hdr, sizeof(eth_hdr));		\
 		pkts[j]->l2_len = sizeof(struct ether_hdr);		\
 	}								\
 

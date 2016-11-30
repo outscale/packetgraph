@@ -21,6 +21,7 @@
 #include <rte_ip.h>
 #include <rte_ip_frag.h>
 #include <rte_ether.h>
+#include <rte_memcpy.h>
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "packets.h"
@@ -88,8 +89,8 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 
 	rte_pktmbuf_prepend(pkt, l2_size);
 	PG_FOREACH_BIT(mask, i) {
-		memcpy(rte_pktmbuf_prepend(pkts_out[i],
-					   l2_size),
+		rte_memcpy(rte_pktmbuf_prepend(pkts_out[i],
+					       l2_size),
 		       &eth, l2_size);
 		pkts_out[i]->l2_len = l2_size;
 		pkts_out[i]->udata64 |= PG_FRAGMENTED_MBUF;

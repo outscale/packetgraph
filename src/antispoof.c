@@ -18,6 +18,7 @@
 #include <rte_config.h>
 #include <rte_ether.h>
 #include <rte_ip.h>
+#include <rte_memcpy.h>
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
 #include "utils/bitmask.h"
@@ -178,7 +179,7 @@ static int antispoof_init(struct pg_brick *brick,
 	antispoof_config = (struct pg_antispoof_config *) config->brick_config;
 	brick->burst = antispoof_burst;
 	state->outside = antispoof_config->outside;
-	memcpy(&state->mac, &antispoof_config->mac, ETHER_ADDR_LEN);
+	rte_memcpy(&state->mac, &antispoof_config->mac, ETHER_ADDR_LEN);
 	state->ip = 0;
 
 	/* let's start the pre-build of ARP anti-spoof */
@@ -186,7 +187,7 @@ static int antispoof_init(struct pg_brick *brick,
 	state->arp_packet.ar_pro = htobe16(ETHER_TYPE_IPv4);
 	state->arp_packet.ar_hln = ETHER_ADDR_LEN;
 	state->arp_packet.ar_pln = 4;
-	memcpy(&state->arp_packet.sender_mac, &state->mac, ETHER_ADDR_LEN);
+	rte_memcpy(&state->arp_packet.sender_mac, &state->mac, ETHER_ADDR_LEN);
 
 	if (pg_error_is_set(errp))
 		return -1;
