@@ -20,6 +20,7 @@
 #include <glib/gstdio.h>
 #include <rte_config.h>
 #include <rte_ether.h>
+#include <rte_memcpy.h>
 #include <packetgraph/packetgraph.h>
 #include "utils/bench.h"
 #include "utils/bitmask.h"
@@ -166,7 +167,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	result->pkts_average_size /= bench->pkts_nb;
 
 	/* Let's run ! */
-	memcpy(&bl, bench, sizeof(struct pg_bench));
+	rte_memcpy(&bl, bench, sizeof(struct pg_bench));
 	gettimeofday(&result->date_start, NULL);
 	for (i = 0; i < bl.max_burst_cnt; i++) {
 		/* Burst packets. */
@@ -186,7 +187,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 			bl.post_burst_op(bench);
 	}
 	gettimeofday(&result->date_end, NULL);
-	memcpy(bench, &bl, sizeof(struct pg_bench));
+	rte_memcpy(bench, &bl, sizeof(struct pg_bench));
 	result->pkts_sent = bench->max_burst_cnt * bench->pkts_nb;
 	result->burst_cnt = bench->max_burst_cnt;
 	result->pkts_burst = pkts_burst;

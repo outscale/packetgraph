@@ -26,6 +26,7 @@
 #include <rte_config.h>
 #include <rte_ethdev.h>
 #include <rte_cycles.h>
+#include <rte_memcpy.h>
 
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
@@ -63,7 +64,7 @@ int pg_tap_get_mac(struct pg_brick *tap, struct ether_addr *addr)
 	fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (ioctl(fd, SIOCGIFHWADDR, &i) < 0)
 		return -1;
-	memcpy(addr, i.ifr_addr.sa_data, 6);
+	rte_memcpy(addr, i.ifr_addr.sa_data, 6);
 	return 0;
 }
 
