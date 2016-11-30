@@ -133,10 +133,4 @@ void pg_packets_forget(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
 void pg_packets_prefetch(struct rte_mbuf **pkts, uint64_t pkts_mask);
 
-int pg_packets_prepare_hash_keys(struct rte_mbuf **pkts,
-				 uint64_t pkts_mask,
-				 struct pg_error **errp);
-
-void pg_packets_clear_hash_keys(struct rte_mbuf **pkts, uint64_t pkts_mask);
-
 #endif /* _PG_PACKETS_H */
