@@ -25,6 +25,15 @@
 #define PG_MBUF_CACHE_SIZE 250
 #define PG_MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 
-struct rte_mempool *pg_get_mempool(void);
+extern struct rte_mempool *mp;
+
+void pg_alloc_mempool(void);
+
+static inline struct rte_mempool *pg_get_mempool(void)
+{
+	if (unlikely(!mp))
+		pg_alloc_mempool();
+	return mp;
+}
 
 #endif /* _PG_UTILS_MEMPOOL_H */
