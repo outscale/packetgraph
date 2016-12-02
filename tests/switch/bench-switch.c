@@ -32,7 +32,8 @@
 
 void test_benchmark_switch(int argc, char **argv);
 
-void test_benchmark_switch(int argc, char **argv)
+static void test_switch_benchmarks(int argc, char **argv, int west_max,
+				     int east_max, const char *title)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *sw;
@@ -42,9 +43,9 @@ void test_benchmark_switch(int argc, char **argv)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	uint32_t len;
 
-	sw = pg_switch_new("switch", 20, 20, PG_DEFAULT_SIDE, &error);
+	sw = pg_switch_new("switch", west_max, east_max, PG_DEFAULT_SIDE, &error);
 	g_assert(!error);
-	g_assert(!pg_bench_init(&bench, "switch", argc, argv, &error));
+	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	bench.input_brick = sw;
 	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = sw;
@@ -78,4 +79,14 @@ void test_benchmark_switch(int argc, char **argv)
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(sw);
 }
-
+void test_benchmark_switch(int argc, char **argv) 
+{
+	test_switch_benchmarks(argc, argv, 20, 20,
+			       "switch : 20 edges at each sides");
+	test_switch_benchmarks(argc, argv, 10000, 20,
+			       "switch : 10000 edge at WEST and 20 at EAST");
+	test_switch_benchmarks(argc, argv, 20, 10000,
+			       "switch : 20 edge at WEST and 10000 at EAST");
+	test_switch_benchmarks(argc, argv, 10000, 10000,
+			       "switch : 10000 edges at each sides");
+}
