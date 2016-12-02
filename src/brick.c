@@ -559,6 +559,10 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 	if (pg_error_is_set(errp))
 		return;
 
+	unlink_notify(pair_edge, pg_flip_side(side), errp);
+	if (pg_error_is_set(errp))
+		return;
+
 	pg_brick_decref(brick, errp);
 
 	if (pg_error_is_set(errp))
@@ -781,10 +785,6 @@ int pg_brick_unlink_edge(struct pg_brick *west,
 		return -1;
 	}
 
-	/* self-unlink notify and unlink edge only */
-	unlink_notify(west_edge, EAST_SIDE, error);
-	if (pg_error_is_set(error))
-		return -1;
 	do_unlink(west, EAST_SIDE, west_index, error);
 	if (pg_error_is_set(error))
 		return -1;
