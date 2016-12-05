@@ -20,9 +20,9 @@
 #include <rte_mbuf.h>
 #include "utils/mempool.h"
 
-static struct rte_mempool *mp;
+struct rte_mempool *mp;
 
-static void pg_alloc_mempool(void)
+void pg_alloc_mempool(void)
 {
 	mp = rte_mempool_create("pg_mempool", PG_NUM_MBUFS, PG_MBUF_SIZE,
 				PG_MBUF_CACHE_SIZE,
@@ -33,9 +33,3 @@ static void pg_alloc_mempool(void)
 	g_assert(mp);
 }
 
-struct rte_mempool *pg_get_mempool(void)
-{
-	if (!mp)
-		pg_alloc_mempool();
-	return mp;
-}

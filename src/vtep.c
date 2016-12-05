@@ -325,12 +325,12 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 	full_header = (struct full_header *)rte_pktmbuf_prepend(pkt,
 								HEADERS_LENGTH);
-	headers = &full_header->outer;
-
-	if (unlikely(!headers)) {
+	if (unlikely(!full_header)) {
 		*errp = pg_error_new("No enough headroom to add VTEP headers");
 		return -1;
 	}
+
+	headers = &full_header->outer;
 	vxlan_build(&headers->vxlan, port->vni);
 
 	/* select destination IP and MAC address */
@@ -420,12 +420,14 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 				unicast = 0;
 		}
 
-		if (unlikely(!(state->flags & PG_VTEP_NO_COPY)))
+		if (unlikely(!(state->flags & PG_VTEP_NO_COPY))) {
 			tmp = rte_pktmbuf_clone(pkt, mp);
-		else
+			if (unlikely(!tmp))
+				return -1;
+
+		} else {
 			tmp = pkt;
-		if (unlikely(!tmp))
-			return -1;
+		}
 
 		if (unlikely(vtep_header_prepend(state, tmp, port,
 						  entry, unicast, errp)) < 0) {
