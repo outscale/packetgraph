@@ -39,6 +39,8 @@ script:
  - ./../configure --with-benchmarks --with-examples
 
  - make
+
+ - make style
  
  - make tests-antispoof
  - make tests-core
@@ -69,8 +71,6 @@ script:
  - ./../tests/pmtud/test.sh
  - ./../tests/tap/test.sh
  - ./../tests/ip-fragment/test.sh
-
- - make style
 
  - ./../tests/antispoof/bench.sh
  - ./../tests/core/bench.sh
