@@ -69,7 +69,7 @@ static inline void flood(struct pg_switch_state *state,
 	for (i = 0; i < MAX_SIDE; i++) {
 		struct pg_switch_side *switch_side = &state->sides[i];
 
-		for (j = 0; j < state->brick.sides[i].max; j++)
+		for (j = 0; j < state->brick.sides[i].nb; j++)
 			switch_side->masks[j] |= mask;
 	}
 }
@@ -118,7 +118,7 @@ static int forward_bursts(struct pg_switch_state *state,
 	/* never forward on source port */
 	switch_side->masks[source->edge_index] = 0;
 
-	for (j = 0; j < state->brick.sides[i].max; j++) {
+	for (j = 0; j < state->brick.sides[i].nb; j++) {
 		ret = forward(state, i, j, pkts, errp);
 
 		if (ret < 0)
@@ -126,7 +126,7 @@ static int forward_bursts(struct pg_switch_state *state,
 	}
 
 	i = pg_flip_side(i);
-	for (j = 0; j < state->brick.sides[i].max; j++) {
+	for (j = 0; j < state->brick.sides[i].nb; j++) {
 		ret = forward(state, i, j, pkts, errp);
 
 		if (ret < 0)
