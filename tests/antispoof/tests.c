@@ -67,10 +67,10 @@ static void test_antispoof_mac(void)
 	pg_scan_ether_addr(&inside_mac, "01:23:45:67:89:ab");
 
 	/* [generator>]--[antispoof]--[collector] */
-	gen_west = pg_packetsgen_new("gen_west", 1, 1, EAST_SIDE,
+	gen_west = pg_packetsgen_new("gen_west", 1, 1, PG_EAST_SIDE,
 				     &packet, 1, &error);
 	g_assert(!error);
-	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
+	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
@@ -115,10 +115,10 @@ static void test_antispoof_rarp(void)
 	pg_scan_ether_addr(&inside_mac, "00:23:df:ff:c9:23");
 
 	/* [generator>]--[antispoof]--[collector] */
-	gen_west = pg_packetsgen_new("gen_west", 1, 1, EAST_SIDE,
+	gen_west = pg_packetsgen_new("gen_west", 1, 1, PG_EAST_SIDE,
 				     &packet, 1, &error);
 	g_assert(!error);
-	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
+	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
@@ -162,10 +162,10 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	struct rte_mbuf **filtered_pkts;
 
 	/* [generator>]--[antispoof]--[collector] */
-	gen_west = pg_packetsgen_new("gen_west", 1, 1, EAST_SIDE,
+	gen_west = pg_packetsgen_new("gen_west", 1, 1, PG_EAST_SIDE,
 				     &packet, 1, &error);
 	g_assert(!error);
-	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
+	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
@@ -218,7 +218,7 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	pg_brick_unlink(antispoof, &error);
 	g_assert(!error);
 	pg_brick_destroy(antispoof);
-	antispoof = pg_antispoof_new("antispoof", WEST_SIDE,
+	antispoof = pg_antispoof_new("antispoof", PG_WEST_SIDE,
 				     &inside_mac, &error);
 	pg_antispoof_arp_enable(antispoof, inside_ip);
 	pg_brick_link(gen_west, antispoof, &error);
@@ -270,10 +270,10 @@ static void test_pg_antispoof_arp_disable(void)
 	inside_ip = htobe32(IPv4(0, 0, 0, 42));
 
 	/* [generator>]--[antispoof]--[collector] */
-	gen_west = pg_packetsgen_new("gen_west", 1, 1, EAST_SIDE,
+	gen_west = pg_packetsgen_new("gen_west", 1, 1, PG_EAST_SIDE,
 				     &packet, 1, &error);
 	g_assert(!error);
-	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
+	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &inside_mac, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
@@ -378,7 +378,7 @@ static void test_antispoof_empty_burst(void)
 	pg_scan_ether_addr(&eth, "00:18:b9:56:2e:73");
 	pg_scan_ether_addr(&inside_mac, "00:26:df:ff:c9:44");
 	
-	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
+	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &inside_mac, &error);
 	g_assert(!error);
 

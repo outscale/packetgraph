@@ -238,7 +238,7 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "antispoof-%d", id);
-	branch->antispoof = pg_antispoof_new(tmp->str, EAST_SIDE,
+	branch->antispoof = pg_antispoof_new(tmp->str, PG_EAST_SIDE,
 					     &mac, &error);
 	CHECK_ERROR(error);
 
@@ -322,7 +322,7 @@ static void test_graph_type1(void)
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
 	if (error) pg_error_print(error);
 	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", 50, WEST_SIDE,
+	vtep = pg_vtep_new("vt", 50, PG_WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
 			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
@@ -382,9 +382,9 @@ static void test_graph_type1(void)
 
 	/* Add firewall rule */
 	ASSERT(pg_firewall_rule_add(branch1.firewall, "icmp",
-				     MAX_SIDE, 1, &error) == 0);
+				     PG_MAX_SIDE, 1, &error) == 0);
 	ASSERT(pg_firewall_rule_add(branch2.firewall, "icmp",
-				     MAX_SIDE, 1, &error) == 0);
+				     PG_MAX_SIDE, 1, &error) == 0);
 
 	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) +
 		sizeof(struct vxlan_hdr) + sizeof(struct ether_hdr) +
@@ -411,10 +411,10 @@ static void test_graph_type1(void)
 	ASSERT(count);
 
 	/* Check all step of the transmition :) */
-	ASSERT(pg_brick_pkts_count_get(nic, WEST_SIDE));
-	ASSERT(pg_brick_pkts_count_get(vtep, EAST_SIDE));
-	ASSERT(pg_brick_pkts_count_get(branch1.firewall, EAST_SIDE));
-	ASSERT(pg_brick_pkts_count_get(branch1.vhost, EAST_SIDE));
+	ASSERT(pg_brick_pkts_count_get(nic, PG_WEST_SIDE));
+	ASSERT(pg_brick_pkts_count_get(vtep, PG_EAST_SIDE));
+	ASSERT(pg_brick_pkts_count_get(branch1.firewall, PG_EAST_SIDE));
+	ASSERT(pg_brick_pkts_count_get(branch1.vhost, PG_EAST_SIDE));
 
 	/* check the collect1 */
 	for (int i = 0; i < 10; i++) {
@@ -427,7 +427,7 @@ static void test_graph_type1(void)
 
 	CHECK_ERROR_ASSERT(error);
 	ASSERT(pg_brick_pkts_count_get(branch1.collect,
-				       EAST_SIDE));
+				       PG_EAST_SIDE));
 	ASSERT(count);
 	/* same with VNI 2 */
 	result_pkts = pg_brick_west_burst_get(branch1.collect, &pkts_mask,
@@ -477,7 +477,7 @@ static void test_graph_firewall_intense(void)
 
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
 	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", 50, WEST_SIDE,
+	vtep = pg_vtep_new("vt", 50, PG_WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
 			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
@@ -496,7 +496,7 @@ static void test_graph_firewall_intense(void)
 
 		/* Add firewall rule */
 		ASSERT(pg_firewall_rule_add(branch1.firewall, "icmp",
-					     MAX_SIDE, 1, &error) == 0);
+					     PG_MAX_SIDE, 1, &error) == 0);
 		rm_graph_branch(&branch1);
 	}
 
@@ -527,7 +527,7 @@ static void test_graph_firewall_intense_multiple(void)
 
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
 	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", PG_BRANCHES_NB, WEST_SIDE,
+	vtep = pg_vtep_new("vt", PG_BRANCHES_NB, PG_WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
 			   PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
@@ -547,7 +547,7 @@ static void test_graph_firewall_intense_multiple(void)
 
 			/* Add firewall rule */
 			ASSERT(pg_firewall_rule_add(branches[j].firewall, "icmp",
-						     MAX_SIDE, 1, &error) == 0);
+						     PG_MAX_SIDE, 1, &error) == 0);
 		}
 		for (int j = 0; j < PG_BRANCHES_NB; j++) {
 			rm_graph_branch(&branches[j]);

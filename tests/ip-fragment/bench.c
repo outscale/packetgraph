@@ -48,13 +48,13 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt,
 
 	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	ip_fragment = pg_ip_fragment_new("ip_fragment",
-					 EAST_SIDE, mtu, &error);
+					 PG_EAST_SIDE, mtu, &error);
 	g_assert(!error);
 
 	bench.input_brick = ip_fragment;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = ip_fragment;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = max_burst_cnt;
 	bench.count_brick = NULL;
@@ -103,7 +103,7 @@ static void test_benchmark_ip_defragment(int mtu, const char *title,
 
 	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	ip_fragment = pg_ip_fragment_new("ip_fragment",
-					 WEST_SIDE, mtu, &error);
+					 PG_WEST_SIDE, mtu, &error);
 	g_assert(!error);
 	collect = pg_collect_new("col_west", &error);
 	g_assert(!error);
@@ -136,9 +136,9 @@ static void test_benchmark_ip_defragment(int mtu, const char *title,
 	pg_packets_incref(bench.pkts, bench.pkts_mask ^ 1);
 
 	bench.input_brick = ip_fragment;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = ip_fragment;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 100000000;
 	bench.count_brick = NULL;
@@ -168,10 +168,10 @@ static void benchmark_ip_frag_and_defragment(int mtu, const char *title,
 
 	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	ip_fragment = pg_ip_fragment_new("ip_fragment",
-					 EAST_SIDE, mtu, &error);
+					 PG_EAST_SIDE, mtu, &error);
 
 	ip_reasemble = pg_ip_fragment_new("ip_reasemble",
-					  WEST_SIDE, mtu, &error);
+					  PG_WEST_SIDE, mtu, &error);
 
 	pg_brick_link(ip_fragment, ip_reasemble,  &error);
 	g_assert(!error);
@@ -199,9 +199,9 @@ static void benchmark_ip_frag_and_defragment(int mtu, const char *title,
 	bench.pkts = tmp_pkts;
 	bench.pkts_mask = tmp_mask;
 	bench.input_brick = ip_fragment;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = ip_reasemble;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 100000;
 	bench.count_brick = NULL;

@@ -109,7 +109,7 @@ struct pg_brick {
 	 * and side by monopole bricks
 	 */
 	union {
-		struct pg_brick_side sides[MAX_SIDE];
+		struct pg_brick_side sides[PG_MAX_SIDE];
 		struct pg_brick_side side;
 	};
 };
@@ -282,7 +282,7 @@ pg_brick_edge_iterator_next(struct pg_brick_edge_iterator *it)
 		it->side += 1;
 		it->edge = 0;
 	}
-	if (it->side == MAX_SIDE) {
+	if (it->side == PG_MAX_SIDE) {
 		it->end = true;
 		return;
 	}

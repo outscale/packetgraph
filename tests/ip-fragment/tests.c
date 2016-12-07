@@ -60,7 +60,7 @@ static void test_fragment(void)
 				1600 - sizeof(struct ipv4_hdr) -
 				sizeof(struct ether_hdr));
 
-	frag = pg_ip_fragment_new("headshoot !", EAST_SIDE, 432, &error);
+	frag = pg_ip_fragment_new("headshoot !", PG_EAST_SIDE, 432, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
@@ -78,7 +78,7 @@ static void test_fragment(void)
 		tmp_pkts = pg_brick_west_burst_get(col_east, &mask, &error);
 		g_assert(!error);
 		g_assert(pg_mask_count(mask) == 4);
-		g_assert(pg_brick_pkts_count_get(col_east, EAST_SIDE) ==
+		g_assert(pg_brick_pkts_count_get(col_east, PG_EAST_SIDE) ==
 			 16 * 4 * (i + 1));
 		PG_FOREACH_BIT(mask, i) {
 			pkt_buf = rte_pktmbuf_mtod(tmp_pkts[i],

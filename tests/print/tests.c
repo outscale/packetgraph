@@ -95,7 +95,7 @@ static void test_print_simple(void)
 	uint64_t pkts_mask;
 
 	build_packets(packets);
-	gen = pg_packetsgen_new("gen", 1, 1, EAST_SIDE, packets, NB_PKTS,
+	gen = pg_packetsgen_new("gen", 1, 1, PG_EAST_SIDE, packets, NB_PKTS,
 				&error);
 	g_assert(!error);
 	print = pg_print_new("My print", NULL, PG_PRINT_FLAG_MAX, NULL,
@@ -143,7 +143,7 @@ static void test_print_pcap(void)
 
 	g_assert(output);
 	build_packets(packets);
-	gen = pg_packetsgen_new("gen", 1, 1, EAST_SIDE, packets, NB_PKTS,
+	gen = pg_packetsgen_new("gen", 1, 1, PG_EAST_SIDE, packets, NB_PKTS,
 				&error);
 	g_assert(!error);
 	print = pg_print_new("My print", output, PG_PRINT_FLAG_PCAP, NULL,

@@ -36,13 +36,13 @@ static void test_benchmark_pmtud(int argc, char **argv)
 	struct pg_bench_stats stats;
 
 	g_assert(!pg_bench_init(&bench, "pmtud", argc, argv, &error));
-	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 1500, &error);
+	pmtud = pg_pmtud_new("pmtud", PG_WEST_SIDE, 1500, &error);
 	g_assert(!error);
 
 	bench.input_brick = pmtud;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = pmtud;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 10000000;
 	bench.count_brick = NULL;

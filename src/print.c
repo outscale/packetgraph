@@ -159,7 +159,7 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 			continue;
 
 		if (flags & PG_PRINT_FLAG_BRICK) {
-			if (from == WEST_SIDE)
+			if (from == PG_WEST_SIDE)
 				fprintf(o, "-->[%s]", brick->name);
 			else
 				fprintf(o, "[%s]<--", brick->name);

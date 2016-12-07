@@ -47,15 +47,15 @@ void test_benchmark_firewall(int argc, char **argv)
 	g_assert(!pg_bench_init(&bench, "firewall", argc, argv, &error));
 	fw = pg_firewall_new("firewall", 0, &error);
 	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.0.1",
-				       WEST_SIDE, 0, &error));
+				       PG_WEST_SIDE, 0, &error));
 	g_assert(!error);
 	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 
 	bench.input_brick = fw;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = fw;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 1000000;
 	bench.count_brick = NULL;

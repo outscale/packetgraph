@@ -43,13 +43,13 @@ void test_benchmark_diode(int argc, char **argv)
 	uint32_t len;
 
 	g_assert(!pg_bench_init(&bench, "diode", argc, argv, &error));
-	diode = pg_diode_new("diode", EAST_SIDE, &error);
+	diode = pg_diode_new("diode", PG_EAST_SIDE, &error);
 	g_assert(!error);
 
 	bench.input_brick = diode;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = diode;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 10000000;
 	bench.count_brick = NULL;

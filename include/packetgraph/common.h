@@ -19,9 +19,9 @@
 #define _PG_COMMON_H
 
 enum pg_side {
-	WEST_SIDE = 0,
-	EAST_SIDE = 1,
-	MAX_SIDE  = 2
+	PG_WEST_SIDE = 0,
+	PG_EAST_SIDE = 1,
+	PG_MAX_SIDE  = 2
 };
 
 enum pg_mbuf_metaflag {
@@ -30,20 +30,20 @@ enum pg_mbuf_metaflag {
 
 static inline const char *pg_side_to_string(enum pg_side side)
 {
-	static const char * const sides[] = {"WEST_SIDE",
-					     "EAST_SIDE",
-					     "MAX_SIDE"};
+	static const char * const sides[] = {"PG_WEST_SIDE",
+					     "PG_EAST_SIDE",
+					     "PG_MAX_SIDE"};
 
 	return sides[side];
 }
 
-#define DEFAULT_SIDE WEST_SIDE
+#define PG_DEFAULT_SIDE PG_WEST_SIDE
 
 /* do not change this */
 #define PG_MAX_PKTS_BURST	64
 
 /**
- * Revert side: WEST_SIDE become EAST_SIDE and vice versa.
+ * Revert side: PG_WEST_SIDE become PG_EAST_SIDE and vice versa.
  */
 static inline enum pg_side pg_flip_side(enum pg_side side)
 {

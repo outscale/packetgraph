@@ -39,7 +39,6 @@ struct pg_address_source {
 	enum pg_side from;	/* side of the switch the packet came from */
 };
 
-/* structure used to describe a side (EAST_SIDE/WEST_SIDE) of the switch */
 struct pg_switch_side {
 	struct pg_address_source *sources;
 	uint64_t *masks;	/* outgoing packet masks (one per port) */
@@ -49,7 +48,8 @@ struct pg_switch_state {
 	struct pg_brick brick;
 	struct pg_mac_table table;
 	enum pg_side output;
-	struct pg_switch_side sides[MAX_SIDE];	/* sides of the switch */
+	/* sides of the switch */
+	struct pg_switch_side sides[PG_MAX_SIDE];
 };
 
 struct pg_switch_config {
@@ -66,7 +66,7 @@ static inline void flood(struct pg_switch_state *state,
 	if (!mask)
 		return;
 
-	for (i = 0; i < MAX_SIDE; i++) {
+	for (i = 0; i < PG_MAX_SIDE; i++) {
 		struct pg_switch_side *switch_side = &state->sides[i];
 
 		for (j = 0; j < state->brick.sides[i].max; j++)
@@ -78,7 +78,7 @@ static inline void zero_masks(struct pg_switch_state *state)
 {
 	enum pg_side i;
 
-	for (i = 0; i < MAX_SIDE; i++)
+	for (i = 0; i < PG_MAX_SIDE; i++)
 		memset(state->sides[i].masks, 0,
 		       state->brick.sides[i].max * sizeof(uint64_t));
 }
@@ -274,7 +274,7 @@ static int switch_init(struct pg_brick *brick,
 		return -1;
 	}
 
-	for (i = 0; i < MAX_SIDE; i++) {
+	for (i = 0; i < PG_MAX_SIDE; i++) {
 		uint16_t max = brick->sides[i].max;
 
 		state->sides[i].masks	= g_new0(uint64_t, max);
@@ -321,7 +321,7 @@ static void switch_destroy(struct pg_brick *brick, struct pg_error **errp)
 		pg_brick_get_state(brick, struct pg_switch_state);
 	enum pg_side i;
 
-	for (i = 0; i < MAX_SIDE; i++) {
+	for (i = 0; i < PG_MAX_SIDE; i++) {
 		g_free(state->sides[i].masks);
 		g_free(state->sides[i].sources);
 	}

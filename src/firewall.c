@@ -27,7 +27,7 @@
 #include "src/npf/npf/dpdk/npf_dpdk.h"
 
 #define FIREWALL_SIDE_TO_NPF(side) \
-	((side) == WEST_SIDE ? PFIL_OUT : PFIL_IN)
+	((side) == PG_WEST_SIDE ? PFIL_OUT : PFIL_IN)
 
 #define NWORKERS 1
 
@@ -90,8 +90,8 @@ static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)
 static inline int firewall_side_to_npf_rule(enum pg_side side)
 {
 	switch (side) {
-	case WEST_SIDE: return NPF_RULE_OUT;
-	case EAST_SIDE: return NPF_RULE_IN;
+	case PG_WEST_SIDE: return NPF_RULE_OUT;
+	case PG_EAST_SIDE: return NPF_RULE_IN;
 	default: return NPF_RULE_OUT | NPF_RULE_IN;
 	}
 }

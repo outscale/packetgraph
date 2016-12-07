@@ -187,7 +187,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 
 	/* revert link if needed */
-	if (dir == WEST_SIDE) {
+	if (dir == PG_WEST_SIDE) {
 		pg_brick_chained_links(&error, gen, fw, col);
 		g_assert(!error);
 	} else {
@@ -225,7 +225,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	/* check collect brick */
-	if (dir == WEST_SIDE) {
+	if (dir == PG_WEST_SIDE) {
 		filtered_pkts = pg_brick_west_burst_get(col,
 							&filtered_pkts_mask,
 							&error);
@@ -261,7 +261,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	/* check collect brick */
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -297,7 +297,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	/* check collect brick */
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -320,7 +320,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	/* check collect brick */
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -354,7 +354,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	/* check collect brick */
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -393,7 +393,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	/* check collect brick */
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -405,7 +405,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	/* flush and allow packets from both sides */
 	pg_firewall_rule_flush(fw);
 	g_assert(!pg_firewall_rule_add(fw, "src host (10.0.0.1)",
-				       MAX_SIDE, 0, &error));
+				       PG_MAX_SIDE, 0, &error));
 	g_assert(!error);
 	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
@@ -415,7 +415,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(packet_count == nb);
 
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -437,7 +437,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	/* inverse generator and collector to test both sides */
 	pg_brick_unlink(fw, &error);
 	g_assert(!error);
-	if (dir == WEST_SIDE) {
+	if (dir == PG_WEST_SIDE) {
 		pg_brick_link(col, fw, &error);
 		g_assert(!error);
 		pg_brick_link(fw, gen, &error);
@@ -454,7 +454,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 	g_assert(packet_count == nb);
 
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -500,10 +500,10 @@ static void firewall_replay(const unsigned char *pkts[],
 	 * 10.0.2.15                                         173.194.40.111
 	 * 8:0:27:b6:5:16                                   52:54:0:12:35:2
 	 */
-	gen_west = pg_packetsgen_new("gen_west", 1, 1, EAST_SIDE, &packet, 1,
+	gen_west = pg_packetsgen_new("gen_west", 1, 1, PG_EAST_SIDE, &packet, 1,
 				  &error);
 	g_assert(!error);
-	gen_east = pg_packetsgen_new("gen_east", 1, 1, WEST_SIDE, &packet, 1,
+	gen_east = pg_packetsgen_new("gen_east", 1, 1, PG_WEST_SIDE, &packet, 1,
 				  &error);
 	g_assert(!error);
 	fw = pg_firewall_new("fw", PG_NONE, &error);
@@ -525,7 +525,7 @@ static void firewall_replay(const unsigned char *pkts[],
 	 * returning traffic should be allowed due to STATEFUL option
 	 */
 	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.2.15",
-				       WEST_SIDE, 1, &error));
+				       PG_WEST_SIDE, 1, &error));
 	g_assert(!error);
 	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
@@ -586,7 +586,7 @@ static void firewall_replay(const unsigned char *pkts[],
 		rte_pktmbuf_free(packet);
 		/* ensure that connexion is tracked even when reloading */
 		g_assert(!pg_firewall_rule_add(fw, "src host 6.6.6.6",
-					       WEST_SIDE, 0, &error));
+					       PG_WEST_SIDE, 0, &error));
 		g_assert(!error);
 		g_assert(!pg_firewall_reload(fw, &error));
 		g_assert(!error);
@@ -620,7 +620,7 @@ static void firewall_noip(enum pg_side dir)
 	col = pg_collect_new("col", &error);
 	g_assert(!error);
 	/* revert link if needed */
-	if (dir == WEST_SIDE) {
+	if (dir == PG_WEST_SIDE) {
 		pg_brick_link(gen, fw, &error);
 		g_assert(!error);
 		pg_brick_link(fw, col, &error);
@@ -642,7 +642,7 @@ static void firewall_noip(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	/* check collect brick */
-	if (dir == WEST_SIDE)
+	if (dir == PG_WEST_SIDE)
 		pg_brick_west_burst_get(col, &filtered_pkts_mask,
 						     &error);
 	else
@@ -661,8 +661,8 @@ static void firewall_noip(enum pg_side dir)
 
 static void test_firewall_filter(void)
 {
-	firewall_filter_rules(WEST_SIDE);
-	firewall_filter_rules(EAST_SIDE);
+	firewall_filter_rules(PG_WEST_SIDE);
+	firewall_filter_rules(PG_EAST_SIDE);
 }
 
 static void test_firewall_tcp(void)
@@ -687,8 +687,8 @@ static void test_firewall_icmp(void)
 
 static void test_firewall_noip(void)
 {
-	firewall_noip(WEST_SIDE);
-	firewall_noip(EAST_SIDE);
+	firewall_noip(PG_WEST_SIDE);
+	firewall_noip(PG_EAST_SIDE);
 }
 
 static void test_firewall_rules(void)
@@ -715,7 +715,7 @@ static void test_firewall_rules(void)
 	};
 
 	for (int i = 0; r[i]; i++) {
-		g_assert(!pg_firewall_rule_add(fw, r[i], WEST_SIDE, 0, &error));
+		g_assert(!pg_firewall_rule_add(fw, r[i], PG_WEST_SIDE, 0, &error));
 		g_assert(!pg_firewall_reload(fw, &error));
 		g_assert(!error);
 		pg_firewall_rule_flush(fw);

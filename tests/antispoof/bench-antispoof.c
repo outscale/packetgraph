@@ -43,15 +43,15 @@ void test_benchmark_antispoof(int argc, char **argv)
 	uint32_t len;
 
 	g_assert(!pg_bench_init(&bench, "antispoof", argc, argv, &error));
-	antispoof = pg_antispoof_new("antispoof", EAST_SIDE,
+	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &mac1, &error);
 	g_assert(!error);
 	pg_antispoof_arp_enable(antispoof, 0x000000EE);
 
 	bench.input_brick = antispoof;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = antispoof;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 10000000;
 	bench.count_brick = NULL;

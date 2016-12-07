@@ -68,14 +68,14 @@ static void test_brick_flow_west(void)
 	g_assert(!error);
 
 	/* check pkts counter */
-	g_assert(pg_brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(collect_east, EAST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(collect_west, WEST_SIDE) == 3);
-	g_assert(pg_brick_pkts_count_get(collect_west, EAST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(brick1, WEST_SIDE) == 3);
-	g_assert(pg_brick_pkts_count_get(brick1, EAST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(brick2, WEST_SIDE) == 3);
-	g_assert(pg_brick_pkts_count_get(brick2, EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_east, PG_WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_east, PG_EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_west, PG_WEST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(collect_west, PG_EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick1, PG_WEST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(brick1, PG_EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick2, PG_WEST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(brick2, PG_EAST_SIDE) == 0);
 
 	/* check no packet ended on the east */
 	result_pkts = pg_brick_west_burst_get(collect_east, &pkts_mask, &error);
@@ -166,14 +166,14 @@ static void test_brick_flow_east(void)
 	g_assert(!error);
 
 	/* check pkts counter */
-	g_assert(pg_brick_pkts_count_get(collect_east, WEST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(collect_east, EAST_SIDE) == 3);
-	g_assert(pg_brick_pkts_count_get(collect_west, WEST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(collect_west, EAST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(brick1, WEST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(brick1, EAST_SIDE) == 3);
-	g_assert(pg_brick_pkts_count_get(brick2, WEST_SIDE) == 0);
-	g_assert(pg_brick_pkts_count_get(brick2, EAST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(collect_east, PG_WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_east, PG_EAST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(collect_west, PG_WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(collect_west, PG_EAST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick1, PG_WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick1, PG_EAST_SIDE) == 3);
+	g_assert(pg_brick_pkts_count_get(brick2, PG_WEST_SIDE) == 0);
+	g_assert(pg_brick_pkts_count_get(brick2, PG_EAST_SIDE) == 3);
 
 
 	/* check no packet ended on the west */

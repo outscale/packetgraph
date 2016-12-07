@@ -609,16 +609,16 @@ static int test_side_sanity_check(struct pg_brick_side *side,
 
 static void test_brick_sanity_check(struct pg_brick *brick)
 {
-	test_side_sanity_check(&brick->sides[WEST_SIDE], brick->type);
-	test_side_sanity_check(&brick->sides[EAST_SIDE], brick->type);
+	test_side_sanity_check(&brick->sides[PG_WEST_SIDE], brick->type);
+	test_side_sanity_check(&brick->sides[PG_EAST_SIDE], brick->type);
 }
 
 static void test_brick_sanity_check_expected(struct pg_brick *brick,
 					     int west, int east)
 {
-	g_assert(test_side_sanity_check(&brick->sides[WEST_SIDE], brick->type)
+	g_assert(test_side_sanity_check(&brick->sides[PG_WEST_SIDE], brick->type)
 		 == west);
-	g_assert(test_side_sanity_check(&brick->sides[EAST_SIDE], brick->type)
+	g_assert(test_side_sanity_check(&brick->sides[PG_EAST_SIDE], brick->type)
 		 == east);
 }
 

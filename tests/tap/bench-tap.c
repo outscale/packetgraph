@@ -70,9 +70,9 @@ void test_benchmark_tap(int argc, char **argv)
 
 	g_assert(!pg_bench_init(&bench, "tap", argc, argv, &error));
 	bench.input_brick = tap_enter;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = tap_exit;
-	bench.output_side = WEST_SIDE;
+	bench.output_side = PG_WEST_SIDE;
 	bench.output_poll = true;
 	bench.max_burst_cnt = 100000;
 	bench.count_brick = NULL;

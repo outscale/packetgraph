@@ -97,9 +97,9 @@ void test_benchmark_vhost(char *vm_image_path,
 #	undef SSH
 
 	bench.input_brick = vhost_enter;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = vhost_exit;
-	bench.output_side = WEST_SIDE;
+	bench.output_side = PG_WEST_SIDE;
 	bench.output_poll = true;
 	bench.max_burst_cnt = 20000000;
 	bench.count_brick = NULL;
