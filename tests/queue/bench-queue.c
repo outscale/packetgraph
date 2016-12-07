@@ -64,9 +64,9 @@ void test_benchmark_queue(int argc, char **argv)
 
 	g_assert(!pg_bench_init(&bench, "queue", argc, argv, &error));
 	bench.input_brick = queue_enter;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = queue_exit;
-	bench.output_side = WEST_SIDE;
+	bench.output_side = PG_WEST_SIDE;
 	bench.output_poll = true;
 	bench.max_burst_cnt = 1000000;
 	bench.count_brick = NULL;

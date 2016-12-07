@@ -45,7 +45,7 @@ static int alloc_edges(struct pg_brick *brick, struct pg_error **errp)
 	enum pg_side i;
 	bool is_other_side_empty = false;
 
-	for (i = 0; i < MAX_SIDE; i++) {
+	for (i = 0; i < PG_MAX_SIDE; i++) {
 		struct pg_brick_side *side = &brick->sides[i];
 
 		/* All sides has been g_malloc0 so having a side with 0 edge
@@ -83,15 +83,15 @@ static void pg_brick_set_max_edges(struct pg_brick *brick,
 				   uint16_t west_edges,
 				   uint16_t east_edges)
 {
-	brick->sides[WEST_SIDE].max = west_edges;
-	brick->sides[EAST_SIDE].max = east_edges;
+	brick->sides[PG_WEST_SIDE].max = west_edges;
+	brick->sides[PG_EAST_SIDE].max = east_edges;
 }
 
 static void zero_brick_counters(struct pg_brick *brick)
 {
 	enum pg_side i;
 
-	for (i = 0; i < MAX_SIDE; ++i)
+	for (i = 0; i < PG_MAX_SIDE; ++i)
 		rte_atomic64_set(&brick->sides[i].packet_count, 0);
 }
 
@@ -107,7 +107,7 @@ static int check_side_max(struct pg_brick_config *config,
 	if (config->type == PG_MULTIPOLE && overedge) {
 
 		enum pg_side faulte = config->west_max >= UINT16_MAX ?
-			WEST_SIDE : EAST_SIDE;
+			PG_WEST_SIDE : PG_EAST_SIDE;
 
 		*errp = pg_error_new(
 			"A '%s' cannot have more than %d edge on %s",
@@ -255,7 +255,7 @@ struct pg_brick *pg_brick_decref(struct pg_brick *brick, struct pg_error **errp)
 		brick->ops->destroy(brick, errp);
 
 	if (brick->type == PG_MULTIPOLE) {
-		for (int i = 0; i < MAX_SIDE; i++)
+		for (int i = 0; i < PG_MAX_SIDE; i++)
 			g_free(brick->sides[i].edges);
 	}
 
@@ -333,11 +333,11 @@ uint32_t pg_brick_links_count_get(struct pg_brick *brick,
 	}
 
 	if (brick->type == PG_MULTIPOLE) {
-		for (i = 0; i < MAX_SIDE; i++)
+		for (i = 0; i < PG_MAX_SIDE; i++)
 			count += count_side(&brick->sides[i],
 					    target);
 	} else if (brick->type == PG_DIPOLE) {
-		for (i = 0; i < MAX_SIDE; i++) {
+		for (i = 0; i < PG_MAX_SIDE; i++) {
 			side = &brick->sides[i];
 			if (side->edge.link && side->edge.link == target)
 				++count;
@@ -454,27 +454,29 @@ int pg_brick_link(struct pg_brick *west,
 		return -1;
 	}
 	/* check if each sides have places */
-	if (!is_place_available(east, WEST_SIDE)) {
+	if (!is_place_available(east, PG_WEST_SIDE)) {
 		*errp = pg_error_new("%s:WEST side full", east->name);
 		return -1;
 	}
-	if (!is_place_available(west, EAST_SIDE)) {
+	if (!is_place_available(west, PG_EAST_SIDE)) {
 		*errp = pg_error_new("%s:EAST side full", west->name);
 		return -1;
 	}
 
 	/* insert and get pair index */
-	east_index = insert_link(east, west, WEST_SIDE);
+	east_index = insert_link(east, west, PG_WEST_SIDE);
 	if (east->ops->link_notify)
-		east->ops->link_notify(east, WEST_SIDE, east_index);
+		east->ops->link_notify(east, PG_WEST_SIDE, east_index);
 
-	west_index = insert_link(west, east, EAST_SIDE);
+	west_index = insert_link(west, east, PG_EAST_SIDE);
 	if (west->ops->link_notify)
-		west->ops->link_notify(west, EAST_SIDE, west_index);
+		west->ops->link_notify(west, PG_EAST_SIDE, west_index);
 
 	/* finish the pairing of the edge */
-	pg_brick_get_edge(east, WEST_SIDE, east_index)->pair_index = west_index;
-	pg_brick_get_edge(west, EAST_SIDE, west_index)->pair_index = east_index;
+	pg_brick_get_edge(east, PG_WEST_SIDE,
+			  east_index)->pair_index = west_index;
+	pg_brick_get_edge(west, PG_EAST_SIDE,
+			  west_index)->pair_index = east_index;
 
 	return 0;
 }
@@ -624,7 +626,7 @@ inline int pg_brick_burst_to_east(struct pg_brick *brick, uint16_t edge_index,
 				  struct rte_mbuf **pkts, uint64_t pkts_mask,
 				  struct pg_error **errp)
 {
-	return pg_brick_burst(brick, WEST_SIDE, edge_index,
+	return pg_brick_burst(brick, PG_WEST_SIDE, edge_index,
 			      pkts, pkts_mask, errp);
 }
 
@@ -632,7 +634,7 @@ inline int pg_brick_burst_to_west(struct pg_brick *brick, uint16_t edge_index,
 				  struct rte_mbuf **pkts, uint64_t pkts_mask,
 				  struct pg_error **errp)
 {
-	return pg_brick_burst(brick, EAST_SIDE, edge_index,
+	return pg_brick_burst(brick, PG_EAST_SIDE, edge_index,
 			      pkts, pkts_mask, errp);
 }
 
@@ -667,7 +669,7 @@ struct rte_mbuf **pg_brick_west_burst_get(struct pg_brick *brick,
 		return NULL;
 	}
 
-	return brick->ops->burst_get(brick, WEST_SIDE, pkts_mask);
+	return brick->ops->burst_get(brick, PG_WEST_SIDE, pkts_mask);
 }
 
 struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
@@ -684,7 +686,7 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 		return NULL;
 	}
 
-	return brick->ops->burst_get(brick, EAST_SIDE, pkts_mask);
+	return brick->ops->burst_get(brick, PG_EAST_SIDE, pkts_mask);
 }
 
 int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
@@ -761,7 +763,7 @@ int pg_brick_unlink_edge(struct pg_brick *west,
 		*error = pg_error_new("East brick is not valid");
 		return -1;
 	}
-	struct pg_brick_side *ws = get_side(west, EAST_SIDE);
+	struct pg_brick_side *ws = get_side(west, PG_EAST_SIDE);
 
 	if (!ws) {
 		*error = pg_error_new("West brick does not have east edge");
@@ -771,7 +773,7 @@ int pg_brick_unlink_edge(struct pg_brick *west,
 	west_max = ws->max;
 	for (i = 0; i < west_max; i++) {
 		struct pg_brick_edge *edge =
-			pg_brick_get_edge(west, EAST_SIDE, i);
+			pg_brick_get_edge(west, PG_EAST_SIDE, i);
 
 		if (edge->link == east) {
 			west_edge = edge;
@@ -785,7 +787,7 @@ int pg_brick_unlink_edge(struct pg_brick *west,
 		return -1;
 	}
 
-	do_unlink(west, EAST_SIDE, west_index, error);
+	do_unlink(west, PG_EAST_SIDE, west_index, error);
 	if (pg_error_is_set(error))
 		return -1;
 
@@ -802,10 +804,10 @@ static GList *pg_brick_dot_add(GList *todo, GList *done,
 	fprintf(fd, "  \"%s:%s\":%s -- \"%s:%s\":%s\n",
 		b->ops->name,
 		b->name,
-		(i == WEST_SIDE ? "west" : "east"),
+		(i == PG_WEST_SIDE ? "west" : "east"),
 		n->ops->name,
 		n->name,
-		(i == WEST_SIDE ? "east" : "west"));
+		(i == PG_WEST_SIDE ? "east" : "west"));
 	return todo;
 }
 
@@ -841,12 +843,12 @@ int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 			if (!n)
 				goto continue_while;
 			todo = pg_brick_dot_add(todo, done, b,
-						n, WEST_SIDE, fd);
+						n, PG_WEST_SIDE, fd);
 			goto continue_while;
 		}
 
 		/* populate all connected bricks */
-		for (i = 0; i < MAX_SIDE; i++)	{
+		for (i = 0; i < PG_MAX_SIDE; i++)	{
 			if (b->type == PG_DIPOLE) {
 				struct pg_brick *n = b->sides[i].edge.link;
 

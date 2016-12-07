@@ -825,7 +825,7 @@ struct pg_brick *pg_vtep_new(const char *name, uint32_t max,
 	uint32_t west_max;
 	uint32_t east_max;
 
-	if (output == WEST_SIDE) {
+	if (output == PG_WEST_SIDE) {
 		west_max = 1;
 		east_max = max;
 	} else {

@@ -47,9 +47,9 @@ void test_benchmark_nop(int argc, char **argv)
 	g_assert(!error);
 
 	bench.input_brick = nop;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = nop;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 10000000;
 	bench.count_brick = NULL;

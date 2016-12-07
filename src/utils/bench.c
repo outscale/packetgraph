@@ -126,7 +126,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 		count_brick = pg_nop_new("nop-bench", error);
 		if (*error)
 			return -1;
-		if (bench->output_side == WEST_SIDE)
+		if (bench->output_side == PG_WEST_SIDE)
 			pg_brick_link(count_brick, bench->output_brick, error);
 		else
 			pg_brick_link(bench->output_brick, count_brick, error);

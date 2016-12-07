@@ -30,8 +30,8 @@
 struct pg_collect_state {
 	struct pg_brick brick;
 	/* arrays of collected incoming packets */
-	struct rte_mbuf *pkts[MAX_SIDE][PG_MAX_PKTS_BURST];
-	uint64_t pkts_mask[MAX_SIDE];
+	struct rte_mbuf *pkts[PG_MAX_SIDE][PG_MAX_PKTS_BURST];
+	uint64_t pkts_mask[PG_MAX_SIDE];
 	enum pg_side output;
 };
 
@@ -111,7 +111,7 @@ static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
 	struct pg_collect_state *state =
 		pg_brick_get_state(brick, struct pg_collect_state);
 
-	for (i = 0; i < MAX_SIDE; i++) {
+	for (i = 0; i < PG_MAX_SIDE; i++) {
 		if (!state->pkts_mask[i])
 			continue;
 

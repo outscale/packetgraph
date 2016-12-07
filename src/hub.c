@@ -28,8 +28,8 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 		     struct pg_error **errp)
 {
 	int ret;
-	enum pg_side i = WEST_SIDE;
-	enum pg_side flip_i = WEST_SIDE;
+	enum pg_side i = PG_WEST_SIDE;
+	enum pg_side flip_i = PG_WEST_SIDE;
 	uint16_t j;
 	struct pg_brick_side *s;
 	struct pg_brick_edge *edges;

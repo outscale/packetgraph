@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	}
 
 	/* init switch */
-	sw = pg_switch_new("switch", n, 0, WEST_SIDE, &error);
+	sw = pg_switch_new("switch", n, 0, PG_WEST_SIDE, &error);
 	g_assert(!error);
 	graph = pg_graph_new("graph", sw, &error);
 	g_assert(!error);

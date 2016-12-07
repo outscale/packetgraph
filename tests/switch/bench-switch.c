@@ -42,13 +42,13 @@ void test_benchmark_switch(int argc, char **argv)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	uint32_t len;
 
-	sw = pg_switch_new("switch", 20, 20, DEFAULT_SIDE, &error);
+	sw = pg_switch_new("switch", 20, 20, PG_DEFAULT_SIDE, &error);
 	g_assert(!error);
 	g_assert(!pg_bench_init(&bench, "switch", argc, argv, &error));
 	bench.input_brick = sw;
-	bench.input_side = WEST_SIDE;
+	bench.input_side = PG_WEST_SIDE;
 	bench.output_brick = sw;
-	bench.output_side = EAST_SIDE;
+	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
 	bench.max_burst_cnt = 1000000;
 	bench.count_brick = NULL;

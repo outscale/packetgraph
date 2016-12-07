@@ -54,8 +54,8 @@ int main(int argc, char **argv)
 			       fw, print_east, nic_east);
 
 	/* add some rules to firewall */
-	pg_firewall_rule_add(fw, "tcp portrange 1-1024", MAX_SIDE, 1, &error);
-	pg_firewall_rule_add(fw, "icmp", MAX_SIDE, 1, &error);
+	pg_firewall_rule_add(fw, "tcp portrange 1-1024", PG_MAX_SIDE, 1, &error);
+	pg_firewall_rule_add(fw, "icmp", PG_MAX_SIDE, 1, &error);
 	pg_firewall_reload(fw, &error);
 
 	/* create a graph with all bricks inside */

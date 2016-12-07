@@ -54,14 +54,14 @@ static void test_sorting_pmtud(void)
 				pg_mask_firsts(64) & ~pg_mask_firsts(32),
 				430 - sizeof(struct ipv4_hdr) -
 				sizeof(struct ether_hdr));
-	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 430, &error);
+	pmtud = pg_pmtud_new("pmtud", PG_WEST_SIDE, 430, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
 
-	pg_brick_burst(pmtud, WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
+	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
 	g_assert(!error);
 
 	pg_brick_west_burst_get(col_east, &pkts_mask, &error);
@@ -96,14 +96,14 @@ static void test_sorting_pmtud_df(void)
 			      pg_mask_firsts(64) & ~pg_mask_firsts(32),
 			      buff, sizeof(uint64_t) * 4);
 	pg_packets_append_blank(pkts, pg_mask_firsts(64), 400);
-	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 430, &error);
+	pmtud = pg_pmtud_new("pmtud", PG_WEST_SIDE, 430, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
 
-	pg_brick_burst(pmtud, WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
+	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
 	g_assert(!error);
 
 	pg_brick_west_burst_get(col_east, &pkts_mask, &error);
@@ -169,7 +169,7 @@ static void test_icmp_pmtud(void)
 	 * [col_west] -- [print_west] -- [pmtud] -- [print_east] -- [col_east]
 	 */
 
-	pmtud = pg_pmtud_new("pmtud", WEST_SIDE, 430, &error);
+	pmtud = pg_pmtud_new("pmtud", PG_WEST_SIDE, 430, &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
 	g_assert(col_east);
@@ -202,9 +202,9 @@ static void test_icmp_pmtud(void)
 	g_assert(!error);
 	g_assert(pg_mask_count(pkts_mask) == 32);
 
-	g_assert(pg_brick_pkts_count_get(pmtud, EAST_SIDE) == 64);
-	g_assert(pg_brick_pkts_count_get(col_east, EAST_SIDE) == 32);
-	g_assert(pg_brick_pkts_count_get(col_west, WEST_SIDE) == 32);
+	g_assert(pg_brick_pkts_count_get(pmtud, PG_EAST_SIDE) == 64);
+	g_assert(pg_brick_pkts_count_get(col_east, PG_EAST_SIDE) == 32);
+	g_assert(pg_brick_pkts_count_get(col_west, PG_WEST_SIDE) == 32);
 	tmp = pg_brick_east_burst_get(col_west, &pkts_mask, &error)[0];
 	g_assert(pkts_mask == 1);
 	g_assert(tmp);

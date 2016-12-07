@@ -218,7 +218,7 @@ static void test_graph_explore(void)
 	}
 	for (int i = 0; i < 2; i++) {
 		tmp = g_strdup_printf("switch%i", i);
-		sw[i] = pg_switch_new(tmp, 3, 3, WEST_SIDE, &error);
+		sw[i] = pg_switch_new(tmp, 3, 3, PG_WEST_SIDE, &error);
 		g_free(tmp);
 	}
 
@@ -464,7 +464,7 @@ static void test_graph_poll(void)
 
 	for (int i = 0; i < 100; i++) {
 		/* test with one burst */
-		pg_brick_burst(queue[0], EAST_SIDE, 0, pkts, mask, &error);
+		pg_brick_burst(queue[0], PG_EAST_SIDE, 0, pkts, mask, &error);
 		g_assert(!pg_graph_poll(g, &error));
 		g_assert(!error);
 		g_assert(pg_queue_pressure(queue[0]) == 0);
@@ -485,9 +485,9 @@ static void test_graph_poll(void)
 		g_assert(pg_queue_pressure(queue[5]) == 0);
 
 		/* everyone send a burst */
-		pg_brick_burst(queue[0], EAST_SIDE, 0, pkts, mask, &error);
-		pg_brick_burst(queue[2], EAST_SIDE, 0, pkts, mask, &error);
-		pg_brick_burst(queue[5], WEST_SIDE, 0, pkts, mask, &error);
+		pg_brick_burst(queue[0], PG_EAST_SIDE, 0, pkts, mask, &error);
+		pg_brick_burst(queue[2], PG_EAST_SIDE, 0, pkts, mask, &error);
+		pg_brick_burst(queue[5], PG_WEST_SIDE, 0, pkts, mask, &error);
 		g_assert(!pg_graph_poll(g, &error));
 		g_assert(!error);
 		g_assert(pg_queue_pressure(queue[0]) == 0);
@@ -632,10 +632,10 @@ static void test_graph_complex_merge(void)
 		g_assert(!error);
 		g_free(tmp);
 	}
-	sw[0] = pg_switch_new("switch0", 3, 3, WEST_SIDE, &error);
+	sw[0] = pg_switch_new("switch0", 3, 3, PG_WEST_SIDE, &error);
 	g_assert(sw[0]);
 	g_assert(!error);
-	sw[1] = pg_switch_new("switch1", 3, 3, WEST_SIDE, &error);
+	sw[1] = pg_switch_new("switch1", 3, 3, PG_WEST_SIDE, &error);
 	g_assert(sw[1]);
 	g_assert(!error);
 

@@ -94,7 +94,7 @@
 
 static void test_diode_west_good_direction(void)
 {
-	TEST_DIODE_INIT(WEST_SIDE);
+	TEST_DIODE_INIT(PG_WEST_SIDE);
 
 	/* send a burst to the west from the eastest nope brick */
 	pg_brick_burst_to_west(node2, 0, pkts, pg_mask_firsts(NB_PKTS),
@@ -113,7 +113,7 @@ static void test_diode_west_good_direction(void)
 
 static void test_diode_west_bad_direction(void)
 {
-	TEST_DIODE_INIT(EAST_SIDE);
+	TEST_DIODE_INIT(PG_EAST_SIDE);
 
 	/* send a burst to the west from the eastest nope brick */
 	pg_brick_burst_to_west(node2, 0, pkts, pg_mask_firsts(NB_PKTS),
@@ -130,7 +130,7 @@ static void test_diode_west_bad_direction(void)
 
 static void test_diode_east_good_direction(void)
 {
-	TEST_DIODE_INIT(EAST_SIDE);
+	TEST_DIODE_INIT(PG_EAST_SIDE);
 
 	/* send a burst to the east from the westest nope brick */
 	pg_brick_burst_to_east(node1, 0, pkts, pg_mask_firsts(NB_PKTS),
@@ -149,7 +149,7 @@ static void test_diode_east_good_direction(void)
 
 static void test_diode_east_bad_direction(void)
 {
-	TEST_DIODE_INIT(WEST_SIDE);
+	TEST_DIODE_INIT(PG_WEST_SIDE);
 
 	/* send a burst to the east from the westest nope brick */
 	pg_brick_burst_to_east(node1, 0, pkts, pg_mask_firsts(NB_PKTS),

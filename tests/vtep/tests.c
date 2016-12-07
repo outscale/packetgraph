@@ -144,7 +144,7 @@ static void test_vtep_simple_internal(int flag)
 	uint16_t i;
 
 	/*For testing purpose this vtep ip is 1*/
-	vtep_west = pg_vtep_new("vtep", 2, EAST_SIDE, 1, mac_src,
+	vtep_west = pg_vtep_new("vtep", 2, PG_EAST_SIDE, 1, mac_src,
 				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
 		pg_error_print(error);
@@ -152,7 +152,7 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(vtep_west);
 
 	/*For testing purpose this vtep ip is 2*/
-	vtep_east = pg_vtep_new("vtep", 2, WEST_SIDE, 2, mac_dest,
+	vtep_east = pg_vtep_new("vtep", 2, PG_WEST_SIDE, 2, mac_dest,
 				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
 		pg_error_print(error);
@@ -420,7 +420,7 @@ static void test_vtep_vnis(int flag)
 	/*            / --- [collect   0] */
 	/* [vtep] ---{------[collect X-1] */
 	/*            \ --- [collect   X] */
-	vtep = pg_vtep_new("vt", NB_VNIS, WEST_SIDE,
+	vtep = pg_vtep_new("vt", NB_VNIS, PG_WEST_SIDE,
 			   15, mac1, PG_VTEP_DST_PORT, flag, &error);
 	g_assert(!error);
 	for (int i = 0; i < NB_VNIS; ++i) {
@@ -498,7 +498,7 @@ static void test_vtep_vnis(int flag)
 		}
 	}
 
-	g_assert(pg_brick_pkts_count_get(vtep, EAST_SIDE) == 60 * 64);
+	g_assert(pg_brick_pkts_count_get(vtep, PG_EAST_SIDE) == 60 * 64);
 	for (int i = 0; i < NB_VNIS; ++i) {
 		pg_brick_destroy(collects[i]);
 	}
@@ -569,15 +569,15 @@ static void test_vtep_flood_encap_decap(void)
 	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
 	pg_scan_ether_addr(&multicast_mac2, "01:00:5e:00:00:06");
 
-	vtep_east = pg_vtep_new("vt-e", 1, WEST_SIDE,
+	vtep_east = pg_vtep_new("vt-e", 1, PG_WEST_SIDE,
 			     15, multicast_mac1, PG_VTEP_DST_PORT,
 			     PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
-	vtep_west = pg_vtep_new("vt-w", 1, EAST_SIDE,
+	vtep_west = pg_vtep_new("vt-w", 1, PG_EAST_SIDE,
 			     240, multicast_mac2, PG_VTEP_DST_PORT,
 			     PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
-	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
+	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, PG_EAST_SIDE,
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
 	nop_east = pg_nop_new("nop-east", &error);
@@ -625,7 +625,7 @@ static void test_vtep_flood_encap_decap(void)
 		gettimeofday(&end, 0);
 	}
 
-	g_assert(pg_brick_pkts_count_get(nop_east, EAST_SIDE) ==
+	g_assert(pg_brick_pkts_count_get(nop_east, PG_EAST_SIDE) ==
 		 tot_send_pkts);
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
@@ -662,11 +662,11 @@ static void test_vtep_flood_encapsulate(void)
 
 	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
 
-	vtep_west = pg_vtep_new("vt-w", 1, EAST_SIDE,
+	vtep_west = pg_vtep_new("vt-w", 1, PG_EAST_SIDE,
 			     15, multicast_mac1, PG_VTEP_DST_PORT,
 			     PG_VTEP_ALL_OPTI, &error);
 	CHECK_ERROR(error);
-	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, EAST_SIDE,
+	pktgen_west = pg_packetsgen_new("pkggen-west", 1, 1, PG_EAST_SIDE,
 				     pkts, NB_PKTS, &error);
 	CHECK_ERROR(error);
 	nop_east = pg_nop_new("nop-east", &error);
@@ -711,7 +711,7 @@ static void test_vtep_flood_encapsulate(void)
 		gettimeofday(&end, 0);
 	}
 
-	g_assert(pg_brick_pkts_count_get(nop_east, EAST_SIDE) ==
+	g_assert(pg_brick_pkts_count_get(nop_east, PG_EAST_SIDE) ==
 		 tot_send_pkts + 1);
 	pg_brick_destroy(nop_east);
 	pg_brick_destroy(pktgen_west);
@@ -740,8 +740,8 @@ static void test_vtep_fragment_encap_decap(void)
 
 	collect_west = pg_collect_new("west col", &error);
 	collect_east = pg_collect_new("east col", &error);
-	ip_fragment = pg_ip_fragment_new("frag", EAST_SIDE, 448, &error);
-	vtep = pg_vtep_new("vtep", 20, EAST_SIDE, 1, mac, PG_VTEP_DST_PORT,
+	ip_fragment = pg_ip_fragment_new("frag", PG_EAST_SIDE, 448, &error);
+	vtep = pg_vtep_new("vtep", 20, PG_EAST_SIDE, 1, mac, PG_VTEP_DST_PORT,
 			   PG_VTEP_ALL_OPTI, &error);
 
 	g_assert(ip_fragment);
