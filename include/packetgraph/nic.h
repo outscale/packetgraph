@@ -22,11 +22,6 @@
 #include <packetgraph/errors.h>
 
 /**
- * Start brick-nic library, must be call before any usage of this lib
- */
-void pg_nic_start(void);
-
-/**
  * Create a new nic brick
  * Note: this brick support pg_brick_rx_bytes and pg_brick_tx_bytes.
  *

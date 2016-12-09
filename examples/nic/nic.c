@@ -30,7 +30,6 @@ int main(int argc, char **argv)
 		pg_error_free(error);
 		return 1;
 	}
-	pg_nic_start();
 
 	port_count = pg_nic_port_count();
 	if (port_count == 0) {

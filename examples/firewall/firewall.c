@@ -34,7 +34,6 @@ int main(int argc, char **argv)
 
 	/* init packetgraph and nics */
 	pg_start(argc, argv, &error);
-	pg_nic_start();
 	if (pg_nic_port_count() < 2) {
 		printf("You need two DPDK ports to run this example\n");
 		return 1;
