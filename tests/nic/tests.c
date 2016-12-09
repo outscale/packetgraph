@@ -63,7 +63,6 @@ int main(int argc, char **argv)
 
 	ret = pg_start(argc, argv, err);
 	g_assert(!err);
-	pg_nic_start();
 	/* accounting program name */
 	ret += + 1;
 	argc -= ret;

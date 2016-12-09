@@ -48,7 +48,6 @@ void test_benchmark_nic(int argc, char **argv)
 	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
 	uint32_t len;
 
-	pg_nic_start();
 	nic_enter = pg_nic_new_by_id("nic-enter", 0, &error);
 	if (error) {
 		/* Create a loop nic instead of using a real interface. */
