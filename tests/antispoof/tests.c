@@ -121,6 +121,7 @@ static void test_antispoof_rarp(void)
 	g_assert(!error);
 	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &inside_mac, &error);
+	pg_antispoof_arp_enable(antispoof);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
@@ -176,44 +177,87 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	pg_brick_link(antispoof, col_east, &error);
 	g_assert(!error);
 
+#define REPLAY(pass) \
+	for (i = 0; i < pkts_nb; i++) { \
+		g_assert(pg_brick_reset(col_east, &error) >= 0); \
+		g_assert(!error); \
+		packet = build_packet(pkts[i], pkts_size[i]); \
+		pg_brick_poll(gen_west, &packet_count, &error); \
+		g_assert(!error); \
+		g_assert(packet_count == 1); \
+		filtered_pkts = pg_brick_west_burst_get(col_east, \
+							&filtered_pkts_mask, \
+							&error); \
+		g_assert(!error); \
+		g_assert(pg_mask_count(filtered_pkts_mask) == (pass)); \
+		pg_packets_free(filtered_pkts, filtered_pkts_mask); \
+		rte_pktmbuf_free(packet); \
+	}
+
 	/* enable ARP antispoof with the correct IP */
-	pg_antispoof_arp_enable(antispoof, inside_ip);
+	pg_antispoof_arp_enable(antispoof);
+	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
+	g_assert(!error);
+	REPLAY(1);
 
-	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
-		packet = build_packet(pkts[i], pkts_size[i]);
-		pg_brick_poll(gen_west, &packet_count, &error);
-		g_assert(!error);
-		g_assert(packet_count == 1);
-		filtered_pkts = pg_brick_west_burst_get(col_east,
-							&filtered_pkts_mask,
-							&error);
-		g_assert(!error);
-		g_assert(pg_mask_count(filtered_pkts_mask) == 1);
-		pg_packets_free(filtered_pkts, filtered_pkts_mask);
-		rte_pktmbuf_free(packet);
-	}
+	/* remove IP, should not pass */
+	g_assert(!pg_antispoof_arp_del(antispoof, inside_ip, &error));
+	g_assert(!error);
+	REPLAY(0);
 
-	/* set another IP, should not pass */
-	inside_ip = htobe32(IPv4(42, 0, 42, 0));
-	pg_antispoof_arp_enable(antispoof, inside_ip);
+	/* re-add other IP and original IP, should pass */
+	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, 42, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, 51, &error));
+	g_assert(!error);
+	REPLAY(1);
 
-	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
-		g_assert(pg_brick_reset(col_east, &error) >= 0);
-		g_assert(!error);
-		packet = build_packet(pkts[i], pkts_size[i]);
-		pg_brick_poll(gen_west, &packet_count, &error);
-		g_assert(!error);
-		g_assert(packet_count == 1);
-		filtered_pkts = pg_brick_west_burst_get(col_east,
-							&filtered_pkts_mask,
-							&error);
-		g_assert(!error);
-		g_assert(pg_mask_count(filtered_pkts_mask) == 0);
-		pg_packets_free(filtered_pkts, filtered_pkts_mask);
-		rte_pktmbuf_free(packet);
-	}
+	/* remove IP, should not pass */
+	g_assert(!pg_antispoof_arp_del(antispoof, inside_ip, &error));
+	g_assert(!error);
+	REPLAY(0);
+
+	/* re-add other IP and original IP, should pass */
+	g_assert(!pg_antispoof_arp_del(antispoof, 42, &error));
+	g_assert(!pg_antispoof_arp_del(antispoof, 51, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, 42, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, 51, &error));
+	g_assert(!error);
+	REPLAY(1);
+
+	/* remove IP, should not pass */
+	g_assert(!pg_antispoof_arp_del(antispoof, inside_ip, &error));
+	g_assert(!error);
+	REPLAY(0);
+
+	/* re-add other IP and original IP, should pass */
+	g_assert(!pg_antispoof_arp_del(antispoof, 42, &error));
+	g_assert(!pg_antispoof_arp_del(antispoof, 51, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, 42, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, 51, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
+	g_assert(!error);
+	REPLAY(1);
+
+	/* remove IP, should not pass */
+	g_assert(!pg_antispoof_arp_del(antispoof, inside_ip, &error));
+	g_assert(!error);
+	REPLAY(0);
+
+	/* re-remove IP, should have an error */
+	g_assert(pg_antispoof_arp_del(antispoof, inside_ip, &error) == -1);
+	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
+
+	/* disable arp antispoof, should pass */
+	pg_antispoof_arp_disable(antispoof);
+	REPLAY(1);
+
+	/* enable arp antispoof again, should re-block */
+	pg_antispoof_arp_enable(antispoof);
+	REPLAY(0);
 
 	/* reverse brick 'outside', packets must pass now */
 	pg_brick_unlink(antispoof, &error);
@@ -221,28 +265,15 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	pg_brick_destroy(antispoof);
 	antispoof = pg_antispoof_new("antispoof", PG_WEST_SIDE,
 				     &inside_mac, &error);
-	pg_antispoof_arp_enable(antispoof, inside_ip);
+	pg_antispoof_arp_enable(antispoof);
+	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
+	g_assert(!error);
 	pg_brick_link(gen_west, antispoof, &error);
 	g_assert(!error);
 	pg_brick_link(antispoof, col_east, &error);
 	g_assert(!error);
-
-	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
-		g_assert(pg_brick_reset(col_east, &error) >= 0);
-		g_assert(!error);
-		packet = build_packet(pkts[i], pkts_size[i]);
-		pg_brick_poll(gen_west, &packet_count, &error);
-		g_assert(!error);
-		g_assert(packet_count == 1);
-		filtered_pkts = pg_brick_west_burst_get(col_east,
-							&filtered_pkts_mask,
-							&error);
-		g_assert(!error);
-		g_assert(pg_mask_count(filtered_pkts_mask) == 1);
-		pg_packets_free(filtered_pkts, filtered_pkts_mask);
-		rte_pktmbuf_free(packet);
-	}
+	REPLAY(1);
+#undef REPLAY
 
 	pg_brick_destroy(gen_west);
 	pg_brick_destroy(antispoof);
@@ -285,7 +316,9 @@ static void test_pg_antispoof_arp_disable(void)
 	g_assert(!error);
 
 	/* enable ARP antispoof with a wrong IP */
-	pg_antispoof_arp_enable(antispoof, inside_ip);
+	pg_antispoof_arp_enable(antispoof);
+	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
+	g_assert(!error);
 
 	/* replay traffic */
 	for (i = 0; i < pkts_nb; i++) {
@@ -378,7 +411,7 @@ static void test_antispoof_empty_burst(void)
 
 	pg_scan_ether_addr(&eth, "00:18:b9:56:2e:73");
 	pg_scan_ether_addr(&inside_mac, "00:26:df:ff:c9:44");
-	
+
 	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
 				     &inside_mac, &error);
 	g_assert(!error);

@@ -24,6 +24,8 @@
 #include "utils/bitmask.h"
 #include "utils/mac.h"
 
+#define ARP_MAX 100
+
 struct pg_antispoof_arp {
 	/* Format of hardware address.  */
 	uint16_t ar_hrd;
@@ -45,12 +47,18 @@ struct pg_antispoof_arp {
 	uint32_t target_ip;
 } __attribute__ ((__packed__));
 
+struct arp {
+	uint32_t ip;
+	struct pg_antispoof_arp packet;
+};
+
 struct pg_antispoof_state {
 	struct pg_brick brick;
 	enum pg_side outside;
 	struct ether_addr mac;
-	uint32_t ip;
-	struct pg_antispoof_arp arp_packet;
+	bool arp_enabled;
+	uint16_t arps_size;
+	struct arp arps[ARP_MAX];
 };
 
 struct pg_antispoof_config {
@@ -64,23 +72,77 @@ struct pg_antispoof_config {
 /* Size of the "Sender" part of struct pg_antispoof_arp */
 #define PG_ANTISPOOF_ARP_CHECK_PART2 (6 + 4)
 
-void pg_antispoof_arp_enable(struct pg_brick *brick, uint32_t ip)
+void pg_antispoof_arp_enable(struct pg_brick *brick)
 {
-	struct pg_antispoof_state *state;
+	pg_brick_get_state(brick, struct pg_antispoof_state)->arp_enabled =
+		true;
+}
 
-	state = pg_brick_get_state(brick, struct pg_antispoof_state);
-	state->ip = ip;
+int pg_antispoof_arp_add(struct pg_brick *brick, uint32_t ip,
+			 struct pg_error **errp)
+{
+	struct pg_antispoof_state *state =
+		pg_brick_get_state(brick, struct pg_antispoof_state);
+	uint16_t n = state->arps_size;
+	struct arp *arp = &state->arps[n];
 
-	/* Let's adapt allowed ARP packets */
-	state->arp_packet.sender_ip = ip;
+	if (unlikely(n == ARP_MAX)) {
+		*errp = pg_error_new("Maximal IP reached");
+		return -1;
+	}
+
+	/* let's start the pre-build of ARP anti-spoof */
+	arp->packet.ar_hrd = rte_cpu_to_be_16(1);
+	arp->packet.ar_pro = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
+	arp->packet.ar_hln = ETHER_ADDR_LEN;
+	arp->packet.ar_pln = 4;
+	arp->packet.sender_ip = ip;
+	rte_memcpy(&arp->packet.sender_mac, &state->mac, ETHER_ADDR_LEN);
+
+	arp->ip = ip;
+
+	state->arps_size++;
+	return 0;
+}
+
+int pg_antispoof_arp_del(struct pg_brick *brick, uint32_t ip,
+			 struct pg_error **errp)
+{
+	struct pg_antispoof_state *state =
+		pg_brick_get_state(brick, struct pg_antispoof_state);
+	int index = -1;
+	uint16_t size = state->arps_size;
+	struct arp *arps = state->arps;
+
+	for (int16_t i = 0; i < size; i++) {
+		if (arps[i].ip == ip) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index < 0) {
+		*errp = pg_error_new("IP not found");
+		return -1;
+	}
+
+	if (index != size - 1)
+		rte_memcpy(&arps[index], &arps[size - 1], sizeof(struct arp));
+	state->arps_size--;
+	return 0;
+}
+
+void pg_antispoof_arp_del_all(struct pg_brick *brick)
+{
+	struct pg_antispoof_state *state =
+		pg_brick_get_state(brick, struct pg_antispoof_state);
+	state->arps_size = 0;
 }
 
 void pg_antispoof_arp_disable(struct pg_brick *brick)
 {
-	struct pg_antispoof_state *state;
-
-	state = pg_brick_get_state(brick, struct pg_antispoof_state);
-	state->ip = 0;
+	pg_brick_get_state(brick, struct pg_antispoof_state)->arp_enabled =
+		false;
 }
 
 static struct pg_brick_config *antispoof_config_new(const char *name,
@@ -101,13 +163,20 @@ static struct pg_brick_config *antispoof_config_new(const char *name,
 static inline int antispoof_arp(struct pg_antispoof_state *state,
 				struct pg_antispoof_arp *a)
 {
-	/* Check that all fields match reference packet except the "ar_op"
-	 * (arp operation code) part.
-	 */
-	if (memcmp(&state->arp_packet, a, PG_ANTISPOOF_ARP_CHECK_PART1) == 0 &&
-	    memcmp(&state->arp_packet.sender_mac, &a->sender_mac,
-		   PG_ANTISPOOF_ARP_CHECK_PART2) == 0)
-		return 0;
+	uint16_t size = state->arps_size;
+	struct pg_antispoof_arp *p;
+
+	for (uint16_t i = 0; i < size; i++) {
+		/* Check that all fields match reference packet except the
+		 * "ar_op" (arp operation code) part.
+		 */
+		p = &state->arps[i].packet;
+		if (!memcmp(p, a, PG_ANTISPOOF_ARP_CHECK_PART1) &&
+		    memcmp(&p->sender_mac, &a->sender_mac,
+			   PG_ANTISPOOF_ARP_CHECK_PART2) == 0) {
+			return 0;
+		}
+	}
 	return -1;
 }
 
@@ -144,20 +213,23 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 		}
 
 		/* ARP antispoof */
-		if ((eth->ether_type == htobe16(ETHER_TYPE_ARP)) && state->ip) {
-			struct pg_antispoof_arp *a;
+		if (state->arp_enabled) {
+			uint16_t etype = eth->ether_type;
 
-			a = (struct pg_antispoof_arp *)(eth + 1);
-			if (antispoof_arp(state, a) < 0) {
+			if (unlikely(etype ==
+				     rte_cpu_to_be_16(ETHER_TYPE_ARP))) {
+				struct pg_antispoof_arp *a;
+
+				a = (struct pg_antispoof_arp *)(eth + 1);
+				if (antispoof_arp(state, a) < 0) {
+					pkts_mask &= ~bit;
+					continue;
+				}
+			} else if (unlikely(etype ==
+					rte_cpu_to_be_16(ETHER_TYPE_RARP))) {
 				pkts_mask &= ~bit;
 				continue;
 			}
-		}
-
-		/* Drop RARP */
-		if (eth->ether_type == htobe16(ETHER_TYPE_RARP)) {
-			pkts_mask &= ~bit;
-			continue;
 		}
 	}
 	if (unlikely(pkts_mask == 0))
@@ -180,18 +252,8 @@ static int antispoof_init(struct pg_brick *brick,
 	brick->burst = antispoof_burst;
 	state->outside = antispoof_config->outside;
 	rte_memcpy(&state->mac, &antispoof_config->mac, ETHER_ADDR_LEN);
-	state->ip = 0;
-
-	/* let's start the pre-build of ARP anti-spoof */
-	state->arp_packet.ar_hrd = htobe16(1);
-	state->arp_packet.ar_pro = htobe16(ETHER_TYPE_IPv4);
-	state->arp_packet.ar_hln = ETHER_ADDR_LEN;
-	state->arp_packet.ar_pln = 4;
-	rte_memcpy(&state->arp_packet.sender_mac, &state->mac, ETHER_ADDR_LEN);
-
-	if (pg_error_is_set(errp))
-		return -1;
-
+	state->arp_enabled = false;
+	state->arps_size = 0;
 	return 0;
 }
 
@@ -210,22 +272,13 @@ struct pg_brick *pg_antispoof_new(const char *name,
 	return ret;
 }
 
-static void antispoof_destroy(struct pg_brick *brick, struct pg_error **errp)
-{
-	struct pg_antispoof_state *state;
-
-	state = pg_brick_get_state(brick, struct pg_antispoof_state);
-	state->ip = 0;
-}
-
 static struct pg_brick_ops antispoof_ops = {
 	.name		= "antispoof",
 	.state_size	= sizeof(struct pg_antispoof_state),
-
 	.init		= antispoof_init,
-	.destroy	= antispoof_destroy,
-
 	.unlink		= pg_brick_generic_unlink,
 };
 
 pg_brick_register(antispoof, &antispoof_ops);
+
+#undef ARP_MAX

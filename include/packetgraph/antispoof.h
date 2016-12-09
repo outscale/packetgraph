@@ -26,6 +26,8 @@ struct ether_addr;
 /**
  * Create a new antispoof brick
  *
+ * ARP antispoof is disabled by default
+ *
  * @param	name name of the brick
  * @param	west_max maximum of links you can connect on the west side
  * @param	east_max maximum of links you can connect on the east side
@@ -43,10 +45,37 @@ struct pg_brick *pg_antispoof_new(const char *name,
 /**
  * Enable ARP anti-spoof
  *
+ * Note that RARP is blocked if arp_antispoof is enabled.
+ *
  * @param	brick pointer to an antispoof brick
- * @param	ip IP to associate to mac address
  */
-void pg_antispoof_arp_enable(struct pg_brick *brick, uint32_t ip);
+void pg_antispoof_arp_enable(struct pg_brick *brick);
+
+/** Add authorized ip to antispoof brick
+ *
+ * @param	brick pointer to an antispoof brick
+ * @param	ip IPv4 to associate with mac address
+ * @param	errp is set in case of an error
+ * @return	0 on success, -1 on error
+ **/
+int pg_antispoof_arp_add(struct pg_brick *brick, uint32_t ip,
+			 struct pg_error **errp);
+
+/** Remove authorized ip from antispoof brick
+ *
+ * @param	brick pointer to an antispoof brick
+ * @param	ip IPv4 to unassociate with mac address
+ * @param	errp is set in case of an error
+ * @return	0 on success, -1 on error
+ **/
+int pg_antispoof_arp_del(struct pg_brick *brick, uint32_t ip,
+			 struct pg_error **errp);
+
+/** Remove all authorized ip from antispoof brick
+ *
+ * @param	brick pointer to an antispoof brick
+ **/
+void pg_antispoof_arp_del_all(struct pg_brick *brick);
 
 /**
  * Disable ARP anti-spoof
