@@ -134,7 +134,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	rte_atomic64_add(&state->tx_bytes, tx_bytes);
 
 #ifdef PG_VHOST_BENCH
-	struct pg_brick_side *side = &brick->sides[pg_flip_side(from)];
+	struct pg_brick_side *side = &brick->side;
 
 	if (side->burst_count_cb != NULL)
 		side->burst_count_cb(side->burst_count_private_data,
