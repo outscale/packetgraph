@@ -177,6 +177,10 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 					    bl.pkts,
 					    bl.pkts_mask,
 					    error) < 0)) {
+			if (!pg_error_is_set(error)) {
+				*error = pg_error_new(
+					"unknow fail durring burst");
+			}
 			return -1;
 		}
 
@@ -213,9 +217,13 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 	if (result->pkts_burst == 0 ||
 	    result->pkts_sent == 0 ||
 	    result->duration_s <= 0) {
-		printf("pkts_burst: %"PRIu64"\n", result->pkts_burst);
-		printf("pkts_received: %"PRIu64"\n", result->pkts_received);
-		printf("pkts_received: %lf\n", result->duration_s);
+		*error = pg_error_new(
+			"%s %"PRIu64" - %s%"PRIu64" - %s%lf - %s",
+			"pkts_burst: ",
+			result->pkts_burst, "pkts_received: ",
+			result->pkts_received, "pkts_received: ",
+			result->duration_s,
+			"none of thers value can be NULL");
 		return -1;
 	}
 
