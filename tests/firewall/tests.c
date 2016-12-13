@@ -675,6 +675,47 @@ static void test_firewall_tcp(void)
 	firewall_replay(pkts, 10, pkts_size);
 }
 
+static void test_firewall_tcp6(void)
+{
+#       include "test-tcp6.c"
+	const unsigned char *pkts = pkt1;
+	int pkts_size = 94;
+	struct pg_brick *gen_west;
+	struct pg_brick *fw;
+	struct pg_brick *col_east;
+	struct pg_error *error = NULL;
+	struct rte_mbuf *packet;
+	uint16_t packet_count;
+	uint64_t filtered_pkts_mask;
+	const char *rules =
+		"src net 2001:db8:2000:aff0::1 and tcp dst port 8000";
+
+	gen_west = pg_packetsgen_new("gen_west", 1, 1, PG_EAST_SIDE, &packet, 1,
+				     &error);
+	g_assert(!error);
+
+	fw = pg_firewall_new("fw", PG_NONE, &error);
+	g_assert(!error);
+	g_assert(!pg_firewall_rule_add(fw, rules, PG_WEST_SIDE, 0, &error));
+	g_assert(!pg_firewall_reload(fw, &error));
+	col_east = pg_collect_new("col_east", &error);
+	g_assert(!error);
+	pg_brick_chained_links(&error, gen_west, fw, col_east);
+	g_assert(!error);
+	packet = build_packet(pkts, pkts_size);
+	pg_brick_poll(gen_west, &packet_count, &error);
+	g_assert(!error);
+	g_assert(packet_count == 1);
+	pg_brick_west_burst_get(col_east,
+				&filtered_pkts_mask, &error);
+	g_assert(!error);
+	g_assert(pg_mask_count(filtered_pkts_mask) == 1);
+
+	pg_brick_destroy(gen_west);
+	pg_brick_destroy(col_east);
+	pg_brick_destroy(fw);
+}
+
 static void test_firewall_icmp(void)
 {
 #	include "test-icmp.c"
@@ -732,6 +773,7 @@ static void test_firewall(void)
 	g_test_add_func("/firewall/icmp", test_firewall_icmp);
 	g_test_add_func("/firewall/noip", test_firewall_noip);
 	g_test_add_func("/firewall/rules", test_firewall_rules);
+	g_test_add_func("/firewall/tcp6", test_firewall_tcp6);
 }
 
 int main(int argc, char **argv)
