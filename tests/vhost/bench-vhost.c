@@ -114,9 +114,12 @@ void test_benchmark_vhost(char *vm_image_path,
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask,
 					     1500 - sizeof(struct ether_hdr));
 
-	g_assert(pg_bench_run(&bench, &stats, &error) == 0);
-	pg_bench_print(&stats);
+	if (pg_bench_run(&bench, &stats, &error) < 0) {
+		pg_error_print(error);
+		abort();
+	}
 
+	pg_bench_print(&stats);
 	pg_util_stop_qemu(qemu_pid, SIGKILL);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
