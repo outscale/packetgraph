@@ -80,12 +80,10 @@ $ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-d
 ```
 $ git clone http://dpdk.org/git/dpdk
 $ cd dpdk
-$ git checkout -b v16.07 v16.07
+$ git checkout -b v16.11 v16.11
 $ make config T=x86_64-native-linuxapp-gcc
 ```
 Edit build/.config and be sure to set the following parameters to 'y':
-- CONFIG_RTE_LIBRTE_PMD_VHOST
-- CONFIG_RTE_LIBRTE_VHOST
 - CONFIG_RTE_LIBRTE_PMD_PCAP
 ```
 $ make EXTRA_CFLAGS='-fPIC'
