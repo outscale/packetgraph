@@ -61,7 +61,7 @@ pkginclude_HEADERS = \
 libpacketgraph_la_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 # FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
 libpacketgraph_la_LDFLAGS = -version-info 0:0:0 -export-symbols-regex 'pg_[^_]' -no-undefined $(RTE_SDK_LDFLAGS)
-libpacketgraph_la_CFLAGS = -Ofast -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -I$(srcdir)/include -I$(srcdir)/src $(RTE_SDK_LIBS)
+libpacketgraph_la_CFLAGS = -Ofast -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -I$(srcdir)/include -I$(srcdir)/src $(RTE_SDK_LDFLAGS) $(RTE_SDK_LIBS)
 
 noinst_LTLIBRARIES =
 
