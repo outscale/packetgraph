@@ -119,7 +119,6 @@ int main(int argc, char **argv)
 
 	/* init with nic bricks */
 	if (!nb) {
-		pg_nic_start();
 		if (n < 2) {
 			printf("You need two DPDK ports to run this example\n");
 			printf("Try --help\n");

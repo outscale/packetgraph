@@ -20,13 +20,6 @@
 
 /* internal headers for nic brick */
 
-/* dpdk driver init */
-void devinitfn_pmd_igb_drv(void);
-void devinitfn_rte_ixgbe_driver(void);
-void devinitfn_pmd_pcap_drv(void);
-void devinitfn_pmd_ring_drv(void);
-void devinitfn_pmd_vhost_drv(void);
-
 extern struct rte_eth_dev rte_eth_devices[RTE_MAX_ETHPORTS];
 
 #ifdef PG_NIC_STUB

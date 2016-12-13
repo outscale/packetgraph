@@ -33,15 +33,7 @@ AS_IF([test "x$RTE_SDK" != "x"], [
     AC_SUBST(RTE_SDK_CFLAGS, ["-I$RTE_SDK/build/include -D RTE_MAX_LCORE=128 -D RTE_PKTMBUF_HEADROOM=128"])
     AC_SUBST(RTE_SDK_HEADERS_FOLDER, [$RTE_SDK/build/include/])
 
-    AC_SUBST(RTE_SDK_LDFLAGS, [" -L$RTE_SDK/build/lib/ -Wl,--start-group \
-    			      -lrte_pmd_vhost -lrte_hash \
-    			      -lrte_mbuf -lrte_mempool -lrte_table \
-			      -lrte_ring -lethdev \
-			      -lrte_pmd_pcap -lrte_ring \
-			      -lrte_pmd_ring -lrte_ring -lrte_pmd_e1000 \
-			      -lrte_pmd_ixgbe -lrte_kvargs \
-			      -lrte_vhost -lrte_ip_frag -lrte_eal \
-			      -Wl,--end-group"])
+    AC_SUBST(RTE_SDK_LDFLAGS, [" -L$RTE_SDK/build/lib/ "])
 
     AC_SUBST(RTE_SDK_LIBS, ["-lm -lpthread -ldl -lpcap"])
 ], [
@@ -55,20 +47,8 @@ AC_SUBST(GLIB_LIBS)
 AC_SUBST(GLIB_CFLAGS)
 AC_SEARCH_LIBS([pthread_attr_init], [pthread], [], [AC_MSG_ERROR([Unable to find pthread library])])
 AC_SEARCH_LIBS([pcap_open_dead], [pcap], [], [AC_MSG_ERROR([Unable to find pcap library])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_vhost.a], [], [AC_MSG_ERROR([Unable to find librte_vhost.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_pmd_vhost.a], [], [AC_MSG_ERROR([Unable to find librte_pmd_vhost.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_hash.a], [], [AC_MSG_ERROR([Unable to find librte_hash.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_mbuf.a], [], [AC_MSG_ERROR([Unable to find librte_mbuf.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_mempool.a], [], [AC_MSG_ERROR([Unable to find librte_mempool.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_table.a], [], [AC_MSG_ERROR([Unable to find librte_table.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_ring.a], [], [AC_MSG_ERROR([Unable to find librte_ring.a])])
-AS_IF([test -f $RTE_SDK/build/lib/libethdev.a], [], [AC_MSG_ERROR([Unable to find libethdev.a])])
 AS_IF([test -f $RTE_SDK/build/lib/librte_pmd_pcap.a], [], [AC_MSG_ERROR([Unable to find librte_pmd_pcap.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_pmd_ring.a], [], [AC_MSG_ERROR([Unable to find librte_pmd_ring.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_pmd_e1000.a], [], [AC_MSG_ERROR([Unable to find librte_pmd_e1000.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_pmd_ixgbe.a], [], [AC_MSG_ERROR([Unable to find librte_pmd_ixgbe.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_kvargs.a], [], [AC_MSG_ERROR([Unable to find librte_kvargs.a])])
-AS_IF([test -f $RTE_SDK/build/lib/librte_eal.a], [], [AC_MSG_ERROR([Unable to find librte_eal.a])])
+AS_IF([test -f $RTE_SDK/build/lib/libdpdk.a], [], [AC_MSG_ERROR([Unable to find librte_eal.a])])
 AS_IF([test "x$with_build_npf" = "xno"], [
         AC_SEARCH_LIBS([npf_config_create], [npf], [], [AC_MSG_ERROR([Unable to find npf library])], [-lm -lnpfkern -lpthread -ldl])
         AC_SEARCH_LIBS([npf_create], [npfkern], [], [AC_MSG_ERROR([Unable to find npfkern library])], [-lm -ldl])

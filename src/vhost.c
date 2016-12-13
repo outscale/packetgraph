@@ -134,7 +134,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	rte_atomic64_add(&state->tx_bytes, tx_bytes);
 
 #ifdef PG_VHOST_BENCH
-	struct pg_brick_side *side = &brick->sides[pg_flip_side(from)];
+	struct pg_brick_side *side = &brick->side;
 
 	if (side->burst_count_cb != NULL)
 		side->burst_count_cb(side->burst_count_private_data,
@@ -219,6 +219,10 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 #undef TCP_PROTOCOL_NUMBER
 #undef UDP_PROTOCOL_NUMBER
 
+#ifndef RTE_VHOST_USER_DEQUEUE_ZERO_COPY
+#define RTE_VHOST_USER_DEQUEUE_ZERO_COPY 0
+#endif
+
 static void vhost_create_socket(struct pg_vhost_state *state,
 				struct pg_error **errp)
 {
@@ -229,9 +233,10 @@ static void vhost_create_socket(struct pg_vhost_state *state,
 	path = g_strdup_printf("%s/qemu-%s", sockets_path, state->brick.name);
 	g_remove(path);
 
-	printf("New vhost-user socket: %s\n", path);
+	printf("New vhost-user socket: %s, zero-copy %s\n", path,
+	       RTE_VHOST_USER_DEQUEUE_ZERO_COPY ? "enable" : "disable");
 
-	ret = rte_vhost_driver_register(path, 0);
+	ret = rte_vhost_driver_register(path, RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
 
 	if (ret) {
 		*errp = pg_error_new_errno(-ret,

@@ -60,29 +60,6 @@ struct headers_eth_ipv4_l4 {
 } __attribute__((__packed__));
 
 
-void pg_nic_start(void)
-{
-#ifdef RTE_LIBRTE_PMD_VHOST
-	devinitfn_pmd_vhost_drv();
-#endif
-
-#ifdef RTE_LIBRTE_PMD_RING
-	devinitfn_pmd_ring_drv();
-#endif
-
-#ifdef RTE_LIBRTE_IGB_PMD
-	devinitfn_pmd_igb_drv();
-#endif
-
-#ifdef RTE_LIBRTE_IXGBE_PMD
-	devinitfn_rte_ixgbe_driver();
-#endif
-
-#ifdef RTE_LIBRTE_PMD_PCAP
-	devinitfn_pmd_pcap_drv();
-#endif
-}
-
 void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr)
 {
 	struct pg_nic_state *state;
