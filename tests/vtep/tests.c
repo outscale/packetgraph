@@ -145,7 +145,7 @@ static void test_vtep_simple_internal(int flag)
 	uint16_t i;
 
 	/*For testing purpose this vtep ip is 1*/
-	vtep_west = pg_vtep_new("vtep", 2, PG_EAST_SIDE, 1, mac_src,
+	vtep_west = pg_vtep_new("vtep", 500, PG_EAST_SIDE, 1, mac_src,
 				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
 		pg_error_print(error);
@@ -153,7 +153,7 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(vtep_west);
 
 	/*For testing purpose this vtep ip is 2*/
-	vtep_east = pg_vtep_new("vtep", 2, PG_WEST_SIDE, 2, mac_dest,
+	vtep_east = pg_vtep_new("vtep", 500, PG_WEST_SIDE, 2, mac_dest,
 				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
 		pg_error_print(error);
