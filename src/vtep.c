@@ -450,16 +450,12 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	int ret;
 
 	/* if the port VNI is not set up ignore the packets */
-	if (!unlikely(port->multicast_ip))
+	if (unlikely(!port->multicast_ip ||
+		     vtep_encapsulate(state, port, pkts, pkts_mask, errp) < 0))
 		return 0;
 
-
-	ret = vtep_encapsulate(state, port, pkts, pkts_mask, errp);
-
-	if (unlikely(ret < 0))
-		return 0;
-
-	ret =  pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
+	ret = pg_brick_burst(s->edges[0].link, from, s->edges[0].pair_index,
+			     state->pkts, pkts_mask, errp);
 	if (!(state->flags & PG_VTEP_NO_COPY))
 		pg_packets_free(state->pkts, pkts_mask);
 	return ret;
@@ -1078,9 +1074,10 @@ static void multicast_internal(struct vtep_state *state,
 	hdr->igmp.group_addr = multicast_ip;
 	hdr->igmp.checksum = igmp_checksum(&hdr->igmp);
 
-	pg_brick_side_forward(&state->brick.sides[state->output],
-			      pg_flip_side(state->output),
-			      pkt, pg_mask_firsts(1), errp);
+	pg_brick_burst(state->brick.sides[state->output].edges[0].link,
+		       pg_flip_side(state->output),
+		       state->brick.sides[state->output].edges[0].pair_index,
+		       pkt, pg_mask_firsts(1), errp);
 
 clear:
 	rte_pktmbuf_free(pkt[0]);
