@@ -694,10 +694,9 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 			  struct pg_error **errp)
 {
 	int ret = 1;
-	uint16_t i;
-	int max = brick_side->max;
+	int nb = brick_side->nb;
 
-	for (i = 0; i < max; i++) {
+	for (uint16_t i = 0; i < nb; i++) {
 		if (brick_side->edges[i].link)
 			ret = pg_brick_burst(brick_side->edges[i].link, from,
 					     brick_side->edges[i].pair_index,
