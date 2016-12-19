@@ -44,6 +44,7 @@
 
 struct pg_vhost_config {
 	enum pg_side output;
+	uint64_t flags;
 };
 
 struct pg_vhost_socket {
@@ -94,13 +95,15 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_t vhost_session_thread;
 
-static struct pg_brick_config *vhost_config_new(const char *name)
+static struct pg_brick_config *vhost_config_new(const char *name,
+						uint64_t flags)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 	struct pg_vhost_config *vhost_config = g_new0(struct pg_vhost_config,
 						      1);
 
 	config->brick_config = (void *) vhost_config;
+	vhost_config->flags = flags;
 	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
 }
 
@@ -219,11 +222,19 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 #undef TCP_PROTOCOL_NUMBER
 #undef UDP_PROTOCOL_NUMBER
 
+#ifndef RTE_VHOST_USER_CLIENT
+#define RTE_VHOST_USER_CLIENT 0
+#endif
+
+#ifndef RTE_VHOST_USER_NO_RECONNECT
+#define RTE_VHOST_USER_NO_RECONNECT 0
+#endif
+
 #ifndef RTE_VHOST_USER_DEQUEUE_ZERO_COPY
 #define RTE_VHOST_USER_DEQUEUE_ZERO_COPY 0
 #endif
 
-static void vhost_create_socket(struct pg_vhost_state *state,
+static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 				struct pg_error **errp)
 {
 	struct pg_vhost_socket *s;
@@ -234,9 +245,12 @@ static void vhost_create_socket(struct pg_vhost_state *state,
 	g_remove(path);
 
 	printf("New vhost-user socket: %s, zero-copy %s\n", path,
-	       RTE_VHOST_USER_DEQUEUE_ZERO_COPY ? "enable" : "disable");
+	       flags & RTE_VHOST_USER_DEQUEUE_ZERO_COPY ? "enable" : "disable");
 
-	ret = rte_vhost_driver_register(path, RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
+	flags = flags & (RTE_VHOST_USER_CLIENT | RTE_VHOST_USER_NO_RECONNECT |
+			 RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
+
+	ret = rte_vhost_driver_register(path, flags);
 
 	if (ret) {
 		*errp = pg_error_new_errno(-ret,
@@ -280,7 +294,7 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	rte_atomic64_set(&state->rx_bytes, 0);
 	rte_atomic64_set(&state->tx_bytes, 0);
 
-	vhost_create_socket(state, errp);
+	vhost_create_socket(state, vhost_config->flags, errp);
 	if (pg_error_is_set(errp))
 		return -1;
 
@@ -303,10 +317,10 @@ static enum pg_side vhost_get_side(struct pg_brick *brick)
 	return pg_flip_side(state->output);
 }
 
-struct pg_brick *pg_vhost_new(const char *name,
-			struct pg_error **errp)
+struct pg_brick *pg_vhost_new(const char *name, uint64_t flags,
+			      struct pg_error **errp)
 {
-	struct pg_brick_config *config = vhost_config_new(name);
+	struct pg_brick_config *config = vhost_config_new(name, flags);
 	struct pg_brick *ret = pg_brick_new("vhost", config, errp);
 
 	pg_brick_config_free(config);
