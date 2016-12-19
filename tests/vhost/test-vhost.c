@@ -66,11 +66,13 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_0 = pg_vhost_new("vhost-0", &error);
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
 	g_assert(!error);
 	g_assert(vhost_0);
 
-	vhost_1 = pg_vhost_new("vhost-1", &error);
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
 	g_assert(!error);
 	g_assert(vhost_1);
 
@@ -214,19 +216,23 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_00 = pg_vhost_new("vhost-00", &error);
+	vhost_00 = pg_vhost_new("vhost-00", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+				&error);
 	g_assert(!error);
 	g_assert(vhost_00);
 
-	vhost_01 = pg_vhost_new("vhost-01", &error);
+	vhost_01 = pg_vhost_new("vhost-01", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+				&error);
 	g_assert(!error);
 	g_assert(vhost_01);
 
-	vhost_10 = pg_vhost_new("vhost-10", &error);
+	vhost_10 = pg_vhost_new("vhost-10", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+				&error);
 	g_assert(!error);
 	g_assert(vhost_10);
 
-	vhost_11 = pg_vhost_new("vhost-11", &error);
+	vhost_11 = pg_vhost_new("vhost-11", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+				&error);
 	g_assert(!error);
 	g_assert(vhost_11);
 
@@ -391,7 +397,10 @@ static void test_vhost_fd(void)
 	for (int j = 0; j < 10; j++) {
 		for (int i = 0; i < VHOST_CNT; i++) {
 			gchar *name = g_strdup_printf("vhost-%i", i);
-			vhost[i] = pg_vhost_new(name, &error);
+			vhost[i] =
+				pg_vhost_new(name,
+					     PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+					     &error);
 			g_free(name);
 			g_assert(!error);
 			g_assert(vhost[i]);
@@ -441,11 +450,13 @@ static void test_vhost_reco(void)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_0 = pg_vhost_new("vhost-0", &error);
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
 	g_assert(!error);
 	g_assert(vhost_0);
 
-	vhost_1 = pg_vhost_new("vhost-1", &error);
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
 	g_assert(!error);
 	g_assert(vhost_1);
 
@@ -588,11 +599,13 @@ static void test_vhost_destroy(void)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_0 = pg_vhost_new("vhost-0", &error);
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
 	g_assert(!error);
 	g_assert(vhost_0);
 
-	vhost_1 = pg_vhost_new("vhost-1", &error);
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
 	g_assert(!error);
 	g_assert(vhost_1);
 

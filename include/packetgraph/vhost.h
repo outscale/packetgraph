@@ -50,6 +50,10 @@
 #endif /* VIRTIO_NET_NO_LEGACY */
 #endif /*__cplusplus */
 
+#define PG_VHOST_USER_CLIENT		(1ULL << 0)
+#define PG_VHOST_USER_NO_RECONNECT	(1ULL << 1)
+#define PG_VHOST_USER_DEQUEUE_ZERO_COPY	(1ULL << 2)
+
 struct pg_brick;
 
 /**
@@ -62,7 +66,8 @@ struct pg_brick;
  * @return:	a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
-struct pg_brick *pg_vhost_new(const char *name, struct pg_error **errp);
+struct pg_brick *pg_vhost_new(const char *name, uint64_t flags,
+			      struct pg_error **errp);
 
 /**
  * Initialize vhost-user at program startup
