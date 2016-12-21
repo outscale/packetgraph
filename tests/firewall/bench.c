@@ -17,6 +17,7 @@
 
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 
 void test_benchmark_firewall(int argc, char **argv);
 

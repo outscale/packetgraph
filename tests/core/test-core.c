@@ -18,6 +18,7 @@
 #include <glib.h>
 
 #include <packetgraph/nop.h>
+#include "utils/tests.h"
 #include "utils/config.h"
 #include "brick-int.h"
 #include "tests.h"
@@ -861,22 +862,22 @@ static void test_brick_verify_re_link_monopole(void)
 void test_brick_core(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_add_func("/core/simple-lifecycle",
+	pg_test_add_func("/core/simple-lifecycle",
 			test_brick_core_simple_lifecycle);
-	g_test_add_func("/core/refcount", test_brick_core_refcount);
-	g_test_add_func("/core/link",	test_brick_core_link);
-	g_test_add_func("/core/unlink-edge",
+	pg_test_add_func("/core/refcount", test_brick_core_refcount);
+	pg_test_add_func("/core/link",	test_brick_core_link);
+	pg_test_add_func("/core/unlink-edge",
 			test_brick_core_unlink_edge);
-	g_test_add_func("/core/multiple-link",
+	pg_test_add_func("/core/multiple-link",
 			test_brick_core_multiple_link);
-	g_test_add_func("/core/multiple-unlink-edge",
+	pg_test_add_func("/core/multiple-unlink-edge",
 			test_brick_core_multiple_unlink_edge);
-	g_test_add_func("/core/multiple-unlink-edge-same",
+	pg_test_add_func("/core/multiple-unlink-edge-same",
 			test_brick_core_multiple_unlink_edge_same);
-	g_test_add_func("/core/verify/multiple-link",
+	pg_test_add_func("/core/verify/multiple-link",
 			test_brick_core_verify_multiple_link);
-	g_test_add_func("/core/verify/re-link",
+	pg_test_add_func("/core/verify/re-link",
 			test_brick_core_verify_re_link);
-	g_test_add_func("/core/verify/re_link_monopole",
+	pg_test_add_func("/core/verify/re_link_monopole",
 			test_brick_verify_re_link_monopole);
 }

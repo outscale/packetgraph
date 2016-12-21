@@ -24,6 +24,7 @@
 #include <netinet/udp.h>
 
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/print.h>
 #include "brick-int.h"
 #include "packets.h"
@@ -194,8 +195,8 @@ int main(int argc, char **argv)
 	pg_start(argc, argv, &error);
 	g_assert(!error);
 
-	g_test_add_func("/print/simple", test_print_simple);
-	g_test_add_func("/print/pcap", test_print_pcap);
+	pg_test_add_func("/print/simple", test_print_simple);
+	pg_test_add_func("/print/pcap", test_print_pcap);
 
 	r = g_test_run();
 

@@ -32,6 +32,7 @@
 #include <packetgraph/vhost.h>
 #include "collect.h"
 #include "packets.h"
+#include "utils/tests.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "brick-int.h"
@@ -641,10 +642,10 @@ static void test_vhost_destroy(void)
 
 void test_vhost(void)
 {
-	g_test_add_func("/vhost/flow", test_vhost_flow);
-	g_test_add_func("/vhost/multivm", test_vhost_multivm);
-	g_test_add_func("/vhost/fd", test_vhost_fd_loop);
+	pg_test_add_func("/vhost/flow", test_vhost_flow);
+	pg_test_add_func("/vhost/multivm", test_vhost_multivm);
+	pg_test_add_func("/vhost/fd", test_vhost_fd_loop);
 	if (glob_long_tests)
-		g_test_add_func("/vhost/reco", test_vhost_reco);
-	g_test_add_func("/vhost/destroy", test_vhost_destroy);
+		pg_test_add_func("/vhost/reco", test_vhost_reco);
+	pg_test_add_func("/vhost/destroy", test_vhost_destroy);
 }

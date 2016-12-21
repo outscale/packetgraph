@@ -21,6 +21,7 @@
 #include <rte_ether.h>
 #include <rte_ip.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/antispoof.h>
 #include "packetsgen.h"
 #include "brick-int.h"
@@ -413,19 +414,19 @@ int main(int argc, char **argv)
 	pg_start(argc, argv, &error);
 	g_assert(!error);
 
-	g_test_add_func("/antispoof/mac",
+	pg_test_add_func("/antispoof/mac",
 			test_antispoof_mac);
-	g_test_add_func("/antispoof/rarp",
+	pg_test_add_func("/antispoof/rarp",
 			test_antispoof_rarp);
-	g_test_add_func("/antispoof/arp/request",
+	pg_test_add_func("/antispoof/arp/request",
 			test_antispoof_arp_request);
-	g_test_add_func("/antispoof/arp/response",
+	pg_test_add_func("/antispoof/arp/response",
 			test_antispoof_arp_response);
-	g_test_add_func("/antispoof/arp/gratuitous",
+	pg_test_add_func("/antispoof/arp/gratuitous",
 			test_antispoof_arp_gratuitous);
-	g_test_add_func("/antispoof/arp/disable",
+	pg_test_add_func("/antispoof/arp/disable",
 			test_pg_antispoof_arp_disable);
-	g_test_add_func("/antispoof/mac/burst_not_propagate",
+	pg_test_add_func("/antispoof/mac/burst_not_propagate",
 			test_antispoof_empty_burst);
 	r = g_test_run();
 

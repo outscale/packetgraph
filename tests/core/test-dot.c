@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include "tests.h"
 
 #define RESULT_SIZE 100000
@@ -117,5 +118,5 @@ static void test_brick_core_dot(void)
 
 void test_brick_dot(void)
 {
-	g_test_add_func("/core/dot", test_brick_core_dot);
+	pg_test_add_func("/core/dot", test_brick_core_dot);
 }

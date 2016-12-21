@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 
 void test_benchmark_vhost(char *vm_path, char *vm_key_path,
 			  char *hugepages_path, int argc, char **argv);

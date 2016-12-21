@@ -31,6 +31,7 @@
 #include <pcap/pcap.h>
 
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/firewall.h>
 #include "brick-int.h"
 #include "collect.h"
@@ -805,13 +806,13 @@ static void test_firewall_empty_burst(void)
 
 static void test_firewall(void)
 {
-	g_test_add_func("/firewall/filter", test_firewall_filter);
-	g_test_add_func("/firewall/tcp", test_firewall_tcp);
-	g_test_add_func("/firewall/icmp", test_firewall_icmp);
-	g_test_add_func("/firewall/noip", test_firewall_noip);
-	g_test_add_func("/firewall/rules", test_firewall_rules);
-	g_test_add_func("/firewall/empty_burst", test_firewall_empty_burst);
-	g_test_add_func("/firewall/tcp6", test_firewall_tcp6);
+	pg_test_add_func("/firewall/filter", test_firewall_filter);
+	pg_test_add_func("/firewall/tcp", test_firewall_tcp);
+	pg_test_add_func("/firewall/icmp", test_firewall_icmp);
+	pg_test_add_func("/firewall/noip", test_firewall_noip);
+	pg_test_add_func("/firewall/rules", test_firewall_rules);
+	pg_test_add_func("/firewall/empty_burst", test_firewall_empty_burst);
+	pg_test_add_func("/firewall/tcp6", test_firewall_tcp6);
 }
 
 int main(int argc, char **argv)

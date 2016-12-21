@@ -18,6 +18,7 @@
 #include <glib.h>
 
 #include <packetgraph/nop.h>
+#include "utils/tests.h"
 #include "brick-int.h"
 #include "utils/bitmask.h"
 #include "utils/config.h"
@@ -224,6 +225,6 @@ static void test_brick_flow_east(void)
 void test_brick_flow(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_add_func("/flow/west", test_brick_flow_west);
-	g_test_add_func("/flow/east", test_brick_flow_east);
+	pg_test_add_func("/flow/west", test_brick_flow_west);
+	pg_test_add_func("/flow/east", test_brick_flow_east);
 }
