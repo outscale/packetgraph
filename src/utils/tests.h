@@ -15,22 +15,16 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _PG_UTILS_TESTS_H
+#define _PG_UTILS_TESTS_H
+
 #include <glib.h>
-#include <packetgraph/packetgraph.h>
-#include "utils/tests.h"
 
-void test_benchmark_tap(int argc, char **argv);
+extern int pg_skip_tests;
 
-int main(int argc, char **argv)
-{
-	struct pg_error *error = NULL;
-	int r;
+#define pg_test_add_func(name, func) do {		\
+		if (!pg_skip_tests)			\
+			g_test_add_func(name, func);	\
+	} while (0)
 
-	g_test_init(&argc, &argv, NULL);
-	pg_start(argc, argv, &error);
-	g_assert(!error);
-	test_benchmark_tap(argc, argv);
-	r = g_test_run();
-	pg_stop();
-	return r;
-}
+#endif

@@ -19,6 +19,7 @@
 #include <glib.h>
 
 #include <packetgraph/errors.h>
+#include "utils/tests.h"
 #include "tests.h"
 
 static void test_error_lifecycle(void)
@@ -110,8 +111,8 @@ static void test_error_format(void)
 
 void test_error(void)
 {
-	g_test_add_func("/error/lifecycle", test_error_lifecycle);
-	g_test_add_func("/error/vanilla", test_error_vanilla);
-	g_test_add_func("/error/errno", test_error_errno);
-	g_test_add_func("/error/format", test_error_format);
+	pg_test_add_func("/error/lifecycle", test_error_lifecycle);
+	pg_test_add_func("/error/vanilla", test_error_vanilla);
+	pg_test_add_func("/error/errno", test_error_errno);
+	pg_test_add_func("/error/format", test_error_format);
 }

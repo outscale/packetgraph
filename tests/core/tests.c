@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include "tests.h"
 
 static void print_usage(void)

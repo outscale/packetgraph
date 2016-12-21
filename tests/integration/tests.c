@@ -32,6 +32,7 @@
 #include <sys/wait.h>
 
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/common.h>
 #include <packetgraph/nic.h>
 #include <packetgraph/vtep.h>
@@ -584,11 +585,11 @@ int main(int argc, char **argv)
 	if (test_flags & PRINT_USAGE)
 		print_usage();
 	g_assert(!(test_flags & FAIL));
-	g_test_add_func("/integration/graph/flow",
+	pg_test_add_func("/integration/graph/flow",
 			test_graph_type1);
-	g_test_add_func("/integration/graph/intense/solo",
+	pg_test_add_func("/integration/graph/intense/solo",
 			test_graph_firewall_intense);
-	g_test_add_func("/integration/graph/intense/multiple",
+	pg_test_add_func("/integration/graph/intense/multiple",
 			test_graph_firewall_intense_multiple);
 
 	r = g_test_run();

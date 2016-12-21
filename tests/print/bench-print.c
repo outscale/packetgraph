@@ -23,6 +23,7 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/print.h>
 #include "packets.h"
 #include "brick-int.h"

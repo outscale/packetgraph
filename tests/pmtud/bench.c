@@ -21,6 +21,7 @@
 #include <rte_udp.h>
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/pmtud.h>
 #include "utils/bench.h"
 #include "utils/bitmask.h"

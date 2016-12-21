@@ -26,6 +26,7 @@
 #include "utils/mac.h"
 #include "collect.h"
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 
 #define CHECK_ERROR(error) do {                 \
 	if (error)                       \
@@ -243,9 +244,9 @@ int main(int argc, char **argv)
 	pg_start(argc, argv, &error);
 	CHECK_ERROR(error);
 
-	g_test_add_func("/tap/lifecycle", test_tap_lifecycle);
-	g_test_add_func("/tap/com", test_tap_com);
-	g_test_add_func("/tap/mac", test_tap_mac);
+	pg_test_add_func("/tap/lifecycle", test_tap_lifecycle);
+	pg_test_add_func("/tap/com", test_tap_com);
+	pg_test_add_func("/tap/mac", test_tap_mac);
 	r = g_test_run();
 
 	pg_stop();

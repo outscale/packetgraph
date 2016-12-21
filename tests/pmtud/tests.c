@@ -17,6 +17,7 @@
 
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/pmtud.h>
 #include <packetgraph/print.h>
 
@@ -222,9 +223,9 @@ static void test_icmp_pmtud(void)
 static void test_pmtud(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_add_func("/pmtud/sorting/df", test_sorting_pmtud_df);
-	g_test_add_func("/pmtud/sorting/mtusize", test_sorting_pmtud);
-	g_test_add_func("/pmtud/integrity/icmp", test_icmp_pmtud);
+	pg_test_add_func("/pmtud/sorting/df", test_sorting_pmtud_df);
+	pg_test_add_func("/pmtud/sorting/mtusize", test_sorting_pmtud);
+	pg_test_add_func("/pmtud/integrity/icmp", test_icmp_pmtud);
 }
 
 int main(int argc, char **argv)

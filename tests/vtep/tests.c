@@ -33,6 +33,7 @@
 #include <packetgraph/ip-fragment.h>
 
 #include "brick-int.h"
+#include "utils/tests.h"
 #include "utils/mempool.h"
 #include "utils/mac.h"
 #include "utils/bitmask.h"
@@ -815,22 +816,22 @@ int main(int argc, char **argv)
 	g_assert(r >= 0);
 	g_assert(!error);
 
-	g_test_add_func("/vtep/simple/no-flags", test_vtep_simple_no_flags);
-	g_test_add_func("/vtep/simple/no-inner-check",
+	pg_test_add_func("/vtep/simple/no-flags", test_vtep_simple_no_flags);
+	pg_test_add_func("/vtep/simple/no-inner-check",
 			test_vtep_simple_no_inner_check);
-	g_test_add_func("/vtep/simple/no-copy", test_vtep_simple_no_copy);
-	g_test_add_func("/vtep/simple/all-opti", test_vtep_simple_all_opti);
+	pg_test_add_func("/vtep/simple/no-copy", test_vtep_simple_no_copy);
+	pg_test_add_func("/vtep/simple/all-opti", test_vtep_simple_all_opti);
 
-	g_test_add_func("/vtep/vnis/all-opti", test_vtep_vnis_all_opti);
-	g_test_add_func("/vtep/vnis/no-copy", test_vtep_vnis_no_copy);
-	g_test_add_func("/vtep/vnis/no-flags", test_vtep_vnis_no_flags);
-	g_test_add_func("/vtep/vnis/no-inner-check",
+	pg_test_add_func("/vtep/vnis/all-opti", test_vtep_vnis_all_opti);
+	pg_test_add_func("/vtep/vnis/no-copy", test_vtep_vnis_no_copy);
+	pg_test_add_func("/vtep/vnis/no-flags", test_vtep_vnis_no_flags);
+	pg_test_add_func("/vtep/vnis/no-inner-check",
 			test_vtep_vnis_no_inner_check);
 
-	g_test_add_func("/vtep/flood/encapsulate", test_vtep_flood_encapsulate);
-	g_test_add_func("/vtep/flood/encap-decap", test_vtep_flood_encap_decap);
+	pg_test_add_func("/vtep/flood/encapsulate", test_vtep_flood_encapsulate);
+	pg_test_add_func("/vtep/flood/encap-decap", test_vtep_flood_encap_decap);
 
-	g_test_add_func("/vtep/fragmented/encap-decap",
+	pg_test_add_func("/vtep/fragmented/encap-decap",
 			test_vtep_fragment_encap_decap);
 
 	r = g_test_run();

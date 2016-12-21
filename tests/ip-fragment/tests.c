@@ -17,6 +17,7 @@
 
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 
 #include <rte_config.h>
 #include <rte_ip.h>
@@ -115,7 +116,7 @@ int main(int argc, char **argv)
 	pg_start(argc, argv, &error);
 	g_assert(!error);
 
-	g_test_add_func("/ip_fragment/fragment", test_fragment);
+	pg_test_add_func("/ip_fragment/fragment", test_fragment);
 	r = g_test_run();
 
 	pg_stop();

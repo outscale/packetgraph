@@ -21,6 +21,7 @@
 #include <rte_config.h>
 #include <rte_ether.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include "tests.h"
 #include "packets.h"
 #include "brick-int.h"
@@ -690,10 +691,10 @@ static void test_graph_complex_merge(void)
 
 void test_graph(void)
 {
-	g_test_add_func("/core/graph/lifecycle", test_graph_lifecycle);
-	g_test_add_func("/core/graph/explore", test_graph_explore);
-	g_test_add_func("/core/graph/sanity", test_graph_sanity);
-	g_test_add_func("/core/graph/poll", test_graph_poll);
-	g_test_add_func("/core/graph/complex-merge", test_graph_complex_merge);
-	g_test_add_func("/core/graph/split-merge", test_graph_split_merge);
+	pg_test_add_func("/core/graph/lifecycle", test_graph_lifecycle);
+	pg_test_add_func("/core/graph/explore", test_graph_explore);
+	pg_test_add_func("/core/graph/sanity", test_graph_sanity);
+	pg_test_add_func("/core/graph/poll", test_graph_poll);
+	pg_test_add_func("/core/graph/complex-merge", test_graph_complex_merge);
+	pg_test_add_func("/core/graph/split-merge", test_graph_split_merge);
 }

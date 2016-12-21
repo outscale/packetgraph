@@ -26,6 +26,7 @@
 #include <packetgraph/common.h>
 #include <packetgraph/nic.h>
 #include <packetgraph/errors.h>
+#include "utils/tests.h"
 #include "utils/mempool.h"
 #include "utils/config.h"
 #include "brick-int.h"
@@ -112,5 +113,5 @@ static void test_nic_simple_flow(void)
 
 void test_nic(void)
 {
-	g_test_add_func("/nic/pcap/nic-pcap", test_nic_simple_flow);
+	pg_test_add_func("/nic/pcap/nic-pcap", test_nic_simple_flow);
 }
