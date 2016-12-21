@@ -155,7 +155,10 @@ int main(int argc, char **argv)
 		}
 		for (int i = 0; i < n; i++) {
 			tmp = g_strdup_printf("vhost%i", i);
-			struct pg_brick *vh = pg_vhost_new(tmp, &error);
+			struct pg_brick *vh =
+				pg_vhost_new(tmp,
+					     PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+					     &error);
 			g_free(tmp);
 			if (error) {
 				pg_error_print(error);

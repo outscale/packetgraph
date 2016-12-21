@@ -64,9 +64,11 @@ void test_benchmark_vhost(char *vm_image_path,
 	g_assert(ret == 0);
 	g_assert(!error);
 
-	vhost_enter = pg_vhost_new("vhost-enter", &error);
+	vhost_enter = pg_vhost_new("vhost-enter",
+				   PG_VHOST_USER_DEQUEUE_ZERO_COPY, &error);
 	g_assert(!error);
-	vhost_exit = pg_vhost_new("vhost-exit", &error);
+	vhost_exit = pg_vhost_new("vhost-exit",
+				  PG_VHOST_USER_DEQUEUE_ZERO_COPY, &error);
 	g_assert(!error);
 
 	socket_path_enter = pg_vhost_socket_path(vhost_enter, &error);
