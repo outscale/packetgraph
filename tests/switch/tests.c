@@ -24,6 +24,7 @@
 #include "utils/mac.h"
 #include "collect.h"
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/nop.h>
 #include <packetgraph/switch.h>
 
@@ -1254,16 +1255,16 @@ static void test_switch_perf_switch(void)
 static void test_switch(void)
 {
 	mbuf_pool = pg_get_mempool();
-	g_test_add_func("/switch/lifecycle", test_switch_lifecycle);
-	g_test_add_func("/switch/learn", test_switch_learn);
-	g_test_add_func("/switch/switching", test_switch_switching);
-	g_test_add_func("/switch/unlink", test_switch_unlink);
-	g_test_add_func("/switch/multicast/destination",
+	pg_test_add_func("/switch/lifecycle", test_switch_lifecycle);
+	pg_test_add_func("/switch/learn", test_switch_learn);
+	pg_test_add_func("/switch/switching", test_switch_switching);
+	pg_test_add_func("/switch/unlink", test_switch_unlink);
+	pg_test_add_func("/switch/multicast/destination",
 			test_switch_multicast_destination);
-	g_test_add_func("/switch/multicast/both", test_switch_multicast_both);
-	g_test_add_func("/switch/filtered", test_switch_filtered);
-	g_test_add_func("/switch/perf/learn", test_switch_perf_learn);
-	g_test_add_func("/switch/perf/switch", test_switch_perf_switch);
+	pg_test_add_func("/switch/multicast/both", test_switch_multicast_both);
+	pg_test_add_func("/switch/filtered", test_switch_filtered);
+	pg_test_add_func("/switch/perf/learn", test_switch_perf_learn);
+	pg_test_add_func("/switch/perf/switch", test_switch_perf_switch);
 }
 
 int main(int argc, char **argv)

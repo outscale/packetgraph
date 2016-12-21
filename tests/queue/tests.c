@@ -24,6 +24,7 @@
 #include "utils/mac.h"
 #include "collect.h"
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 
 #define CHECK_ERROR(error) do {                 \
                if (error)                       \
@@ -505,11 +506,11 @@ int main(int argc, char **argv)
 	pg_start(argc, argv, &error);
 	CHECK_ERROR(error);
 
-	g_test_add_func("/queue/lifecycle", test_queue_lifecycle);
-	g_test_add_func("/queue/friend", test_queue_friend);
-	g_test_add_func("/queue/burst", test_queue_burst);
-	g_test_add_func("/queue/limit", test_queue_limit);
-	g_test_add_func("/queue/reset", test_queue_reset);
+	pg_test_add_func("/queue/lifecycle", test_queue_lifecycle);
+	pg_test_add_func("/queue/friend", test_queue_friend);
+	pg_test_add_func("/queue/burst", test_queue_burst);
+	pg_test_add_func("/queue/limit", test_queue_limit);
+	pg_test_add_func("/queue/reset", test_queue_reset);
 	r = g_test_run();
 
 	pg_stop();

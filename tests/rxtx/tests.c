@@ -25,6 +25,7 @@
 #include "fail.h"
 #include "collect.h"
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 
 #define CHECK_ERROR(error) do {                 \
 	if (error)                       \
@@ -226,10 +227,10 @@ int main(int argc, char **argv)
 	pg_start(argc, argv, &error);
 	CHECK_ERROR(error);
 
-	g_test_add_func("/rxtx/lifecycle", test_rxtx_lifecycle);
-	g_test_add_func("/rxtx/rx_to_tx", test_rxtx_rx_to_tx);
-	g_test_add_func("/rxtx/rxtx_to_rxtx", test_rxtx_rxtx_to_rxtx);
-	g_test_add_func("/rxtx/rxtx_burst_not_propagate",
+	pg_test_add_func("/rxtx/lifecycle", test_rxtx_lifecycle);
+	pg_test_add_func("/rxtx/rx_to_tx", test_rxtx_rx_to_tx);
+	pg_test_add_func("/rxtx/rxtx_to_rxtx", test_rxtx_rxtx_to_rxtx);
+	pg_test_add_func("/rxtx/rxtx_burst_not_propagate",
 			test_rxtx_empty_burst);
 	r = g_test_run();
 

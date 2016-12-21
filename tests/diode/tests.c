@@ -18,6 +18,7 @@
 #include <glib.h>
 #include <string.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/diode.h>
 #include "brick-int.h"
 #include "packets.h"
@@ -171,13 +172,13 @@ static void test_diode_east_bad_direction(void)
 static void test_diode(void)
 {
 	/* tests in the same order as the header function declarations */
-	g_test_add_func("/diode/west/good",
+	pg_test_add_func("/diode/west/good",
 			test_diode_west_good_direction);
-	g_test_add_func("/diode/west/bad",
+	pg_test_add_func("/diode/west/bad",
 			test_diode_west_bad_direction);
-	g_test_add_func("/diode/east/good",
+	pg_test_add_func("/diode/east/good",
 			test_diode_east_good_direction);
-	g_test_add_func("/diode/east/bad",
+	pg_test_add_func("/diode/east/bad",
 			test_diode_east_bad_direction);
 }
 

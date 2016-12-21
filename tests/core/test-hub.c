@@ -20,6 +20,7 @@
 #include <rte_mbuf.h>
 #include <string.h>
 #include <packetgraph/packetgraph.h>
+#include "utils/tests.h"
 #include <packetgraph/hub.h>
 #include "brick-int.h"
 #include "packets.h"
@@ -343,7 +344,7 @@ static void test_hub_one_side_null(void)
 
 void test_hub(void)
 {
-	g_test_add_func("/hub/east", test_hub_east_dispatch);
-	g_test_add_func("/hub/west", test_hub_west_dispatch);
-	g_test_add_func("/hub/test_side_null", test_hub_one_side_null);
+	pg_test_add_func("/hub/east", test_hub_east_dispatch);
+	pg_test_add_func("/hub/west", test_hub_west_dispatch);
+	pg_test_add_func("/hub/test_side_null", test_hub_one_side_null);
 }
