@@ -17,7 +17,44 @@ A typical use case of the QSBR or EBR would be together with lock-free data
 structures.  This library provides a raw QSBR and EBR mechanisms as well as
 a higher level a garbage collection (GC) interface based on QSBR.
 
-The libqsbr library is released under the BSD license.
+The libqsbr library is written in C11 and is distributed under the
+2-clause BSD license.
+
+## EBR API
+
+* `ebr_t *ebr_create(void)`
+  * Construct a new EBR object.
+
+* `void ebr_destroy(ebr_t *ebr)`
+  * Destroy the EBR object.
+
+* `int ebr_register(ebr_t *ebr)`
+  * Register the current thread for EBR synchronisation (typically,
+  as a reader).  Returns zero on success and -1 on failure.
+
+* `void ebr_enter(ebr_t *ebr)`
+  * Mark the entrance to the critical path.  Typically, this would be
+  used by the readers when accessing some shared data; reclamation of
+  the objects is guaranteed to not occur in the critical path.
+
+* `void ebr_exit(ebr_t *ebr)`
+  * Mark the exist of the critical path.  Typically, after this point,
+  reclamation may occur on some form of reference on shared data is
+  acquired by the reader.
+
+* `bool ebr_sync(ebr_t *ebr, unsigned *gc_epoch)`
+  * Attempt to synchronise and announce a new epoch.  On success, returns
+  `true` and the _epoch_ available for reclamation; returns false if not
+  ready.  The number of epochs is defined by the `EBR_EPOCHS` constant and
+  the epoch value is `0 <= epoch < EBR_EPOCHS`.  Note: the synchronisations
+  points must be serialised (e.g. if there are multiple G/C threads or
+  other writers).
+
+* `unsigned ebr_gc_epoch(ebr_t *ebr)`
+  * Returns the current _epoch_ available for reclamation.  The _epoch_
+  value shall be the same as returned by the last successful `ebr_sync`
+  call.  Note that these two functions would typically require the same
+  form of serialisation.
 
 ## Examples ###
 

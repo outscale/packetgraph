@@ -1,4 +1,4 @@
-/*	$NetBSD: npf_if.c,v 1.4 2014/08/10 19:09:43 rmind Exp $	*/
+/*	$NetBSD: npf_if.c,v 1.7 2016/12/26 23:05:06 christos Exp $	*/
 
 /*-
  * Copyright (c) 2013 The NetBSD Foundation, Inc.
@@ -46,7 +46,7 @@
 
 #ifdef _KERNEL
 #include <sys/cdefs.h>
-__KERNEL_RCSID(0, "$NetBSD: npf_if.c,v 1.4 2014/08/10 19:09:43 rmind Exp $");
+__KERNEL_RCSID(0, "$NetBSD: npf_if.c,v 1.7 2016/12/26 23:05:06 christos Exp $");
 
 #include <sys/param.h>
 #include <sys/types.h>
@@ -138,8 +138,6 @@ out:
 void
 npf_ifmap_flush(npf_t *npf)
 {
-	ifnet_t *ifp;
-
 	KASSERT(npf_config_locked_p(npf));
 
 	for (u_int i = 0; i < npf->ifmap_cnt; i++) {

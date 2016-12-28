@@ -241,7 +241,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	for (; filtered_pkts_mask;) {
 		uint32_t tmp;
 
-		pg_low_bit_iterate_full(filtered_pkts_mask, bit, i);
+		pg_low_bit_iterate(filtered_pkts_mask, i);
 		g_assert(i % 3 == 0);
 		eth = rte_pktmbuf_mtod(filtered_pkts[i], struct ether_hdr*);
 		ip = (struct ip *)(eth + 1);

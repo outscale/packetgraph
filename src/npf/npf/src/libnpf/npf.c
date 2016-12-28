@@ -1,4 +1,4 @@
-/*	$NetBSD: npf.c,v 1.35 2015/02/02 00:55:28 rmind Exp $	*/
+/*	$NetBSD: npf.c,v 1.42 2016/12/27 20:32:58 rmind Exp $	*/
 
 /*-
  * Copyright (c) 2010-2015 The NetBSD Foundation, Inc.
@@ -30,7 +30,7 @@
  */
 
 #include <sys/cdefs.h>
-__KERNEL_RCSID(0, "$NetBSD: npf.c,v 1.35 2015/02/02 00:55:28 rmind Exp $");
+__KERNEL_RCSID(0, "$NetBSD: npf.c,v 1.42 2016/12/27 20:32:58 rmind Exp $");
 
 #include <sys/types.h>
 #include <netinet/in_systm.h>
@@ -100,6 +100,48 @@ struct nl_config {
 
 static prop_array_t	_npf_ruleset_transform(prop_array_t);
 
+static bool
+_npf_add_addr(prop_dictionary_t dict, const char *name, int af,
+    const npf_addr_t *addr)
+{
+	size_t sz;
+
+	if (af == AF_INET) {
+		sz = sizeof(struct in_addr);
+	} else if (af == AF_INET6) {
+		sz = sizeof(struct in6_addr);
+	} else {
+		return false;
+	}
+	prop_data_t addrdat = prop_data_create_data(addr, sz);
+	if (addrdat == NULL) {
+		return false;
+	}
+	prop_dictionary_set(dict, name, addrdat);
+	prop_object_release(addrdat);
+	return true;
+}
+
+static unsigned
+_npf_get_addr(prop_dictionary_t dict, const char *name, npf_addr_t *addr)
+{
+	prop_object_t obj = prop_dictionary_get(dict, name);
+	const void *d = prop_data_data_nocopy(obj);
+
+	if (d == NULL)
+		return false;
+
+	size_t sz = prop_data_size(obj);
+	switch (sz) {
+	case sizeof(struct in_addr):
+	case sizeof(struct in6_addr):
+		memcpy(addr, d, sz);
+		return (unsigned)sz;
+	default:
+		return 0;
+	}
+}
+
 /*
  * CONFIGURATION INTERFACE.
  */
@@ -127,7 +169,6 @@ _npf_build_config(nl_config_t *ncf)
 {
 	prop_dictionary_t npf_dict;
 	prop_array_t rlset;
-	int error = 0;
 
 	npf_dict = prop_dictionary_create();
 	if (npf_dict == NULL) {
@@ -181,7 +222,7 @@ npf_config_submit(nl_config_t *ncf, int fd, npf_error_t *errinfo)
 	if (error) {
 		memset(errinfo, 0, sizeof(*errinfo));
 
-		prop_dictionary_get_int32(ncf->ncf_err, "id",
+		prop_dictionary_get_int64(ncf->ncf_err, "id",
 		    &errinfo->id);
 		prop_dictionary_get_cstring(ncf->ncf_err,
 		    "source-file", &errinfo->source_file);
@@ -218,7 +259,7 @@ _npf_config_consdict(prop_dictionary_t npf_dict)
 nl_config_t *
 npf_config_retrieve(int fd)
 {
-	prop_dictionary_t npf_dict;
+	prop_dictionary_t npf_dict = NULL;
 	nl_config_t *ncf;
 	int error;
 
@@ -258,7 +299,7 @@ npf_config_export(nl_config_t *ncf, size_t *length)
 }
 
 nl_config_t *
-npf_config_import(const void *blob, size_t len)
+npf_config_import(const void *blob, size_t len __unused)
 {
 	prop_dictionary_t npf_dict;
 	nl_config_t *ncf;
@@ -272,7 +313,6 @@ npf_config_import(const void *blob, size_t len)
 		prop_object_release(npf_dict);
 		return NULL;
 	}
-	(void)len;
 	return ncf;
 }
 
@@ -310,8 +350,6 @@ npf_config_loaded_p(nl_config_t *ncf)
 void *
 npf_config_build(nl_config_t *ncf)
 {
-	prop_dictionary_t npf_dict = ncf->ncf_dict;
-
 	if (!ncf->ncf_dict && !(ncf->ncf_dict = _npf_build_config(ncf))) {
 		errno = ENOMEM;
 		return NULL;
@@ -363,7 +401,7 @@ int
 npf_ruleset_add(int fd, const char *rname, nl_rule_t *rl, uint64_t *id)
 {
 	prop_dictionary_t rldict = rl->nrl_dict;
-	prop_dictionary_t ret;
+	prop_dictionary_t ret = NULL;
 	int error;
 
 	prop_dictionary_set_cstring(rldict, "ruleset-name", rname);
@@ -574,7 +612,7 @@ npf_rule_setcode(nl_rule_t *rl, int type, const void *code, size_t len)
 	default:
 		return ENOTSUP;
 	}
-	prop_dictionary_set_uint32(rldict, "code-type", type);
+	prop_dictionary_set_uint32(rldict, "code-type", (uint32_t)type);
 	if ((cdata = prop_data_create_data(code, len)) == NULL) {
 		return ENOMEM;
 	}
@@ -767,7 +805,7 @@ npf_rule_getid(nl_rule_t *rl)
 	uint64_t id = 0;
 
 	(void)prop_dictionary_get_uint64(rldict, "id", &id);
-	return id;
+	return (unsigned)id;
 }
 
 const void *
@@ -784,7 +822,7 @@ npf_rule_getcode(nl_rule_t *rl, int *type, size_t *len)
 int
 _npf_ruleset_list(int fd, const char *rname, nl_config_t *ncf)
 {
-	prop_dictionary_t rldict, ret;
+	prop_dictionary_t rldict, ret = NULL;
 	int error;
 
 	rldict = prop_dictionary_create();
@@ -913,7 +951,7 @@ npf_rproc_iterate(nl_config_t *ncf)
 }
 
 const char *
-npf_rproc_getname(nl_rproc_t *rp)
+npf_rproc_getname_int(nl_rproc_t *rp)
 {
 	prop_dictionary_t rpdict = rp->nrp_dict;
 	const char *rpname = NULL;
@@ -932,17 +970,7 @@ npf_nat_create(int type, u_int flags, const char *ifname,
 {
 	nl_rule_t *rl;
 	prop_dictionary_t rldict;
-	prop_data_t addrdat;
 	uint32_t attr;
-	size_t sz;
-
-	if (af == AF_INET) {
-		sz = sizeof(struct in_addr);
-	} else if (af == AF_INET6) {
-		sz = sizeof(struct in6_addr);
-	} else {
-		return NULL;
-	}
 
 	attr = NPF_RULE_PASS | NPF_RULE_FINAL |
 	    (type == NPF_NATOUT ? NPF_RULE_OUT : NPF_RULE_IN);
@@ -959,14 +987,11 @@ npf_nat_create(int type, u_int flags, const char *ifname,
 	prop_dictionary_set_uint32(rldict, "flags", flags);
 
 	/* Translation IP and mask. */
-	addrdat = prop_data_create_data(addr, sz);
-	if (addrdat == NULL) {
+	if (!_npf_add_addr(rldict, "nat-ip", af, addr)) {
 		npf_rule_destroy(rl);
 		return NULL;
 	}
-	prop_dictionary_set(rldict, "nat-ip", addrdat);
-	prop_dictionary_set_uint8(rldict, "nat-mask", mask);
-	prop_object_release(addrdat);
+	prop_dictionary_set_uint32(rldict, "nat-mask", (uint32_t)mask);
 
 	/* Translation port (for redirect case). */
 	prop_dictionary_set_uint16(rldict, "nat-port", port);
@@ -1067,7 +1092,7 @@ npf_table_create(const char *name, u_int id, int type)
 		return NULL;
 	}
 	prop_dictionary_set_cstring(tldict, "name", name);
-	prop_dictionary_set_uint32(tldict, "id", id);
+	prop_dictionary_set_uint64(tldict, "id", (uint64_t)id);
 	prop_dictionary_set_int32(tldict, "type", type);
 
 	tblents = prop_array_create();
@@ -1089,8 +1114,6 @@ npf_table_add_entry(nl_table_t *tl, int af, const npf_addr_t *addr,
 {
 	prop_dictionary_t tldict = tl->ntl_dict, entdict;
 	prop_array_t tblents;
-	prop_data_t addrdata;
-	unsigned alen;
 
 	/* Create the table entry. */
 	entdict = prop_dictionary_create();
@@ -1098,21 +1121,10 @@ npf_table_add_entry(nl_table_t *tl, int af, const npf_addr_t *addr,
 		return ENOMEM;
 	}
 
-	switch (af) {
-	case AF_INET:
-		alen = sizeof(struct in_addr);
-		break;
-	case AF_INET6:
-		alen = sizeof(struct in6_addr);
-		break;
-	default:
+	if (!_npf_add_addr(entdict, "addr", af, addr)) {
 		return EINVAL;
 	}
-
-	addrdata = prop_data_create_data(addr, alen);
-	prop_dictionary_set(entdict, "addr", addrdata);
 	prop_dictionary_set_uint8(entdict, "mask", mask);
-	prop_object_release(addrdata);
 
 	tblents = prop_dictionary_get(tldict, "entries");
 	prop_array_add(tblents, entdict);
@@ -1191,10 +1203,10 @@ unsigned
 npf_table_getid(nl_table_t *tl)
 {
 	prop_dictionary_t tldict = tl->ntl_dict;
-	unsigned id = (unsigned)-1;
+	uint64_t id = (uint64_t)-1;
 
-	prop_dictionary_get_uint32(tldict, "id", &id);
-	return id;
+	prop_dictionary_get_uint64(tldict, "id", &id);
+	return (unsigned)id;
 }
 
 const char *
@@ -1284,4 +1296,150 @@ _npf_debug_addif(nl_config_t *ncf, const char *ifname)
 	prop_dictionary_set_uint32(ifdict, "index", if_idx);
 	prop_array_add(iflist, ifdict);
 	prop_object_release(ifdict);
+}
+
+int
+npf_nat_lookup(int fd, int af, npf_addr_t *addr[2], in_port_t port[2],
+    int proto, int dir)
+{
+	prop_dictionary_t conn_dict, conn_res = NULL;
+	int error = EINVAL;
+
+	conn_dict = prop_dictionary_create();
+	if (conn_dict == NULL)
+		return ENOMEM;
+
+	if (!prop_dictionary_set_uint16(conn_dict, "direction", dir))
+		goto out;
+
+	conn_res = prop_dictionary_create();
+	if (conn_res == NULL)
+		goto out;
+
+	if (!_npf_add_addr(conn_res, "saddr", af, addr[0]))
+		goto out;
+	if (!_npf_add_addr(conn_res, "daddr", af, addr[1]))
+		goto out;
+	if (!prop_dictionary_set_uint16(conn_res, "sport", port[0]))
+		goto out;
+	if (!prop_dictionary_set_uint16(conn_res, "dport", port[1]))
+		goto out;
+	if (!prop_dictionary_set_uint16(conn_res, "proto", proto))
+		goto out;
+	if (!prop_dictionary_set(conn_dict, "key", conn_res))
+		goto out;
+
+	prop_object_release(conn_res);
+
+#if !defined(_NPF_STANDALONE)
+	error = prop_dictionary_sendrecv_ioctl(conn_dict, fd,
+	    IOC_NPF_CONN_LOOKUP, &conn_res);
+#else
+	error = ENOTSUP;
+#endif
+	if (error != 0)
+		goto out;
+
+	prop_dictionary_t nat = prop_dictionary_get(conn_res, "nat");
+	if (nat == NULL) {
+		errno = ENOENT;
+		goto out;
+	}
+
+	if (!_npf_get_addr(nat, "oaddr", addr[0])) {
+		error = EINVAL;
+		goto out;
+	}
+
+	prop_dictionary_get_uint16(nat, "oport", &port[0]);
+	prop_dictionary_get_uint16(nat, "tport", &port[1]);
+out:
+	if (conn_res)
+		prop_object_release(conn_res);
+	prop_object_release(conn_dict);
+	return error;
+}
+
+struct npf_endpoint {
+	npf_addr_t addr[2];
+	in_port_t port[2];
+	uint16_t alen;
+	uint16_t proto;
+};
+
+static bool
+npf_endpoint_load(prop_dictionary_t cdict, const char *name,
+    struct npf_endpoint *ep)
+{
+	prop_dictionary_t ed = prop_dictionary_get(cdict, name);
+	if (ed == NULL)
+		return false;
+	if (!(ep->alen = _npf_get_addr(ed, "saddr", &ep->addr[0])))
+		return false;
+	if (ep->alen != _npf_get_addr(ed, "daddr", &ep->addr[1]))
+		return false;
+	if (!prop_dictionary_get_uint16(ed, "sport", &ep->port[0]))
+		return false;
+	if (!prop_dictionary_get_uint16(ed, "dport", &ep->port[1]))
+		return false;
+	if (!prop_dictionary_get_uint16(ed, "proto", &ep->proto))
+		return false;
+	return true;
+}
+
+static void
+npf_conn_handle(prop_dictionary_t cdict, npf_conn_func_t fun, void *v)
+{
+	prop_dictionary_t nat;
+	struct npf_endpoint ep;
+	uint16_t tport;
+	const char *ifname;
+
+	if (!prop_dictionary_get_cstring_nocopy(cdict, "ifname", &ifname))
+		goto err;
+
+	if ((nat = prop_dictionary_get(cdict, "nat")) != NULL &&
+	    prop_object_type(nat) == PROP_TYPE_DICTIONARY) {
+		if (!prop_dictionary_get_uint16(nat, "tport", &tport))
+			goto err;
+	} else {
+		tport = 0;
+	}
+	if (!npf_endpoint_load(cdict, "forw-key", &ep))
+		goto err;
+
+	in_port_t p[] = {
+	    ntohs(ep.port[0]),
+	    ntohs(ep.port[1]),
+	    ntohs(tport)
+	};
+	(*fun)((unsigned)ep.alen, ep.addr, p, ifname, v);
+err:
+	return;
+}
+
+int
+npf_conn_list(int fd, npf_conn_func_t fun, void *v)
+{
+	nl_config_t *ncf;
+
+	ncf = npf_config_retrieve(fd);
+	if (ncf == NULL) {
+		return errno;
+	}
+
+	/* Connection list - array */ 
+	if (prop_object_type(ncf->ncf_conn_list) != PROP_TYPE_ARRAY) {
+		return EINVAL;
+	}
+
+	prop_object_iterator_t it = prop_array_iterator(ncf->ncf_conn_list);
+	prop_dictionary_t condict;
+	while ((condict = prop_object_iterator_next(it)) != NULL) {
+		if (prop_object_type(condict) != PROP_TYPE_DICTIONARY) {
+			return EINVAL;
+		}
+		npf_conn_handle(condict, fun, v);
+	}
+	return 0;
 }

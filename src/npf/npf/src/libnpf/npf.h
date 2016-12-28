@@ -1,4 +1,4 @@
-/*	$NetBSD: npf.h,v 1.28 2015/02/02 00:55:28 rmind Exp $	*/
+/*	$NetBSD: npf.h,v 1.33 2016/12/27 20:32:58 rmind Exp $	*/
 
 /*-
  * Copyright (c) 2011-2014 The NetBSD Foundation, Inc.
@@ -105,6 +105,7 @@ int		npf_rproc_insert(nl_config_t *, nl_rproc_t *);
 nl_nat_t *	npf_nat_create(int, u_int, const char *,
 		    int, npf_addr_t *, npf_netmask_t, in_port_t);
 int		npf_nat_insert(nl_config_t *, nl_nat_t *, int);
+int		npf_nat_lookup(int, int, npf_addr_t *[2], in_port_t [2], int, int);
 
 nl_table_t *	npf_table_create(const char *, u_int, int);
 int		npf_table_add_entry(nl_table_t *, int,
@@ -140,14 +141,18 @@ int		npf_nat_setalgo(nl_nat_t *, u_int);
 int		npf_nat_setnpt66(nl_nat_t *, uint16_t);
 
 nl_rproc_t *	npf_rproc_iterate(nl_config_t *);
-const char *	npf_rproc_getname(nl_rproc_t *);
-
+#define npf_rproc_getname(rp) npf_rproc_getname_int(rp)
+const char *	npf_rproc_getname_int(nl_rproc_t *);
 int		_npf_ruleset_list(int, const char *, nl_config_t *);
 void		_npf_debug_addif(nl_config_t *, const char *);
 
 /* The ALG interface is experimental */
 int 		_npf_alg_load(nl_config_t *, const char *);
 int		_npf_alg_unload(nl_config_t *, const char *);
+
+typedef int (*npf_conn_func_t)(unsigned, const npf_addr_t *,
+    const in_port_t *, const char *, void *);
+int		npf_conn_list(int, npf_conn_func_t, void *);
 
 #endif
 

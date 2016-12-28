@@ -24,33 +24,19 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _PG_FIREWALL_NPF_DPDK_H
-#define _PG_FIREWALL_NPF_DPDK_H
+#ifndef _NPF_DPDK_H_
+#define _NPF_DPDK_H_
 
 #include <net/npf.h>
 #include <net/npfkern.h>
-#include <net/if.h>
 #include <npf.h>
 
-#define CONCAT(X, Y) X##Y
-#define TYPEDEF CONCAT(type, def)
-
-TYPEDEF struct ifnet {
-	struct if_nameindex ini;
-	void *arg;
-
-	LIST_ENTRY(ifnet) entry;
-} ifnet_t;
-
-#undef CONCAT
-#undef TYPEDEF
-
+struct ifnet;
 struct rte_mempool;
 
-void npf_dpdk_init(struct rte_mempool *);
-npf_t *npf_dpdk_create(int);
-struct ifnet *npf_dpdk_ifattach(npf_t *, const char *, unsigned);
-void npf_dpdk_ifdetach(npf_t *, struct ifnet *);
+void		npf_dpdk_init(struct rte_mempool *);
+npf_t *		npf_dpdk_create(int);
+struct ifnet *	npf_dpdk_ifattach(npf_t *, const char *, unsigned);
+void		npf_dpdk_ifdetach(npf_t *, struct ifnet *);
 
-#endif /* _PG_FIREWALL_NPF_DPDK_H */
-
+#endif

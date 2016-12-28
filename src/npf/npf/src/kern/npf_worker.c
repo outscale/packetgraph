@@ -1,4 +1,4 @@
-/*	$NetBSD: npf_worker.c,v 1.1 2013/06/02 02:20:04 rmind Exp $	*/
+/*	$NetBSD: npf_worker.c,v 1.2 2016/12/26 23:05:06 christos Exp $	*/
 
 /*-
  * Copyright (c) 2010-2015 The NetBSD Foundation, Inc.
@@ -31,14 +31,16 @@
 
 #ifdef _KERNEL
 #include <sys/cdefs.h>
-__KERNEL_RCSID(0, "$NetBSD: npf_worker.c,v 1.1 2013/06/02 02:20:04 rmind Exp $");
+__KERNEL_RCSID(0, "$NetBSD: npf_worker.c,v 1.2 2016/12/26 23:05:06 christos Exp $");
 
 #include <sys/param.h>
 #include <sys/types.h>
 
 #include <sys/mutex.h>
+#include <sys/kmem.h>
 #include <sys/kernel.h>
 #include <sys/kthread.h>
+#include <sys/cprng.h>
 #endif
 
 #include "npf_impl.h"
@@ -71,9 +73,8 @@ npf_worker_sysinit(unsigned nworkers)
 		mutex_init(&wrk->worker_lock, MUTEX_DEFAULT, IPL_SOFTNET);
 		cv_init(&wrk->worker_cv, "npfgccv");
 
-		if (kthread_create(PRI_NONE, KTHREAD_MPSAFE |
-		    KTHREAD_MUSTJOIN, NULL, npf_worker, (void *)(uintptr_t)i,
-		    &wrk->worker_lwp, "npfgc")) {
+		if (kthread_create(PRI_NONE, KTHREAD_MPSAFE | KTHREAD_MUSTJOIN,
+		    NULL, npf_worker, wrk, &wrk->worker_lwp, "npfgc-%u", i)) {
 			npf_worker_sysfini();
 			return ENOMEM;
 		}
@@ -167,8 +168,7 @@ npf_worker_unregister(npf_t *npf, npf_workfunc_t func)
 static void
 npf_worker(void *arg)
 {
-	unsigned i = (unsigned)(uintptr_t)arg;
-	npf_worker_t *wrk = &npf_workers[i];
+	npf_worker_t *wrk = arg;
 
 	KASSERT(wrk != NULL);
 	KASSERT(!wrk->worker_exit);
