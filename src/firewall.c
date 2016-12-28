@@ -210,6 +210,7 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 			continue;
 		}
 
+
 		/* NPF only manage layer 3 so we temporaly cut off layer 2.
 		 * Note that this trick is not thread safe. To do so, we will
 		 * have to clone packets just for filtering and will have to
@@ -230,9 +231,8 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 	}
 	if (unlikely(pkts_mask == 0))
 		return 0;
-	ret = pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-				pkts, pkts_mask, errp);
-	return ret;
+	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
+			      pkts, pkts_mask, errp);
 }
 
 static int firewall_init(struct pg_brick *brick,

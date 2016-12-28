@@ -57,6 +57,7 @@
 
 #include <prop/proplib.h>
 #include <qsbr/qsbr.h>
+#include <lpm.h>
 #include <cdbr.h>
 
 #ifdef USE_JUDY
@@ -66,7 +67,6 @@
 #include "cext.h"
 
 #include "mempool.h"
-#include "ptree.h"
 #include "rbtree.h"
 #include "bpf.h"
 
@@ -183,7 +183,7 @@ npfkern_pthread_create(lwp_t **lret, void (*func)(void *), void *arg)
 	return pthread_create(&l->thr, NULL, (void *(*)(void *))func, arg);
 }
 
-#define	kthread_create(pri, flags, ci, func, arg, thr, fmt) \
+#define	kthread_create(pri, flags, ci, func, arg, thr, fmt, ...) \
     npfkern_pthread_create(thr, func, arg)
 #define	kthread_join(t)	{ void *__r; pthread_join((t)->thr, &__r); free(t); }
 #define	kthread_exit(x)	pthread_exit(NULL);
@@ -305,6 +305,7 @@ typedef struct ifnet ifnet_t;
 #define	icmp_error(m, t, c, a, b)
 #define	in_cksum(m, len)	0
 
+#define	ip6_sprintf(a)		"[IPv6]"
 #define	ip_defttl		64
 #define	max_linkhdr		0
 

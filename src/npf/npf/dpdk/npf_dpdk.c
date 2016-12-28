@@ -28,7 +28,6 @@
 #include <string.h>
 #include <net/if.h>
 
-#include <rte_config.h>
 #include <rte_common.h>
 #include <rte_eal.h>
 #include <rte_mempool.h>
@@ -36,12 +35,18 @@
 
 #include "npf_dpdk.h"
 
+typedef struct ifnet {
+	struct if_nameindex	ini;
+	void *			arg;
+	LIST_ENTRY(ifnet)	entry;
+} ifnet_t;
+
 /*
  * XXX/TODO: The API should allow this to be per some instance.
  */
 
-static LIST_HEAD(, ifnet)  dpdk_ifnet_list;
-static struct rte_mempool *dpdk_mbuf_mempool;
+static LIST_HEAD(, ifnet)	dpdk_ifnet_list;
+static struct rte_mempool *	dpdk_mbuf_mempool;
 
 void
 npf_dpdk_init(struct rte_mempool *mp)
@@ -60,9 +65,9 @@ npf_dpdk_ifattach(npf_t *npf, const char *name, unsigned idx)
 {
 	ifnet_t *ifp;
 
-	ifp = calloc(1, sizeof(ifnet_t));
-	if (ifp == NULL)
+	if ((ifp = calloc(1, sizeof(ifnet_t))) == NULL) {
 		return NULL;
+	}
 	ifp->ini.if_name = (char *)(uintptr_t)name;
 	ifp->ini.if_index = idx;
 	LIST_INSERT_HEAD(&dpdk_ifnet_list, ifp, entry);
@@ -133,16 +138,12 @@ static void
 dpdk_mbuf_free(struct mbuf *m0)
 {
 	(void)m0;
-	/* struct rte_mbuf *m = (void *)m0; */
-
-	/* rte_pktmbuf_free(m); */
 }
 
 static void *
 dpdk_mbuf_getdata(const struct mbuf *m0)
 {
 	const struct rte_mbuf *m = (const void *)m0;
-
 	return rte_pktmbuf_mtod(m, void *);
 }
 
@@ -150,7 +151,6 @@ static struct mbuf *
 dpdk_mbuf_getnext(struct mbuf *m0)
 {
 	struct rte_mbuf *m = (void *)m0;
-
 	return (void *)m->next;
 }
 
@@ -158,7 +158,6 @@ static size_t
 dpdk_mbuf_getlen(const struct mbuf *m0)
 {
 	const struct rte_mbuf *m = (const void *)m0;
-
 	return rte_pktmbuf_data_len(m);
 }
 
@@ -187,22 +186,22 @@ dpdk_mbuf_ensure_something(struct mbuf **m, size_t len)
  */
 
 static const npf_mbufops_t npf_mbufops = {
-	.alloc          = dpdk_mbuf_alloc,
-	.free           = dpdk_mbuf_free,
-	.getdata        = dpdk_mbuf_getdata,
-	.getnext        = dpdk_mbuf_getnext,
-	.getlen         = dpdk_mbuf_getlen,
-	.getchainlen        = dpdk_mbuf_getchainlen,
-	.ensure_contig      = dpdk_mbuf_ensure_something,
-	.ensure_writable    = dpdk_mbuf_ensure_something,
+	.alloc			= dpdk_mbuf_alloc,
+	.free			= dpdk_mbuf_free,
+	.getdata		= dpdk_mbuf_getdata,
+	.getnext		= dpdk_mbuf_getnext,
+	.getlen			= dpdk_mbuf_getlen,
+	.getchainlen		= dpdk_mbuf_getchainlen,
+	.ensure_contig		= dpdk_mbuf_ensure_something,
+	.ensure_writable	= dpdk_mbuf_ensure_something,
 };
 
 static const npf_ifops_t npf_ifops = {
-	.getname        = dpdk_ifop_getname,
-	.lookup         = dpdk_ifop_lookup,
-	.flush          = dpdk_ifop_flush,
-	.getmeta        = dpdk_ifop_getmeta,
-	.setmeta        = dpdk_ifop_setname,
+	.getname		= dpdk_ifop_getname,
+	.lookup			= dpdk_ifop_lookup,
+	.flush			= dpdk_ifop_flush,
+	.getmeta		= dpdk_ifop_getmeta,
+	.setmeta		= dpdk_ifop_setname,
 };
 
 npf_t *
@@ -210,4 +209,3 @@ npf_dpdk_create(int flags)
 {
 	return npf_create(flags, &npf_mbufops, &npf_ifops);
 }
-

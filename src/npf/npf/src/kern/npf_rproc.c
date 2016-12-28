@@ -1,4 +1,4 @@
-/*	$NetBSD: npf_rproc.c,v 1.12 2014/08/11 01:54:12 rmind Exp $	*/
+/*	$NetBSD: npf_rproc.c,v 1.15 2016/12/28 21:55:04 christos Exp $	*/
 
 /*-
  * Copyright (c) 2009-2013 The NetBSD Foundation, Inc.
@@ -269,6 +269,8 @@ npf_rprocset_export(const npf_rprocset_t *rpset, prop_array_t rprocs)
 
 	LIST_FOREACH(rp, &rpset->rps_list, rp_entry) {
 		rpdict = prop_dictionary_create();
+		prop_array_t extcalls = prop_array_create();
+		prop_dictionary_set_and_rel(rpdict, "extcalls", extcalls);
 		prop_dictionary_set_cstring(rpdict, "name", rp->rp_name);
 		prop_dictionary_set_uint32(rpdict, "flags", rp->rp_flags);
 		prop_array_add(rprocs, rpdict);
@@ -306,6 +308,15 @@ void
 npf_rproc_acquire(npf_rproc_t *rp)
 {
 	atomic_inc_uint(&rp->rp_refcnt);
+}
+
+/*
+ * npf_rproc_getname: return the name of the given rproc
+ */
+const char *
+npf_rproc_getname(const npf_rproc_t *rp)
+{
+	return rp->rp_name;
 }
 
 /*
