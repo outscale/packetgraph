@@ -29,6 +29,17 @@ int main(int argc, char **argv)
 	g_test_init(&argc, &argv, NULL);
 	pg_start(argc, argv, &error);
 	g_assert(!error);
+	pg_npf_nworkers = 40;
+	test_benchmark_firewall(argc, argv);
+	pg_npf_nworkers = 4;
+	test_benchmark_firewall(argc, argv);
+	pg_npf_nworkers = 3;
+	test_benchmark_firewall(argc, argv);
+	pg_npf_nworkers = 2;
+	test_benchmark_firewall(argc, argv);
+	pg_npf_nworkers = 1;
+	test_benchmark_firewall(argc, argv);
+	pg_npf_nworkers = 0;
 	test_benchmark_firewall(argc, argv);
 	r = g_test_run();
 	pg_stop();

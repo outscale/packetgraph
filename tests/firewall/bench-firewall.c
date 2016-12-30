@@ -44,9 +44,12 @@ void test_benchmark_firewall(int argc, char **argv)
 	uint32_t ip_src;
 	uint32_t ip_dst;
 	uint32_t len;
+	char *name = NULL;
 
-	g_assert(!pg_bench_init(&bench, "firewall", argc, argv, &error));
-	fw = pg_firewall_new("firewall", 0, &error);
+	name = g_strdup_printf("firewall-%d-workers", pg_npf_nworkers);
+	g_assert(!pg_bench_init(&bench, name, argc, argv, &error));
+	fw = pg_firewall_new(name, 0, &error);
+	g_free(name);
 	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.0.1",
 				       PG_WEST_SIDE, 0, &error));
 	g_assert(!error);
@@ -58,7 +61,12 @@ void test_benchmark_firewall(int argc, char **argv)
 	bench.output_brick = fw;
 	bench.output_side = PG_EAST_SIDE;
 	bench.output_poll = false;
-	bench.max_burst_cnt = 1000000;
+	if (pg_npf_nworkers > 30)
+		bench.max_burst_cnt = 10000;
+	else if (pg_npf_nworkers)
+		bench.max_burst_cnt = 100000;
+	else
+		bench.max_burst_cnt = 1000000;
 	bench.count_brick = NULL;
 	bench.pkts_nb = 64;
 	bench.pkts_mask = pg_mask_firsts(64);
