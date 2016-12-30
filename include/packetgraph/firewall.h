@@ -24,6 +24,8 @@
 #define PG_NONE 0
 #define PG_NO_CONN_WORKER 0x00000001
 
+extern uint32_t pg_npf_nworkers;
+
 /**
  * Create a new firewall brick.
  * This function should be call in the same thread than the one

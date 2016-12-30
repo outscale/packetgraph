@@ -151,6 +151,8 @@ npf_worker_unregister(npf_t *npf, npf_workfunc_t func)
 	npf_worker_t *wrk = &npf_workers[idx];
 	npf_t *instance;
 
+	if (!npf_worker_count)
+		return;
 	mutex_enter(&wrk->worker_lock);
 	npf_worker_testset(wrk, func, NULL);
 	if ((instance = wrk->instances) == npf) {

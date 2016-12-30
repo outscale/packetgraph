@@ -29,7 +29,7 @@
 #define FIREWALL_SIDE_TO_NPF(side) \
 	((side) == PG_WEST_SIDE ? PFIL_OUT : PFIL_IN)
 
-#define NWORKERS 1
+uint32_t pg_npf_nworkers = 1;
 
 struct ifnet;
 
@@ -252,8 +252,10 @@ static int firewall_init(struct pg_brick *brick,
 	/* initialize fast path */
 	brick->burst = firewall_burst;
 	/* init NPF configuration */
+	if (pg_npf_nworkers == 0 || fw_config->flags & PG_NO_CONN_WORKER)
+		fw_config->flags |= NPF_NO_GC;
 	if (!nb_firewall) {
-		if (unlikely(npf_sysinit(NWORKERS) < 0)) {
+		if (unlikely(npf_sysinit(pg_npf_nworkers) < 0)) {
 			*errp = pg_error_new("fail during npf initialisation");
 			return -1;
 		}
@@ -296,5 +298,3 @@ static struct pg_brick_ops firewall_ops = {
 };
 
 pg_brick_register(firewall, &firewall_ops);
-
-#undef NWORKERS
