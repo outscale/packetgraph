@@ -23,6 +23,9 @@
 
 #define PG_VTEP_DST_PORT 4789
 
+#define PG_VTEP_GENERIC_IPV6(callback) uint8_t [16] : callback,	\
+		uint8_t * : callback
+
 enum pg_vtep_flags {
 	PG_VTEP_NONE = 0,
 	/* modify the packets instead of copy it */
@@ -45,8 +48,19 @@ struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick);
 /**
  * Add a VNI to the VTEP
  *
- * NOTE: Adding the same VNI twice is not authorized and will result in an
- *       assertion
+ * @param	brick the brick we are working on
+ * @param	neighbor a brick connected to the VTEP port
+ * @param	vni the VNI to add, must be < 2^24
+ * @param	multicast_ip the multicast ip to associate to the VNI
+ * @param	errp an error pointer
+ */
+int pg_vtep4_add_vni(struct pg_brick *brick,
+		     struct pg_brick *neighbor,
+		     uint32_t vni, uint32_t multicast_ip,
+		     struct pg_error **errp);
+
+/**
+ * Add a VNI to the VTEP
  *
  * @param	brick the brick we are working on
  * @param	neighbor a brick connected to the VTEP port
@@ -54,10 +68,41 @@ struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick);
  * @param	multicast_ip the multicast ip to associate to the VNI
  * @param	errp an error pointer
  */
-int pg_vtep_add_vni(struct pg_brick *brick,
-		    struct pg_brick *neighbor,
-		    uint32_t vni, uint32_t multicast_ip,
-		    struct pg_error **errp);
+int pg_vtep6_add_vni(struct pg_brick *brick, struct pg_brick *neighbor,
+		     uint32_t vni, uint8_t *multicast_ip,
+		     struct pg_error **errp);
+
+#ifndef __cplusplus
+
+#define pg_vtep_add_vni(brick, neighbor, vni, multicast_ip, errp)	\
+	(_Generic((multicast_ip), uint32_t : pg_vtep4_add_vni,		\
+		  int32_t : pg_vtep4_add_vni,				\
+		  PG_VTEP_GENERIC_IPV6(pg_vtep6_add_vni))		\
+	 (brick, neighbor, vni, multicast_ip, errp))
+
+#else
+
+extern "C++" {
+namespace {
+inline int pg_vtep_add_vni(struct pg_brick *brick,
+			   struct pg_brick *neighbor,
+			   uint32_t vni, uint32_t multicast_ip,
+			   struct pg_error **errp)
+{
+	return pg_vtep4_add_vni(brick, neighbor, vni, multicast_ip, errp);
+}
+
+inline int pg_vtep_add_vni(struct pg_brick *brick,
+			   struct pg_brick *neighbor,
+			   uint32_t vni, uint8_t *multicast_ip,
+			   struct pg_error **errp)
+{
+	return pg_vtep6_add_vni(brick, neighbor, vni, multicast_ip, errp);
+}
+}
+}
+
+#endif
 
 /**
  * Add a MAC to the VTEP VNI
@@ -85,8 +130,63 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
  * @return	  pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
-struct pg_brick *pg_vtep_new(const char *name, uint32_t max,
-			     enum pg_side output, uint32_t ip,
-			     struct ether_addr mac, uint16_t udp_dst_port,
-			     int flag, struct pg_error **errp);
+struct pg_brick *pg_vtep6_new(const char *name, uint32_t max,
+			      enum pg_side output, uint8_t *ip,
+			      struct ether_addr mac, uint16_t udp_dst_port,
+			      int flag, struct pg_error **errp);
+
+/**
+ * Create a new vtep
+ *
+ * @name:	  brick name
+ * @max:	  maximum number of connections
+ * @output:	  side where packets are encapsuled in VXLAN
+ * @ip:		  vtep ip
+ * @mac:	  vtep mac
+ * @udp_dst_port: udp destination port of vxlan packets (in cpu endinaness)
+ *                default port is PG_VTEP_DST_PORT
+ * @flag:	  vtep flags (see pg_vtep_flags)
+ * @errp:	  error pointer set on error
+ * @return	  pointer to a brick structure on success, NULL on error
+ */
+PG_WARN_UNUSED
+struct pg_brick *pg_vtep4_new(const char *name, uint32_t max,
+			      enum pg_side output, uint32_t ip,
+			      struct ether_addr mac, uint16_t udp_dst_port,
+			      int flag, struct pg_error **errp);
+
+#ifndef __cplusplus
+
+#define pg_vtep_new(name, max, output, ip, mac, udp_dst_port, flags, errp) \
+	(_Generic((ip), uint32_t : pg_vtep4_new,			\
+		  int32_t : pg_vtep4_new,				\
+		  PG_VTEP_GENERIC_IPV6(pg_vtep6_new))			\
+	 (name, max, output, ip, mac, udp_dst_port, flags, errp))
+
+#else
+
+extern "C++" {
+namespace {
+inline int pg_vtep_new(const char *name, uint32_t max,
+		       enum pg_side output, uint32_t ip,
+		       struct ether_addr mac, uint16_t udp_dst_port,
+		       int flag, struct pg_error **errp)
+{
+	return pg_vtep4_new(name, max, output, ip, mac, udp_dst_port,
+			    flag, errp);
+}
+
+inline int pg_vtep_new(const char *name, uint32_t max,
+		       enum pg_side output, uint8_t *ip,
+		       struct ether_addr mac, uint16_t udp_dst_port,
+		       int flag, struct pg_error **errp)
+{
+	return pg_vtep6_new(name, max, output, ip, mac, udp_dst_port,
+			    flag, errp);
+}
+}
+}
+
+#endif /* __cplusplus */
+
 #endif /* _PG_VTEP_H */

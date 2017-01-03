@@ -28,6 +28,7 @@ libpacketgraph_la_SOURCES = \
 	src/collect.c\
 	src/fail.c\
 	src/vtep.c\
+	src/vtep6.c\
 	src/nic.c\
 	src/tap.c\
 	src/graph.c\
