@@ -35,8 +35,6 @@
 #include <rte_ether.h>
 #include <rte_ip.h>
 #include <rte_memcpy.h>
-#include <rte_table.h>
-#include <rte_table_hash.h>
 #include <rte_prefetch.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>

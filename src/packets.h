@@ -20,6 +20,7 @@
 
 #include <rte_config.h>
 #include <rte_mbuf.h>
+#include <rte_port.h>
 
 #include <packetgraph/errors.h>
 

@@ -16,9 +16,6 @@
  */
 
 #include <rte_config.h>
-#include <rte_table_hash.h>
-#include <rte_table.h>
-#include <rte_table_hash.h>
 #include <rte_udp.h>
 #include <rte_ip.h>
 #include <rte_ether.h>

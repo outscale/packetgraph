@@ -20,8 +20,6 @@
 #include <rte_ether.h>
 #include <rte_hash_crc.h>
 #include <rte_memcpy.h>
-#include <rte_table.h>
-#include <rte_table_hash.h>
 #include <rte_prefetch.h>
 
 #define HASH_ENTRIES		(1024 * 32)
