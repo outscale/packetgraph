@@ -407,11 +407,8 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 	uint16_t packet_len = rte_pktmbuf_data_len(pkt);
 	/* TODO: double check this value */
-	struct ether_addr *dst_mac;
 	struct full_header *full_header;
 	struct headers *headers;
-	struct ether_addr dst;
-	uint32_t dst_ip;
 
 	full_header = (struct full_header *)rte_pktmbuf_prepend(pkt,
 								HEADERS_LENGTH);
@@ -425,19 +422,21 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 	/* select destination IP and MAC address */
 	if (likely(unicast)) {
-		dst_mac = &entry->mac;
-		dst_ip = entry->ip;
+		ethernet_build(&headers->ethernet, &state->mac,
+			       &entry->mac);
+		ip_build(state, &headers->ipv4, state->ip, entry->ip,
+			 packet_len + ip_overhead());
 	} else {
+		struct ether_addr dst =
+			multicast_get_dst_addr(port->multicast_ip);
+
 		if (!(state->flags & PG_VTEP_NO_INNERMAC_CHECK))
 			do_add_mac(port, &eth_hdr->s_addr);
-
-		dst_ip = port->multicast_ip;
-		dst = multicast_get_dst_addr(dst_ip);
-		dst_mac = &dst;
+		ethernet_build(&headers->ethernet, &state->mac,
+			       &dst);
+		ip_build(state, &headers->ipv4, state->ip, port->multicast_ip,
+			 packet_len + ip_overhead());
 	}
-	ip_build(state, &headers->ipv4, state->ip, dst_ip,
-		 packet_len + ip_overhead());
-	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
 	/* It is recommanded to have UDP source port randomized to be
 	 * ECMP/load-balancing friendly. Let's use computed hash from
 	 * IP header. */
