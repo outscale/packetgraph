@@ -149,11 +149,6 @@ inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
 }
 
 static inline void do_add_mac(struct vtep_port *port, struct ether_addr *mac);
-static void  multicast_internal(struct vtep_state *state,
-				struct vtep_port *port,
-				uint32_t multicast_ip,
-				struct pg_error **errp,
-				enum operation action);
 
 static inline struct ether_addr multicast_get_dst_addr(uint32_t ip)
 {
@@ -181,6 +176,103 @@ static inline struct ether_addr multicast_get_dst_addr(uint32_t ip)
 static inline bool is_multicast_ip(uint32_t ip)
 {
 	return (((uint8_t *) &ip)[0] >= 224 && ((uint8_t *) &ip)[0] <= 239);
+}
+
+static inline uint16_t igmp_checksum(struct igmp_hdr *msg)
+{
+	uint16_t sum = 0;
+
+	sum = rte_raw_cksum(msg, sizeof(struct igmp_hdr));
+	return ~sum;
+}
+
+static void multicast_internal(struct vtep_state *state,
+			       struct vtep_port *port,
+			       uint32_t multicast_ip,
+			       enum operation action,
+			       struct pg_error **errp)
+{
+	struct rte_mempool *mp = pg_get_mempool();
+	struct rte_mbuf *pkt[1];
+	struct multicast_pkt *hdr;
+	struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
+
+	if (!is_multicast_ip(multicast_ip)) {
+		char tmp[20];
+
+		inet_ntop(AF_INET, (void *) &multicast_ip, (char *) tmp, 20);
+		*errp = pg_error_new("invalid multicast address %s", tmp);
+		return;
+	}
+
+	/* Allocate a memory buffer to hold an IGMP message */
+	pkt[0] = rte_pktmbuf_alloc(mp);
+	if (!pkt[0]) {
+		*errp = pg_error_new("packet allocation failed");
+		return;
+	}
+
+	/* Point to the beginning of the IGMP message */
+	hdr = (struct multicast_pkt *) rte_pktmbuf_append(pkt[0],
+							  IGMP_PKT_LEN);
+
+	ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
+	ether_addr_copy(&dst, &hdr->ethernet.d_addr);
+	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
+
+	/* 4-5 = 0x45 */
+	hdr->ipv4.version_ihl = 0x45;
+	hdr->ipv4.type_of_service = 0;
+	hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
+						  sizeof(struct igmp_hdr));
+	hdr->ipv4.packet_id = 0;
+	hdr->ipv4.fragment_offset = 0;
+	hdr->ipv4.time_to_live = 1;
+	hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER;
+	hdr->ipv4.hdr_checksum = 0;
+	hdr->ipv4.src_addr = state->ip;
+
+	switch (action) {
+	case IGMP_SUBSCRIBE:
+		hdr->ipv4.dst_addr = multicast_ip;
+		break;
+	case IGMP_UNSUBSCRIBE:
+		hdr->ipv4.dst_addr = rte_cpu_to_be_32(IPv4(224, 0, 0, 2));
+		break;
+	default:
+		*errp = pg_error_new("action not handle");
+		goto clear;
+	}
+	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
+
+	hdr->igmp.type = action;
+	hdr->igmp.max_resp_time = 0;
+	hdr->igmp.checksum = 0;
+	hdr->igmp.group_addr = multicast_ip;
+	hdr->igmp.checksum = igmp_checksum(&hdr->igmp);
+
+	pg_brick_side_forward(&state->brick.sides[state->output],
+			      pg_flip_side(state->output),
+			      pkt, pg_mask_firsts(1), errp);
+
+clear:
+	rte_pktmbuf_free(pkt[0]);
+}
+
+static void multicast_subscribe(struct vtep_state *state,
+				struct vtep_port *port,
+				uint32_t multicast_ip,
+				struct pg_error **errp)
+{
+	multicast_internal(state, port, multicast_ip, IGMP_SUBSCRIBE, errp);
+}
+
+static void multicast_unsubscribe(struct vtep_state *state,
+				  struct vtep_port *port,
+				  uint32_t multicast_ip,
+				  struct pg_error **errp)
+{
+	multicast_internal(state, port, multicast_ip, IGMP_UNSUBSCRIBE, errp);
 }
 
 /**
@@ -315,11 +407,8 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 	uint16_t packet_len = rte_pktmbuf_data_len(pkt);
 	/* TODO: double check this value */
-	struct ether_addr *dst_mac;
 	struct full_header *full_header;
 	struct headers *headers;
-	struct ether_addr dst;
-	uint32_t dst_ip;
 
 	full_header = (struct full_header *)rte_pktmbuf_prepend(pkt,
 								HEADERS_LENGTH);
@@ -333,19 +422,21 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 	/* select destination IP and MAC address */
 	if (likely(unicast)) {
-		dst_mac = &entry->mac;
-		dst_ip = entry->ip;
+		ethernet_build(&headers->ethernet, &state->mac,
+			       &entry->mac);
+		ip_build(state, &headers->ipv4, state->ip, entry->ip,
+			 packet_len + ip_overhead());
 	} else {
+		struct ether_addr dst =
+			multicast_get_dst_addr(port->multicast_ip);
+
 		if (!(state->flags & PG_VTEP_NO_INNERMAC_CHECK))
 			do_add_mac(port, &eth_hdr->s_addr);
-
-		dst_ip = port->multicast_ip;
-		dst = multicast_get_dst_addr(dst_ip);
-		dst_mac = &dst;
+		ethernet_build(&headers->ethernet, &state->mac,
+			       &dst);
+		ip_build(state, &headers->ipv4, state->ip, port->multicast_ip,
+			 packet_len + ip_overhead());
 	}
-	ip_build(state, &headers->ipv4, state->ip, dst_ip,
-		 packet_len + ip_overhead());
-	ethernet_build(&headers->ethernet, &state->mac, dst_mac);
 	/* It is recommanded to have UDP source port randomized to be
 	 * ECMP/load-balancing friendly. Let's use computed hash from
 	 * IP header. */
@@ -852,30 +943,6 @@ static bool is_vni_valid(uint32_t vni)
 	return vni < 16777216;
 }
 
-static inline uint16_t igmp_checksum(struct igmp_hdr *msg)
-{
-	uint16_t sum = 0;
-
-	sum = rte_raw_cksum(msg, sizeof(struct igmp_hdr));
-	return ~sum;
-}
-
-static void multicast_subscribe(struct vtep_state *state,
-				struct vtep_port *port,
-				uint32_t multicast_ip,
-				struct pg_error **errp)
-{
-	multicast_internal(state, port, multicast_ip, errp, IGMP_SUBSCRIBE);
-}
-
-static void multicast_unsubscribe(struct vtep_state *state,
-				  struct vtep_port *port,
-				  uint32_t multicast_ip,
-				  struct pg_error **errp)
-{
-	multicast_internal(state, port, multicast_ip, errp, IGMP_UNSUBSCRIBE);
-}
-
 #undef UINT64_TO_MAC
 
 static int do_add_vni(struct vtep_state *state, uint16_t edge_index,
@@ -1007,80 +1074,6 @@ static inline void do_add_mac(struct vtep_port *port, struct ether_addr *mac)
 	tmp.mac = 0;
 	rte_memcpy(tmp.bytes, mac->addr_bytes, 6);
 	pg_mac_table_ptr_set(&port->known_mac, tmp, (void *)1);
-}
-
-static void multicast_internal(struct vtep_state *state,
-			       struct vtep_port *port,
-			       uint32_t multicast_ip,
-			       struct pg_error **errp,
-			       enum operation action)
-{
-	struct rte_mempool *mp = pg_get_mempool();
-	struct rte_mbuf *pkt[1];
-	struct multicast_pkt *hdr;
-	struct ether_addr dst = multicast_get_dst_addr(multicast_ip);
-
-	if (!is_multicast_ip(multicast_ip)) {
-		char tmp[20];
-
-		inet_ntop(AF_INET, (void *) &multicast_ip, (char *) tmp, 20);
-		*errp = pg_error_new("invalid multicast address %s", tmp);
-		return;
-	}
-
-	/* Allocate a memory buffer to hold an IGMP message */
-	pkt[0] = rte_pktmbuf_alloc(mp);
-	if (!pkt[0]) {
-		*errp = pg_error_new("packet allocation failed");
-		return;
-	}
-
-	/* Point to the beginning of the IGMP message */
-	hdr = (struct multicast_pkt *) rte_pktmbuf_append(pkt[0],
-							  IGMP_PKT_LEN);
-
-	ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
-	ether_addr_copy(&dst, &hdr->ethernet.d_addr);
-	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
-
-	/* 4-5 = 0x45 */
-	hdr->ipv4.version_ihl = 0x45;
-	hdr->ipv4.type_of_service = 0;
-	hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
-						  sizeof(struct igmp_hdr));
-	hdr->ipv4.packet_id = 0;
-	hdr->ipv4.fragment_offset = 0;
-	hdr->ipv4.time_to_live = 1;
-	hdr->ipv4.next_proto_id = IGMP_PROTOCOL_NUMBER;
-	hdr->ipv4.hdr_checksum = 0;
-	hdr->ipv4.src_addr = state->ip;
-
-	switch (action) {
-	case IGMP_SUBSCRIBE:
-		hdr->ipv4.dst_addr = multicast_ip;
-		break;
-	case IGMP_UNSUBSCRIBE:
-		hdr->ipv4.dst_addr = rte_cpu_to_be_32(IPv4(224, 0, 0, 2));
-		break;
-	default:
-		*errp = pg_error_new("action not handle");
-		goto clear;
-	}
-	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
-
-	hdr->igmp.type = action;
-	hdr->igmp.max_resp_time = 0;
-	hdr->igmp.checksum = 0;
-	hdr->igmp.group_addr = multicast_ip;
-	hdr->igmp.checksum = igmp_checksum(&hdr->igmp);
-
-	pg_brick_burst(state->brick.sides[state->output].edges[0].link,
-		       pg_flip_side(state->output),
-		       state->brick.sides[state->output].edges[0].pair_index,
-		       pkt, pg_mask_firsts(1), errp);
-
-clear:
-	rte_pktmbuf_free(pkt[0]);
 }
 
 static void vtep_unlink_notify(struct pg_brick *brick,
