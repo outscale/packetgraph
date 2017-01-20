@@ -450,7 +450,7 @@ int pg_brick_link(struct pg_brick *west,
 	}
 
 	if (west == east) {
-		*errp = pg_error_new("Can not link a brick to herself");
+		*errp = pg_error_new("Can not link a brick to itself");
 		return -1;
 	}
 	/* check if each sides have places */
