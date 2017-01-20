@@ -37,8 +37,7 @@ struct pg_collect_state {
 
 static int collect_burst(struct pg_brick *brick, enum pg_side from,
 			 uint16_t edge_index, struct rte_mbuf **pkts,
-			 uint64_t pkts_mask,
-			 struct pg_error **errp)
+			 uint64_t pkts_mask, struct pg_error **errp)
 {
 	struct pg_collect_state *state =
 		pg_brick_get_state(brick, struct pg_collect_state);
