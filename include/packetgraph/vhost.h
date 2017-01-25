@@ -62,6 +62,7 @@ struct pg_brick;
  * Note: this brick support pg_brick_rx_bytes and pg_brick_tx_bytes.
  *
  * @name:	name of the brick
+ * @flags:      features to pass (see PG_VHOST_USER_*)
  * @errp:	set in case of an error
  * @return:	a pointer to a brick structure on success, NULL on error
  */
