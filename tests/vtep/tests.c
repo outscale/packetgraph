@@ -27,6 +27,7 @@
 #include <netinet/in.h>
 #include <sys/time.h>
 
+#include <packetgraph/graph.h>
 #include <packetgraph/vtep.h>
 #include <packetgraph/hub.h>
 #include <packetgraph/nop.h>
@@ -38,6 +39,7 @@
 #include "utils/mac.h"
 #include "utils/errors.h"
 #include "utils/bitmask.h"
+#include "utils/ip.h"
 #include "packets.h"
 #include "packetsgen.h"
 #include "collect.h"
@@ -60,6 +62,16 @@ struct headers {
 	struct vxlan_hdr vxlan; /* define in rte_ether.h */
 } __attribute__((__packed__));
 
+/**
+ * Composite structure of all the headers required to wrap a packet in VTEP
+ */
+struct headers6 {
+	struct ether_hdr ethernet; /* define in rte_ether.h */
+	struct ipv6_hdr	 ipv6; /* define in rte_ip.h */
+	struct udp_hdr	 udp; /* define in rte_udp.h */
+	struct vxlan_hdr vxlan; /* define in rte_ether.h */
+} __attribute__((__packed__));
+
 struct igmp_hdr {
 	uint8_t type;
 	uint8_t maxRespTime;
@@ -72,6 +84,18 @@ struct multicast_pkt {
 	struct ipv4_hdr ipv4;
 	struct igmp_hdr igmp;
 } __attribute__((__packed__));
+
+struct vtep_state {
+	struct pg_brick brick;
+	struct ether_addr mac;		/* MAC address of the VTEP */
+	union pg_ipv6_addr ip;		/* IP of the VTEP */
+	enum pg_side output;		/* side the VTEP packets will go */
+	uint16_t udp_dst_port;		/* UDP destination port */
+	struct vtep_port *ports;
+	rte_atomic16_t packet_id;	/* IP identification number */
+	int flags;
+	struct rte_mbuf *pkts[64];
+};
 
 #define NB_PKTS 20
 
@@ -111,10 +135,14 @@ static void check_multicast_hdr(struct multicast_pkt *hdr, uint32_t ip_dst,
 	g_assert(is_same_ether_addr(&hdr->ethernet.s_addr, src_addr));
 }
 
-static struct ether_addr multicast_get_dst_addr(uint32_t ip)
+#define multicast_get_dst_addr(ip)					\
+	_Generic((ip),							\
+		 uint32_t : multicast_get_dst4_addr,			\
+		 union pg_ipv6_addr : multicast_get_dst6_addr) (ip)
+
+static struct ether_addr multicast_get_dst4_addr(uint32_t ip)
 {
 	struct ether_addr dst;
-
 
 	/* Forge dst mac addr */
 	dst.addr_bytes[0] = 0x01;
@@ -124,6 +152,230 @@ static struct ether_addr multicast_get_dst_addr(uint32_t ip)
 	dst.addr_bytes[4] = ((uint8_t *)&ip)[2]; // 9-16
 	dst.addr_bytes[5] = ((uint8_t *)&ip)[3]; // 1-8
 	return dst;
+}
+
+static inline struct ether_addr
+multicast_get_dst6_addr(union pg_ipv6_addr ip)
+{
+	struct ether_addr dst;
+
+	/* Forge dst mac addr */
+	dst.addr_bytes[0] = 0x33;
+	dst.addr_bytes[1] = 0x33;
+	dst.addr_bytes[2] = ip.word8[12];
+	dst.addr_bytes[3] = ip.word8[13];
+	dst.addr_bytes[4] = ip.word8[14];
+	dst.addr_bytes[5] = ip.word8[15];
+	return dst;
+}
+
+static void test_vtep6_simple(void)
+{
+	struct ether_addr mac_dest = {{0xb0, 0xb1, 0xb2,
+				      0xb3, 0xb4, 0xb5} };
+	struct ether_addr mac_src = {{0xc0, 0xc1, 0xc2,
+				      0xc3, 0xc4, 0xc5} };
+	struct ether_addr multicast_mac1, multicast_mac2;
+	struct pg_brick *vtep_west, *vtep_east;
+	struct pg_brick *collect_west1, *collect_east1;
+	struct pg_brick *collect_west2, *collect_east2;
+	struct pg_brick *collect_hub, *hub;
+	struct pg_graph *graph;
+	struct rte_mempool *mp = pg_get_mempool();
+	struct rte_mbuf *pkts[NB_PKTS];
+	struct rte_mbuf **result_pkts;
+	struct pg_error *error = NULL;
+	struct ether_hdr *tmp;
+	union pg_ipv6_addr ip_src = {.word64 = {0,1}};
+	union pg_ipv6_addr ip_dst = {.word64 = {0,2}}; 
+	union pg_ipv6_addr ip_vni1 = {.word16 = {0xff,0,0,0,0,0,0,0x1}};
+	union pg_ipv6_addr ip_vni2 = {.word16 = {0xff,0,0,0,0,0,0,0x2}};
+	int flag = 0;
+	uint16_t i;
+
+	vtep_west = pg_vtep6_new("encapsulatron", 500, PG_EAST_SIDE,
+				 ip_src.word8, mac_src, PG_VTEP_DST_PORT,
+				 flag, &error);
+	g_assert(!error);
+	g_assert(vtep_west);
+
+	vtep_east = pg_vtep6_new("decapsulatron", 500, PG_WEST_SIDE,
+				 ip_dst.word8, mac_dest, PG_VTEP_DST_PORT,
+				 flag, &error);
+	g_assert(!error);
+	g_assert(vtep_east);
+
+ 	collect_east1 = pg_collect_new("collect-east1", &error);
+	g_assert(!error);
+	g_assert(collect_east1);
+	collect_east2 = pg_collect_new("collect-east2", &error);
+	g_assert(!error);
+	g_assert(collect_east2);
+
+	collect_west1 = pg_collect_new("collect-west1", &error);
+	g_assert(!error);
+	g_assert(collect_west1);
+	collect_west2 = pg_collect_new("collect-west2", &error);
+	g_assert(!error);
+	g_assert(collect_west2);
+	collect_hub = pg_collect_new("collect-hub", &error);
+	g_assert(!error);
+	g_assert(collect_hub);
+	hub = pg_hub_new("hub", 3, 3, &error);
+	g_assert(!error);
+	g_assert(hub);
+
+	/*
+	 * Here is an ascii graph of the links:
+	 * CE = collect_east
+	 * CW = collect_west
+	 * CH = collect_hub
+	 * VXE = vtep_east
+	 * VXW = vtep_west
+	 * H = hub
+	 *
+	 * [CW1] -\		    /- [CE1]
+	 *	 [VXW] -- [H] -- [VXE]
+	 * [CW2] -/         \-[CH]  \- [CE2]
+	 */
+	pg_brick_chained_links(&error, collect_west1, vtep_west, hub,
+			       vtep_east, collect_east1);
+	g_assert(!error);
+	pg_brick_link(collect_west2, vtep_west, &error);
+	g_assert(!error);
+	pg_brick_link(hub, collect_hub, &error);
+	g_assert(!error);
+	pg_brick_link(vtep_east, collect_east2, &error);
+	g_assert(!error);
+
+
+	graph = pg_graph_new("big dad", collect_west1, &error);
+	g_assert(!error);
+
+	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
+	pg_scan_ether_addr(&multicast_mac2, "01:00:5e:00:00:06");
+
+	pg_vtep6_add_vni(vtep_east, collect_east1, 0,
+			 ip_vni1.word8, &error);
+	g_assert(!error);
+	pg_error_make_ctx(1);
+	check_collector(collect_hub, pg_brick_west_burst_get, 1);
+	pg_vtep6_add_vni(vtep_east, collect_east2, 1,
+			 ip_vni2.word8, &error);
+	g_assert(!error);
+	pg_error_make_ctx(1);
+	check_collector(collect_hub, pg_brick_west_burst_get, 1);
+
+	pg_vtep6_add_vni(vtep_west, collect_west1, 0,
+			 ip_vni1.word8, &error);
+	g_assert(!error);
+	pg_error_make_ctx(1);
+	check_collector(collect_hub, pg_brick_west_burst_get, 1);
+
+	pg_vtep6_add_vni(vtep_west, collect_west2, 1,
+			 ip_vni2.word8, &error);
+	g_assert(!error);
+	pg_error_make_ctx(1);
+	check_collector(collect_hub, pg_brick_west_burst_get, 1);
+
+	/* set mac */
+	mac_src.addr_bytes[0] = 0xf0;
+	mac_src.addr_bytes[1] = 0xf1;
+	mac_src.addr_bytes[2] = 0xf2;
+	mac_src.addr_bytes[3] = 0xf3;
+	mac_src.addr_bytes[4] = 0xf4;
+	mac_src.addr_bytes[5] = 0xf5;
+
+	mac_dest.addr_bytes[0] = 0xe0;
+	mac_dest.addr_bytes[1] = 0xe1;
+	mac_dest.addr_bytes[2] = 0xe2;
+	mac_dest.addr_bytes[3] = 0xe3;
+	mac_dest.addr_bytes[4] = 0xe4;
+	mac_dest.addr_bytes[5] = 0xe5;
+
+	/* alloc packets */
+	for (i = 0; i < NB_PKTS; i++) {
+		char buf[34];
+
+		pkts[i] = rte_pktmbuf_alloc(mp);
+		g_assert(pkts[i]);
+		pkts[i]->udata64 = i;
+		pg_set_mac_addrs(pkts[i],
+				 pg_printable_mac(&mac_src, buf),
+				 "FF:FF:FF:FF:FF:FF");
+		pg_get_ether_addrs(pkts[i], &tmp);
+		g_assert(is_same_ether_addr(&tmp->s_addr, &mac_src));
+	}
+
+	/* burst */
+	pg_brick_burst_to_west(vtep_east, 0, pkts,
+			       pg_mask_firsts(NB_PKTS), &error);
+	if (error)
+		pg_error_print(error);
+	g_assert(!error);
+
+	pg_error_make_ctx(1);
+	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
+				      NB_PKTS);
+
+	/* check the packets have been recive by collect_west1 */
+	pg_error_make_ctx(1);
+	check_collector(collect_west1, pg_brick_east_burst_get, NB_PKTS);
+
+	/* check no packets have been recive by collect_west2 */
+	pg_error_make_ctx(1);
+	check_collector(collect_west2, pg_brick_east_burst_get, 0);
+
+	for (i = 0; i < NB_PKTS; i++) {
+		char buf[32];
+		char buf2[32];
+		struct headers6 *hdr;
+		struct ether_addr mac_multicast =
+			multicast_get_dst_addr(ip_vni1);
+
+		hdr = rte_pktmbuf_mtod(result_pkts[i],
+				       struct headers6 *);
+		g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
+					    &mac_multicast));
+		g_assert(pg_ip_is_same(hdr->ipv6.dst_addr, &ip_vni1));
+		pg_set_mac_addrs(pkts[i],
+				 pg_printable_mac(&mac_dest, buf),
+				 pg_printable_mac(&mac_src, buf2));
+		pg_get_ether_addrs(pkts[i], &tmp);
+		g_assert(is_same_ether_addr(&tmp->s_addr, &mac_dest));
+		g_assert(is_same_ether_addr(&tmp->d_addr, &mac_src));
+		g_assert(!hdr->udp.dgram_cksum);
+	}
+
+	pg_brick_burst_to_east(vtep_west, 0, pkts,
+			       pg_mask_firsts(NB_PKTS), &error);
+	g_assert(!error);
+
+	/* check no packets have been recive by collect_west2 */
+	pg_error_make_ctx(1);
+	check_collector(collect_east2, pg_brick_west_burst_get,
+			0);
+
+	/* check the packets have been recive by collect_west1 */
+	pg_error_make_ctx(1);
+	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
+				      NB_PKTS);
+
+	pg_error_make_ctx(1);
+	check_collector(collect_east1, pg_brick_west_burst_get,
+			NB_PKTS);
+
+	for (i = 0; i < NB_PKTS; i++) {
+		struct headers6 *hdr;
+
+		hdr = rte_pktmbuf_mtod(result_pkts[i], struct headers6 *);
+		g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
+					    pg_vtep_get_mac(vtep_east)));
+		g_assert(pg_ip_is_same(hdr->ipv6.dst_addr, &ip_dst));
+	}
+
+	/* kill'em all */
+	pg_graph_destroy(graph);
 }
 
 static void test_vtep_simple_internal(int flag)
@@ -829,6 +1081,7 @@ int main(int argc, char **argv)
 	g_assert(r >= 0);
 	g_assert(!error);
 
+	pg_test_add_func("/vtep6/simple/no-flags", test_vtep6_simple);
 	pg_test_add_func("/vtep/simple/no-flags", test_vtep_simple_no_flags);
 	pg_test_add_func("/vtep/simple/no-inner-check",
 			test_vtep_simple_no_inner_check);
