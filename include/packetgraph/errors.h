@@ -56,7 +56,9 @@ struct pg_error {
 PG_WARN_UNUSED
 struct pg_error *__pg_error_new(int err_no, const char *file,
 				uint64_t line, const char *function,
-				const char *format, ...);
+				const char *format, ...)
+
+				__attribute__((__format__(__printf__, 5, 6)));
 
 void pg_error_free(struct pg_error *error);
 
