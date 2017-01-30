@@ -30,12 +30,9 @@ AC_ARG_VAR([RTE_SDK], [Path to DPDK reprository])
 # FIXME: hope to have DPDK correctly packaged one day.
 AS_IF([test "x$RTE_SDK" != "x"], [
     AC_MSG_RESULT([$RTE_SDK])
-    AC_SUBST(RTE_SDK_CFLAGS, ["-I$RTE_SDK/build/include -D RTE_MAX_LCORE=128 -D RTE_PKTMBUF_HEADROOM=128 -L$RTE_SDK/build/lib -Wl,--whole-archive,$RTE_SDK/build/lib/libdpdk.a,--no-whole-archive"])
+    AC_SUBST(RTE_SDK_CFLAGS, ["-I$RTE_SDK/build/include -D RTE_MAX_LCORE=128 -D RTE_PKTMBUF_HEADROOM=128"])
     AC_SUBST(RTE_SDK_HEADERS_FOLDER, [$RTE_SDK/build/include/])
-
-    AC_SUBST(RTE_SDK_LDFLAGS, [" -L$RTE_SDK/build/lib/ "])
-
-    AC_SUBST(RTE_SDK_LIBS, [" -lm -lpthread -ldl -lpcap "])
+    AC_SUBST(RTE_SDK_LIBS, [" -lm -lpthread -ldl -lpcap -L$RTE_SDK/build/lib/ -ldpdk "])
 ], [
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([Did you set RTE_SDK variable ?])
