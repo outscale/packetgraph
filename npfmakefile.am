@@ -16,7 +16,7 @@ libprop_la_SOURCES = \
 	src/npf/proplib/src/prop_zlib.c\
 	src/npf/proplib/src/rb.c
 libprop_la_includes = -I$(srcdir)/src/npf/proplib/include
-libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all -Ofast -std=gnu99 -fPIC
+libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all -Ofast -std=gnu99 -fPIC
 
 liblpm_la_SOURCES = \
 	src/npf/liblpm/src/lpm.c\
