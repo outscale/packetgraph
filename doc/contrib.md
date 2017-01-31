@@ -68,7 +68,7 @@ Some style test will run if you have some tools like `rats`, `cppcheck`,
 `flawfinder` or `lizard`. The only blocking test is `checkpatch.pl` which
 is embedded with the project.
 
-See [Linux coding style](https://www.kernel.org/doc/Documentation/CodingStyle).
+See [Linux coding style](https://www.kernel.org/doc/html/latest/process/coding-style.html).
 
 ## Run tests
 
