@@ -76,7 +76,7 @@ noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols
-libpacketgraph_dev_la_CFLAGS = -g -D_FORTIFY_SOURCE=2 -fstack-protector-all -Wstack-protector $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -Og
+libpacketgraph_dev_la_CFLAGS = -g -D_FORTIFY_SOURCE=2 -fstack-protector-all -Wstack-protector $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -O1
 
 tests_antispoof_SOURCES = \
 	tests/antispoof/test-arp-gratuitous.c\
