@@ -107,7 +107,7 @@ For more information, check LICENSE file.
 # Contribute
 
 New to packetgraph ? Want to contribute and/or create a new brick ?
-Some [developper guidelines](docs/contrib.md) are available.
+Some [developper guidelines](doc/contrib.md) are available.
 
 # Question ? Contact us !
 
