@@ -19,8 +19,7 @@ libprop_la_includes = -I$(srcdir)/src/npf/proplib/include
 libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all -Ofast -std=gnu11 -fPIC
 
 liblpm_la_SOURCES = \
-	src/npf/liblpm/src/lpm.c\
-	src/npf/liblpm/src/t_lpm.c
+	src/npf/liblpm/src/lpm.c
 liblpm_la_includes = -I$(srcdir)/src/npf/liblpm/src
 liblpm_la_CFLAGS = $(liblpm_la_includes) -std=gnu11 -O2 -W  -Wcast-qual -Wwrite-strings -Wextra -Werror -fPIC
 
