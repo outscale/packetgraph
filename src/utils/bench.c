@@ -179,11 +179,19 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 					    error) < 0)) {
 			if (!pg_error_is_set(error)) {
 				*error = pg_error_new(
-					"unknow fail durring burst");
+					"Unknow fail durring burst");
+			} else {
+				pg_error_prepend(*error,
+						 "Fail at iteration %ld", i);
 			}
 			return -1;
 		}
-
+		if (unlikely(pg_error_is_set(error))) {
+			pg_error_prepend(*error, "%s%s%li",
+					 "Error set but burst return sucess ",
+					 "at iteration ", i);
+			return -1;
+		}
 		/* Poll back packets if needed. */
 		if (bl.output_poll)
 			pg_brick_poll(bl.output_brick, &cnt, error);
