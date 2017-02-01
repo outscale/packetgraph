@@ -357,26 +357,22 @@ endif
 if PG_EXAMPLES
 noinst_PROGRAMS += example-firewall example-switch example-rxtx example-nic
 
-example_firewall_SOURCES = \
-	examples/firewall/firewall.c
+example_firewall_SOURCES = examples/firewall/firewall.c
 example_firewall_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_firewall_LDFLAGS = libpacketgraph.la
 EXTRA_example_firewall_DEPENDENCIES = libpacketgraph.la
 
-example_switch_SOURCES = \
-	examples/switch/switch.c
+example_switch_SOURCES = examples/switch/switch.c
 example_switch_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_switch_LDFLAGS = libpacketgraph.la
 EXTRA_example_switch_DEPENDENCIES = libpacketgraph.la
 
-example_rxtx_SOURCES = \
-	examples/rxtx/rxtx.c
+example_rxtx_SOURCES = examples/rxtx/rxtx.c
 example_rxtx_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_rxtx_LDFLAGS = libpacketgraph.la
 EXTRA_example_rxtx_DEPENDENCIES = libpacketgraph.la
 
-example_nic_SOURCES = \
-	examples/nic/nic.c
+example_nic_SOURCES = examples/nic/nic.c
 example_nic_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_nic_LDFLAGS = libpacketgraph.la
 EXTRA_example_nic_DEPENDENCIES = libpacketgraph.la
