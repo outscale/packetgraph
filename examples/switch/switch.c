@@ -18,6 +18,14 @@
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
 
+static void print_help(void) {
+	printf("example-switch [DPDK_OPT] -- [EXAMPLE_OPT]\n");
+	printf("EXAMPLE_OPT:\n");
+	printf("--vhost NB : use NB vhost bricks instead\n");
+	printf("--verbose  : add print bricks\n");
+	printf("--help, -h : show this help\n");
+}
+
 int main(int argc, char **argv)
 {
 	/**
@@ -47,13 +55,6 @@ int main(int argc, char **argv)
 	int ac = argc;
 
 	/* check options */
-	void print_help(void) {
-		printf("example-switch [DPDK_OPT] -- [EXAMPLE_OPT]\n");
-		printf("EXAMPLE_OPT:\n");
-		printf("--vhost NB : use NB vhost bricks instead\n");
-		printf("--verbose  : add print bricks\n");
-		printf("--help, -h : show this help\n");
-	}
 	while (ac > 1) {
 		if (g_str_equal(av[1], "--verbose")) {
 			verbose = 1;
