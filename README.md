@@ -83,8 +83,12 @@ $ cd dpdk
 $ git checkout -b v16.11 v16.11
 $ make config T=x86_64-native-linuxapp-gcc
 ```
+
+Note: use `T=x86_64-native-linuxapp-clang` to build with clang
+
 Edit build/.config and be sure to set the following parameters to 'y':
 - CONFIG_RTE_LIBRTE_PMD_PCAP
+
 ```
 $ make EXTRA_CFLAGS='-fPIC'
 ```
@@ -98,6 +102,8 @@ $ ./configure RTE_SDK=/path/to/you/dpdk/folder
 $ make
 $ make install
 ```
+
+Note: to build with clang, you can use `./configure_clang` wrapper instead of `./configure`.
 
 # License
 
