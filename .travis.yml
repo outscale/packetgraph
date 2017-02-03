@@ -26,8 +26,6 @@ before_install:
  - git checkout -b v16.11 v16.11
  - export RTE_SDK=~/dpdk
  - make config T=x86_64-native-linuxapp-gcc
- - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_VHOST=n/CONFIG_RTE_LIBRTE_PMD_VHOST=y/g" build/.config
- - sed -i -e "s/CONFIG_RTE_LIBRTE_VHOST=n/CONFIG_RTE_LIBRTE_VHOST=y/g" build/.config
  - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" build/.config
  - make EXTRA_CFLAGS='-fPIC'
  
