@@ -72,7 +72,6 @@ lpm_clear(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 		lpm_hmap_t *hmap = &lpm->prefix[n];
 
 		if (!hmap->hashsize) {
-			ASSERT(!hmap->bucket);
 			continue;
 		}
 		for (unsigned i = 0; i < hmap->hashsize; i++) {
