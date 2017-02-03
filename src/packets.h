@@ -96,6 +96,12 @@ struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
 					 uint16_t datagram_len,
 					 uint8_t proto);
 
+struct rte_mbuf **pg_packets_append_ipv6(struct rte_mbuf **pkts,
+					 uint64_t pkts_mask,
+					 uint8_t *src_ip, uint8_t *dst_ip,
+					 uint16_t datagram_len,
+					 uint8_t proto);
+
 struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
 					 uint64_t pkts_mask,
 					 uint32_t src_ip, uint32_t dst_ip,

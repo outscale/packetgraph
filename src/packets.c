@@ -28,6 +28,7 @@
 #include "utils/bitmask.h"
 #include "utils/mempool.h"
 #include "utils/network_const.h"
+#include "utils/ip.h"
 
 struct rte_mbuf **pg_packets_create(uint64_t pkts_mask)
 {
@@ -164,6 +165,41 @@ struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
 }
 
 #undef PACKETS_OPS_IPV4
+
+#define PACKETS_OPS_IPV6(pkts, pkts_mask, src_ip, dst_ip,		\
+			 datagram_len, proto, ops)			\
+	struct ipv6_hdr	ip_hdr;						\
+	char *tmp;							\
+	union pg_ipv6_vtc vtc = {.version = 6, .traffic_class = 0,	\
+				 .flow_label = 0};			\
+	PG_FOREACH_BIT(pkts_mask, j) {					\
+		if (!pkts[j])						\
+			continue;					\
+		ip_hdr.vtc_flow = vtc.vtc_flow;				\
+		ip_hdr.payload_len = rte_cpu_to_be_16(datagram_len);	\
+		ip_hdr.hop_limits = 64;					\
+		ip_hdr.proto = proto;					\
+		pg_ip_copy(src_ip, ip_hdr.src_addr);			\
+		pg_ip_copy(dst_ip, ip_hdr.dst_addr);			\
+		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(ip_hdr));	\
+		if (!tmp)						\
+			return NULL;					\
+		rte_memcpy(tmp, &ip_hdr, sizeof(ip_hdr));		\
+		pkts[j]->l3_len = sizeof(struct ipv6_hdr);		\
+	}
+
+struct rte_mbuf **pg_packets_append_ipv6(struct rte_mbuf **pkts,
+					 uint64_t pkts_mask,
+					 uint8_t *src_ip, uint8_t *dst_ip,
+					 uint16_t datagram_len,
+					 uint8_t proto)
+{
+	PACKETS_OPS_IPV6(pkts, pkts_mask, src_ip, dst_ip, datagram_len,
+			 proto, append);
+	return pkts;
+}
+
+#undef PACKETS_OPS_IPV6
 
 #define PACKETS_OPS_UDP(pkts, pkts_mask, src_port,			\
 			dst_port, datagram_len, ops)			\
