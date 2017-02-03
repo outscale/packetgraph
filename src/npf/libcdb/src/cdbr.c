@@ -174,6 +174,8 @@ cdbr_open_mem(void *base, size_t size, int flags,
 {
 	struct cdbr *cdbr;
 	uint8_t *buf = base;
+	/* avoid warning by using flags */
+	flags = 0;
 	if (size < 40 || memcmp(buf, "NBCDB\n\0\001", 8)) {
 		SET_ERRNO(EINVAL);
 		return NULL;
