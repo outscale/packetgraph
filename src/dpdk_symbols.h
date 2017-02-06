@@ -15,25 +15,13 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <rte_config.h>
-#include <rte_eal.h>
-#include <rte_virtio_net.h>
-#include <packetgraph/packetgraph.h>
-#include "brick-int.h"
-#include "dpdk_symbols.h"
+#ifndef _PG_DPDK_SYMBOLS_H
+#define _PG_DPDK_SYMBOLS_H
 
-int pg_start(int argc, char **argv, struct pg_error **errp)
-{
-	mp_hdlr_init_ops_stack();
-	int r = rte_eal_init(argc, argv);
+#define PG_DPDK_INIT(function) \
+	extern void function(void); \
+	void (*pg_glob_ ##function)(void) __attribute__((unused)) = &function;
 
-	if (r < 0)
-		*errp = pg_error_new("error durring eal initialisation");
-	return r;
-}
+#include "dpdk_symbols_autogen.h"
 
-void pg_stop(void)
-{
-	g_list_free(pg_all_bricks);
-	pg_all_bricks = NULL;
-}
+#endif /* _PG_DPDK_SYMBOLS_H */

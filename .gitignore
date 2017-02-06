@@ -37,3 +37,4 @@ html
 !*.c
 !*.h
 example-*
+dpdk_symbols_autogen.h
