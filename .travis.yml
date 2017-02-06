@@ -25,7 +25,7 @@ before_install:
  - cd dpdk
  - git checkout -b v16.11 v16.11
  - export RTE_SDK=~/dpdk
- - make config T=x86_64-native-linuxapp-gcc
+ - make config T=x86_64-native-linuxapp-clang
  - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" build/.config
  - make EXTRA_CFLAGS='-fPIC'
  
@@ -34,5 +34,5 @@ script:
  - ./autogen.sh
  - mkdir build
  - cd build
- - ./../configure --with-benchmarks --with-examples
+ - ./../configure_clang --with-benchmarks --with-examples
  - ./../.travis.sh
