@@ -692,6 +692,23 @@ static void test_firewall_tcp6(void)
 	g_assert(firewall_scenario_filter(rule, &packet, mask) == mask);
 }
 
+static void test_firewall_exotic(void)
+{
+	int nb = 2;
+	uint64_t mask = pg_mask_firsts(nb);
+	struct rte_mbuf *pkts[] = {
+		build_ip_packet("10.0.0.1", "10.0.0.255", 42, AF_INET),
+		build_ip_packet("10::2", "10::255", 42, AF_INET6)
+	};
+
+	// FIXME ipv6 protochain not working here
+	const char *rule = "(ip proto 16) or (ip6 proto 16)";
+	g_assert(firewall_scenario_filter(rule, pkts, mask) == mask);
+
+	for (int i = 0; i < nb; i++)
+		rte_pktmbuf_free(pkts[i]);
+}
+
 static void test_firewall_icmp(void)
 {
 #	include "test-icmp.c"
@@ -781,6 +798,7 @@ static void test_firewall(void)
 	pg_test_add_func("/firewall/rules", test_firewall_rules);
 	pg_test_add_func("/firewall/empty_burst", test_firewall_empty_burst);
 	pg_test_add_func("/firewall/tcp6", test_firewall_tcp6);
+	pg_test_add_func("/firewall/exotic", test_firewall_exotic);
 }
 
 int main(int argc, char **argv)
