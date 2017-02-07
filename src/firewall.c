@@ -137,16 +137,15 @@ void pg_firewall_rule_flush(struct pg_brick *brick)
 	state->rules = NULL;
 }
 
-int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
+static int firewall_reload_internal(struct pg_firewall_state *state,
+				    struct pg_error **errp)
 {
 	npf_error_t errinfo;
-	struct pg_firewall_state *state;
 	struct nl_config *config;
 	void *config_build;
 	int npf_ret;
 	GList *it;
 
-	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	config = npf_config_create();
 
 	it = state->rules;
@@ -164,6 +163,13 @@ int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
 		return -1;
 	}
 	return 0;
+}
+
+int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp)
+{
+	struct pg_firewall_state *state =
+		pg_brick_get_state(brick, struct pg_firewall_state);
+	return firewall_reload_internal(state, errp);
 }
 
 struct pg_brick *pg_firewall_new(const char *name, uint64_t flags,
@@ -270,8 +276,7 @@ static int firewall_init(struct pg_brick *brick,
 	state->npf = npf;
 	state->rules = NULL;
 	++nb_firewall;
-
-	return 0;
+	return firewall_reload_internal(state, errp);
 }
 
 static void firewall_destroy(struct pg_brick *brick,

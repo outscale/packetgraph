@@ -709,6 +709,15 @@ static void test_firewall_exotic(void)
 		rte_pktmbuf_free(pkts[i]);
 }
 
+static void test_firewall_empty_rules(void)
+{
+	// no rules, should not let packets pass
+	struct rte_mbuf *pkt =
+		build_ip_packet("10.0.0.1", "10.0.0.255", 42, AF_INET);
+	g_assert(firewall_scenario_filter(NULL, &pkt, pg_mask_firsts(1)) == 0);
+	rte_pktmbuf_free(pkt);
+}
+
 static void test_firewall_icmp(void)
 {
 #	include "test-icmp.c"
@@ -799,6 +808,7 @@ static void test_firewall(void)
 	pg_test_add_func("/firewall/empty_burst", test_firewall_empty_burst);
 	pg_test_add_func("/firewall/tcp6", test_firewall_tcp6);
 	pg_test_add_func("/firewall/exotic", test_firewall_exotic);
+	pg_test_add_func("/firewall/empty_rules", test_firewall_empty_rules);
 }
 
 int main(int argc, char **argv)
