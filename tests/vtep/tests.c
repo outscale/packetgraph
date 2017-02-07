@@ -36,6 +36,7 @@
 #include "utils/tests.h"
 #include "utils/mempool.h"
 #include "utils/mac.h"
+#include "utils/errors.h"
 #include "utils/bitmask.h"
 #include "packets.h"
 #include "packetsgen.h"
@@ -86,9 +87,10 @@ static struct rte_mbuf **check_collector(struct pg_brick *collect,
 	uint64_t pkts_mask;
 
 	result_pkts = sideFunc(collect, &pkts_mask, &error);
-	g_assert(!error);
-	g_assert(pkts_mask == pg_mask_firsts(nb));
-	g_assert((!!(intptr_t)result_pkts) == (!!nb));
+	pg_assert(!error);
+	pg_assert(pkts_mask == pg_mask_firsts(nb));
+	pg_assert((!!(intptr_t)result_pkts) == (!!nb));
+	pg_error_assert_enable = 0;
 	return result_pkts;
 }
 
@@ -222,6 +224,8 @@ static void test_vtep_simple_internal(int flag)
 	pg_vtep_add_vni(vtep_east, collect_east1, 0,
 		      inet_addr("224.0.0.5"), &error);
 	g_assert(!error);
+
+	pg_error_make_ctx(1);
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get, 1);
 	check_multicast_hdr(rte_pktmbuf_mtod(result_pkts[0],
 					     struct multicast_pkt *),
@@ -231,6 +235,7 @@ static void test_vtep_simple_internal(int flag)
 	pg_vtep_add_vni(vtep_east, collect_east2, 1,
 		      inet_addr("224.0.0.6"), &error);
 	g_assert(!error);
+	pg_error_make_ctx(1);
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get, 1);
 	check_multicast_hdr(rte_pktmbuf_mtod(result_pkts[0],
 					     struct multicast_pkt *),
@@ -240,6 +245,7 @@ static void test_vtep_simple_internal(int flag)
 	pg_vtep_add_vni(vtep_west, collect_west1, 0,
 		      inet_addr("224.0.0.5"), &error);
 	g_assert(!error);
+	pg_error_make_ctx(1);
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get, 1);
 	check_multicast_hdr(rte_pktmbuf_mtod(result_pkts[0],
 					     struct multicast_pkt *),
@@ -249,6 +255,7 @@ static void test_vtep_simple_internal(int flag)
 	pg_vtep_add_vni(vtep_west, collect_west2, 1,
 		      inet_addr("224.0.0.6"), &error);
 	g_assert(!error);
+	pg_error_make_ctx(1);
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get, 1);
 	check_multicast_hdr(rte_pktmbuf_mtod(result_pkts[0],
 					     struct multicast_pkt *),
@@ -292,10 +299,13 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(!error);
 
 	/* check the packets have been recive by collect_west1 */
+	pg_error_make_ctx(1);
 	check_collector(collect_west1, pg_brick_east_burst_get, NB_PKTS);
 	/* check no packets have been recive by collect_west2 */
+	pg_error_make_ctx(1);
 	check_collector(collect_west2, pg_brick_east_burst_get, 0);
 
+	pg_error_make_ctx(1);
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
 				      NB_PKTS);
 
@@ -326,13 +336,16 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(!error);
 
 	/* check no packets have been recive by collect_west2 */
+	pg_error_make_ctx(1);
 	check_collector(collect_east2, pg_brick_west_burst_get,
 				      0);
 
 	/* check the packets have been recive by collect_west1 */
+	pg_error_make_ctx(1);
 	check_collector(collect_east1, pg_brick_west_burst_get,
 				      NB_PKTS);
 
+	pg_error_make_ctx(1);
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
 				      NB_PKTS);
 
