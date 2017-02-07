@@ -66,4 +66,17 @@ int pg_mask_count(uint64_t pkts_mask);
 
 #define pg_last_bit_pos(mask)	(64 - clz64(mask))
 
+/* We use this conversion for constants so it's computed at compile time.
+ * Don't use this at runtime, prefer rte_byteorder.h for this purpose.
+ */
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define PG_CPU_TO_BE_16(i) ((uint16_t) ((i) << 8 | (i) >> 8))
+#define PG_CPU_TO_BE_32(i) (uint32_t)(( \
+	(PG_CPU_TO_BE_16(((i) & 0xffff0000) >> 16)) | \
+	(PG_CPU_TO_BE_16((i) & 0x0000ffff) << 16)))
+#else
+#define PG_CPU_TO_BE_16(i) (i)
+#define PG_CPU_TO_BE_32(i) (i)
+#endif /* if  __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
+
 #endif /* _PG_UTILS_BITMASK_H */
