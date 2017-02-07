@@ -23,6 +23,7 @@
 #include "brick-int.h"
 #include "tests.h"
 #include "packetgraph/queue.h"
+#include "utils/network_const.h"
 
 static void test_brick_core_simple_lifecycle(void)
 {
@@ -856,9 +857,28 @@ static void test_brick_verify_re_link_monopole(void)
 
 	pg_brick_destroy(west_brick);
 	pg_brick_destroy(east_brick);
-
-	
 }
+
+static void test_big_endian(void)
+{
+#define TEST_BE_16(i) g_assert(PG_CPU_TO_BE_16(i) == rte_cpu_to_be_16(i));
+#define TEST_BE_32(i) g_assert(PG_CPU_TO_BE_32(i) == rte_cpu_to_be_32(i));
+	TEST_BE_16(0xabcd);
+	TEST_BE_16(0x0fbc);
+	TEST_BE_16(0xff00);
+	TEST_BE_16(ETHER_TYPE_ARP);
+	TEST_BE_16(ETHER_TYPE_RARP);
+	TEST_BE_16(ETHER_TYPE_IPv4);
+	TEST_BE_16(ETHER_TYPE_IPv6);
+	TEST_BE_16(IPV4_HDR_DF_FLAG);
+	TEST_BE_32(0xff0000ff);
+	TEST_BE_32(0xf0f0ff0f);
+	TEST_BE_32(0xdeadbeef);
+	TEST_BE_32(PG_VTEP_I_FLAG);
+#undef TEST_BE_32
+#undef TEST_BE_16
+}
+
 void test_brick_core(void)
 {
 	/* tests in the same order as the header function declarations */
@@ -880,4 +900,5 @@ void test_brick_core(void)
 			test_brick_core_verify_re_link);
 	pg_test_add_func("/core/verify/re_link_monopole",
 			test_brick_verify_re_link_monopole);
+	pg_test_add_func("/core/verify/big_endian", test_big_endian);
 }
