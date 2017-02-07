@@ -135,7 +135,7 @@ struct vtep_state {
 	uint16_t udp_dst_port;		/* UDP destination port */
 	struct ether_addr mac;		/* MAC address of the VTEP */
 	struct vtep_port *ports;
-	rte_atomic16_t packet_id;	/* IP identification number */
+	uint16_t packet_id;	/* IP identification number */
 	int flags;
 	struct rte_mbuf *pkts[64];
 };
@@ -344,8 +344,8 @@ static inline void ip_build(struct vtep_state *state, struct ipv4_hdr *ip_hdr,
 	ip_hdr->total_length = rte_cpu_to_be_16(datagram_len);
 
 	/* Set the packet id and increment it */
-	ip_hdr->packet_id =
-		rte_cpu_to_be_16(rte_atomic16_add_return(&state->packet_id, 1));
+	state->packet_id += 1;
+	ip_hdr->packet_id += rte_cpu_to_be_16(state->packet_id);
 
 	/* the implementation do not use neither DF nor MF */
 
@@ -862,7 +862,7 @@ static int vtep_init(struct pg_brick *brick,
 	state->flags = vtep_config->flags;
 	state->udp_dst_port = vtep_config->udp_dst_port;
 
-	rte_atomic16_set(&state->packet_id, 0);
+	state->packet_id = 0;
 
 	/* do a lazy allocation of the VTEP ports: the code will init them
 	 * at VNI port add
