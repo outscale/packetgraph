@@ -646,63 +646,22 @@ static void firewall_replay(const unsigned char *pkts[],
 	pg_brick_destroy(fw);
 }
 
-static void firewall_noip(enum pg_side dir)
+static void test_firewall_noip(void)
 {
-	struct pg_brick *gen;
-	struct pg_brick *fw;
-	struct pg_brick *col;
-	struct pg_error *error = NULL;
 	uint16_t i;
-	static uint16_t nb = 30;
-	struct rte_mbuf *packets[nb];
-	uint64_t filtered_pkts_mask;
-	uint16_t packet_count;
-
-	/* create and connect 3 bricks: generator -> firewall -> collector */
-	gen = pg_packetsgen_new("gen", 2, 2, pg_flip_side(dir), packets, nb, &error);
-	g_assert(!error);
-	fw = pg_firewall_new("fw", PG_NONE, &error);
-	g_assert(!error);
-	col = pg_collect_new("col", &error);
-	g_assert(!error);
-	/* revert link if needed */
-	if (dir == PG_WEST_SIDE) {
-		pg_brick_link(gen, fw, &error);
-		g_assert(!error);
-		pg_brick_link(fw, col, &error);
-		g_assert(!error);
-	} else {
-		pg_brick_link(col, fw, &error);
-		g_assert(!error);
-		pg_brick_link(fw, gen, &error);
-		g_assert(!error);
-	}
+	int nb = 30;
+	struct rte_mbuf *pkts[nb];
+	uint64_t mask = pg_mask_firsts(nb);
 
 	/* build some non-IP packets */
 	for (i = 0; i < nb; i++)
-		packets[i] = build_non_ip_packet();
+		pkts[i] = build_non_ip_packet();
 
-	/* let's burst ! */
-	pg_brick_poll(gen, &packet_count, &error);
-	g_assert(!error);
-	g_assert(packet_count == nb);
-
-	/* check collect brick */
-	if (dir == PG_WEST_SIDE)
-		pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
-	else
-		pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
-	g_assert(!error);
-	g_assert(pg_mask_count(filtered_pkts_mask) == nb);
+	g_assert(firewall_scenario_filter(NULL, pkts, mask) == mask);
 
 	/* clean */
 	for (i = 0; i < nb; i++)
-		rte_pktmbuf_free(packets[i]);
-	pg_brick_destroy(gen);
-	pg_brick_destroy(fw);
-	pg_brick_destroy(col);
+		rte_pktmbuf_free(pkts[i]);
 }
 
 static void test_firewall_filter(void)
@@ -741,12 +700,6 @@ static void test_firewall_icmp(void)
 	int pkts_size[] = {98, 98, 98, 98, 98, 98, 98, 98, 98, 98};
 
 	firewall_replay(pkts, 10, pkts_size);
-}
-
-static void test_firewall_noip(void)
-{
-	firewall_noip(PG_WEST_SIDE);
-	firewall_noip(PG_EAST_SIDE);
 }
 
 static void test_firewall_rules(void)
