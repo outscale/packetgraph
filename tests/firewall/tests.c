@@ -162,6 +162,50 @@ static struct rte_mbuf *build_non_ip_packet(void)
 	return pkt;
 }
 
+/* send burst, get mask after firewall */
+static uint64_t firewall_scenario_filter(const char *rule,
+					 struct rte_mbuf **pkts,
+					 uint64_t mask)
+{
+	struct pg_brick *gen, *fw, *col;
+	struct pg_error *error = NULL;
+	uint64_t filtered_mask;
+	int nb = pg_mask_count(mask);
+	uint16_t packet_count;
+
+	/* create and connect 3 bricks: generator -> firewall -> collector */
+	gen = pg_packetsgen_new("gen", 2, 2, PG_EAST_SIDE, pkts, nb, &error);
+	g_assert(!error);
+	fw = pg_firewall_new("fw", PG_NONE, &error);
+	g_assert(!error);
+	col = pg_collect_new("col", &error);
+	g_assert(!error);
+
+	pg_brick_chained_links(&error, gen, fw, col);
+	g_assert(!error);
+
+	if (rule) {
+		g_assert(!pg_firewall_rule_add(fw, rule, PG_WEST_SIDE, 0,
+					       &error));
+		g_assert(!error);
+		g_assert(!pg_firewall_reload(fw, &error));
+		g_assert(!error);
+	}
+
+	/* let's burst ! */
+	pg_brick_poll(gen, &packet_count, &error);
+	g_assert(!error);
+
+	/* check collect brick */
+	pg_brick_west_burst_get(col, &filtered_mask, &error);
+	g_assert(!error);
+
+	pg_brick_destroy(gen);
+	pg_brick_destroy(fw);
+	pg_brick_destroy(col);
+	return filtered_mask;
+}
+
 static void firewall_filter_rules(enum pg_side dir)
 {
 	struct pg_brick *gen;
