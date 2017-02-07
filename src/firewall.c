@@ -24,6 +24,7 @@
 #include "utils/bitmask.h"
 #include "brick-int.h"
 #include "packets.h"
+#include "utils/network_const.h"
 #include "src/npf/npf/dpdk/npf_dpdk.h"
 
 #define FIREWALL_SIDE_TO_NPF(side) \
@@ -205,8 +206,8 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		 * Let non-ip packets (like ARP) pass.
 		 */
 		eth = rte_pktmbuf_mtod(tmp, struct ether_hdr *);
-		if (eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv4) &&
-		    eth->ether_type != rte_cpu_to_be_16(ETHER_TYPE_IPv6)) {
+		if (eth->ether_type != PG_BE_ETHER_TYPE_IPv4 &&
+		    eth->ether_type != PG_BE_ETHER_TYPE_IPv6) {
 			continue;
 		}
 

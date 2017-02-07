@@ -23,6 +23,7 @@
 #include "brick-int.h"
 #include "utils/bitmask.h"
 #include "utils/mac.h"
+#include "utils/network_const.h"
 
 #define ARP_MAX 100
 
@@ -93,7 +94,7 @@ int pg_antispoof_arp_add(struct pg_brick *brick, uint32_t ip,
 
 	/* let's start the pre-build of ARP anti-spoof */
 	arp->packet.ar_hrd = rte_cpu_to_be_16(1);
-	arp->packet.ar_pro = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
+	arp->packet.ar_pro = PG_BE_ETHER_TYPE_IPv4;
 	arp->packet.ar_hln = ETHER_ADDR_LEN;
 	arp->packet.ar_pln = 4;
 	arp->packet.sender_ip = ip;
@@ -216,8 +217,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 		if (state->arp_enabled) {
 			uint16_t etype = eth->ether_type;
 
-			if (unlikely(etype ==
-				     rte_cpu_to_be_16(ETHER_TYPE_ARP))) {
+			if (unlikely(etype == PG_BE_ETHER_TYPE_ARP)) {
 				struct pg_antispoof_arp *a;
 
 				a = (struct pg_antispoof_arp *)(eth + 1);
@@ -225,8 +225,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 					pkts_mask &= ~bit;
 					continue;
 				}
-			} else if (unlikely(etype ==
-					rte_cpu_to_be_16(ETHER_TYPE_RARP))) {
+			} else if (unlikely(etype == PG_BE_ETHER_TYPE_RARP)) {
 				pkts_mask &= ~bit;
 				continue;
 			}

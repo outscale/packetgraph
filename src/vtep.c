@@ -49,6 +49,7 @@
 #include "utils/mempool.h"
 #include "utils/mac-table.h"
 #include "utils/mac.h"
+#include "utils/network_const.h"
 
 struct dest_addresses {
 	uint32_t ip;
@@ -62,9 +63,6 @@ struct vtep_config {
 	uint16_t udp_dst_port;
 	int flags;
 };
-
-			/* 0000 1000 0000 ... */
-#define VTEP_I_FLAG	0x08000000
 
 #define UDP_MIN_PORT 49152
 #define UDP_PORT_RANGE 16383
@@ -218,7 +216,7 @@ static void multicast_internal(struct vtep_state *state,
 
 	ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
 	ether_addr_copy(&dst, &hdr->ethernet.d_addr);
-	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
+	hdr->ethernet.ether_type = PG_BE_ETHER_TYPE_IPv4;
 
 	/* 4-5 = 0x45 */
 	hdr->ipv4.version_ihl = 0x45;
@@ -284,7 +282,7 @@ static void multicast_unsubscribe(struct vtep_state *state,
 static inline void vxlan_build(struct vxlan_hdr *header, uint32_t vni)
 {
 	/* mark the VNI as valid */
-	header->vx_flags = rte_cpu_to_be_32(VTEP_I_FLAG);
+	header->vx_flags = PG_VTEP_BE_I_FLAG;
 
 	/**
 	 * We have checked the VNI validity at VNI setup so reserved byte will
@@ -384,7 +382,7 @@ static inline void ethernet_build(struct ether_hdr *eth_hdr,
 	ether_addr_copy(dst_mac, &eth_hdr->d_addr);
 
 	/* the ethernet frame carries an IP packet */
-	eth_hdr->ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
+	eth_hdr->ether_type = PG_BE_ETHER_TYPE_IPv4;
 }
 
 static inline uint16_t udp_overhead(void)
@@ -450,23 +448,23 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		pkt->ol_flags = PKT_TX_UDP_CKSUM;
 	} else if (pkt->ol_flags & PKT_TX_TCP_SEG) {
 		struct eth_ip_l4 *inner = &full_header->inner;
-		uint16_t eth_type =
-			rte_cpu_to_be_16(inner->ethernet.ether_type);
 
 		pkt->ol_flags = PKT_TX_IPV4 | PKT_TX_IP_CKSUM |
 			PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
-		if (eth_type == ETHER_TYPE_IPv4) {
+		switch (inner->ethernet.ether_type) {
+		case PG_BE_ETHER_TYPE_IPv4:
 			inner->ipv4.hdr_checksum = 0;
 			inner->v4tcp.cksum = rte_ipv4_phdr_cksum(
 				&inner->ipv4,
 				pkt->ol_flags);
-		} else {
+			break;
+		case PG_BE_ETHER_TYPE_IPv6:
 			inner->v6tcp.cksum = rte_ipv6_phdr_cksum(
 				&inner->ipv6,
 				pkt->ol_flags);
+			break;
 		}
 	}
-
 
 	return 0;
 }
@@ -617,11 +615,10 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts,
 		if (unlikely(rte_pktmbuf_pkt_len(pkts[i]) <
 			     sizeof(struct headers) ||
 			     tmp->ethernet.ether_type !=
-			     rte_cpu_to_be_16(ETHER_TYPE_IPv4) ||
+			     PG_BE_ETHER_TYPE_IPv4 ||
 			     tmp->ipv4.next_proto_id != 17 ||
 			     tmp->udp.dst_port != udp_dst_port_be ||
-			     tmp->vxlan.vx_flags !=
-			     rte_cpu_to_be_32(VTEP_I_FLAG)))
+			     tmp->vxlan.vx_flags != PG_VTEP_BE_I_FLAG))
 			continue;
 		if (tmp->udp.dgram_cksum) {
 			if (unlikely(!check_udp_checksum(hdrs[i])))
@@ -674,16 +671,16 @@ static inline void restore_metadata(struct rte_mbuf **pkts,
 {
 	PG_FOREACH_BIT(vni_mask, it) {
 		pkts[it]->l2_len = sizeof(struct ether_hdr);
-		uint16_t eth_type =
-			rte_cpu_to_be_16(hdrs[it]->ethernet.ether_type);
-
-		if (eth_type == ETHER_TYPE_IPv4)
+		switch (hdrs[it]->ethernet.ether_type) {
+		case PG_BE_ETHER_TYPE_IPv4:
 			pkts[it]->l3_len = sizeof(struct ipv4_hdr);
-		else if (eth_type == ETHER_TYPE_IPv6)
+			break;
+		case PG_BE_ETHER_TYPE_IPv6:
 			pkts[it]->l3_len = sizeof(struct ipv6_hdr);
+			break;
+		}
 	}
 }
-
 
 static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			      uint16_t edge_index,

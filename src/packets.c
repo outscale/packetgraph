@@ -27,6 +27,7 @@
 #include "packets.h"
 #include "utils/bitmask.h"
 #include "utils/mempool.h"
+#include "utils/network_const.h"
 
 struct rte_mbuf **pg_packets_create(uint64_t pkts_mask)
 {
@@ -203,8 +204,6 @@ struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
 
 #undef PACKETS_OPS_UDP
 
-#define VTEP_I_FLAG		0x08000000
-
 #define PG_PACKETS_OPS_VXLAN(pkts, pkts_mask, vni, ops)			\
 	struct vxlan_hdr vx_hdr;					\
 	char *tmp;							\
@@ -212,7 +211,7 @@ struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
 		if (!pkts[j])						\
 			continue;					\
 		/* mark the VNI as valid */				\
-		vx_hdr.vx_flags = rte_cpu_to_be_32(VTEP_I_FLAG);	\
+		vx_hdr.vx_flags = PG_VTEP_BE_I_FLAG;			\
 		vx_hdr.vx_vni = rte_cpu_to_be_32(vni << 8);		\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(vx_hdr));	\
 		if (!tmp)						\
@@ -235,8 +234,6 @@ struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
 	PG_PACKETS_OPS_VXLAN(pkts, pkts_mask, vni, prepend)
 	return pkts;
 }
-
-#undef VTEP_I_FLAG
 
 #undef PG_PACKETS_OPS_VXLAN
 
