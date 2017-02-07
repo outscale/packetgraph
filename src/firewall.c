@@ -206,11 +206,10 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		 * Let non-ip packets (like ARP) pass.
 		 */
 		eth = rte_pktmbuf_mtod(tmp, struct ether_hdr *);
-		if (eth->ether_type != PG_BE_ETHER_TYPE_IPv4 &&
-		    eth->ether_type != PG_BE_ETHER_TYPE_IPv6) {
+		if (unlikely(eth->ether_type != PG_BE_ETHER_TYPE_IPv4 &&
+			     eth->ether_type != PG_BE_ETHER_TYPE_IPv6)) {
 			continue;
 		}
-
 
 		/* NPF only manage layer 3 so we temporaly cut off layer 2.
 		 * Note that this trick is not thread safe. To do so, we will
