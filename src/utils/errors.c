@@ -19,7 +19,21 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <packetgraph/errors.h>
+#include "utils/errors.h"
+
+int pg_error_assert_enable;
+struct pg_error_context pg_error_global_ctx;
+
+struct pg_error_context *
+pg_error_make_ctx_internal(const char *file, uint64_t line, const char *func)
+{
+	pg_error_global_ctx.file = file;
+	pg_error_global_ctx.has_line = 1;
+	pg_error_global_ctx.line = line;
+	pg_error_global_ctx.function = func;
+	pg_error_assert_enable = 1;
+	return &pg_error_global_ctx;
+}
 
 /**
  * Build a new error protocol buffer object
@@ -61,8 +75,8 @@ void pg_error_free(struct pg_error *error)
 {
 	if (!error)
 		return;
-	g_free(error->context.file);
-	g_free(error->context.function);
+	g_free((char *)error->context.file);
+	g_free((char *)error->context.function);
 
 	g_free(error->message);
 	g_free(error);
@@ -81,7 +95,7 @@ void pg_error_print(struct pg_error *error)
 	}
 
 	fprintf(stderr,
-		"Error:  file='%s' function='%s' line=%lu errno=%i:\n\t'%s'",
+		"Error:  file='%s' function='%s' line=%lu errno=%i:\n\t%s",
 		error->context.file, error->context.function,
 		error->context.line, error->err_no,
 		error->message);

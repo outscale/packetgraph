@@ -43,8 +43,8 @@ struct rte_mbuf **pg_packets_create(uint64_t pkts_mask)
 }
 
 struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
-					uint64_t pkts_mask,
-					uint16_t len)
+					  uint64_t pkts_mask,
+					  uint16_t len)
 {
 	char *tmp;
 
@@ -66,16 +66,16 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], len);		\
 		if (!tmp)					\
 			return NULL;				\
-		rte_memcpy(tmp, buf, len);				\
+		rte_memcpy(tmp, buf, len);			\
 	}
 
 struct rte_mbuf **pg_packets_append_buf(struct rte_mbuf **pkts,
-					 uint64_t pkts_mask,
-					 const void *buf,
-					 size_t len)
+					uint64_t pkts_mask,
+					const void *buf,
+					size_t len)
 {
 	PG_PACKETS_OPS_BUF(pkts, pkts_mask, buf, len, append)
-	return pkts;
+		return pkts;
 }
 
 struct rte_mbuf **pg_packets_prepend_buf(struct rte_mbuf **pkts,
@@ -84,7 +84,7 @@ struct rte_mbuf **pg_packets_prepend_buf(struct rte_mbuf **pkts,
 					 size_t len)
 {
 	PG_PACKETS_OPS_BUF(pkts, pkts_mask, buf, len, prepend)
-	return pkts;
+		return pkts;
 }
 
 #undef PG_PACKETS_OPS_BUF
@@ -105,15 +105,15 @@ struct rte_mbuf **pg_packets_append_str(struct rte_mbuf **pkts,
 					const char *str)
 {
 	PG_PACKETS_OPS_STR(pkts, pkts_mask, str, append)
-	return pkts;
+		return pkts;
 }
 
 struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
-					uint64_t pkts_mask,
-					const char *str)
+					 uint64_t pkts_mask,
+					 const char *str)
 {
 	PG_PACKETS_OPS_STR(pkts, pkts_mask, str, prepend)
-	return pkts;
+		return pkts;
 }
 
 #undef PG_PACKETS_OPS_STR
@@ -150,17 +150,17 @@ struct rte_mbuf **pg_packets_append_ipv4(struct rte_mbuf **pkts,
 {
 	PACKETS_OPS_IPV4(pkts, pkts_mask, src_ip, dst_ip,
 			 datagram_len, proto, append)
-	return pkts;
+		return pkts;
 }
 
 struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
-					 uint64_t pkts_mask,
-					 uint32_t src_ip, uint32_t dst_ip,
-					 uint16_t datagram_len, uint8_t proto)
+					  uint64_t pkts_mask,
+					  uint32_t src_ip, uint32_t dst_ip,
+					  uint16_t datagram_len, uint8_t proto)
 {
 	PACKETS_OPS_IPV4(pkts, pkts_mask, src_ip, dst_ip,
 			 datagram_len, proto, prepend)
-	return pkts;
+		return pkts;
 }
 
 #undef PACKETS_OPS_IPV4
@@ -189,17 +189,17 @@ struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
 {
 	PACKETS_OPS_UDP(pkts, pkts_mask, src_port,
 			dst_port, datagram_len, append)
-	return pkts;
+		return pkts;
 }
 
 struct rte_mbuf **pg_packets_prepend_udp(struct rte_mbuf **pkts,
-					uint64_t pkts_mask,
-					uint16_t src_port, uint16_t dst_port,
-					uint16_t datagram_len)
+					 uint64_t pkts_mask,
+					 uint16_t src_port, uint16_t dst_port,
+					 uint16_t datagram_len)
 {
 	PACKETS_OPS_UDP(pkts, pkts_mask, src_port,
 			dst_port, datagram_len, prepend)
-	return pkts;
+		return pkts;
 }
 
 #undef PACKETS_OPS_UDP
@@ -224,15 +224,15 @@ struct rte_mbuf **pg_packets_append_vxlan(struct rte_mbuf **pkts,
 					  uint32_t vni)
 {
 	PG_PACKETS_OPS_VXLAN(pkts, pkts_mask, vni, append)
-	return pkts;
+		return pkts;
 }
 
 struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
-					  uint64_t pkts_mask,
-					  uint32_t vni)
+					   uint64_t pkts_mask,
+					   uint32_t vni)
 {
 	PG_PACKETS_OPS_VXLAN(pkts, pkts_mask, vni, prepend)
-	return pkts;
+		return pkts;
 }
 
 #undef PG_PACKETS_OPS_VXLAN
@@ -255,25 +255,25 @@ struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
 	}								\
 
 struct rte_mbuf **pg_packets_append_ether(struct rte_mbuf **pkts,
-					 uint64_t pkts_mask,
-					 struct ether_addr *src_mac,
-					 struct ether_addr *dst_mac,
-					 uint16_t ether_type)
+					  uint64_t pkts_mask,
+					  struct ether_addr *src_mac,
+					  struct ether_addr *dst_mac,
+					  uint16_t ether_type)
 {
 	PG_PACKETS_OPS_ETHER(pkts, pkts_mask, src_mac,
 			     dst_mac, ether_type, append)
-	return pkts;
+		return pkts;
 }
 
 struct rte_mbuf **pg_packets_prepend_ether(struct rte_mbuf **pkts,
-					 uint64_t pkts_mask,
-					 struct ether_addr *src_mac,
-					 struct ether_addr *dst_mac,
-					 uint16_t ether_type)
+					   uint64_t pkts_mask,
+					   struct ether_addr *src_mac,
+					   struct ether_addr *dst_mac,
+					   uint16_t ether_type)
 {
 	PG_PACKETS_OPS_ETHER(pkts, pkts_mask, src_mac,
 			     dst_mac, ether_type, prepend)
-	return pkts;
+		return pkts;
 }
 
 #undef PG_PACKETS_OPS_ETHER

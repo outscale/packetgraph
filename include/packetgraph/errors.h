@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "common.h"
+
 /* To use the error infrastructure pass a struct pg_error **errp with
  * *errp == NULL to the various functions.
  * Then when an error occurs the functions will do *errp = error_new_errno() or
@@ -29,10 +30,10 @@
  */
 
 struct pg_error_context {
-	char *file;
+	const char *file;
 	int has_line;
 	uint64_t line;
-	char *function;
+	const char *function;
 };
 
 
@@ -43,7 +44,18 @@ struct pg_error {
 	int32_t err_no;
 };
 
+
 /* NOTE: Do not pass an *errp != NULL to functions using struct pg_error. */
+#define pg_error_new_ctx_errno(ctx, err_no, ...) __pg_error_new(err_no,	\
+								ctx.file, \
+								ctx.line, \
+								ctx.function, \
+								__VA_ARGS__)
+
+#define pg_error_new_ctx(ctx, ...) pg_error_new_ctx_errno(0,		\
+							  ctx,		\
+							  __VA_ARGS__)
+
 
 #define pg_error_new_errno(err_no, ...) __pg_error_new(err_no,		\
 						       __FILE__,	\
@@ -52,6 +64,32 @@ struct pg_error {
 						       __VA_ARGS__)
 
 #define pg_error_new(...) pg_error_new_errno(0, __VA_ARGS__)
+
+#define PG_SUB_ERROR_FMT			\
+	"\n\t-- Error: file='%s' function='%s' line=%lu\n\t   %s"
+
+#define pg_error_prepend(error, format, ...)				\
+	pg_error_prepend_(error, __FILE__,  __LINE__, __func__,		\
+			  format PG_SUB_ERROR_FMT, __VA_ARGS__)
+
+#define pg_error_prepend_(error, file_, line_, function_, format, ...)	\
+	do {								\
+		char *file_tmp = (char *)(error)->context.file;		\
+		char *func_tmp = (char *)(error)->context.function;	\
+		char *msg_tmp = (error)->message;			\
+		(error)->context.file = g_strdup(file_);		\
+		(error)->context.has_line = 1;				\
+		(error)->context.line = line_;				\
+		(error)->context.function = g_strdup(function_);	\
+		(error)->message = g_strdup_printf(format, __VA_ARGS__,	\
+						   file_tmp, func_tmp,	\
+						   (error)->context.line, \
+						   msg_tmp);		\
+		g_free(file_tmp);					\
+		g_free(func_tmp);					\
+		g_free(msg_tmp);					\
+	} while (0)
+
 
 PG_WARN_UNUSED
 struct pg_error *__pg_error_new(int err_no, const char *file,
