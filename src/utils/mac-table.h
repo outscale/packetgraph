@@ -163,7 +163,7 @@ static inline void pg_mac_table_ptr_unset(struct pg_mac_table *ma,
 	if (!pg_mac_table_is_set(*ma->ptrs[part1], part2))
 		return;
 	pg_mac_table_mask_unset(*ma->ptrs[part1], part2);
-	if (!ma->ptrs[part1]->mask) {
+	if (!ma->ptrs[part1]->mask[pg_mac_table_mask_idx(part2)]) {
 		free(ma->ptrs[part1]->entries);
 		free(ma->ptrs[part1]);
 		pg_mac_table_mask_unset(*ma, part1);
