@@ -77,7 +77,8 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	GError *error = NULL;
 
 	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(socket_path_1, G_FILE_TEST_EXISTS));
+	if (socket_path_1)
+		g_assert(g_file_test(socket_path_1, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(vm_image_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(vm_key_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(hugepages_path, G_FILE_TEST_EXISTS));
@@ -107,7 +108,7 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 		" -drive file=", vm_image_path,
 		" -netdev user,id=net0,hostfwd=tcp::", vm_id + 65000, "-:22",
 		" -device e1000,netdev=net0",
-		argv_sock_0, argv_sock_1);
+		argv_sock_0, argv_sock_1 ? argv_sock_1 : "");
 
 	argv = g_strsplit(argv_qemu, " ", 0);
 
