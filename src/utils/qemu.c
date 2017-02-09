@@ -42,19 +42,26 @@ int pg_util_cmdloop(const char *cmd, int timeout_s)
 int pg_util_ssh(const char *host,
 		int port,
 		const char *key_path,
-		const char *cmd)
+		const char *cmd, ...)
 {
 	gchar *ssh_cmd;
 	gint status;
+	va_list args;
+	char *c;
+
+	va_start(args, cmd);
+	c = g_strdup_vprintf(cmd, args);
+	va_end(args);
 
 	ssh_cmd = g_strdup_printf("%s%s%s%s%s%s%u%s%s%s",
 				  "ssh ", host, " -l root -q",
 				  " -i ", key_path,
 				  " -p ", port,
 				  " -oConnectTimeout=1",
-				  " -oStrictHostKeyChecking=no ", cmd);
+				  " -oStrictHostKeyChecking=no ", c);
 	g_spawn_command_line_sync(ssh_cmd, NULL, NULL, &status, NULL);
 	g_free(ssh_cmd);
+	g_free(c);
 	return g_spawn_check_exit_status(status, NULL) ? 0 : -1;
 }
 
