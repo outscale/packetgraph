@@ -184,45 +184,31 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	/* count rx bytes: burst is packed so we can directly iterate */
 	for (int i = 0; i < count; i++) {
 		in[i]->l2_len = sizeof(struct ether_hdr);
-		struct eth_ip_l4 *hdr =	rte_pktmbuf_mtod(in[i],
-							 struct eth_ip_l4 *);
+		struct eth_ip_l4 *hdr =
+			rte_pktmbuf_mtod(in[i],
+					 struct eth_ip_l4 *);
 		uint16_t eth_type = rte_cpu_to_be_16(hdr->ethernet.ether_type);
 		uint8_t proto;
 
 		if (eth_type == ETHER_TYPE_IPv4) {
 			proto = hdr->ipv4.next_proto_id;
-			hdr->ipv4.hdr_checksum = 0;
-			in[i]->ol_flags |= PKT_TX_IP_CKSUM | PKT_TX_IPV4;
 			in[i]->l3_len = sizeof(struct ipv4_hdr);
-			if (proto == TCP_PROTOCOL_NUMBER) {
+
+			if (proto == TCP_PROTOCOL_NUMBER)
 				in[i]->l4_len = (hdr->v4tcp.data_off >> 4) * 4;
-				if (in[i]->ol_flags & PKT_TX_TCP_SEG) {
-					in[i]->ol_flags |= PKT_TX_TCP_CKSUM;
-					hdr->v4tcp.cksum = 0;
-					hdr->v4tcp.cksum = rte_ipv4_phdr_cksum(
-						&hdr->ipv4, in[i]->ol_flags);
-				}
-			} else if (proto == UDP_PROTOCOL_NUMBER) {
+			else if (proto == UDP_PROTOCOL_NUMBER)
 				in[i]->l4_len = sizeof(struct udp_hdr);
-			}
+
 		} else if (eth_type == ETHER_TYPE_IPv6) {
 			proto = hdr->ipv6.proto;
 			in[i]->l3_len = sizeof(struct ipv6_hdr);
 
-			if (proto == TCP_PROTOCOL_NUMBER) {
+			if (proto == TCP_PROTOCOL_NUMBER)
 				in[i]->l4_len = (hdr->v6tcp.data_off >> 4) * 4;
-				if (in[i]->ol_flags & PKT_TX_TCP_SEG) {
-					hdr->v6tcp.cksum = 0;
-					hdr->v6tcp.cksum = rte_ipv6_phdr_cksum(
-						&hdr->ipv6, in[i]->ol_flags);
-				}
-			} else if (proto == UDP_PROTOCOL_NUMBER) {
+			else if (proto == UDP_PROTOCOL_NUMBER)
 				in[i]->l4_len = sizeof(struct udp_hdr);
-			}
 		}
-
 		rx_bytes += rte_pktmbuf_pkt_len(in[i]);
-
 	}
 	rte_atomic64_add(&state->rx_bytes, rx_bytes);
 
