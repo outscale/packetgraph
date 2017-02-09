@@ -655,8 +655,121 @@ static void test_vhost_destroy(void)
 	pg_vhost_stop();
 }
 
+/* qemu_duo_* create a graph to test ping/iperf/tcp/udp:
+ * <qemu>--[vhost]--[vhost]--<qemu>
+ *
+ * 1. init graph with qemu_duo_new()
+ * 2. ssh some commands using pg_util_ssh()
+ * 3. clean graph with qemu_duo_destroy()
+ */
+
+struct qemu_duo_test_params {
+	pthread_t graph_thread;
+	int stop;
+	struct pg_brick *vhost[2];
+	uint16_t port[2];
+	int qemu_pid[2];
+	char *ip[2];
+};
+
+static void *qemu_duo_internal_thread(void *arg) {
+	struct qemu_duo_test_params *p = (struct qemu_duo_test_params *)arg;
+	struct pg_error *error = NULL;
+	uint16_t count;
+
+	p->stop = 0;
+	while (!p->stop) {
+		pg_brick_poll(p->vhost[0], &count, &error);
+		pg_brick_poll(p->vhost[1], &count, &error);
+	}
+	return NULL;
+}
+
+static void qemu_duo_new(struct qemu_duo_test_params *p)
+{
+	struct pg_error *error = NULL;
+	char *tmp;
+	char *mac;
+	const char *socket_path;
+
+	g_assert(!pg_vhost_start("/tmp", &error));
+	g_assert(!error);
+	for (int i = 0; i < 2; i++) {
+		tmp = g_strdup_printf("vhost-%i", i);
+		p->vhost[i] = pg_vhost_new(tmp, 0, &error);
+		g_free(tmp);
+		g_assert(!error);
+		g_assert(p->vhost[i]);
+		socket_path = pg_vhost_socket_path(p->vhost[i], &error);
+		g_assert(socket_path);
+		g_assert(!error);
+
+		mac = g_strdup_printf("52:54:00:12:34:%02i", i);
+		p->qemu_pid[i] = pg_util_spawn_qemu(socket_path, NULL,
+						    mac, NULL,
+						    glob_vm_path,
+						    glob_vm_key_path,
+						    glob_hugepages_path,
+						    &error);
+		g_free(mac);
+		g_assert(!error);
+		g_assert(p->qemu_pid[i]);
+		p->port[i] = ssh_port_id;
+		ssh_port_id++;
+
+		p->ip[i] = g_strdup_printf("42.0.0.%i", i + 1);
+		g_assert(!pg_util_ssh("localhost", p->port[i], glob_vm_key_path,
+				      "ifconfig ens4 up"));
+		g_assert(!pg_util_ssh("localhost", p->port[i], glob_vm_key_path,
+				      "ip addr add %s/24 dev ens4", p->ip[i]));
+	}
+
+	g_assert(!pg_brick_link(p->vhost[0], p->vhost[1], &error));
+	g_assert(!error);
+	g_assert(!pthread_create(&p->graph_thread, NULL,
+				 &qemu_duo_internal_thread, p));
+}
+
+static void qemu_duo_destroy(struct qemu_duo_test_params *p)
+{
+	int exit_status;
+	void *ret;
+	p->stop = 1;
+	pthread_join(p->graph_thread, &ret);
+	for (int i = 0; i < 2; i++) {
+		kill(p->qemu_pid[i], SIGKILL);
+		waitpid(p->qemu_pid[i], &exit_status, 0);
+		g_spawn_close_pid(p->qemu_pid[i]);
+		g_free(p->ip[i]);
+		pg_brick_destroy(p->vhost[i]);
+	}
+	pg_vhost_stop();
+}
+
+static void test_vhost_net_classics(void)
+{
+	struct qemu_duo_test_params p;
+
+	qemu_duo_new(&p);
+	for (int i = 0; i < 2; i++) {
+		g_assert(!pg_util_ssh("localhost", p.port[i], glob_vm_key_path,
+				      "ping -c 1 -W 3 %s", p.ip[(i + 1) % 2]));
+		g_assert(!pg_util_ssh("localhost", p.port[(i + 1) % 2],
+				      glob_vm_key_path, "iperf3 -s -D"));
+		usleep(100000);
+		g_assert(!pg_util_ssh("localhost", p.port[i], glob_vm_key_path,
+				      "iperf3 -t 1 -c %s", p.ip[(i + 1) % 2]));
+		usleep(100000);
+		g_assert(!pg_util_ssh("localhost", p.port[i], glob_vm_key_path,
+				      "iperf3 -t 1 -u -c %s",
+				      p.ip[(i + 1) % 2]));
+	}
+	qemu_duo_destroy(&p);
+}
+
 void test_vhost(void)
 {
+	pg_test_add_func("/vhost/net_classics", test_vhost_net_classics);
 	pg_test_add_func("/vhost/flow", test_vhost_flow);
 	pg_test_add_func("/vhost/multivm", test_vhost_multivm);
 	pg_test_add_func("/vhost/fd", test_vhost_fd_loop);
