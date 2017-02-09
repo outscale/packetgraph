@@ -25,7 +25,8 @@ int pg_util_cmdloop(const char *cmd, int timeout_s);
 int pg_util_ssh(const char *host,
 		int port,
 		const char *key_path,
-		const char *cmd);
+		const char *cmd, ...)
+__attribute__((__format__(__printf__, 4, 5)));
 
 int pg_util_spawn_qemu(const char *socket_path_0,
 		       const char *socket_path_1,
