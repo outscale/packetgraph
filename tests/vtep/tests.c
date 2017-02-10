@@ -385,7 +385,6 @@ static void test_vtep_simple_internal(int flag)
 	struct ether_addr mac_src = {{0xc0, 0xc1, 0xc2,
 				      0xc3, 0xc4, 0xc5} };
 	struct ether_addr multicast_mac1, multicast_mac2;
-	/*we're usin the same cfg for the collect and the hub*/
 	struct pg_brick *vtep_west, *vtep_east;
 	struct pg_brick *collect_west1, *collect_east1;
 	struct pg_brick *collect_west2, *collect_east2;
@@ -398,7 +397,7 @@ static void test_vtep_simple_internal(int flag)
 	struct ether_hdr *tmp;
 	uint16_t i;
 
-	/*For testing purpose this vtep ip is 1*/
+	/* for testing purpose this vtep ip is 1*/
 	vtep_west = pg_vtep_new("vtep", 500, PG_EAST_SIDE, 1, mac_src,
 				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
@@ -406,7 +405,7 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(!error);
 	g_assert(vtep_west);
 
-	/*For testing purpose this vtep ip is 2*/
+	/* for testing purpose this vtep ip is 2*/
 	vtep_east = pg_vtep_new("vtep", 500, PG_WEST_SIDE, 2, mac_dest,
 				PG_VTEP_DST_PORT, flag, &error);
 	if (error)
@@ -441,7 +440,7 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(hub);
 
 	/*
-	 * Here is an ascii graph of the links:
+	 * here is an ascii graph of the links:
 	 * CE = collect_east
 	 * Cw = collect_west
 	 * CH = collect_hub
@@ -472,7 +471,7 @@ static void test_vtep_simple_internal(int flag)
 
 	pg_scan_ether_addr(&multicast_mac1, "01:00:5e:00:00:05");
 	pg_scan_ether_addr(&multicast_mac2, "01:00:5e:00:00:06");
-	/* Configure VNI */
+	/* configure VNI */
 	pg_vtep_add_vni(vtep_east, collect_east1, 0,
 		      inet_addr("224.0.0.5"), &error);
 	g_assert(!error);
@@ -529,7 +528,7 @@ static void test_vtep_simple_internal(int flag)
 	mac_dest.addr_bytes[4] = 0xe4;
 	mac_dest.addr_bytes[5] = 0xe5;
 
-	/* Alloc packets */
+	/* alloc packets */
 	for (i = 0; i < NB_PKTS; i++) {
 		char buf[34];
 
@@ -735,7 +734,7 @@ static void test_vtep_vnis(int flag)
 						&tmp_mask, &error);
 
 			/*
-			 * For now if innermac check is activate, no packets
+			 * for now if innermac check is activate, no packets
 			 * should pass.
 			 */
 			if (!(flag & PG_VTEP_NO_INNERMAC_CHECK)) {
@@ -809,8 +808,6 @@ static void test_vtep_flood_encap_decap(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_east, *vtep_west;
-
-	/*TODO: pregenerate pkts for pkggen*/
 	struct ether_addr  multicast_mac1;
 	struct ether_addr  multicast_mac2;
 	uint64_t tot_send_pkts = 0;
@@ -904,8 +901,6 @@ static void test_vtep_flood_encapsulate(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_west;
-
-	/*TODO: pregenerate pkts for pkggen*/
 	struct ether_addr  multicast_mac1;
 	uint64_t tot_send_pkts = 0;
 	struct timeval start, end;
