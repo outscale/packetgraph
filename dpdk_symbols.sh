@@ -18,6 +18,8 @@ for a in ${RTE_SDK}/build/lib/librte_*.a ; do
     fi
 done
 
+echo -n "" > dpdk_symbols_autogen.h
+
 cat $tmp | while read f; do
     echo "PG_DPDK_INIT($f)" >> dpdk_symbols_autogen.h
 done
