@@ -281,7 +281,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		ip_build(state, &headers->ip, state->ip, port->multicast_ip,
 			 packet_len + ip_overhead());
 	}
-	/* It is recommanded to have UDP source port randomized to be
+	/* It is recommended to have UDP source port randomized to be
 	 * ECMP/load-balancing friendly. Let's use computed hash from
 	 * IP header. */
 	udp_build(&headers->udp, state->udp_dst_port,
