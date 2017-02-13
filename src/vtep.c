@@ -101,6 +101,27 @@ struct multicast_pkt {
 
 #define IGMP_PKT_LEN sizeof(struct multicast_pkt)
 
+
+struct pg_brick *pg_vtep_new_by_string(const char *name, uint32_t max,
+				       enum pg_side output, const char *ip,
+				       struct ether_addr mac,
+				       uint16_t udp_dst_port,
+				       int flag, struct pg_error **errp)
+{
+	uint32_t ip4;
+	uint8_t ip6[16];
+
+	if (pg_ip_from_str(ip4, ip) < 1) {
+		if (pg_ip_from_str(ip6, ip) < 1)
+			return NULL;
+		return pg_vtep_new(name, max, output, ip6, mac, udp_dst_port,
+				   flag, errp);
+	}
+	return pg_vtep_new(name, max, output, ip4, mac, udp_dst_port, flag,
+			   errp);
+}
+
+
 inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
 {
 	return brick ? &pg_brick_get_state(brick, struct vtep_state)->mac :

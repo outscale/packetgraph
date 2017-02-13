@@ -166,6 +166,15 @@ struct pg_brick *pg_vtep4_new(const char *name, uint32_t max,
 			      struct ether_addr mac, uint16_t udp_dst_port,
 			      int flag, struct pg_error **errp);
 
+/**
+ * Same as pg_vtep_new but use a string as ip
+ */
+struct pg_brick *pg_vtep_new_by_string(const char *name, uint32_t max,
+				       enum pg_side output, const char *ip,
+				       struct ether_addr mac,
+				       uint16_t udp_dst_port,
+				       int flag, struct pg_error **errp);
+
 #ifndef __cplusplus
 
 /**

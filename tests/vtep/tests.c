@@ -186,22 +186,20 @@ static void test_vtep6_simple(void)
 	struct rte_mbuf **result_pkts;
 	struct pg_error *error = NULL;
 	struct ether_hdr *tmp;
-	union pg_ipv6_addr ip_src = {.word64 = {0,1}};
-	union pg_ipv6_addr ip_dst = {.word64 = {0,2}}; 
 	union pg_ipv6_addr ip_vni1 = {.word16 = {0xff,0,0,0,0,0,0,0x1}};
 	union pg_ipv6_addr ip_vni2 = {.word16 = {0xff,0,0,0,0,0,0,0x2}};
 	int flag = 0;
 	uint16_t i;
 
-	vtep_west = pg_vtep6_new("encapsulatron", 500, PG_EAST_SIDE,
-				 ip_src.word8, mac_src, PG_VTEP_DST_PORT,
-				 flag, &error);
+	vtep_west = pg_vtep_new_by_string("encapsulatron", 500, PG_EAST_SIDE,
+					  "0::1", mac_src, PG_VTEP_DST_PORT,
+					  flag, &error);
 	g_assert(!error);
 	g_assert(vtep_west);
 
-	vtep_east = pg_vtep6_new("decapsulatron", 500, PG_WEST_SIDE,
-				 ip_dst.word8, mac_dest, PG_VTEP_DST_PORT,
-				 flag, &error);
+	vtep_east = pg_vtep_new_by_string("decapsulatron", 500, PG_WEST_SIDE,
+					  "0::2", mac_dest, PG_VTEP_DST_PORT,
+					  flag, &error);
 	g_assert(!error);
 	g_assert(vtep_east);
 
@@ -367,11 +365,13 @@ static void test_vtep6_simple(void)
 
 	for (i = 0; i < NB_PKTS; i++) {
 		struct headers6 *hdr;
+		uint8_t ipp[16];
 
 		hdr = rte_pktmbuf_mtod(result_pkts[i], struct headers6 *);
 		g_assert(is_same_ether_addr(&hdr->ethernet.d_addr,
 					    pg_vtep_get_mac(vtep_east)));
-		g_assert(pg_ip_is_same(hdr->ipv6.dst_addr, &ip_dst));
+		pg_ip_from_str(ipp, "0::2");
+		g_assert(pg_ip_is_same(hdr->ipv6.dst_addr, ipp));
 	}
 
 	/* kill'em all */
