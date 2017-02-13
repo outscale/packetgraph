@@ -15,7 +15,6 @@ libpacketgraph_la_SOURCES = \
 	src/utils/errors.c\
 	src/utils/mac.c\
 	src/utils/config.c\
-	src/utils/bitmask.c\
 	src/utils/tests.c\
 	src/print.c\
 	src/hub.c\

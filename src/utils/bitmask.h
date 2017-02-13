@@ -20,9 +20,17 @@
 
 #include <stdint.h>
 
-uint64_t pg_mask_firsts(uint8_t count);
+static inline uint64_t pg_mask_firsts(uint8_t count)
+{
+	if (count >= 64)
+		return 0xffffffffffffffff;
+	return (1LL << count) - 1LL;
+}
 
-int pg_mask_count(uint64_t pkts_mask);
+static inline int pg_mask_count(uint64_t pkts_mask)
+{
+	return __builtin_popcountll(pkts_mask);
+}
 
 #if __SIZEOF_POINTER__ == 8
 #define ONE64	1LU
