@@ -51,27 +51,27 @@ int main(int argc, char **argv)
 	int nb = 0;
 	int verbose = 0;
 	char *tmp;
-	char **av = argv;
-	int ac = argc;
+	char **av = argv + 1;
+	int ac = argc - 1;
 
 	/* check options */
-	while (ac > 1) {
-		if (g_str_equal(av[1], "--verbose")) {
+	while (ac > 0) {
+		if (g_str_equal(av[0], "--verbose")) {
 			verbose = 1;
-		} else if (g_str_equal(av[1], "--vhost")) {
+		} else if (g_str_equal(av[0], "--vhost")) {
 			if (ac < 2) {
 				print_help();
 				return 1;
 			}
-			nb = g_ascii_strtoll(av[2], NULL, 10);
+			nb = g_ascii_strtoll(av[1], NULL, 10);
 			if (!nb) {
 				print_help();
 				return 1;
 			}
 			--ac;
 			++av;
-		} else if (g_str_equal(av[1], "--help") ||
-			   g_str_equal(av[1], "-h")) {
+		} else if (g_str_equal(av[0], "--help") ||
+			   g_str_equal(av[0], "-h")) {
 			print_help();
 			return 0;
 		}
