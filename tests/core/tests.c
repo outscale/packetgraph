@@ -74,6 +74,7 @@ int main(int argc, char **argv)
 		print_usage();
 	g_assert(!(test_flags & FAIL));
 
+	test_bitmask();
 	test_error();
 	test_brick_core();
 	test_brick_flow();

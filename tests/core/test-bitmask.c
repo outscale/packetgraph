@@ -1,4 +1,4 @@
-/* Copyright 2014 Nodalink EURL
+/* Copyright 2017 Outscale SAS
  *
  * This file is part of Butterfly.
  *
@@ -15,24 +15,22 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TESTS_H_
-#define _TESTS_H_
+#include <glib.h>
 
-enum test_flags {
-	PRINT_USAGE = 1,
-	FAIL = 2
-};
+#include "utils/bitmask.h"
+#include "utils/tests.h"
+#include "tests.h"
+#include <stdio.h>
 
-void test_bitmask(void);
-void test_brick_core(void);
-void test_brick_dot(void);
-void test_brick_flow(void);
-void test_error(void);
-void test_pkts_count(void);
-void test_benchmark_nop(void);
-void test_hub(void);
-void test_graph(void);
+static void test_bitmask_int(void)
+{
+	g_assert(pg_mask_firsts(0) == 0);
+	g_assert(pg_mask_firsts(3) == 7);
+	g_assert(pg_mask_firsts(64) == 0xffffffffffffffff);
+	g_assert(pg_mask_firsts(63) == 0x7fffffffffffffff);
+}
 
-extern uint16_t  max_pkts;
-
-#endif
+void test_bitmask(void)
+{
+	pg_test_add_func("/core/bitmask", test_bitmask_int);
+}

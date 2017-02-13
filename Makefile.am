@@ -88,6 +88,7 @@ tests_antispoof_LDADD = libpacketgraph-dev.la
 EXTRA_tests_antispoof_DEPENDENCIES = libpacketgraph-dev.la
 
 tests_core_SOURCES = \
+	tests/core/test-bitmask.c\
 	tests/core/test-core.c\
 	tests/core/test-dot.c\
 	tests/core/test-flow.c\
