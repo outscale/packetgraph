@@ -166,20 +166,25 @@ struct pg_brick *pg_vtep4_new(const char *name, uint32_t max,
 #else
 
 extern "C++" {
+
+#include <netinet/ether.h>
+
 namespace {
-inline int pg_vtep_new(const char *name, uint32_t max,
-		       enum pg_side output, uint32_t ip,
-		       struct ether_addr mac, uint16_t udp_dst_port,
-		       int flag, struct pg_error **errp)
+inline struct pg_brick *pg_vtep_new(const char *name, uint32_t max,
+				    enum pg_side output, uint32_t ip,
+				    struct ether_addr mac,
+				    uint16_t udp_dst_port,
+				    int flag, struct pg_error **errp)
 {
 	return pg_vtep4_new(name, max, output, ip, mac, udp_dst_port,
 			    flag, errp);
 }
 
-inline int pg_vtep_new(const char *name, uint32_t max,
-		       enum pg_side output, uint8_t *ip,
-		       struct ether_addr mac, uint16_t udp_dst_port,
-		       int flag, struct pg_error **errp)
+inline struct pg_brick *pg_vtep_new(const char *name, uint32_t max,
+				    enum pg_side output, uint8_t *ip,
+				    struct ether_addr mac,
+				    uint16_t udp_dst_port,
+				    int flag, struct pg_error **errp)
 {
 	return pg_vtep6_new(name, max, output, ip, mac, udp_dst_port,
 			    flag, errp);
