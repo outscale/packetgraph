@@ -398,8 +398,9 @@ static void test_vtep_simple_internal(int flag)
 	uint16_t i;
 
 	/* for testing purpose this vtep ip is 1*/
-	vtep_west = pg_vtep_new("vtep", 500, PG_EAST_SIDE, 1, mac_src,
-				PG_VTEP_DST_PORT, flag, &error);
+	vtep_west = pg_vtep_new_by_string("vtep", 500, PG_EAST_SIDE,
+					  "1.0.0.0", mac_src,
+					  PG_VTEP_DST_PORT, flag, &error);
 	if (error)
 		pg_error_print(error);
 	g_assert(!error);
