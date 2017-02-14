@@ -112,8 +112,10 @@ struct pg_brick *pg_vtep_new_by_string(const char *name, uint32_t max,
 	uint8_t ip6[16];
 
 	if (pg_ip_from_str(ip4, ip) < 1) {
-		if (pg_ip_from_str(ip6, ip) < 1)
+		if (pg_ip_from_str(ip6, ip) < 1) {
+			*errp = pg_error_new("'%s' is not a valid ip", ip);
 			return NULL;
+		}
 		return pg_vtep_new(name, max, output, ip6, mac, udp_dst_port,
 				   flag, errp);
 	}
