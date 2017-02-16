@@ -221,8 +221,10 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		 * Note that this trick is not thread safe. To do so, we will
 		 * have to clone packets just for filtering and will have to
 		 * restroy cloned packets after handling them in NPF.
+		 * We directly modify data_off instead of calling
+		 * rte_pktmbuf_adj because it's faster
 		 */
-		rte_pktmbuf_adj(tmp, sizeof(struct ether_hdr));
+		tmp->data_off += sizeof(struct ether_hdr);
 
 		/* filter packet */
 		ret = npf_packet_handler(state->npf,
@@ -231,9 +233,7 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 					 pf_side);
 		if (ret)
 			pkts_mask &= ~bit;
-
-		/* set back layer 2 */
-		rte_pktmbuf_prepend(pkts[i], sizeof(struct ether_hdr));
+		pkts[i]->data_off -= sizeof(struct ether_hdr);
 	}
 	if (unlikely(pkts_mask == 0))
 		return 0;
