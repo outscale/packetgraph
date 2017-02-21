@@ -93,12 +93,17 @@ Edit build/.config and be sure to set the following parameters to 'y':
 $ make EXTRA_CFLAGS='-fPIC'
 ```
 
+Finally, set `RTE_SDK` environment variable:
+```
+export RTE_SDK=$(pwd)
+```
+
 ## Build packetgraph
 ```
 $ git clone https://github.com/outscale/packetgraph.git
 $ cd packetgraph
 $ ./autogen.sh
-$ ./configure RTE_SDK=/path/to/you/dpdk/folder
+$ ./configure
 $ make
 $ make install
 ```
