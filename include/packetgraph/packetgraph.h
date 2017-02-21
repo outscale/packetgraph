@@ -18,7 +18,6 @@
 #ifndef _PG_PACKETGRAPH_H
 #define _PG_PACKETGRAPH_H
 
-#include <stdarg.h>
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 #include <packetgraph/graph.h>
