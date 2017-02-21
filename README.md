@@ -89,6 +89,11 @@ Note: use `T=x86_64-native-linuxapp-clang` to build with clang
 Edit build/.config and be sure to set the following parameters to 'y':
 - CONFIG_RTE_LIBRTE_PMD_PCAP
 
+If you don't want to use some special PMD in DPDK requiring kernel headers,
+you will have to set the following parameters to 'n':
+- CONFIG_RTE_EAL_IGB_UIO
+- CONFIG_RTE_KNI_KMOD
+
 ```
 $ make EXTRA_CFLAGS='-fPIC'
 ```
