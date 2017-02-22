@@ -502,6 +502,7 @@ static void test_graph_firewall_intense(void)
 		ASSERT(pg_firewall_rule_add(branch1.firewall, "icmp",
 					     PG_MAX_SIDE, 1, &error) == 0);
 		rm_graph_branch(&branch1);
+		sleep(1);
 	}
 
 	CHECK_ERROR_ASSERT(error);
@@ -556,6 +557,8 @@ static void test_graph_firewall_intense_multiple(void)
 		for (int j = 0; j < PG_BRANCHES_NB; j++) {
 			rm_graph_branch(&branches[j]);
 		}
+		/* FIXME: remove this once dpdk merge patch that shrink fdset */
+		sleep(1);
 	}
 
 	CHECK_ERROR_ASSERT(error);

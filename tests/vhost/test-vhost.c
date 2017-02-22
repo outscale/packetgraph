@@ -410,6 +410,7 @@ static void test_vhost_fd(void)
 			pg_brick_destroy(vhost[i]);
 			g_assert(!error);
 		}
+		sleep(1);
 	}
 	pg_vhost_stop();
 }
