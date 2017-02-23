@@ -294,22 +294,8 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		pkt->l3_len = sizeof(struct ipv4_hdr);
 		pkt->ol_flags = PKT_TX_UDP_CKSUM;
 	} else if (pkt->ol_flags & PKT_TX_TCP_SEG) {
-		struct eth_ip_l4 *inner = &full_header->inner;
-		uint16_t eth_type =
-			rte_cpu_to_be_16(inner->ethernet.ether_type);
-
 		pkt->ol_flags = PKT_TX_IPV4 | PKT_TX_IP_CKSUM |
 			PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
-		if (eth_type == ETHER_TYPE_IPv4) {
-			inner->ipv4.hdr_checksum = 0;
-			inner->v4tcp.cksum = rte_ipv4_phdr_cksum(
-				&inner->ipv4,
-				pkt->ol_flags);
-		} else {
-			inner->v6tcp.cksum = rte_ipv6_phdr_cksum(
-				&inner->ipv6,
-				pkt->ol_flags);
-		}
 	}
 
 	return 0;

@@ -133,6 +133,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 				pkts, pkts_mask);
 
 	pg_packets_incref(pkts, pkts_mask);
+	rte_eth_tx_prepare(state->portid, 0, exit_pkts, count);
 #ifndef PG_NIC_STUB
 	pkts_bursted = rte_eth_tx_burst(state->portid, 0,
 					exit_pkts,
