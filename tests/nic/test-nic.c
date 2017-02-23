@@ -64,7 +64,9 @@ static void test_nic_simple_flow(void)
 	g_assert(g_file_set_contents("in.pcap", pcap_in_file,
 				     sizeof(pcap_in_file), NULL));
 
-	nic_west = pg_nic_new("nic", "eth_pcap0,rx_pcap=in.pcap,tx_pcap=out.pcap", &error);
+	nic_west = pg_nic_new("nic",
+			      "eth_pcap0,rx_pcap=in.pcap,tx_pcap=out.pcap",
+			      &error);
 	CHECK_ERROR(error);
 	nic_east = pg_nic_new_by_id("nic", 0, &error);
 	CHECK_ERROR(error);
