@@ -94,13 +94,15 @@ you will have to set the following parameters to 'n':
 - CONFIG_RTE_EAL_IGB_UIO
 - CONFIG_RTE_KNI_KMOD
 
+Once your .config file is read, you can now build dpdk as follow:
+
 ```
 $ make EXTRA_CFLAGS='-fPIC'
 ```
 
 Finally, set `RTE_SDK` environment variable:
 ```
-export RTE_SDK=$(pwd)
+$ export RTE_SDK=$(pwd)
 ```
 
 ## Build packetgraph
