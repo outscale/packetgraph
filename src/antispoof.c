@@ -162,10 +162,17 @@ static struct pg_brick_config *antispoof_config_new(const char *name,
 }
 
 static inline int antispoof_arp(struct pg_antispoof_state *state,
-				struct pg_antispoof_arp *a)
+				struct ether_hdr *eth)
 {
 	uint16_t size = state->arps_size;
 	struct pg_antispoof_arp *p;
+	uint16_t etype = eth->ether_type;
+	struct pg_antispoof_arp *a = (struct pg_antispoof_arp *)(eth + 1);
+
+	if (unlikely(etype == PG_BE_ETHER_TYPE_RARP))
+		return -1;
+	else if (likely(etype != PG_BE_ETHER_TYPE_ARP))
+		return 0;
 
 	for (uint16_t i = 0; i < size; i++) {
 		/* Check that all fields match reference packet except the
@@ -214,21 +221,10 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 		}
 
 		/* ARP antispoof */
-		if (state->arp_enabled) {
-			uint16_t etype = eth->ether_type;
-
-			if (unlikely(etype == PG_BE_ETHER_TYPE_ARP)) {
-				struct pg_antispoof_arp *a;
-
-				a = (struct pg_antispoof_arp *)(eth + 1);
-				if (antispoof_arp(state, a) < 0) {
-					pkts_mask &= ~bit;
-					continue;
-				}
-			} else if (unlikely(etype == PG_BE_ETHER_TYPE_RARP)) {
-				pkts_mask &= ~bit;
-				continue;
-			}
+		if (state->arp_enabled &&
+		    unlikely(antispoof_arp(state, eth) < 0)) {
+			pkts_mask &= ~bit;
+			continue;
 		}
 	}
 	if (unlikely(pkts_mask == 0))
