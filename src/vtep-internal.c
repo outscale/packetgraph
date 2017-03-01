@@ -449,9 +449,7 @@ static inline void check_multicasts_pkts(struct rte_mbuf **pkts,
 		pg_low_bit_iterate(mask, i);
 		tmp = rte_pktmbuf_mtod(pkts[i], struct header *);
 		hdrs[i] = tmp;
-		if (unlikely(rte_pktmbuf_pkt_len(pkts[i]) <
-			     HEADER_LENGTH ||
-			     tmp->ethernet.ether_type !=
+		if (unlikely(tmp->ethernet.ether_type !=
 			     PG_BE_ETHER_TYPE_IP ||
 			     pg_ip_proto(tmp->ip) != 17 ||
 			     tmp->udp.dst_port != udp_dst_port_be ||
