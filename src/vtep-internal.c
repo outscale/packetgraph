@@ -311,8 +311,6 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 	/* do the encapsulation */
 	for (; pkts_mask;) {
 		struct dest_addresses *entry = NULL;
-		/* struct ether_hdr *eth_hdr; */
-		/* uint32_t dst_ip; */
 		struct rte_mbuf *pkt;
 		int unicast;
 		uint16_t i;
