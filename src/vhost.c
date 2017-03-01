@@ -152,9 +152,8 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		      struct pg_error **errp)
 {
-	struct pg_vhost_state *state;
-
-	state = pg_brick_get_state(brick, struct pg_vhost_state);
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick, struct pg_vhost_state);
 	struct pg_brick_side *s = &brick->side;
 	struct rte_mempool *mp = pg_get_mempool();
 	int virtio_net;
