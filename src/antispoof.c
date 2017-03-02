@@ -215,7 +215,8 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 		eth = rte_pktmbuf_mtod(pkts[i], struct ether_hdr*);
 
 		/* MAC antispoof */
-		if (memcmp(&eth->s_addr, &state->mac, ETHER_ADDR_LEN)) {
+		if (unlikely(memcmp(&eth->s_addr, &state->mac,
+				    ETHER_ADDR_LEN))) {
 			pkts_mask &= ~bit;
 			continue;
 		}
