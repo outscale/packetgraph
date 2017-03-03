@@ -23,9 +23,11 @@
 #include "brick-int.h"
 #include "utils/bitmask.h"
 #include "utils/mac.h"
+#include "utils/ip.h"
 #include "utils/network_const.h"
 
 #define ARP_MAX 100
+#define NPD_MAX 100
 
 struct pg_antispoof_arp {
 	/* Format of hardware address.  */
@@ -53,6 +55,33 @@ struct arp {
 	struct pg_antispoof_arp packet;
 };
 
+struct opt_ll_addr {
+	/* 1 for Source Link-layer Address
+	 * 2 for Target Link-layer Address (X)
+	 */
+	uint8_t type;
+	/* IEEE 802 addresses is 1. */
+	uint8_t len;
+	struct ether_addr addr;
+} __attribute__ ((__packed__));
+
+struct neighbor_advertisement {
+	uint8_t type;
+	uint8_t code;
+	uint16_t checksum;
+	uint8_t router_flag:1;
+	uint8_t solicited_flag:1;
+	uint8_t override_flag:1;
+	uint32_t reserved:29;
+	uint8_t target_address[16];
+	/* link layer address option */
+	struct opt_ll_addr ll;
+} __attribute__ ((__packed__));
+
+struct ndp {
+	uint8_t ip[16];
+};
+
 struct pg_antispoof_state {
 	struct pg_brick brick;
 	enum pg_side outside;
@@ -60,6 +89,10 @@ struct pg_antispoof_state {
 	bool arp_enabled;
 	uint16_t arps_size;
 	struct arp arps[ARP_MAX];
+	/* icmpv6 / neighbor discovery */
+	bool ndp_enabled;
+	uint16_t ndps_size;
+	struct ndp ndps[NPD_MAX];
 };
 
 struct pg_antispoof_config {
@@ -188,6 +221,142 @@ static inline int antispoof_arp(struct pg_antispoof_state *state,
 	return -1;
 }
 
+void pg_antispoof_ndp_enable(struct pg_brick *brick)
+{
+	pg_brick_get_state(brick, struct pg_antispoof_state)->ndp_enabled =
+		true;
+}
+
+int pg_antispoof_ndp_add(struct pg_brick *brick, uint8_t *ip,
+			struct pg_error **errp)
+{
+	struct pg_antispoof_state *state =
+		pg_brick_get_state(brick, struct pg_antispoof_state);
+	uint16_t n = state->ndps_size;
+	struct ndp *ndp = &state->ndps[n];
+
+	if (unlikely(n == NPD_MAX)) {
+		*errp = pg_error_new("Maximal IPV6 reached");
+		return -1;
+	}
+
+	pg_ip_copy(ip, ndp->ip);
+	state->ndps_size++;
+	return 0;
+
+}
+
+int pg_antispoof_ndp_del(struct pg_brick *brick, uint8_t *ip,
+			struct pg_error **errp)
+{
+	struct pg_antispoof_state *state =
+		pg_brick_get_state(brick, struct pg_antispoof_state);
+	int index = -1;
+	uint16_t size = state->ndps_size;
+	struct ndp *ndps = state->ndps;
+
+	for (int16_t i = 0; i < size; i++) {
+		if (pg_ip_is_same(ndps[i].ip, ip)) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index < 0) {
+		*errp = pg_error_new("IPV6 not found");
+		return -1;
+	}
+
+	if (index != size - 1)
+		pg_ip_copy(ndps[size - 1].ip, ndps[index].ip);
+	state->ndps_size--;
+	return 0;
+}
+
+void pg_antispoof_ndp_del_all(struct pg_brick *brick)
+{
+	pg_brick_get_state(brick, struct pg_antispoof_state)->ndps_size = 0;
+}
+
+void pg_antispoof_ndp_disable(struct pg_brick *brick)
+{
+	pg_brick_get_state(brick, struct pg_antispoof_state)->ndp_enabled =
+		false;
+}
+
+static inline int antispoof_ndp(struct pg_antispoof_state *state,
+			       struct ether_hdr *eth)
+{
+	struct ipv6_hdr *h6 = (struct ipv6_hdr *)(eth + 1);
+
+	if (eth->ether_type != PG_BE_ETHER_TYPE_IPv6)
+		return 0;
+
+	/* jump all ipv6 extension headers to ICMPv6 */
+	uint8_t next_header = h6->proto;
+	uint8_t *next_data = (uint8_t *)(h6 + 1);
+	uint8_t loop_cnt = 0;
+	bool loop = true;
+
+	while (loop) {
+		if (++loop_cnt == 8)
+			return -1;
+		switch (next_header) {
+		case PG_IP_TYPE_IPV6_OPTION_DESTINATION:
+		case PG_IP_TYPE_IPV6_OPTION_HOP_BY_HOP:
+		case PG_IP_TYPE_IPV6_OPTION_ROUTING:
+		case PG_IP_TYPE_IPV6_OPTION_MOBILITY:
+			next_header = next_data[0];
+			next_data = next_data + (next_data[1] + 1) * 8;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_FRAGMENT:
+			next_header = next_data[0];
+			next_data = next_data + 8;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_AUTHENTICATION_HEADER:
+			next_header = next_data[0];
+			next_data = next_data + (next_data[1] + 2) * 4;
+			break;
+		case PG_IP_TYPE_ICMPV6:
+			loop = false;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_ESP:
+		default:
+			return 0;
+		}
+	}
+
+	/* check ICMPv6 message type */
+	struct neighbor_advertisement *na =
+		(struct neighbor_advertisement *) next_data;
+
+	if (likely(na->type != PG_ICMPV6_TYPE_NA))
+		return 0;
+
+	/* check ipv6 source validity */
+	uint16_t size = state->ndps_size;
+	struct ndp *ndps = state->ndps;
+	bool ipv6_allowed = false;
+
+	for (uint16_t i = 0; i < size; i++) {
+		if (pg_ip_is_same(h6->src_addr, ndps[i].ip) &&
+		    !memcmp(na->target_address, ndps[i].ip, 16)) {
+			ipv6_allowed = true;
+			break;
+		}
+	}
+	if (unlikely(!ipv6_allowed))
+		return -1;
+
+	/* check link layer address option */
+	if (unlikely(na->ll.type != 2 || na->ll.len != 1 ||
+		     memcmp(&na->ll.addr, &state->mac, ETHER_ADDR_LEN))) {
+		return -1;
+	}
+
+	return 0;
+}
+
 static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 			   uint16_t edge_index, struct rte_mbuf **pkts,
 			   uint64_t pkts_mask,
@@ -224,6 +393,12 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 		/* ARP antispoof */
 		if (state->arp_enabled &&
 		    unlikely(antispoof_arp(state, eth) < 0)) {
+			pkts_mask &= ~bit;
+			continue;
+		}
+
+		/* Neighbor Discovery antispoof */
+		if (state->ndp_enabled && antispoof_ndp(state, eth) < 0) {
 			pkts_mask &= ~bit;
 			continue;
 		}
@@ -277,4 +452,5 @@ static struct pg_brick_ops antispoof_ops = {
 
 pg_brick_register(antispoof, &antispoof_ops);
 
+#undef NPD_MAX
 #undef ARP_MAX

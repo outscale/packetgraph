@@ -35,7 +35,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 - hub: act as a hub device, passing packets to all connected bricks
 - nic: allow to pass packets to a NIC of the system (accelerated by DPDK)
 - print: a basic print brick to show packets flowing through it
-- antispoof(ipv4 only): a basic mac and arp anti-spoofing brick
+- antispoof: a basic mac checking, arp anti-spoofing and ipv6 neighbor discovery anti-spoofing
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs, can encapsulate packets over ipv4 or ipv6
 - queue: temporally store packets between graph
 - pmtud(ipv4 only): Path MTU Discovery is an implementation of [RFC 1191](https://tools.ietf.org/html/rfc1191)
