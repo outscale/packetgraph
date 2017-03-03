@@ -84,4 +84,53 @@ void pg_antispoof_arp_del_all(struct pg_brick *brick);
  */
 void pg_antispoof_arp_disable(struct pg_brick *brick);
 
+/**
+ * Enables Neighbor Discovery Protocol antispoof
+ *
+ * By enabling ND antispoof, the brick will check all ICMPv6 headers of a
+ * packets looking Neighbor Advertisement emission from the inside.
+ *
+ * The brick will check that Target Address corresponds to one of allowed ipv6
+ * and will check Target link-layer address option if it exists.
+ * If Target link-layer address exists, it will check that provided mac address
+ * corresponds to bricks's one.
+ * https://tools.ietf.org/html/rfc4861#section-4.4
+ *
+ * @param	brick pointer to an antispoof brick
+ */
+void pg_antispoof_ndp_enable(struct pg_brick *brick);
+
+/** Add authorized ip6 to antispoof brick
+ *
+ * @param	brick pointer to an antispoof brick
+ * @param	ip IPv6 to associate with mac address (16 bytes)
+ * @param	errp is set in case of an error
+ * @return	0 on success, -1 on error
+ **/
+int pg_antispoof_ndp_add(struct pg_brick *brick, uint8_t *ip,
+			struct pg_error **errp);
+
+/** Remove authorized ip6 from antispoof brick
+ *
+ * @param	brick pointer to an antispoof brick
+ * @param	ip IPv6 to unassociate with mac address (16 bytes)
+ * @param	errp is set in case of an error
+ * @return	0 on success, -1 on error
+ **/
+int pg_antispoof_ndp_del(struct pg_brick *brick, uint8_t *ip,
+			struct pg_error **errp);
+
+/** Remove all authorized ipv6 from antispoof brick
+ *
+ * @param	brick pointer to an antispoof brick
+ **/
+void pg_antispoof_ndp_del_all(struct pg_brick *brick);
+
+/**
+ * Disable Neighbor Discovery anti-spoof
+ *
+ * @param	brick pointer to an antispoof brick
+ */
+void pg_antispoof_ndp_disable(struct pg_brick *brick);
+
 #endif  /* _PG_ANTISPOOF_H */
