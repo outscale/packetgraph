@@ -183,8 +183,7 @@ static inline int antispoof_arp(struct pg_antispoof_state *state,
 
 static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 			   uint16_t edge_index, struct rte_mbuf **pkts,
-			   uint64_t pkts_mask,
-			   struct pg_error **errp)
+			   uint64_t pkts_mask)
 {
 	struct pg_antispoof_state *state;
 	struct pg_brick_side *s;
@@ -235,7 +234,7 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 		return 0;
 forward:
 	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-			      pkts, pkts_mask, errp);
+			      pkts, pkts_mask);
 }
 
 static int antispoof_init(struct pg_brick *brick,

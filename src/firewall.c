@@ -186,8 +186,7 @@ struct pg_brick *pg_firewall_new(const char *name, uint64_t flags,
 
 static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 			  uint16_t edge_index, struct rte_mbuf **pkts,
-			  uint64_t pkts_mask,
-			  struct pg_error **errp)
+			  uint64_t pkts_mask)
 {
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	struct pg_firewall_state *state;
@@ -238,7 +237,7 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(pkts_mask == 0))
 		return 0;
 	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-			      pkts, pkts_mask, errp);
+			      pkts, pkts_mask);
 }
 
 static int firewall_init(struct pg_brick *brick,

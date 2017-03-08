@@ -27,12 +27,12 @@ struct pg_nop_state {
 
 static int nop_burst(struct pg_brick *brick, enum pg_side from,
 		     uint16_t edge_index, struct rte_mbuf **pkts,
-		     uint64_t pkts_mask, struct pg_error **errp)
+		     uint64_t pkts_mask)
 {
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 
 	return  pg_brick_burst(s->edge.link, from,
-			       s->edge.pair_index, pkts, pkts_mask, errp);
+			       s->edge.pair_index, pkts, pkts_mask);
 }
 
 static int nop_init(struct pg_brick *brick,

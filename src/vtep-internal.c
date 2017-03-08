@@ -244,8 +244,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 				      struct rte_mbuf *pkt,
 				      struct vtep_port *port,
 				      struct dest_addresses *entry,
-				      int unicast,
-				      struct pg_error **errp)
+				      int unicast)
 {
 	struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 	uint16_t packet_len = rte_pktmbuf_data_len(pkt);
@@ -255,7 +254,8 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	full_header =
 		(struct fullhdr *)rte_pktmbuf_prepend(pkt, HEADER_LENGTH);
 	if (unlikely(!full_header)) {
-		*errp = pg_error_new("%s on a packet of %ld/%d",
+		pg_brick_error =
+			pg_error_new("%s on a packet of %ld/%d",
 				     "No enough headroom to add VTEP headers",
 				     HEADER_LENGTH, pkt->pkt_len);
 		return -1;
@@ -303,8 +303,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 static inline int vtep_encapsulate(struct vtep_state *state,
 				   struct vtep_port *port,
-				   struct rte_mbuf **pkts, uint64_t pkts_mask,
-				   struct pg_error **errp)
+				   struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	struct rte_mempool *mp = pg_get_mempool();
 
@@ -348,7 +347,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		}
 
 		if (unlikely(vtep_header_prepend(state, tmp, port,
-						  entry, unicast, errp)) < 0) {
+						  entry, unicast)) < 0) {
 			rte_pktmbuf_free(tmp);
 			return -1;
 		}
@@ -360,9 +359,8 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 }
 
 static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
-		    uint16_t edge_index, struct rte_mbuf **pkts,
-		    uint64_t pkts_mask,
-		    struct pg_error **errp)
+			  uint16_t edge_index, struct rte_mbuf **pkts,
+			  uint64_t pkts_mask)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
@@ -373,10 +371,10 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(!pg_is_multicast_ip(port->multicast_ip)))
 		return 0;
 
-	if (unlikely(vtep_encapsulate(state, port, pkts, pkts_mask, errp) < 0))
+	if (unlikely(vtep_encapsulate(state, port, pkts, pkts_mask) < 0))
 		return -1;
 
-	ret = pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
+	ret = pg_brick_side_forward(s, from, state->pkts, pkts_mask);
 	if (!(state->flags & PG_VTEP_NO_COPY))
 		pg_packets_free(state->pkts, pkts_mask);
 	return ret;
@@ -527,7 +525,7 @@ static inline void restore_metadata(struct rte_mbuf **pkts,
 
 static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			      uint16_t edge_index, struct rte_mbuf **pkts,
-			      uint64_t pkts_mask, struct pg_error **errp)
+			      uint64_t pkts_mask)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
@@ -581,8 +579,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			if (unlikely(pg_brick_burst(s->edges[i].link,
 						    from,
 						    i, out_pkts,
-						    hitted_mask,
-						    errp) < 0))
+						    hitted_mask) < 0))
 				return from_vtep_failure(out_pkts,
 							 vni_mask,
 							 state->flags &
@@ -618,8 +615,7 @@ static inline uint64_t check_vni_pkts(struct rte_mbuf **pkts,
 static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 				     uint16_t edge_index,
 				     struct rte_mbuf **pkts,
-				     uint64_t pkts_mask,
-				     struct pg_error **errp)
+				     uint64_t pkts_mask)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
@@ -650,8 +646,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 		if (unlikely(pg_brick_burst(edges[i].link,
 					    from,
 					    i, pkts,
-					    vni_mask,
-					    errp) < 0))
+					    vni_mask) < 0))
 			return -1;
 	}
 	return 0;
@@ -659,17 +654,16 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 
 static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		      uint16_t edge_index, struct rte_mbuf **pkts,
-		      uint64_t pkts_mask,
-		      struct pg_error **errp)
+		      uint64_t pkts_mask)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
 	if (state->flags == PG_VTEP_ALL_OPTI)
 		return decapsulate_simple(brick, from, edge_index, pkts,
-					  pkts_mask, errp);
+					  pkts_mask);
 	else
 		return decapsulate(brick, from, edge_index, pkts,
-				   pkts_mask, errp);
+				   pkts_mask);
 }
 
 static int do_add_vni(struct vtep_state *state, uint16_t edge_index,
@@ -784,19 +778,18 @@ static struct pg_brick_config *vtep_config_new(const char *name,
 
 static int vtep_burst(struct pg_brick *brick, enum pg_side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
-			uint64_t pkts_mask,
-			struct pg_error **errp)
+			uint64_t pkts_mask)
 {
+	int ret;
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
 	/* if pkts come from the outside,
 	 * so the pkts are entering in the vtep */
 	if (from == state->output)
-		return from_vtep(brick, from, edge_index,
-				 pkts, pkts_mask, errp);
+		ret = from_vtep(brick, from, edge_index, pkts, pkts_mask);
 	else
-		return to_vtep(brick, from, edge_index,
-			       pkts, pkts_mask, errp);
+		ret = to_vtep(brick, from, edge_index, pkts, pkts_mask);
+	return ret;
 }
 
 

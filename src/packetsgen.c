@@ -49,17 +49,15 @@ struct pg_packetsgen_state {
 static int packetsgen_burst(struct pg_brick *brick, enum pg_side side,
 			    uint16_t edge_index,
 			    struct rte_mbuf **pkts,
-			    uint64_t pkts_mask,
-			    struct pg_error **errp)
+			    uint64_t pkts_mask)
 {
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(side)];
 
-	return pg_brick_side_forward(s, side, pkts, pkts_mask, errp);
+	return pg_brick_side_forward(s, side, pkts, pkts_mask);
 }
 
 static int packetsgen_poll(struct pg_brick *brick,
-			   uint16_t *pkts_cnt,
-			   struct pg_error **errp)
+			   uint16_t *pkts_cnt)
 {
 	struct pg_packetsgen_state *state;
 	struct rte_mempool *mp = pg_get_mempool();
@@ -82,8 +80,7 @@ static int packetsgen_poll(struct pg_brick *brick,
 	pkts_mask = pg_mask_firsts(state->packets_nb);
 	*pkts_cnt = state->packets_nb;
 	ret = pg_brick_side_forward(s, pg_flip_side(state->output),
-				    pkts,
-				    pkts_mask, errp);
+				    pkts, pkts_mask);
 	pg_packets_free(pkts, pkts_mask);
 	g_free(pkts);
 	return ret;

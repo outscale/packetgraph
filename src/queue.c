@@ -65,7 +65,7 @@ uint8_t pg_queue_pressure(struct pg_brick *queue)
 
 static int queue_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
-		       uint64_t pkts_mask, struct pg_error **error)
+		       uint64_t pkts_mask)
 {
 	struct pg_queue_state *state =
 		pg_brick_get_state(brick, struct pg_queue_state);
@@ -97,8 +97,7 @@ static int queue_burst(struct pg_brick *brick, enum pg_side from,
 	return 0;
 }
 
-static int queue_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
-		      struct pg_error **error)
+static int queue_poll(struct pg_brick *brick, uint16_t *pkts_cnt)
 {
 	int ret = 0;
 	GAsyncQueue *tx = NULL;
@@ -123,7 +122,7 @@ static int queue_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	*pkts_cnt = pg_mask_count(burst->mask);
 	ret = pg_brick_burst(s->edge.link, state->output,
 			     s->edge.pair_index,
-			     burst->pkts, burst->mask, error);
+			     burst->pkts, burst->mask);
 
 	pg_packets_free(burst->pkts, burst->mask);
 	g_free(burst);

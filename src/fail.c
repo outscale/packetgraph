@@ -26,11 +26,10 @@ struct pg_fail_state {
 };
 
 static int fail_burst(struct pg_brick *brick, enum pg_side from,
-			   uint16_t edge_index, struct rte_mbuf **pkts,
-			   uint64_t pkts_mask,
-			   struct pg_error **errp)
+		      uint16_t edge_index, struct rte_mbuf **pkts,
+		      uint64_t pkts_mask)
 {
-	*errp = pg_error_new("Fail brick : %s", brick->name);
+	pg_brick_error = pg_error_new("Fail brick : %s", brick->name);
 	return -1;
 }
 

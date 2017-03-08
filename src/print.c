@@ -116,7 +116,7 @@ static void print_pcap(struct pg_print_state *state, struct rte_mbuf *mbuf)
 
 static int print_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
-		       uint64_t pkts_mask, struct pg_error **errp)
+		       uint64_t pkts_mask)
 {
 
 	struct pg_print_state *state;
@@ -180,7 +180,7 @@ static int print_burst(struct pg_brick *brick, enum pg_side from,
 		fprintf(o, "\n");
 	}
 	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-				pkts, pkts_mask, errp);
+				pkts, pkts_mask);
 }
 
 static int print_init(struct pg_brick *brick,

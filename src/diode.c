@@ -41,8 +41,7 @@ static struct pg_brick_config *diode_config_new(const char *name,
 
 static int diode_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
-		       uint64_t pkts_mask,
-		       struct pg_error **errp)
+		       uint64_t pkts_mask)
 {
 	struct pg_diode_state *state;
 	struct pg_brick_side *s;
@@ -54,7 +53,7 @@ static int diode_burst(struct pg_brick *brick, enum pg_side from,
 		return 0;
 
 	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-			      pkts, pkts_mask, errp);
+			      pkts, pkts_mask);
 }
 
 static int diode_init(struct pg_brick *brick,

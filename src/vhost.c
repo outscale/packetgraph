@@ -109,7 +109,7 @@ static struct pg_brick_config *vhost_config_new(const char *name,
 
 static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
-		       uint64_t pkts_mask, struct pg_error **errp)
+		       uint64_t pkts_mask)
 {
 	struct pg_vhost_state *state;
 	int virtio_net;
@@ -149,8 +149,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 #define TCP_PROTOCOL_NUMBER 6
 #define UDP_PROTOCOL_NUMBER 17
 
-static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
-		      struct pg_error **errp)
+static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt)
 {
 	struct pg_vhost_state *state;
 
@@ -188,7 +187,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 
 	pkts_mask = pg_mask_firsts(count);
 	ret = pg_brick_burst(s->edge.link, state->output, s->edge.pair_index,
-			     in, pkts_mask, errp);
+			     in, pkts_mask);
 	pg_packets_free(in, pkts_mask);
 	return ret;
 }

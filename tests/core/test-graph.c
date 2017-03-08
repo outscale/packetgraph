@@ -465,7 +465,9 @@ static void test_graph_poll(void)
 
 	for (int i = 0; i < 100; i++) {
 		/* test with one burst */
-		pg_brick_burst(queue[0], PG_EAST_SIDE, 0, pkts, mask, &error);
+		pg_brick_burst(queue[0], PG_EAST_SIDE, 0, pkts, mask);
+		error = pg_brick_error;
+		g_assert(!error);
 		g_assert(!pg_graph_poll(g, &error));
 		g_assert(!error);
 		g_assert(pg_queue_pressure(queue[0]) == 0);
@@ -486,9 +488,15 @@ static void test_graph_poll(void)
 		g_assert(pg_queue_pressure(queue[5]) == 0);
 
 		/* everyone send a burst */
-		pg_brick_burst(queue[0], PG_EAST_SIDE, 0, pkts, mask, &error);
-		pg_brick_burst(queue[2], PG_EAST_SIDE, 0, pkts, mask, &error);
-		pg_brick_burst(queue[5], PG_WEST_SIDE, 0, pkts, mask, &error);
+		pg_brick_burst(queue[0], PG_EAST_SIDE, 0, pkts, mask);
+		error = pg_brick_error;
+		g_assert(!error);
+		pg_brick_burst(queue[2], PG_EAST_SIDE, 0, pkts, mask);
+		error = pg_brick_error;
+		g_assert(!error);
+		pg_brick_burst(queue[5], PG_WEST_SIDE, 0, pkts, mask);
+		error = pg_brick_error;
+		g_assert(!error);
 		g_assert(!pg_graph_poll(g, &error));
 		g_assert(!error);
 		g_assert(pg_queue_pressure(queue[0]) == 0);

@@ -62,7 +62,7 @@ static void test_sorting_pmtud(void)
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
 
-	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
+	pg_brick_burst_to_east(pmtud, 0, pkts, pg_mask_firsts(64), &error);
 	g_assert(!error);
 
 	pg_brick_west_burst_get(col_east, &pkts_mask, &error);
@@ -104,7 +104,7 @@ static void test_sorting_pmtud_df(void)
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
 
-	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
+	pg_brick_burst_to_east(pmtud, 0, pkts, pg_mask_firsts(64), &error);
 	g_assert(!error);
 
 	pg_brick_west_burst_get(col_east, &pkts_mask, &error);

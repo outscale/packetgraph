@@ -82,7 +82,7 @@ static struct pg_brick_config *tap_config_new(const char *name,
 
 static int tap_burst(struct pg_brick *brick, enum pg_side from,
 		     uint16_t edge_index, struct rte_mbuf **pkts,
-		     uint64_t pkts_mask, struct pg_error **errp)
+		     uint64_t pkts_mask)
 {
 	struct pg_tap_state *state = pg_brick_get_state(brick,
 							struct pg_tap_state);
@@ -99,7 +99,7 @@ static int tap_burst(struct pg_brick *brick, enum pg_side from,
 
 		/* write data. */
 		if (unlikely(write(fd, data, len) < 0)) {
-			*errp = pg_error_new("%s", strerror(errno));
+			pg_brick_error = pg_error_new("%s", strerror(errno));
 			return -1;
 		}
 	}
@@ -115,8 +115,7 @@ static int tap_burst(struct pg_brick *brick, enum pg_side from,
 	return 0;
 }
 
-static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
-		    struct pg_error **errp)
+static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt)
 {
 	int nb_pkts;
 	uint64_t pkts_mask;
@@ -141,7 +140,7 @@ static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		if (select(fd1, &fdset, NULL, NULL, &timeout)  < 0) {
 			if (errno == EINTR)
 				break;
-			*errp = pg_error_new("%s", strerror(errno));
+			pg_brick_error = pg_error_new("%s", strerror(errno));
 			return -1;
 		}
 
@@ -163,7 +162,7 @@ static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		}
 
 		if (unlikely(read_size < 0)) {
-			*errp = pg_error_new("%s", strerror(errno));
+			pg_brick_error = pg_error_new("%s", strerror(errno));
 			return -1;
 		}
 		rte_pktmbuf_append(packet, read_size);
@@ -174,8 +173,7 @@ static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		return 0;
 	pkts_mask = pg_mask_firsts(nb_pkts);
 	ret = pg_brick_burst(s->edge.link, state->output,
-			     s->edge.pair_index,
-			     state->pkts, pkts_mask, errp);
+			     s->edge.pair_index, state->pkts, pkts_mask);
 	return ret;
 }
 
