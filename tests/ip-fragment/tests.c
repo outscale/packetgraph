@@ -43,7 +43,7 @@ static void test_fragment(void)
 	uint64_t mask = pg_mask_firsts(16);
 	struct rte_mbuf **pkts = pg_packets_create(mask);
 	struct rte_mbuf **tmp_pkts;
-	struct ether_addr eth = {{1, 0, 0, 0, 0 ,0}};
+	struct ether_addr eth = {{1, 0, 0, 0, 0, 0} };
 	struct eth_ipv4_hdr *pkt_buf, hdr;
 
 	pg_packets_append_ether(pkts, mask,  &eth, &eth,

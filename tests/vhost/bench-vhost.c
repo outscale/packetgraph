@@ -53,8 +53,8 @@ void test_benchmark_vhost(char *vm_image_path,
 	struct pg_bench_stats stats;
 	const char *socket_path_enter;
 	const char *socket_path_exit;
-	struct ether_addr rand_mac1 = {{0x52,0x54,0x00,0x00,0x42,0x01}};
-	struct ether_addr rand_mac2 = {{0x52,0x54,0x00,0x00,0x42,0x02}};
+	struct ether_addr rand_mac1 = {{0x52, 0x54, 0x00, 0x00, 0x42, 0x01} };
+	struct ether_addr rand_mac2 = {{0x52, 0x54, 0x00, 0x00, 0x42, 0x02} };
 	const char mac1_str[18] = "52:54:00:12:34:11";
 	const char mac2_str[18] = "52:54:00:12:34:12";
 	int ret;
@@ -88,7 +88,8 @@ void test_benchmark_vhost(char *vm_image_path,
 	g_assert(qemu_pid);
 
 #	define SSH(c) \
-		g_assert(pg_util_ssh("localhost", 65000, vm_ssh_key_path, c) == 0)
+		g_assert(pg_util_ssh("localhost", 65000, \
+		vm_ssh_key_path, c) == 0)
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");

@@ -108,7 +108,7 @@ static void pg_gc_destroy(GList *graph)
 #define ASSERT(check) do {						\
 		if (!(check)) {						\
 			dprintf(2, "line=%d 'function=%s': assertion fail\n", \
-				__LINE__, __FUNCTION__ );		\
+				__LINE__, __func__);		\
 			goto exit;					\
 		}							\
 	} while (0)
@@ -130,7 +130,9 @@ static void pg_gc_destroy(GList *graph)
 
 static void print_usage(void)
 {
-	printf("tests usage: [EAL options] -- [-help] -vm /path/to/vm/image -vm-key /path/to/vm/key -hugepages /path/to/hugepages/mount\n");
+	printf("tests usage: [EAL options] -- [-help] -vm /path/to/vm/image"
+		" -vm-key /path/to/vm/key -hugepages"
+		"/path/to/hugepages/mount\n");
 	exit(0);
 }
 
@@ -169,7 +171,7 @@ static int ring_port(void)
 
 	if (r1)
 		return port1;
-	r1 = rte_ring_create("R1", 256, 0,RING_F_SP_ENQ|RING_F_SC_DEQ);
+	r1 = rte_ring_create("R1", 256, 0, RING_F_SP_ENQ|RING_F_SC_DEQ);
 	port1 = rte_eth_from_rings("r1-port", &r1, 1, &r1, 1, 0);
 	return port1;
 }
@@ -208,7 +210,8 @@ static inline int start_qemu_graph(struct branch *branch,
 
 
 #	define SSH(c) \
-	g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) == 0)
+	g_assert(pg_util_ssh("localhost", ssh_port_id, \
+				glob_vm_key_path, c) == 0)
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
@@ -259,12 +262,14 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	CHECK_ERROR(error);
 
 	g_string_printf(tmp, "print-%d", id);
-	branch->print = pg_print_new(tmp->str, NULL, PG_PRINT_FLAG_MAX,
+	branch->print = pg_print_new(tmp->str, NULL,
+				     PG_PRINT_FLAG_MAX,
 				     NULL, &error);
 	CHECK_ERROR(error);
 
-	PG_GC_CHAINED_ADD(branch->collector, branch->firewall, branch->antispoof,
-			  branch->vhost, branch->vhost_reader, branch->collect,
+	PG_GC_CHAINED_ADD(branch->collector, branch->firewall,
+			  branch->antispoof, branch->vhost,
+			  branch->vhost_reader, branch->collect,
 			  branch->print);
 
 	if (print && antispoof) {
@@ -304,9 +309,9 @@ static void test_graph_type1(void)
 	struct pg_brick *nic, *vtep, *print;
 	struct pg_error *error = NULL;
 	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
-				       0xb3, 0xb4, 0xb5}};
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
+				       0xb3, 0xb4, 0xb5} };
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
+	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
 	const char mac_reader_1[18] = "52:54:00:12:34:12";
 	const char mac_reader_2[18] = "52:54:00:12:34:22";
 	struct branch branch1, branch2;
@@ -324,7 +329,8 @@ static void test_graph_type1(void)
 	CHECK_ERROR(error);
 
 	nic = pg_nic_new_by_id("nic", ring_port(), &error);
-	if (error) pg_error_print(error);
+	if (error)
+		pg_error_print(error);
 	CHECK_ERROR(error);
 	vtep = pg_vtep_new("vt", 50, PG_WEST_SIDE,
 			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
@@ -445,13 +451,11 @@ static void test_graph_type1(void)
 	ret = 0;
 exit:
 	/*kill qemu's*/
-	if (qemu1_pid) {
+	if (qemu1_pid)
 		pg_util_stop_qemu(qemu1_pid, SIGKILL);
-	}
 
-	if (qemu2_pid) {
+	if (qemu2_pid)
 		pg_util_stop_qemu(qemu2_pid, SIGKILL);
-	}
 
 	/*Free all*/
 	if (pkts) {
@@ -470,8 +474,8 @@ static void test_graph_firewall_intense(void)
 	struct pg_brick *nic, *vtep, *print;
 	struct pg_error *error = NULL;
 	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
-				       0xb3, 0xb4, 0xb5}};
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+				       0xb3, 0xb4, 0xb5} };
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
 	struct branch branch1;
 	int ret = -1;
 	GList *brick_gc = NULL;
@@ -521,8 +525,8 @@ static void test_graph_firewall_intense_multiple(void)
 	struct pg_brick *nic, *vtep, *print;
 	struct pg_error *error = NULL;
 	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
-				       0xb3, 0xb4, 0xb5}};
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+				       0xb3, 0xb4, 0xb5} };
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
 	struct branch branches[PG_BRANCHES_NB];
 	int ret = -1;
 	GList *brick_gc = NULL;
@@ -551,12 +555,13 @@ static void test_graph_firewall_intense_multiple(void)
 			g_assert(link_graph_branch(&branches[j], vtep));
 
 			/* Add firewall rule */
-			ASSERT(pg_firewall_rule_add(branches[j].firewall, "icmp",
-						     PG_MAX_SIDE, 1, &error) == 0);
+			ASSERT(pg_firewall_rule_add(branches[j].firewall,
+						    "icmp", PG_MAX_SIDE,
+						    1, &error) == 0);
 		}
-		for (int j = 0; j < PG_BRANCHES_NB; j++) {
+		for (int j = 0; j < PG_BRANCHES_NB; j++)
 			rm_graph_branch(&branches[j]);
-		}
+
 		/* FIXME: remove this once dpdk merge patch that shrink fdset */
 		sleep(1);
 	}

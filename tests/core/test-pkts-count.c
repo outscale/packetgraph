@@ -97,18 +97,26 @@ static void test_brick_pkts_count_west(void)
 		pg_brick_burst_to_west(brick, 0, pkts,
 				       pg_mask_firsts(NB_PKTS), &error);
 		g_assert(!error);
-		g_assert(pg_brick_pkts_count_get(collect_east, PG_WEST_SIDE) == 0);
-		g_assert(pg_brick_pkts_count_get(collect_east, PG_EAST_SIDE) == 0);
+		g_assert(pg_brick_pkts_count_get(collect_east,
+						 PG_WEST_SIDE) == 0);
+		g_assert(pg_brick_pkts_count_get(collect_east,
+						 PG_EAST_SIDE) == 0);
 		g_assert(pg_brick_pkts_count_get(collect_west,
-					      PG_WEST_SIDE) == pkts_count);
-		g_assert(pg_brick_pkts_count_get(collect_west, PG_EAST_SIDE) == 0);
-		g_assert(pg_brick_pkts_count_get(brick, PG_WEST_SIDE) == pkts_count);
+						 PG_WEST_SIDE) == pkts_count);
+		g_assert(pg_brick_pkts_count_get(collect_west,
+						 PG_EAST_SIDE) == 0);
+		g_assert(pg_brick_pkts_count_get(brick,
+						 PG_WEST_SIDE) == pkts_count);
 		g_assert(pg_brick_pkts_count_get(brick, PG_EAST_SIDE) == 0);
 
-		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get, collect_west, 0);
-		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get, collect_west, 3);
-		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get, collect_east, 0);
-		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get, collect_east, 0);
+		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get,
+				      collect_west, 0);
+		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get,
+				      collect_west, 3);
+		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get,
+				      collect_east, 0);
+		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get,
+				      collect_east, 0);
 	}
 	TEST_PKTS_COUNT_DESTROY();
 }
@@ -124,18 +132,26 @@ static void test_brick_pkts_count_east(void)
 		pg_brick_burst_to_east(brick, 0, pkts,
 				    pg_mask_firsts(NB_PKTS), &error);
 		g_assert(!error);
-		g_assert(pg_brick_pkts_count_get(collect_east, PG_WEST_SIDE) == 0);
 		g_assert(pg_brick_pkts_count_get(collect_east,
-					      PG_EAST_SIDE) == pkts_count);
-		g_assert(pg_brick_pkts_count_get(collect_west, PG_WEST_SIDE) == 0);
-		g_assert(pg_brick_pkts_count_get(collect_west, PG_EAST_SIDE) == 0);
+						 PG_WEST_SIDE) == 0);
+		g_assert(pg_brick_pkts_count_get(collect_east,
+						 PG_EAST_SIDE) == pkts_count);
+		g_assert(pg_brick_pkts_count_get(collect_west,
+						 PG_WEST_SIDE) == 0);
+		g_assert(pg_brick_pkts_count_get(collect_west,
+						 PG_EAST_SIDE) == 0);
 		g_assert(pg_brick_pkts_count_get(brick, PG_WEST_SIDE) == 0);
-		g_assert(pg_brick_pkts_count_get(brick, PG_EAST_SIDE) == pkts_count);
+		g_assert(pg_brick_pkts_count_get(brick,
+						 PG_EAST_SIDE) == pkts_count);
 
-		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get, collect_west, 0);
-		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get, collect_west, 0);
-		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get, collect_east, 3);
-		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get, collect_east, 0);
+		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get,
+				      collect_west, 0);
+		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get,
+				      collect_west, 0);
+		TEST_PKTS_COUNT_CHECK(pg_brick_west_burst_get,
+				      collect_east, 3);
+		TEST_PKTS_COUNT_CHECK(pg_brick_east_burst_get,
+				      collect_east, 0);
 	}
 	TEST_PKTS_COUNT_DESTROY();
 }

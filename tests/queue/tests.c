@@ -27,18 +27,18 @@
 #include "utils/tests.h"
 
 #define CHECK_ERROR(error) do {                 \
-               if (error)                       \
-		       pg_error_print(error);   \
-               g_assert(!error);                \
-       } while (0)
+		if (error)                       \
+			pg_error_print(error);   \
+		g_assert(!error);                \
+	} while (0)
 
 /* copied struct for testing purpose */
 struct pg_queue_state {
-        struct pg_brick brick;
-        enum pg_side output;
-        uint32_t rx_max_size;
-        GAsyncQueue *rx;
-        struct pg_queue_state *friend;
+	struct pg_brick brick;
+	enum pg_side output;
+	uint32_t rx_max_size;
+	GAsyncQueue *rx;
+	struct pg_queue_state *friend;
 };
 
 static void test_queue_lifecycle(void)

@@ -15,6 +15,7 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bench.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <rte_config.h>
@@ -32,8 +33,6 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "utils/ip.h"
-
-void test_benchmark_vtep(int argc, char **argv);
 
 /**
  * Composite structure of all the headers required to wrap a packet in VTEP
@@ -70,9 +69,8 @@ int headers_length;
 
 static void remove_vtep_hdr(struct pg_bench *bench)
 {
-	for (int i = 0; i < 64; ++i) {
+	for (int i = 0; i < 64; ++i)
 		rte_pktmbuf_adj(bench->pkts[i], headers_length);
-	}
 }
 
 static void inside_to_vxlan(int argc, char **argv, int type)
@@ -82,9 +80,9 @@ static void inside_to_vxlan(int argc, char **argv, int type)
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
 	struct pg_brick *inside_nop;
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
-	struct ether_addr mac3 = {{0x52,0x54,0x00,0x12,0x34,0x31}};
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
+	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
+	struct ether_addr mac3 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x31} };
 	uint32_t len;
 
 	if (type == AF_INET) {
@@ -154,7 +152,7 @@ static void inside_to_vxlan(int argc, char **argv, int type)
 	bench.pkts = pg_packets_append_blank(bench.pkts, bench.pkts_mask, len);
 	bench.brick_full_burst = 1;
 
-	//g_assert(pg_bench_run(&bench, &stats, &error));
+	/*g_assert(pg_bench_run(&bench, &stats, &error)); */
 	pg_bench_run(&bench, &stats, &error);
 	pg_error_print(error);
 	g_assert(!pg_error_is_set(&error));
@@ -186,9 +184,10 @@ static void vxlan_to_inside(int flags, const char *title,
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
 	struct pg_brick *outside_nop;
-	struct ether_addr mac3 = {{0x52,0x54,0x00,0x12,0x34,0x31}};
-	struct ether_addr mac4 = {{0x52,0x54,0x00,0x12,0x34,0x41}};
-	static struct ether_addr mac_vtep = {{0xb0,0xb1,0xb2,0xb3,0xb4,0xb5}};
+	struct ether_addr mac3 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x31} };
+	struct ether_addr mac4 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x41} };
+	static struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
+					      0xb3, 0xb4, 0xb5} };
 	uint32_t len;
 
 	if (type == AF_INET) {
@@ -257,9 +256,10 @@ static void vxlan_to_inside(int flags, const char *title,
 	} else {
 		uint8_t ip_src[16];
 		uint8_t ip_dst[16];
+
 		pg_ip_from_str(ip_src, "1::1");
 		pg_ip_from_str(ip_dst, "1::2");
-		
+
 		pg_packets_append_ipv6(
 			bench.pkts,
 			bench.pkts_mask,

@@ -29,9 +29,10 @@
 #include "utils/tests.h"
 
 #define CHECK_ERROR(error) do {                 \
-	if (error)                       \
-	pg_error_print(error);   \
-	g_assert(!error);                \
+	if (error) {                      \
+		pg_error_print(error);   \
+		g_assert(!error);	\
+	}               \
 } while (0)
 
 static bool iface_exists(const char *ifname)
@@ -81,7 +82,7 @@ static void test_tap_lifecycle(void)
 	g_assert(iface_exists("YAY"));
 
 	/* try to create an existing tap */
-	tap2= pg_tap_new("tap2", "YAY", &error);
+	tap2 = pg_tap_new("tap2", "YAY", &error);
 	g_assert(!tap2);
 	g_assert(error);
 	pg_error_free(error);
@@ -129,10 +130,11 @@ static void test_tap_lifecycle(void)
 }
 
 static bool global_poll_run = true;
-static void* pool(void *pv)
+static void *pool(void *pv)
 {
 	struct pg_graph *g = (struct pg_graph *) pv;
 	struct pg_error *error = NULL;
+
 	while (global_poll_run) {
 		pg_graph_poll(g, &error);
 		if (error) {
@@ -145,7 +147,7 @@ static void* pool(void *pv)
 
 #define run_ok(command) g_assert(system("bash -c \"" command "\"") == 0)
 #define run_ko(command) g_assert(system("bash -c \"" command "\"") != 0)
-#define run(command) {int nop = system(command); (void) nop;}
+#define run(command) {int nop = system(command); (void) nop; }
 static void test_tap_com(void)
 {
 	/**

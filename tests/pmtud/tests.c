@@ -39,13 +39,13 @@ static void test_sorting_pmtud(void)
 	struct pg_brick *col_east;
 	struct rte_mbuf **pkts;
 	uint64_t pkts_mask;
-	struct ether_addr eth = {{0}};
+	struct ether_addr eth = {{0} };
 
 	pkts = pg_packets_append_ether(pg_packets_create(pg_mask_firsts(64)),
 				       pg_mask_firsts(64),  &eth, &eth,
 				       ETHER_TYPE_IPv4);
 	pg_packets_append_ipv4(pkts, pg_mask_firsts(64), 1, 2, 0, 0);
-	
+
 
 	pg_packets_append_blank(pkts,
 				pg_mask_firsts(32),
@@ -62,7 +62,8 @@ static void test_sorting_pmtud(void)
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
 
-	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
+	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64),
+		       &error);
 	g_assert(!error);
 
 	pg_brick_west_burst_get(col_east, &pkts_mask, &error);
@@ -83,14 +84,13 @@ static void test_sorting_pmtud_df(void)
 	struct pg_brick *col_east;
 	struct rte_mbuf **pkts;
 	uint64_t pkts_mask;
-	struct ether_addr eth = {{0}};
+	struct ether_addr eth = {{0} };
 	uint64_t buff[4] = {0, 0, 0, 0};
 
 	pkts = pg_packets_append_ether(pg_packets_create(pg_mask_firsts(64)),
 				       pg_mask_firsts(64),  &eth, &eth,
 				       ETHER_TYPE_IPv4);
 	pg_packets_append_ipv4(pkts, pg_mask_firsts(32), 1, 2, 0, 0);
-	
 
 	/* Initialise ip header to 0, this ensure that DF flag is not set*/
 	pg_packets_append_buf(pkts,
@@ -104,7 +104,8 @@ static void test_sorting_pmtud_df(void)
 	pg_brick_link(pmtud, col_east, &error);
 	g_assert(!error);
 
-	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64), &error);
+	pg_brick_burst(pmtud, PG_WEST_SIDE, 0, pkts, pg_mask_firsts(64),
+		       &error);
 	g_assert(!error);
 
 	pg_brick_west_burst_get(col_east, &pkts_mask, &error);
@@ -146,14 +147,13 @@ static void test_icmp_pmtud(void)
 	struct rte_mbuf **pkts;
 	struct rte_mbuf *tmp;
 	uint64_t pkts_mask;
-	struct ether_addr eth_s = {{2}};
-	struct ether_addr eth_d = {{4}};
+	struct ether_addr eth_s = {{2} };
+	struct ether_addr eth_d = {{4} };
 
 	pkts = pg_packets_append_ether(pg_packets_create(pg_mask_firsts(64)),
 				       pg_mask_firsts(64),  &eth_s, &eth_d,
 				       ETHER_TYPE_IPv4);
 	pg_packets_append_ipv4(pkts, pg_mask_firsts(64), 1, 2, 0, 0);
-	
 
 	/* 10 caracter with the \0*/
 	pg_packets_append_str(pkts, pg_mask_firsts(64), "siegzeon ");
@@ -180,17 +180,17 @@ static void test_icmp_pmtud(void)
 	g_assert(col_west);
 
 	/* print_east = pg_print_new("print_east", 1, 1, east_file, */
-	/* 			PG_PRINT_FLAG_PCAP,  NULL, &error); */
+	/*			     PG_PRINT_FLAG_PCAP,  NULL, &error); */
 	/* g_assert(col_east); */
 	/* g_assert(!error); */
 	/* print_west = pg_print_new("print_west", 1, 1, west_file, */
-	/* 			PG_PRINT_FLAG_PCAP, NULL, &error); */
+	/*			     PG_PRINT_FLAG_PCAP, NULL, &error); */
 	/* g_assert(!error); */
 	/* g_assert(col_west); */
 
 
 	/* pg_brick_chained_links(&error, col_west, print_west, pmtud, */
-	/* 		       print_east, col_east); */
+	/*			  print_east, col_east); */
 	/* g_assert(!error); */
 
 	pg_brick_chained_links(&error, col_west, pmtud, col_east);
@@ -217,7 +217,6 @@ static void test_icmp_pmtud(void)
 	/* fclose(east_file); */
 	/* fclose(west_file); */
 	g_free(pkts);
-	return;
 }
 
 static void test_pmtud(void)

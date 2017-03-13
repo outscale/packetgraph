@@ -42,7 +42,7 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt,
 	struct pg_error *error = NULL;
 	struct pg_brick *ip_fragment;
 	struct pg_bench bench;
-	struct ether_addr mac = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+	struct ether_addr mac = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
 	uint32_t len;
 	struct pg_bench_stats stats;
 	int pkt_len = 1500;
@@ -95,7 +95,7 @@ static void test_benchmark_ip_defragment(int mtu, const char *title,
 	struct pg_brick *ip_fragment;
 	struct pg_brick *collect;
 	struct pg_bench bench;
-	struct ether_addr mac = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+	struct ether_addr mac = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
 	uint32_t len;
 	struct pg_bench_stats stats;
 	int pkt_len = 1500;
@@ -160,7 +160,7 @@ static void benchmark_ip_frag_and_defragment(int mtu, const char *title,
 	struct pg_brick *ip_fragment;
 	struct pg_brick *ip_reasemble;
 	struct pg_bench bench;
-	struct ether_addr mac = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+	struct ether_addr mac = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
 	uint32_t len;
 	struct pg_bench_stats stats;
 	int pkt_len = 1500;

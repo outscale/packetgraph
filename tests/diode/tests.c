@@ -30,8 +30,8 @@
 
 #define	TEST_DIODE_INIT(output)						\
 	struct pg_brick *node1, *node2, *collect_west, *collect_east;	\
-	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST], **result_pkts;		\
-	struct rte_mempool *mp = pg_get_mempool();				\
+	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST], **result_pkts;	\
+	struct rte_mempool *mp = pg_get_mempool();			\
 	struct pg_error *error = NULL;				\
 	uint16_t i;							\
 	uint64_t pkts_mask;						\
@@ -51,7 +51,7 @@
 	collect_east = pg_collect_new("ceast", &error);		\
 	g_assert(!error);						\
 	g_assert(collect_east);						\
-	pg_brick_link(collect_west, node1, &error);				\
+	pg_brick_link(collect_west, node1, &error);			\
 	g_assert(!error);						\
 	pg_brick_link(node1, node2, &error);				\
 	g_assert(!error);						\

@@ -37,8 +37,7 @@ enum test_flags {
 
 static void print_usage(void)
 {
-	printf("benchmark usage: [EAL options] -- [-help] -vm "
-	       "/path/to/script/to/run/vm\n");
+	printf("benchmark usage: [EAL options] -- [-help] -vm RUN_SCRIPT\n");
 	exit(0);
 }
 

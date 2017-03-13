@@ -15,6 +15,7 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bench.h"
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -33,13 +34,11 @@
 #include "utils/bitmask.h"
 #include "utils/qemu.h"
 
-void test_benchmark_tap(int argc, char **argv);
-
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 #define run_ok(command) g_assert(system("bash -c \"" command "\"") == 0)
 #define run_ko(command) g_assert(system("bash -c \"" command "\"") != 0)
-#define run(command) {int nop = system(command); (void) nop;}
+#define run(command) {int nop = system(command); (void) nop; }
 void test_benchmark_tap(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
@@ -47,8 +46,8 @@ void test_benchmark_tap(int argc, char **argv)
 	struct pg_brick *tap_exit;
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
+	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
 	uint32_t len;
 
 	tap_enter = pg_tap_new("tap 0", "bench0", &error);

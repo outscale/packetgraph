@@ -32,7 +32,7 @@ static void test_benchmark_pmtud(int argc, char **argv)
 	struct pg_error *error = NULL;
 	struct pg_brick *pmtud;
 	struct pg_bench bench;
-	struct ether_addr mac = {{0x52,0x54,0x00,0x12,0x34,0x11}};
+	struct ether_addr mac = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
 	uint32_t len;
 	struct pg_bench_stats stats;
 

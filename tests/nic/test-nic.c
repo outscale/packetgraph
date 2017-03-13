@@ -83,9 +83,8 @@ static void test_nic_simple_flow(void)
 		pg_brick_poll(nic_west, &nb_send_pkts, &error);
 		CHECK_ERROR(error);
 		/* collect pkts on the east */
-		if (nb_send_pkts) {
+		if (nb_send_pkts)
 			total_send_pkts += max_pkts;
-		}
 		/* check no pkts end here */
 		CHECK_ERROR(error);
 	}

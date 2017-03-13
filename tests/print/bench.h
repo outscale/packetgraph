@@ -1,4 +1,4 @@
-/* Copyright 2015 Outscale SAS
+/* Copyright 2017 Outscale SAS
  *
  * This file is part of Butterfly.
  *
@@ -15,21 +15,7 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bench.h"
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
-#include "utils/tests.h"
 
-int main(int argc, char **argv)
-{
-	struct pg_error *error = NULL;
-	int r;
-
-	g_test_init(&argc, &argv, NULL);
-	pg_start(argc, argv, &error);
-	g_assert(!error);
-	test_benchmark_diode(argc, argv);
-	r = g_test_run();
-	pg_stop();
-	return r;
-}
+void test_benchmark_print(int argc, char **argv);

@@ -15,6 +15,7 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bench.h"
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -33,8 +34,6 @@
 #include "utils/bitmask.h"
 #include "utils/qemu.h"
 
-void test_benchmark_rxtx(int argc, char **argv);
-
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 struct bench_rxtx {
@@ -47,7 +46,7 @@ static void myrx(struct pg_brick *brick,
 		 uint16_t rx_burst_len,
 		 void *private_data)
 {
-	static int init = 0;
+	static int init;
 	struct bench_rxtx *pd = (struct bench_rxtx *)private_data;
 
 	if (!init) {
@@ -87,8 +86,8 @@ void test_benchmark_rxtx(int argc, char **argv)
 	struct pg_brick *rxtx_exit;
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
+	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
 	uint32_t len;
 	struct bench_rxtx *pd = g_new0(struct bench_rxtx, 1);
 

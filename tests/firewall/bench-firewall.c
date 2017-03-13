@@ -15,6 +15,7 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bench.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <rte_config.h>
@@ -31,16 +32,14 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 
-void test_benchmark_firewall(int argc, char **argv);
-
 void test_benchmark_firewall(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *fw;
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
+	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
 	uint32_t ip_src;
 	uint32_t ip_dst;
 	uint32_t len;

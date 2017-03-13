@@ -15,11 +15,10 @@
  * along with Butterfly.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bench.h"
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
 #include "utils/tests.h"
-
-void test_benchmark_rxtx(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
