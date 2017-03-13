@@ -15,6 +15,7 @@
  * along with Packetgraph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bench.h"
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -34,8 +35,6 @@
 #include "utils/bitmask.h"
 #include "utils/qemu.h"
 
-void test_benchmark_nic(int argc, char **argv);
-
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 void test_benchmark_nic(int argc, char **argv)
@@ -45,8 +44,8 @@ void test_benchmark_nic(int argc, char **argv)
 	struct pg_brick *nic_exit;
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
+	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
 	uint32_t len;
 
 	nic_enter = pg_nic_new_by_id("nic-enter", 0, &error);
@@ -87,6 +86,7 @@ void test_benchmark_nic(int argc, char **argv)
 	pg_packets_append_ipv4(
 		bench.pkts,
 		bench.pkts_mask,
+
 		0x000000EE, 0x000000CC, len, 17);
 	bench.pkts = pg_packets_append_udp(
 		bench.pkts,

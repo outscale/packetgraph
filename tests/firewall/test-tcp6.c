@@ -1,7 +1,7 @@
 /**
  * source: 2001:db8:2000:aff0::1
  * dst: 2001:db8:2000:aff0::2
- * TCP    94            44870 → 8000 [SYN] Seq=0 Win=28800 Len=0 MSS=1440 SACK_PERM=1
+ * TCP    94   44870 → 8000 [SYN] Seq=0 Win=28800 Len=0 MSS=1440 SACK_PERM=1
  * TSval=176376 TSecr=0 WS=16
  */
 static const unsigned char pkt1[94] = {

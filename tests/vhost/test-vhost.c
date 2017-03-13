@@ -104,7 +104,8 @@ static void test_vhost_flow_(int qemu_exit_signal)
 
 	/* Prepare VM's bridge. */
 #	define SSH(c) \
-		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) == 0)
+		g_assert(pg_util_ssh("localhost", ssh_port_id, \
+		glob_vm_key_path, c) == 0)
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
@@ -272,7 +273,8 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 
 #	define SSH(c) \
-		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) == 0)
+		g_assert(pg_util_ssh("localhost", ssh_port_id, \
+		glob_vm_key_path, c) == 0)
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
@@ -293,7 +295,8 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 
 	/* Prepare VM's bridge. */
 #	define SSH(c) \
-		g_assert(pg_util_ssh("localhost", ssh_port_id, glob_vm_key_path, c) == 0)
+		g_assert(pg_util_ssh("localhost", ssh_port_id, \
+		glob_vm_key_path, c) == 0)
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
@@ -398,6 +401,7 @@ static void test_vhost_fd(void)
 	for (int j = 0; j < 10; j++) {
 		for (int i = 0; i < VHOST_CNT; i++) {
 			gchar *name = g_strdup_printf("vhost-%i", i);
+
 			vhost[i] =
 				pg_vhost_new(name,
 					     PG_VHOST_USER_DEQUEUE_ZERO_COPY,
@@ -417,7 +421,8 @@ static void test_vhost_fd(void)
 
 #undef VHOST_CNT
 
-static void test_vhost_fd_loop(void) {
+static void test_vhost_fd_loop(void)
+{
 	int i;
 
 	for (i = 0; i < 3; i++)
@@ -573,7 +578,7 @@ static void test_vhost_reco(void)
 	uint8_t all_scenarios = pow(max, 2);
 
 	for (s = 0; s < all_scenarios; s++) {
-		printf("sequence test %u/%u ... \n", s, all_scenarios);
+		printf("sequence test %u/%u ...\n", s, all_scenarios);
 		for (a = 0; a < max; a++) {
 			if (s & (1 << a)) {
 				params.killsig = SIGINT;
@@ -673,7 +678,8 @@ struct qemu_duo_test_params {
 	char *ip[2];
 };
 
-static void *qemu_duo_internal_thread(void *arg) {
+static void *qemu_duo_internal_thread(void *arg)
+{
 	struct qemu_duo_test_params *p = (struct qemu_duo_test_params *)arg;
 	struct pg_error *error = NULL;
 	uint16_t count;
@@ -735,6 +741,7 @@ static void qemu_duo_destroy(struct qemu_duo_test_params *p)
 {
 	int exit_status;
 	void *ret;
+
 	p->stop = 1;
 	pthread_join(p->graph_thread, &ret);
 	for (int i = 0; i < 2; i++) {

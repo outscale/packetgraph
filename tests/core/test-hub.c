@@ -228,23 +228,23 @@ static void test_hub_one_side_null(void)
 	g_assert(error);
 	g_assert(!hub2);
 	pg_error_free(error);
- 	error = NULL;
+	error = NULL;
 
 	collect0_1 = pg_collect_new("collect0_1", &error);
 	g_assert(!error);
 	g_assert(collect0_1);
 
-        collect0_2 = pg_collect_new("collect0_2", &error);
-        g_assert(!error);
-        g_assert(collect0_2);
+	collect0_2 = pg_collect_new("collect0_2", &error);
+	g_assert(!error);
+	g_assert(collect0_2);
 
 	collect1_1 = pg_collect_new("collect1_1", &error);
 	g_assert(!error);
 	g_assert(collect1_1);
 
-        collect1_2 = pg_collect_new("collect1_2", &error);
-        g_assert(!error);
-        g_assert(collect1_2);
+	collect1_2 = pg_collect_new("collect1_2", &error);
+	g_assert(!error);
+	g_assert(collect1_2);
 
 	collect2_1 = pg_collect_new("collect2_1", &error);
 	g_assert(!error);
@@ -252,8 +252,8 @@ static void test_hub_one_side_null(void)
 
 	collect2_2 = pg_collect_new("collect2_2", &error);
 	g_assert(!error);
-	g_assert(collect2_2);;
-	
+	g_assert(collect2_2);
+
 	pg_brick_link(hub, collect0_1, &error);
 	g_assert(error);
 	pg_error_free(error);
@@ -287,7 +287,7 @@ static void test_hub_one_side_null(void)
 	pg_brick_link(collect2_2, hub2, &error);
 	g_assert(error);
 	pg_error_free(error);
-	error =NULL;
+	error = NULL;
 	pg_brick_link(hub2, collect2_1, &error);
 	g_assert(error);
 	g_free(error);
@@ -325,18 +325,18 @@ static void test_hub_one_side_null(void)
 	g_assert(!error);
 
 	TEST_HUB_DESTROY();
-        pg_brick_unlink(collect2_1, &error);            
-        g_assert(!error);
-        pg_brick_unlink(collect2_2, &error);
-        g_assert(!error);
-        pg_brick_reset(collect2_1, &error);
-        g_assert(!error);
-        pg_brick_reset(collect2_2, &error);
-        g_assert(!error);
-        pg_brick_decref(collect2_1, &error);
-        g_assert(!error);
-        pg_brick_decref(collect2_2, &error);
-        g_assert(!error);                        
+	pg_brick_unlink(collect2_1, &error);
+	g_assert(!error);
+	pg_brick_unlink(collect2_2, &error);
+	g_assert(!error);
+	pg_brick_reset(collect2_1, &error);
+	g_assert(!error);
+	pg_brick_reset(collect2_2, &error);
+	g_assert(!error);
+	pg_brick_decref(collect2_1, &error);
+	g_assert(!error);
+	pg_brick_decref(collect2_2, &error);
+	g_assert(!error);
 }
 
 #undef TEST_HUB_INIT

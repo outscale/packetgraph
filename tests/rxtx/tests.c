@@ -28,9 +28,10 @@
 #include "utils/tests.h"
 
 #define CHECK_ERROR(error) do {                 \
-	if (error)                       \
-	pg_error_print(error);   \
-	g_assert(!error);                \
+	if (error) {                      \
+		pg_error_print(error);   \
+		g_assert(!error);	\
+	}                \
 } while (0)
 
 static void test_rxtx_lifecycle(void)
@@ -99,8 +100,8 @@ static void test_rxtx_rx_to_tx(void)
 	struct test_rxtx pd;
 	struct pg_graph *g;
 
-	brx = pg_rxtx_new("rx", &myrx, NULL, (void*) &pd);
-	btx = pg_rxtx_new("tx", NULL, &mytx, (void*) &pd);
+	brx = pg_rxtx_new("rx", &myrx, NULL, (void *) &pd);
+	btx = pg_rxtx_new("tx", NULL, &mytx, (void *) &pd);
 	pg_brick_link(brx, btx, &error);
 	CHECK_ERROR(error);
 	g = pg_graph_new("graph", brx, &error);
@@ -116,9 +117,8 @@ static void test_rxtx_rx_to_tx(void)
 		pg_graph_poll(g, &error);
 		CHECK_ERROR(error);
 
-		for (int i = 0; i < PG_RXTX_MAX_TX_BURST_LEN; i++) {
+		for (int i = 0; i < PG_RXTX_MAX_TX_BURST_LEN; i++)
 			g_assert(pd.rx_data[i] == i);
-		}
 
 		for (int i = 0; i < PG_RXTX_MAX_TX_BURST_LEN; i++) {
 			pd.tx_data[i] = 63 - i;
@@ -142,8 +142,8 @@ static void test_rxtx_rxtx_to_rxtx(void)
 	struct test_rxtx pd1, pd2;
 	struct pg_graph *g;
 
-	b1 = pg_rxtx_new("1", &myrx, &mytx, (void*) &pd1);
-	b2 = pg_rxtx_new("2", &myrx, &mytx, (void*) &pd2);
+	b1 = pg_rxtx_new("1", &myrx, &mytx, (void *) &pd1);
+	b2 = pg_rxtx_new("2", &myrx, &mytx, (void *) &pd2);
 	pg_brick_link(b1, b2, &error);
 	CHECK_ERROR(error);
 	g = pg_graph_new("graph", b1, &error);
@@ -184,9 +184,9 @@ static void test_rxtx_rxtx_to_rxtx(void)
 	pg_graph_destroy(g);
 }
 static void mytx_empty(struct pg_brick *brick,
-                 struct pg_rxtx_packet *tx_burst,
-                 uint16_t *tx_burst_len,
-                 void *private_data)
+		       struct pg_rxtx_packet *tx_burst,
+		       uint16_t *tx_burst_len,
+		       void *private_data)
 {
 	*tx_burst_len = 0;
 }
@@ -199,7 +199,7 @@ static void test_rxtx_empty_burst(void)
 	struct test_rxtx pd;
 	struct pg_graph *g;
 
-	rxtx = pg_rxtx_new("rxtx", NULL, &mytx_empty, (void*) &pd);
+	rxtx = pg_rxtx_new("rxtx", NULL, &mytx_empty, (void *) &pd);
 	CHECK_ERROR(error);
 	fail = pg_fail_new("fail", &error);
 	CHECK_ERROR(error);
@@ -208,7 +208,7 @@ static void test_rxtx_empty_burst(void)
 	CHECK_ERROR(error);
 
 	g = pg_graph_new("graph", rxtx, &error);
-        CHECK_ERROR(error);
+	CHECK_ERROR(error);
 
 	pg_graph_poll(g, &error);
 	CHECK_ERROR(error);

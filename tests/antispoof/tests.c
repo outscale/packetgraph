@@ -467,7 +467,8 @@ static int test_antispoof_filter(struct pg_brick *antispoof,
 	return filtered_pkts_mask;
 }
 
-static void test_antispoof_ndp(void) {
+static void test_antispoof_ndp(void)
+{
 #	include "test-ndp.c"
 	struct ether_addr inside_mac;
 	uint8_t ip[16];
