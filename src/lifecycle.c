@@ -32,8 +32,32 @@ int pg_start(int argc, char **argv, struct pg_error **errp)
 	return r;
 }
 
+static char **pg_global_dpdk_args;
+int pg_start_str(const char *dpdk_args)
+{
+	GError *err = NULL;
+	int dpdk_argc;
+	struct pg_error *errp = NULL;
+	char *tmp = g_strdup_printf("dpdk %s", dpdk_args);
+
+	if (!g_shell_parse_argv(tmp, &dpdk_argc, &pg_global_dpdk_args, &err)) {
+		goto error;
+	}
+	pg_start(dpdk_argc, pg_global_dpdk_args, &errp);
+	if (pg_error_is_set(&errp)) {
+		pg_error_free(errp);
+		goto error;
+	}
+	g_free(tmp);
+	return 0;
+error:
+	g_free(tmp);
+	return -1;
+}
+
 void pg_stop(void)
 {
 	g_list_free(pg_all_bricks);
 	pg_all_bricks = NULL;
+	g_strfreev(pg_global_dpdk_args);
 }

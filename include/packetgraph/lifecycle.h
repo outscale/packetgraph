@@ -33,6 +33,15 @@ void mp_hdlr_init_ops_stack(void);
 int pg_start(int argc, char **argv, struct pg_error **errp);
 
 /**
+ * Initilize packetgraph.
+ * This function should be called before any other packetgraph function.
+ *
+ * @param       dpdk_args a string with all dpdk arguments
+ * @return      -1 in case of error, 0 otherwise
+ */
+int pg_start_str(const char *dpdk_args);
+
+/**
  * Uninitialize packetgraph.
  * This function should be called when the application exits.
  */
