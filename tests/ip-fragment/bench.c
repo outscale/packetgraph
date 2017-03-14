@@ -215,12 +215,10 @@ static void benchmark_ip_frag_and_defragment(int mtu, const char *title,
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
 	int r;
 
 	g_test_init(&argc, &argv, NULL);
-	pg_start(argc, argv, &error);
-	g_assert(!error);
+	g_assert(pg_start(argc, argv) >= 0);
 	test_benchmark_ip_fragment(1000, 1000000,
 				   "fragment packets, mtu: 1000",
 				   argc, argv);

@@ -1269,18 +1269,14 @@ static void test_switch(void)
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
-	int r;
-
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	pg_start(argc, argv, &error);
-	CHECK_ERROR(error);
+	g_assert(pg_start(argc, argv) >= 0);
 
 	test_switch();
-	r = g_test_run();
+	int r = g_test_run();
 
 	pg_stop();
 	return r;

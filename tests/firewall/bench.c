@@ -22,12 +22,8 @@
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
-	int r;
-
 	g_test_init(&argc, &argv, NULL);
-	pg_start(argc, argv, &error);
-	g_assert(!error);
+	g_assert(pg_start(argc, argv) >= 0);
 	pg_npf_nworkers = 40;
 	test_benchmark_firewall(argc, argv);
 	pg_npf_nworkers = 4;
@@ -40,7 +36,8 @@ int main(int argc, char **argv)
 	test_benchmark_firewall(argc, argv);
 	pg_npf_nworkers = 0;
 	test_benchmark_firewall(argc, argv);
-	r = g_test_run();
+	int r = g_test_run();
+
 	pg_stop();
 	return r;
 }

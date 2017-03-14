@@ -496,22 +496,18 @@ static void test_queue_reset(void)
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
-	int r;
-
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	pg_start(argc, argv, &error);
-	CHECK_ERROR(error);
+	pg_start(argc, argv);
 
 	pg_test_add_func("/queue/lifecycle", test_queue_lifecycle);
 	pg_test_add_func("/queue/friend", test_queue_friend);
 	pg_test_add_func("/queue/burst", test_queue_burst);
 	pg_test_add_func("/queue/limit", test_queue_limit);
 	pg_test_add_func("/queue/reset", test_queue_reset);
-	r = g_test_run();
+	int r = g_test_run();
 
 	pg_stop();
 	return r;

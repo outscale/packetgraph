@@ -27,10 +27,10 @@ void mp_hdlr_init_ops_stack(void);
  * @param	size of argv
  * @param	argv all arguments passwed to packetgraph, it may contain
  *		DPDK arugments.
- * @param	errp is set in case of an error
- * @return	return where the program's parameters count starts
+ * @return	In case of failure: a negative number.
+ *              In case of success: the number of parsed arguments (>=0)
  */
-int pg_start(int argc, char **argv, struct pg_error **errp);
+int pg_start(int argc, char **argv);
 
 /**
  * Initilize packetgraph.

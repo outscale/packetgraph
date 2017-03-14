@@ -81,10 +81,8 @@ int main(int argc, char **argv)
 	}
 
 	/* init packetgraph */
-	pg_start(argc, argv, &error);
-	if (error) {
-		pg_error_print(error);
-		pg_error_free(error);
+	if (pg_start(argc, argv) < 0) {
+		printf("failed to initialize packetgraph\n");
 		return 1;
 	}
 

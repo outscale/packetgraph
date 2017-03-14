@@ -22,14 +22,11 @@
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
-	int r;
-
 	g_test_init(&argc, &argv, NULL);
-	pg_start(argc, argv, &error);
-	g_assert(!error);
+	g_assert(pg_start(argc, argv) >= 0);
 	test_benchmark_print(argc, argv);
-	r = g_test_run();
+	int r = g_test_run();
+
 	pg_stop();
 	return r;
 }

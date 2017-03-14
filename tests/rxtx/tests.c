@@ -223,22 +223,18 @@ static void test_rxtx_empty_burst(void)
 }
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
-	int r;
-
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	pg_start(argc, argv, &error);
-	CHECK_ERROR(error);
+	g_assert(pg_start(argc, argv) >= 0);
 
 	pg_test_add_func("/rxtx/lifecycle", test_rxtx_lifecycle);
 	pg_test_add_func("/rxtx/rx_to_tx", test_rxtx_rx_to_tx);
 	pg_test_add_func("/rxtx/rxtx_to_rxtx", test_rxtx_rxtx_to_rxtx);
 	pg_test_add_func("/rxtx/rxtx_burst_not_propagate",
 			test_rxtx_empty_burst);
-	r = g_test_run();
+	int r = g_test_run();
 
 	pg_stop();
 	return r;

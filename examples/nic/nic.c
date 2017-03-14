@@ -24,10 +24,8 @@ int main(int argc, char **argv)
 	uint32_t rx, tx;
 	int port_count;
 
-	pg_start(argc, argv, &error);
-	if (pg_error_is_set(&error)) {
-		pg_error_print(error);
-		pg_error_free(error);
+	if (pg_start(argc, argv) < 0) {
+		printf("failed to initialize packetgraph\n");
 		return 1;
 	}
 

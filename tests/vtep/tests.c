@@ -1066,13 +1066,11 @@ static void test_vtep_fragment_encap_decap(void)
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
 	int r;
 
 	g_test_init(&argc, &argv, NULL);
-	r = pg_start(argc, argv, &error);
+	r = pg_start(argc, argv);
 	g_assert(r >= 0);
-	g_assert(!error);
 
 	pg_test_add_func("/vtep6/simple/no-flags", test_vtep6_simple);
 	pg_test_add_func("/vtep/simple/no-flags", test_vtep_simple_no_flags);

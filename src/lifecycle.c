@@ -22,42 +22,30 @@
 #include "brick-int.h"
 #include "dpdk_symbols.h"
 
-int pg_start(int argc, char **argv, struct pg_error **errp)
+int pg_start(int argc, char **argv)
 {
 	mp_hdlr_init_ops_stack();
-	int r = rte_eal_init(argc, argv);
-
-	if (r < 0)
-		*errp = pg_error_new("error durring eal initialisation");
-	return r;
+	return rte_eal_init(argc, argv);
 }
 
-static char **pg_global_dpdk_args;
+char **pg_glob_dpdk_argv;
 int pg_start_str(const char *dpdk_args)
 {
-	GError *err = NULL;
 	int dpdk_argc;
-	struct pg_error *errp = NULL;
+	GError *err = NULL;
 	char *tmp = g_strdup_printf("dpdk %s", dpdk_args);
 
-	if (!g_shell_parse_argv(tmp, &dpdk_argc, &pg_global_dpdk_args, &err)) {
-		goto error;
-	}
-	pg_start(dpdk_argc, pg_global_dpdk_args, &errp);
-	if (pg_error_is_set(&errp)) {
-		pg_error_free(errp);
-		goto error;
-	}
+	if (!g_shell_parse_argv(tmp, &dpdk_argc, &pg_glob_dpdk_argv, &err))
+		return -1;
+	int ret = pg_start(dpdk_argc, pg_glob_dpdk_argv);
+
 	g_free(tmp);
-	return 0;
-error:
-	g_free(tmp);
-	return -1;
+	return ret;
 }
 
 void pg_stop(void)
 {
 	g_list_free(pg_all_bricks);
 	pg_all_bricks = NULL;
-	g_strfreev(pg_global_dpdk_args);
+	g_strfreev(pg_glob_dpdk_argv);
 }

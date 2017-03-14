@@ -577,15 +577,14 @@ exit:
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
 	int r, test_flags;
 
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	r = pg_start(argc, argv, &error);
-	g_assert(!error);
+	r = pg_start(argc, argv);
+	g_assert(r >= 0);
 
 	r += + 1;
 	argc -= r;

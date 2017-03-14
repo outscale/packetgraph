@@ -107,10 +107,8 @@ int main(int argc, char **argv)
 	bool verbose = false;
 
 	check_help(argc, argv);
-	ret = pg_start(argc, argv, &error);
+	ret = pg_start(argc, argv);
 	g_assert(ret != -1);
-	CHECK_ERROR(error);
-
 	if (!pg_nic_port_count()) {
 		fprintf(stderr, "no dpdk port, ");
 		fprintf(stderr, "try using --vdev=eth_pcap0,iface=eth0\n");

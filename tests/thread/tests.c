@@ -146,14 +146,12 @@ static void test_threads_errors(void)
 int main(int argc, char **argv)
 {
 	int ret;
-	struct pg_error *error = NULL;
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	ret = pg_start(argc, argv, &error);
+	ret = pg_start(argc, argv);
 	g_assert(ret >= 0);
-	g_assert(!error);
 
 	pg_test_add_func("/threads/lifecycle", test_threads_lifecycle);
 	pg_test_add_func("/threads/run", test_threads_run);
