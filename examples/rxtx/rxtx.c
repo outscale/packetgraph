@@ -86,7 +86,10 @@ int main(int argc, char **argv)
 	struct mydata pd;
 
 	pd.pkt_count = 0;
-	pg_start(argc, argv, &error);
+	if (pg_start(argc, argv) < 0) {
+		printf("failed to initialize packetgraph\n");
+		return 1;
+	}
 	start_time = g_get_real_time();
 
 	if (pg_nic_port_count() < 1) {

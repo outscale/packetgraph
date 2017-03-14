@@ -184,15 +184,13 @@ static void test_diode(void)
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
 	int r;
 
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	pg_start(argc, argv, &error);
-	g_assert(!error);
+	g_assert(pg_start(argc, argv) >= 0);
 
 	test_diode();
 	r = g_test_run();

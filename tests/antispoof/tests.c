@@ -577,15 +577,11 @@ static void test_antispoof_ndp(void)
 
 int main(int argc, char **argv)
 {
-	struct pg_error *error = NULL;
-	int r;
-
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	pg_start(argc, argv, &error);
-	g_assert(!error);
+	g_assert(pg_start(argc, argv) >= 0);
 
 	pg_test_add_func("/antispoof/mac",
 			test_antispoof_mac);
@@ -603,7 +599,8 @@ int main(int argc, char **argv)
 			test_antispoof_empty_burst);
 	pg_test_add_func("/antispoof/ndp",
 			test_antispoof_ndp);
-	r = g_test_run();
+	int r = g_test_run();
+
 	pg_stop();
 	return r;
 }

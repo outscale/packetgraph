@@ -56,14 +56,12 @@ int main(int argc, char **argv)
 {
 	int ret;
 	uint64_t test_flags;
-	struct pg_error *error = NULL;
 	/* tests in the same order as the header function declarations */
 	g_test_init(&argc, &argv, NULL);
 
 	/* initialize packetgraph */
-	ret = pg_start(argc, argv, &error);
+	ret = pg_start(argc, argv);
 	g_assert(ret >= 0);
-	g_assert(!error);
 
 	/* accounting program name */
 	ret += + 1;

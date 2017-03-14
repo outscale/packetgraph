@@ -33,7 +33,11 @@ int main(int argc, char **argv)
 	struct pg_graph *graph;
 
 	/* init packetgraph and nics */
-	pg_start(argc, argv, &error);
+	if (pg_start(argc, argv) < 0) {
+		printf("failed to initialize packetgraph\n");
+		return 1;
+	}
+
 	if (pg_nic_port_count() < 2) {
 		printf("You need two DPDK ports to run this example\n");
 		return 1;
