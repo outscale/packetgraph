@@ -175,8 +175,8 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 					    bl.input_side,
 					    0,
 					    bl.pkts,
-					    bl.pkts_mask,
-					    error) < 0)) {
+					    bl.pkts_mask) < 0)) {
+			*error = pg_brick_error;
 			if (!pg_error_is_set(error)) {
 				*error = pg_error_new(
 					"Unknow fail durring burst");

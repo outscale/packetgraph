@@ -27,6 +27,7 @@
 
 /* All registred bricks. */
 GList *pg_all_bricks;
+struct pg_error *pg_brick_error;
 
 static void assert_brick_callback(struct pg_brick *brick)
 {
@@ -611,7 +612,7 @@ void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp)
 
 inline int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 			  uint16_t edge_index, struct rte_mbuf **pkts,
-			  uint64_t pkts_mask, struct pg_error **errp)
+			  uint64_t pkts_mask)
 {
 	if (unlikely(!brick))
 		return 0;
@@ -619,23 +620,33 @@ inline int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 	* we send the packets, so we flip it */
 	rte_atomic64_add(&brick->sides[pg_flip_side(from)].packet_count,
 			 pg_mask_count(pkts_mask));
-	return brick->burst(brick, from, edge_index, pkts, pkts_mask, errp);
+	return brick->burst(brick, from, edge_index, pkts, pkts_mask);
 }
 
 inline int pg_brick_burst_to_east(struct pg_brick *brick, uint16_t edge_index,
 				  struct rte_mbuf **pkts, uint64_t pkts_mask,
 				  struct pg_error **errp)
 {
-	return pg_brick_burst(brick, PG_WEST_SIDE, edge_index,
-			      pkts, pkts_mask, errp);
+	int ret;
+
+	pg_brick_error = NULL;
+	ret = pg_brick_burst(brick, PG_WEST_SIDE, edge_index,
+			     pkts, pkts_mask);
+	*errp = pg_brick_error;
+	return ret;
 }
 
 inline int pg_brick_burst_to_west(struct pg_brick *brick, uint16_t edge_index,
 				  struct rte_mbuf **pkts, uint64_t pkts_mask,
 				  struct pg_error **errp)
 {
-	return pg_brick_burst(brick, PG_EAST_SIDE, edge_index,
-			      pkts, pkts_mask, errp);
+	int ret;
+
+	pg_brick_error = NULL;
+	ret = pg_brick_burst(brick, PG_EAST_SIDE, edge_index,
+			     pkts, pkts_mask);
+	*errp = pg_brick_error;
+	return ret;
 }
 
 int pg_brick_poll(struct pg_brick *brick,
@@ -651,7 +662,7 @@ int pg_brick_poll(struct pg_brick *brick,
 		return -1;
 	}
 
-	return brick->poll(brick, count, errp);
+	return brick->poll(brick, count);
 }
 
 /* These functions are are for automated testing purpose */
@@ -690,8 +701,7 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 }
 
 int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
-			  struct rte_mbuf **pkts, uint64_t pkts_mask,
-			  struct pg_error **errp)
+			  struct rte_mbuf **pkts, uint64_t pkts_mask)
 {
 	int ret = 1;
 	int nb = brick_side->nb;
@@ -700,7 +710,7 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 		if (brick_side->edges[i].link)
 			ret = pg_brick_burst(brick_side->edges[i].link, from,
 					     brick_side->edges[i].pair_index,
-					     pkts, pkts_mask, errp);
+					     pkts, pkts_mask);
 		if (unlikely(ret < 0))
 			return -1;
 	}

@@ -120,8 +120,7 @@ static uint64_t tx_bytes(struct pg_brick *brick)
 /* The fastpath data function of the nic_brick just forward the bursts */
 static int nic_burst(struct pg_brick *brick, enum pg_side from,
 		     uint16_t edge_index, struct rte_mbuf **pkts,
-		     uint64_t pkts_mask,
-		     struct pg_error **errp)
+		     uint64_t pkts_mask)
 {
 	uint16_t count = 0;
 	uint16_t pkts_bursted;
@@ -166,8 +165,7 @@ static int nic_burst(struct pg_brick *brick, enum pg_side from,
 static int nic_burst_no_offload(struct pg_brick *brick, enum pg_side from,
 				    uint16_t edge_index,
 				    struct rte_mbuf **pkts,
-				    uint64_t pkts_mask,
-				    struct pg_error **errp)
+				    uint64_t pkts_mask)
 {
 	uint64_t mask = pkts_mask;
 
@@ -210,13 +208,12 @@ static int nic_burst_no_offload(struct pg_brick *brick, enum pg_side from,
 			hdr->ipv4.hdr_checksum = ipv4_csum;
 		}
 	}
-	return nic_burst(brick, from, edge_index, pkts, pkts_mask, errp);
+	return nic_burst(brick, from, edge_index, pkts, pkts_mask);
 }
 
 static int nic_poll_forward(struct pg_nic_state *state,
 			    struct pg_brick *brick,
-			    uint16_t nb_pkts,
-			    struct pg_error **errp)
+			    uint16_t nb_pkts)
 {
 	struct pg_brick_side *s = &brick->side;
 	int ret;
@@ -229,14 +226,13 @@ static int nic_poll_forward(struct pg_nic_state *state,
 
 	ret = pg_brick_burst(s->edge.link, state->output,
 			     s->edge.pair_index,
-			     state->pkts, pkts_mask, errp);
+			     state->pkts, pkts_mask);
 
 	pg_packets_free(state->pkts, pkts_mask);
 	return ret;
 }
 
-static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
-		    struct pg_error **errp)
+static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt)
 {
 	uint16_t nb_pkts;
 	struct pg_nic_state *state =
@@ -250,7 +246,7 @@ static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	}
 
 	*pkts_cnt = nb_pkts;
-	return nic_poll_forward(state, brick, nb_pkts, errp);
+	return nic_poll_forward(state, brick, nb_pkts);
 }
 
 static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)

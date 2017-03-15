@@ -188,7 +188,7 @@ static void multicast6_internal(struct vtep_state *state,
 	pg_ip_copy(multicast_ip, &hdr->mld.multicast_addr);
 	pg_brick_side_forward(&state->brick.sides[state->output],
 			      pg_flip_side(state->output),
-			      pkt, pg_mask_firsts(1), errp);
+			      pkt, pg_mask_firsts(1));
 
 clear:
 	rte_pktmbuf_free(pkt[0]);

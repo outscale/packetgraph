@@ -62,7 +62,7 @@ static struct pg_brick_config *ip_fragment_config_new(const char *name,
 
 static int do_fragmentation(struct pg_ip_fragment_state *state,
 			    struct rte_mbuf *pkt, struct pg_brick_edge *edge,
-			    enum pg_side from, struct pg_error **errp)
+			    enum pg_side from)
 {
 	uint64_t mask;
 	int32_t nb_frags;
@@ -97,7 +97,7 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 	}
 
 	ret = pg_brick_burst(edge->link, from, edge->pair_index,
-			     pkts_out, mask, errp);
+			     pkts_out, mask);
 	pg_packets_free(pkts_out, mask);
 	return ret;
 }
@@ -112,8 +112,7 @@ should_be_reassemble(struct eth_ipv4_hdr const * const restrict pkt_buf)
 
 static inline int do_reassemble(struct pg_ip_fragment_state *state,
 				struct rte_mbuf **pkts, struct pg_brick_side *s,
-				enum pg_side from, uint64_t *pkts_mask,
-				struct pg_error **errp)
+				enum pg_side from, uint64_t *pkts_mask)
 {
 	int j = 0;
 	uint64_t snd_mask = 0;
@@ -152,7 +151,7 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 
 	if (unlikely(snd_mask)) {
 		ret = pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-				     state->pkts_out, snd_mask, errp);
+				     state->pkts_out, snd_mask);
 		pg_packets_free(state->pkts_out, snd_mask);
 	}
 	if (remove_mask) {
@@ -176,7 +175,7 @@ static inline bool should_be_fragmented(struct rte_mbuf const * const pkt,
 
 static int ip_fragment_burst(struct pg_brick *brick, enum pg_side from,
 			     uint16_t edge_index, struct rte_mbuf **pkts,
-			     uint64_t pkts_mask, struct pg_error **errp)
+			     uint64_t pkts_mask)
 {
 	struct pg_ip_fragment_state *state =
 		pg_brick_get_state(brick, struct pg_ip_fragment_state);
@@ -187,18 +186,18 @@ static int ip_fragment_burst(struct pg_brick *brick, enum pg_side from,
 		PG_FOREACH_BIT(pkts_mask, i) {
 			if (should_be_fragmented(pkts[i], state)) {
 				if (likely(do_fragmentation(state, pkts[i],
-							    &s->edge, from,
-							    errp) >= 0))
+							    &s->edge,
+							    from) >= 0))
 					pkts_mask ^= (ONE64 << i);
 			}
 		}
-	} else if (do_reassemble(state, pkts, s, from, &pkts_mask, errp) < 0) {
+	} else if (do_reassemble(state, pkts, s, from, &pkts_mask) < 0) {
 		return -1;
 	}
 	if (!pkts_mask)
 		return 0;
 	return  pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-			       pkts, pkts_mask, errp);
+			       pkts, pkts_mask);
 }
 
 struct pg_brick *pg_ip_fragment_new(const char *name,

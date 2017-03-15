@@ -24,8 +24,7 @@ struct pg_hub_state {
 
 static int hub_burst(struct pg_brick *brick, enum pg_side from,
 		     uint16_t edge_index, struct rte_mbuf **pkts,
-		     uint64_t pkts_mask,
-		     struct pg_error **errp)
+		     uint64_t pkts_mask)
 {
 	int ret;
 	enum pg_side i = PG_WEST_SIDE;
@@ -45,10 +44,8 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 	for (j = 0; j < s->max; ++j) {
 		if (!edges[j].link || j == edge_index)
 			continue;
-		ret = pg_brick_burst(edges[j].link,
-				     flip_i,
-				     edges[j].pair_index,
-				     pkts, pkts_mask, errp);
+		ret = pg_brick_burst(edges[j].link, flip_i,
+				     edges[j].pair_index, pkts, pkts_mask);
 		if (unlikely(ret < 0))
 			return -1;
 	}
@@ -64,7 +61,7 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 		ret = pg_brick_burst(edges[j].link,
 				     flip_i,
 				     edges[j].pair_index,
-				     pkts, pkts_mask, errp);
+				     pkts, pkts_mask);
 		if (unlikely(ret < 0))
 			return -1;
 	}

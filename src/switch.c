@@ -82,8 +82,7 @@ static inline void zero_masks(struct pg_switch_state *state)
 }
 
 static inline int forward(struct pg_switch_state *state, enum pg_side to,
-			  uint16_t index, struct rte_mbuf **pkts,
-			  struct pg_error **errp)
+			  uint16_t index, struct rte_mbuf **pkts)
 {
 	struct pg_brick_edge *edge =  &state->brick.sides[to].edges[index];
 	struct pg_switch_side *switch_side = &state->sides[to];
@@ -100,13 +99,12 @@ static inline int forward(struct pg_switch_state *state, enum pg_side to,
 
 	switch_side->masks[index] = 0;
 	return pg_brick_burst(edge->link, pg_flip_side(to), edge->pair_index,
-			      pkts, mask, errp);
+			      pkts, mask);
 }
 
 static int forward_bursts(struct pg_switch_state *state,
 			  struct pg_address_source *source,
-			  struct rte_mbuf **pkts,
-			  struct pg_error **errp)
+			  struct rte_mbuf **pkts)
 {
 	struct pg_switch_side *switch_side = &state->sides[source->from];
 	enum pg_side i = state->output;
@@ -117,7 +115,7 @@ static int forward_bursts(struct pg_switch_state *state,
 	switch_side->masks[source->edge_index] = 0;
 
 	for (j = 0; j < state->brick.sides[i].nb; j++) {
-		ret = forward(state, i, j, pkts, errp);
+		ret = forward(state, i, j, pkts);
 
 		if (ret < 0)
 			return -1;
@@ -125,7 +123,7 @@ static int forward_bursts(struct pg_switch_state *state,
 
 	i = pg_flip_side(i);
 	for (j = 0; j < state->brick.sides[i].nb; j++) {
-		ret = forward(state, i, j, pkts, errp);
+		ret = forward(state, i, j, pkts);
 
 		if (ret < 0)
 			return -1;
@@ -156,8 +154,7 @@ static void do_learn_filter_multicast(struct pg_switch_state *state,
 				     struct pg_address_source *source,
 				     struct rte_mbuf **pkts,
 				     uint64_t pkts_mask,
-				     uint64_t *unicast_mask,
-				     struct pg_error **errp)
+				     uint64_t *unicast_mask)
 {
 	uint64_t filtered_mask = 0, flood_mask = 0, mask;
 
@@ -236,24 +233,25 @@ static void do_switch(struct pg_switch_state *state,
 
 static int switch_burst(struct pg_brick *brick, enum pg_side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
-			uint64_t pkts_mask,
-			struct pg_error **errp)
+			uint64_t pkts_mask)
 {
 	struct pg_switch_state *state =
 		pg_brick_get_state(brick, struct pg_switch_state);
 	uint64_t unicast_mask = 0;
 	struct pg_address_source *source;
+	int ret;
 
 	source = &state->sides[from].sources[edge_index];
 	source->from = from;
 	source->edge_index = edge_index;
 
 	do_learn_filter_multicast(state, source, pkts,
-				  pkts_mask, &unicast_mask, errp);
+				  pkts_mask, &unicast_mask);
 
 	do_switch(state, source, pkts, unicast_mask);
 
-	return forward_bursts(state, source, pkts, errp);
+	ret = forward_bursts(state, source, pkts);
+	return ret;
 }
 
 static int switch_init(struct pg_brick *brick,

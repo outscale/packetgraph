@@ -58,7 +58,7 @@ static struct pg_brick_config *rxtx_config_new(const char *name,
 /* RX */
 static int rxtx_burst(struct pg_brick *brick, enum pg_side from,
 		      uint16_t edge_index, struct rte_mbuf **pkts,
-		      uint64_t pkts_mask, struct pg_error **error)
+		      uint64_t pkts_mask)
 {
 	struct pg_rxtx_state *state =
 		pg_brick_get_state(brick, struct pg_rxtx_state);
@@ -96,8 +96,7 @@ static int rxtx_burst(struct pg_brick *brick, enum pg_side from,
 }
 
 /* TX */
-static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
-		     struct pg_error **error)
+static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt)
 {
 	struct pg_rxtx_state *state =
 		pg_brick_get_state(brick, struct pg_rxtx_state);
@@ -118,7 +117,7 @@ static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		return 0;
 	return pg_brick_burst(s->edge.link, state->output,
 			      s->edge.pair_index,
-			      mbuf, pg_mask_firsts(count), error);
+			      mbuf, pg_mask_firsts(count));
 }
 
 static int rxtx_init(struct pg_brick *brick,

@@ -38,6 +38,8 @@
 
 #define BRICK_NAME_LENGTH	32
 
+extern struct pg_error *pg_brick_error;
+
 /**
  * The structure containing a brick private data must start with a
  * struct pg_brick brick; that will be used to manipulate the brick brick.
@@ -95,10 +97,9 @@ struct pg_brick {
 	/* Accept a packet burst */
 	int (*burst)(struct pg_brick *brick, enum pg_side from,
 		     uint16_t edge_index, struct rte_mbuf **pkts,
-		     uint64_t pkts_mask, struct pg_error **errp);
+		     uint64_t pkts_mask);
 	/* polling */
-	int (*poll)(struct pg_brick *brick,
-		    uint16_t *count, struct pg_error **errp);
+	int (*poll)(struct pg_brick *brick, uint16_t *count);
 
 	struct pg_brick_ops *ops;	/* management ops */
 	int64_t refcount;		/* reference count */
@@ -214,8 +215,7 @@ void pg_brick_generic_unlink(struct pg_brick *brick, struct pg_error **errp);
 /* data flow */
 int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 		   uint16_t edge_index,
-		   struct rte_mbuf **pkts, uint64_t pkts_mask,
-		   struct pg_error **errp);
+		   struct rte_mbuf **pkts, uint64_t pkts_mask);
 
 /* data flow commodity functions */
 int pg_brick_burst_to_east(struct pg_brick *brick, uint16_t edge_index,
@@ -236,8 +236,7 @@ struct rte_mbuf **pg_brick_east_burst_get(struct pg_brick *brick,
 					  struct pg_error **errp);
 
 int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
-			  struct rte_mbuf **pkts, uint64_t pkts_mask,
-			  struct pg_error **errp);
+			  struct rte_mbuf **pkts, uint64_t pkts_mask);
 
 /**
  * Get the edge of a brick.

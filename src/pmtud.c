@@ -87,7 +87,7 @@ static inline uint16_t icmp_checksum(struct icmp_hdr *msg)
 
 static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
-		       uint64_t pkts_mask, struct pg_error **errp)
+		       uint64_t pkts_mask)
 {
 	struct pg_pmtud_state *state =
 		pg_brick_get_state(brick, struct pg_pmtud_state);
@@ -131,7 +131,7 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 					icmp_checksum(&icmp_buf->icmp);
 				if (pg_brick_burst(s_from->edge.link, to,
 						   s_from->edge.pair_index,
-						   &state->icmp, 1, errp) < 0) {
+						   &state->icmp, 1) < 0) {
 					return -1;
 				}
 
@@ -141,7 +141,7 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(pkts_mask == 0))
 		return 0;
 	return pg_brick_burst(s->edge.link, from, s->edge.pair_index,
-			      pkts, pkts_mask, errp);
+			      pkts, pkts_mask);
 }
 
 static int pmtud_init(struct pg_brick *brick,
