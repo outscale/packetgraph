@@ -39,11 +39,15 @@ c_filelist=$(find $PACKETGRAPH_ROOT/src/ -path $PACKETGRAPH_ROOT/src/npf -prune 
 h_filelist=$(find $PACKETGRAPH_ROOT/{src,include}/ -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.h" -printf %p\ )
 c_filelist_tests=$(find $PACKETGRAPH_ROOT/tests/ -type f -name "*.c" -printf %p\ )
 h_filelist_tests=$(find $PACKETGRAPH_ROOT/tests/ -type f -name "*.h" -printf %p\ )
+c_filelist_examples=$(find $PACKETGRAPH_ROOT/examples/ -type f -name "*.c" -printf %p\ )
+h_filelist_examples=$(find $PACKETGRAPH_ROOT/examples/ -type f -name "*.h" -printf %p\ )
 
 # checkpatch tests
 
 $PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON --show-types --no-tree -q -f $c_filelist $h_filelist
 $PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,MACRO_WITH_FLOW_CONTROL,SPLIT_STRING  --show-types --no-tree -q -f $c_filelist_tests $h_filelist_tests
+$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,SPLIT_STRING --show-types --no-tree -q -f $c_filelist_examples $h_filelist_examples
+
 if [ $? != 0 ]; then
     echo "checkpatch tests failed"
     exit 1
