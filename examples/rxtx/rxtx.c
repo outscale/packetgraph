@@ -38,24 +38,24 @@ static void rx_callback(struct pg_brick *brick,
 			uint16_t rx_burst_len,
 			void *private_data)
 {
-        struct mydata *pd = (struct mydata *)private_data;
+	struct mydata *pd = (struct mydata *)private_data;
 	uint64_t current = g_get_real_time();
 
-        for (int i = 0; i < rx_burst_len; i++) {
+	for (int i = 0; i < rx_burst_len; i++) {
 		/* note: you can access to packet data with rx_burst[i].data */
 		g_printf("[%lf] received a packet of len %i\n",
 		       (current - start_time) / 1000000., *rx_burst[i].len);
-        }
+	}
 	pd->pkt_count += rx_burst_len;
 }
 
- static void tx_callback(struct pg_brick *brick,
+static void tx_callback(struct pg_brick *brick,
 			 struct pg_rxtx_packet *tx_burst,
 			 uint16_t *tx_burst_len,
 			 void *private_data)
- {
-	static uint64_t pkt_count = 0;
-        struct mydata *pd = (struct mydata *)private_data;
+{
+	static uint64_t pkt_count;
+	struct mydata *pd = (struct mydata *)private_data;
 
 	if (pkt_count == pd->pkt_count) {
 		*tx_burst_len = 0;
@@ -75,7 +75,7 @@ static void rx_callback(struct pg_brick *brick,
 	*tx_burst[0].len = sizeof(uint64_t);
 	printf("%lf packets/s\n",
 	       pd->pkt_count / ((current_time - start_time) / 1000000.));
- }
+}
 
 int main(int argc, char **argv)
 {
@@ -89,7 +89,8 @@ int main(int argc, char **argv)
 	start_time = g_get_real_time();
 
 	if (pg_nic_port_count() < 1) {
-		g_printf("No NIC port has been found, try adding --vdev=eth_pcap0,iface=eth0 arguments\n");
+		g_printf("No NIC port has been found, try adding "
+			"--vdev=eth_pcap0,iface=eth0 arguments\n");
 		return 1;
 	}
 

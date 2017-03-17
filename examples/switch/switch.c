@@ -18,7 +18,8 @@
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
 
-static void print_help(void) {
+static void print_help(void)
+{
 	printf("example-switch [DPDK_OPT] -- [EXAMPLE_OPT]\n");
 	printf("EXAMPLE_OPT:\n");
 	printf("--vhost NB : use NB vhost bricks instead\n");
@@ -128,6 +129,7 @@ int main(int argc, char **argv)
 		for (int i = 0; i < n; i++) {
 			tmp = g_strdup_printf("nic%i", i);
 			struct pg_brick *nic = pg_nic_new_by_id(tmp, i, &error);
+
 			g_free(tmp);
 			if (error) {
 				pg_error_print(error);
@@ -137,6 +139,7 @@ int main(int argc, char **argv)
 			if (verbose) {
 				tmp = g_strdup_printf("print%i", i);
 				struct pg_brick *p = pg_graph_get(graph, tmp);
+
 				g_free(tmp);
 				g_assert(p);
 				pg_brick_link(nic, p, &error);
@@ -148,8 +151,7 @@ int main(int argc, char **argv)
 		}
 		/* init with vhost bricks instead */
 	} else {
-		if (pg_vhost_start("/tmp", &error) < 0)
-		{
+		if (pg_vhost_start("/tmp", &error) < 0) {
 			pg_error_print(error);
 			pg_error_free(error);
 			return 1;
@@ -169,6 +171,7 @@ int main(int argc, char **argv)
 			if (verbose) {
 				tmp = g_strdup_printf("print%i", i);
 				struct pg_brick *p = pg_graph_get(graph, tmp);
+
 				g_free(tmp);
 				g_assert(p);
 				pg_brick_link(vh, p, &error);
