@@ -61,6 +61,7 @@ $ ./examples/switch/run_vhost.sh
 $ ./examples/switch/run.sh
 $ ./examples/firewall/run.sh
 $ ./examples/rxtx/run.sh
+$ ./examples/dperf/run.sh
 ...
 ```
 
