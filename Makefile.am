@@ -358,7 +358,7 @@ endif
 	@echo "./tests/vtep/test.sh"
 
 if PG_EXAMPLES
-noinst_PROGRAMS += example-firewall example-switch example-rxtx example-nic
+noinst_PROGRAMS = example-firewall example-switch example-rxtx example-nic example-dperf
 
 example_firewall_SOURCES = examples/firewall/firewall.c
 example_firewall_CFLAGS = $(libpacketgraph_la_CFLAGS)
@@ -379,6 +379,11 @@ example_nic_SOURCES = examples/nic/nic.c
 example_nic_CFLAGS = $(libpacketgraph_la_CFLAGS)
 example_nic_LDFLAGS = libpacketgraph.la
 EXTRA_example_nic_DEPENDENCIES = libpacketgraph.la
+
+example_dperf_SOURCES = examples/dperf/dperf.c
+example_dperf_CFLAGS = $(libpacketgraph_la_CFLAGS)
+example_dperf_LDFLAGS = libpacketgraph.la
+EXTRA_example_dperf_DEPENDENCIES = libpacketgraph.la
 endif
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template
