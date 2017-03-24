@@ -42,6 +42,9 @@ static inline const char *pg_side_to_string(enum pg_side side)
 /* do not change this */
 #define PG_MAX_PKTS_BURST	64
 
+/* ignore new typedefs errors with checkpatch */
+#define IGNORE_NEW_TYPEDEFS
+
 /**
  * Revert side: PG_WEST_SIDE become PG_EAST_SIDE and vice versa.
  */

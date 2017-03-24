@@ -6,6 +6,7 @@ libpacketgraph_la_SOURCES = \
 	src/queue.c\
 	src/firewall.c\
 	src/printer.c\
+	src/packet.c\
 	src/packets.c\
 	src/lifecycle.c\
 	src/nop.c\
@@ -41,6 +42,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/print.h\
 	include/packetgraph/hub.h\
 	include/packetgraph/packetgraph.h\
+	include/packetgraph/packet.h\
 	include/packetgraph/diode.h\
 	include/packetgraph/nop.h\
 	include/packetgraph/nic.h\
