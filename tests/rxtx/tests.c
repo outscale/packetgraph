@@ -58,7 +58,7 @@ struct test_rxtx {
 };
 
 static void myrx(struct pg_brick *brick,
-		 const struct pg_rxtx_packet *rx_burst,
+		 pg_packet_t **rx_burst,
 		 uint16_t rx_burst_len,
 		 void *private_data)
 {
@@ -69,13 +69,15 @@ static void myrx(struct pg_brick *brick,
 	g_assert(rx_burst_len == PG_RXTX_MAX_TX_BURST_LEN);
 	g_assert(pd);
 	for (int i = 0; i < rx_burst_len; i++) {
-		g_assert(*rx_burst[i].len == 1);
-		pd->rx_data[i] = rx_burst[i].data[0];
+		uint8_t *data = (uint8_t *) pg_packet_data(rx_burst[i]);
+
+		pd->rx_data[i] = data[0];
+		g_assert(pg_packet_len(rx_burst[i]) == 1);
 	}
 }
 
 static void mytx(struct pg_brick *brick,
-		 struct pg_rxtx_packet *tx_burst,
+		 pg_packet_t **tx_burst,
 		 uint16_t *tx_burst_len,
 		 void *private_data)
 {
@@ -87,8 +89,10 @@ static void mytx(struct pg_brick *brick,
 	g_assert(pd);
 	*tx_burst_len = PG_RXTX_MAX_TX_BURST_LEN;
 	for (int i = 0; i < PG_RXTX_MAX_TX_BURST_LEN; i++) {
-		tx_burst[i].data[0] = pd->tx_data[i];
-		*tx_burst[i].len = 1;
+		uint8_t *data = (uint8_t *) pg_packet_data(tx_burst[i]);
+
+		data[0] = pd->tx_data[i];
+		pg_packet_set_len(tx_burst[i], 1);
 	}
 }
 
@@ -184,7 +188,7 @@ static void test_rxtx_rxtx_to_rxtx(void)
 	pg_graph_destroy(g);
 }
 static void mytx_empty(struct pg_brick *brick,
-		       struct pg_rxtx_packet *tx_burst,
+		       pg_packet_t **tx_burst,
 		       uint16_t *tx_burst_len,
 		       void *private_data)
 {

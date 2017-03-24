@@ -35,9 +35,8 @@ struct pg_rxtx_state {
 	void *private_data;
 	pg_rxtx_rx_callback_t rx;
 	pg_rxtx_tx_callback_t tx;
-	struct pg_rxtx_packet rx_burst[PG_MAX_PKTS_BURST];
-	struct pg_rxtx_packet tx_burst[PG_MAX_PKTS_BURST];
-	struct rte_mbuf *tx_mbuf[PG_MAX_PKTS_BURST];
+	pg_packet_t *rx_burst[PG_MAX_PKTS_BURST];
+	pg_packet_t *tx_burst[PG_MAX_PKTS_BURST];
 };
 
 static struct pg_brick_config *rxtx_config_new(const char *name,
@@ -67,17 +66,14 @@ static int rxtx_burst(struct pg_brick *brick, enum pg_side from,
 		return 0;
 	uint64_t it_mask;
 	uint16_t i;
-	struct rte_mbuf *tmp;
-	struct pg_rxtx_packet *rx_burst = state->rx_burst;
+	pg_packet_t **rx_burst = state->rx_burst;
 	uint16_t cnt = 0;
 
 	/* prepare RX packets */
 	it_mask = pkts_mask;
 	for (; it_mask;) {
 		pg_low_bit_iterate(it_mask, i);
-		tmp = pkts[i];
-		rx_burst[cnt].data = rte_pktmbuf_mtod(tmp, uint8_t *);
-		rx_burst[cnt].len = &tmp->data_len;
+		rx_burst[cnt] = pkts[i];
 		cnt++;
 	}
 
@@ -106,19 +102,18 @@ static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		*pkts_cnt = 0;
 		return 0;
 	}
-	struct pg_rxtx_packet *tx_burst = state->tx_burst;
-	struct rte_mbuf **mbuf = state->tx_mbuf;
 	struct pg_brick_side *s = &brick->side;
 	uint16_t count = 0;
 
 	/* let user write in packets */
-	state->tx(brick, tx_burst, &count, state->private_data);
+	state->tx(brick, state->tx_burst, &count, state->private_data);
 	*pkts_cnt = count;
 	if (unlikely(count == 0))
 		return 0;
 	return pg_brick_burst(s->edge.link, state->output,
 			      s->edge.pair_index,
-			      mbuf, pg_mask_firsts(count), error);
+			      state->tx_burst,
+			      pg_mask_firsts(count), error);
 }
 
 static int rxtx_init(struct pg_brick *brick,
@@ -137,18 +132,10 @@ static int rxtx_init(struct pg_brick *brick,
 	if (state->tx) {
 		brick->poll = rxtx_poll;
 		/* pre-allocate packets */
-		if (rte_pktmbuf_alloc_bulk(pool, state->tx_mbuf,
+		if (rte_pktmbuf_alloc_bulk(pool, state->tx_burst,
 					   PG_MAX_PKTS_BURST) != 0) {
 			*error = pg_error_new("RXTX allocation failed");
 			return -1;
-		}
-		/* pre-configure user packets pointers */
-		struct pg_rxtx_packet *tx_burst = state->tx_burst;
-		struct rte_mbuf **tmp = state->tx_mbuf;
-
-		for (int i = 0; i < PG_MAX_PKTS_BURST; i++) {
-			tx_burst[i].data = rte_pktmbuf_mtod(tmp[i], uint8_t *);
-			tx_burst[i].len = &tmp[i]->data_len;
 		}
 	}
 	return 0;
@@ -158,13 +145,12 @@ static void rxtx_destroy(struct pg_brick *brick, struct pg_error **error)
 {
 	struct pg_rxtx_state *state =
 		pg_brick_get_state(brick, struct pg_rxtx_state);
+	pg_packet_t **tx_burst = state->tx_burst;
 
 	/* free pre-allocated packets */
 	if (state->tx) {
-		struct rte_mbuf **tx_mbuf = state->tx_mbuf;
-
 		for (int i = 0; i < PG_MAX_PKTS_BURST; i++)
-			rte_pktmbuf_free(tx_mbuf[i]);
+			rte_pktmbuf_free(tx_burst[i]);
 	}
 }
 

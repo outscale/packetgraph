@@ -37,12 +37,12 @@
 uint16_t max_pkts = PG_MAX_PKTS_BURST;
 
 struct bench_rxtx {
-	struct pg_rxtx_packet pkts[PG_RXTX_MAX_TX_BURST_LEN];
+	pg_packet_t *pkts[PG_RXTX_MAX_TX_BURST_LEN];
 	int len;
 };
 
 static void myrx(struct pg_brick *brick,
-		 const struct pg_rxtx_packet *rx_burst,
+		 pg_packet_t **rx_burst,
 		 uint16_t rx_burst_len,
 		 void *private_data)
 {
@@ -51,16 +51,14 @@ static void myrx(struct pg_brick *brick,
 
 	if (!init) {
 		pd->len = rx_burst_len;
-		for (int i = 0; i < rx_burst_len; i++) {
-			pd->pkts[i].data = rx_burst[i].data;
-			pd->pkts[i].len = rx_burst[i].len;
-		}
+		for (int i = 0; i < rx_burst_len; i++)
+			pd->pkts[i] = rx_burst[i];
 		init = 1;
 	}
 }
 
 static void mytx(struct pg_brick *brick,
-		 struct pg_rxtx_packet *tx_burst,
+		 pg_packet_t **tx_burst,
 		 uint16_t *tx_burst_len,
 		 void *private_data)
 {
@@ -71,9 +69,10 @@ static void mytx(struct pg_brick *brick,
 	*tx_burst_len = len;
 	for (int i = 0; i < len; i++) {
 		if (!init)
-			memcpy(tx_burst[i].data, pd->pkts[i].data,
-			       *pd->pkts[i].len);
-		*tx_burst[i].len = *pd->pkts[i].len;
+			memcpy(pg_packet_data(tx_burst[i]),
+			       pg_packet_data(pd->pkts[i]),
+			       pg_packet_len(pd->pkts[i]));
+		pg_packet_set_len(tx_burst[i], pg_packet_len(pd->pkts[i]));
 	}
 	if (!init)
 		init = 1;

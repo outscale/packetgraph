@@ -34,7 +34,7 @@ struct mydata {
 };
 
 static void rx_callback(struct pg_brick *brick,
-			const struct pg_rxtx_packet *rx_burst,
+			pg_packet_t **rx_burst,
 			uint16_t rx_burst_len,
 			void *private_data)
 {
@@ -42,17 +42,19 @@ static void rx_callback(struct pg_brick *brick,
 	uint64_t current = g_get_real_time();
 
 	for (int i = 0; i < rx_burst_len; i++) {
-		/* note: you can access to packet data with rx_burst[i].data */
+		/* note: you can access packet data with
+		 * pg_packet_data(rx_burst[i]) */
 		g_printf("[%lf] received a packet of len %i\n",
-		       (current - start_time) / 1000000., *rx_burst[i].len);
+			 (current - start_time) / 1000000.,
+			 pg_packet_len(rx_burst[i]));
 	}
 	pd->pkt_count += rx_burst_len;
 }
 
 static void tx_callback(struct pg_brick *brick,
-			 struct pg_rxtx_packet *tx_burst,
-			 uint16_t *tx_burst_len,
-			 void *private_data)
+			pg_packet_t **tx_burst,
+			uint16_t *tx_burst_len,
+			void *private_data)
 {
 	static uint64_t pkt_count;
 	struct mydata *pd = (struct mydata *)private_data;
@@ -69,10 +71,9 @@ static void tx_callback(struct pg_brick *brick,
 	 */;
 	*tx_burst_len = 1;
 	/* write the first packets data */
-	*((uint64_t *)(tx_burst[0].data)) =
+	*((uint64_t *)(pg_packet_data(tx_burst[0]))) =
 		pd->pkt_count / (current_time - start_time);
-	/* set lenght of written packet */
-	*tx_burst[0].len = sizeof(uint64_t);
+	pg_packet_set_len(tx_burst[0], sizeof(uint64_t));
 	printf("%lf packets/s\n",
 	       pd->pkt_count / ((current_time - start_time) / 1000000.));
 }
