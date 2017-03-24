@@ -17,11 +17,6 @@
 #ifndef _PG_RXTX_H
 #define _PG_RXTX_H
 
-struct pg_rxtx_packet {
-	uint8_t *data;
-	uint16_t *len;
-};
-
 /**
  * The rx callback is called each time packets flow to brick.
  * To send a response, check tx callback.
@@ -33,7 +28,7 @@ struct pg_rxtx_packet {
  * @param	private_data give back user's data
  */
 typedef void (*pg_rxtx_rx_callback_t)(struct pg_brick *brick,
-				      const struct pg_rxtx_packet *rx_burst,
+				      pg_packet_t **rx_burst,
 				      uint16_t rx_burst_len,
 				      void *private_data);
 
@@ -42,24 +37,23 @@ typedef void (*pg_rxtx_rx_callback_t)(struct pg_brick *brick,
  *
  * @param	brick pointer to the rxtx brick
  * @param	tx_burst array of pre-allocated packets.
- *		You can write packets here but once the callback end, you
- *		should not touch packet anymore.
- *		See PG_RXTX_MAX_TX_BURST_LEN and PG_RXTX_MAX_TX_PACKET_LEN
- *		Note that that you will get back the same burst pointer at each
- *		burst so you can get advantage of this to only write what you
- *		need.
+ *		The array size if given with tx_burst_len.
+ *		Use pg_packet_data to get a pointer where to write data.
+ *		Use pg_packet_set_len to set len of your packet.
+ *		You must not write data once callback is done.
+ *		You will get back the same packet array at each	call.
+ *		You can take advantage of this to only write what you need to.
+ * @param	rx_burst_len number of packets ready to be sent.
+ *		Must not be > PG_RXTX_MAX_TX_BURST_LEN
  * @param	private_data give back user's data
- * @param	rx_burst_len number of packets ready to be sent
  */
 typedef void (*pg_rxtx_tx_callback_t)(struct pg_brick *brick,
-				      struct pg_rxtx_packet *tx_burst,
+				      pg_packet_t **tx_burst,
 				      uint16_t *tx_burst_len,
 				      void *private_data);
 
 /* maximal burst lenght when sending packets. */
 #define PG_RXTX_MAX_TX_BURST_LEN 64
-/* maximal packet lenght user can write. */
-#define PG_RXTX_MAX_TX_PACKET_LEN 1500
 
 /**
  * Create a new rxtx brick (monopole).
