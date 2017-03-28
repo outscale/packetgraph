@@ -142,15 +142,15 @@ static void test_graph_lifecycle(void)
 		g_assert(pg_graph_get(g, "nop20") == nop_2);
 		g_assert(pg_graph_get(g, "que30") == que_3);
 
-		g_assert(pg_graph_pop(g, "nop1") == NULL);
-		g_assert(pg_graph_pop(g, "nop2") == NULL);
-		g_assert(pg_graph_pop(g, "que3") == NULL);
+		g_assert(pg_graph_unsafe_pop(g, "nop1") == NULL);
+		g_assert(pg_graph_unsafe_pop(g, "nop2") == NULL);
+		g_assert(pg_graph_unsafe_pop(g, "que3") == NULL);
 		g_assert(pg_graph_count(g) == 3);
-		g_assert(pg_graph_pop(g, "nop10") == nop_1);
+		g_assert(pg_graph_unsafe_pop(g, "nop10") == nop_1);
 		g_assert(pg_graph_count(g) == 2);
-		g_assert(pg_graph_pop(g, "nop20") == nop_2);
+		g_assert(pg_graph_unsafe_pop(g, "nop20") == nop_2);
 		g_assert(pg_graph_count(g) == 1);
-		g_assert(pg_graph_pop(g, "que30") == que_3);
+		g_assert(pg_graph_unsafe_pop(g, "que30") == que_3);
 		g_assert(pg_graph_count(g) == 0);
 		g_assert(!pg_graph_push(g, nop_1, &error));
 		g_assert(!error);
@@ -381,7 +381,7 @@ static void test_graph_sanity(void)
 	g_assert(!pg_graph_sanity(g, &error));
 
 	/* graph is not fully explored */
-	pg_graph_pop(g, "nop3");
+	pg_graph_unsafe_pop(g, "nop3");
 	g_assert(pg_graph_sanity(g, &error) == -1);
 	g_assert(error);
 	pg_error_free(error);

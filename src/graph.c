@@ -214,7 +214,8 @@ static inline struct pg_brick *graph_pop(struct pg_graph *graph,
 	return b;
 }
 
-struct pg_brick *pg_graph_pop(struct pg_graph *graph, const char *brick_name)
+struct pg_brick *pg_graph_unsafe_pop(struct pg_graph *graph,
+				     const char *brick_name)
 {
 	return graph_pop(graph, pg_graph_get(graph, brick_name));
 }
@@ -243,7 +244,7 @@ int pg_graph_brick_destroy(struct pg_graph *graph,
 			   const char *brick_name,
 			   struct pg_error **error)
 {
-	struct pg_brick *b = pg_graph_pop(graph, brick_name);
+	struct pg_brick *b = pg_graph_unsafe_pop(graph, brick_name);
 
 	if (!b) {
 		*error = pg_error_new("Brick %s not found", brick_name);

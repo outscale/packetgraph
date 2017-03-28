@@ -135,7 +135,8 @@ struct pg_brick *pg_graph_get(struct pg_graph *graph, const char *brick_name);
  * @param	brick_name name of the brick to remove
  * @return	pointer to brick, NULL if not found
  */
-struct pg_brick *pg_graph_pop(struct pg_graph *graph, const char *brick_name);
+struct pg_brick *pg_graph_unsafe_pop(struct pg_graph *graph,
+				     const char *brick_name);
 
 /**
  * Add a single brick to graph.
