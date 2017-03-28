@@ -35,6 +35,7 @@ libpacketgraph_la_SOURCES = \
 	src/diode.c\
 	src/switch.c\
 	src/pmtud.c\
+	src/thread.c\
 	src/ip-fragment.c
 
 pkginclude_HEADERS = \
@@ -51,6 +52,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/brick.h\
 	include/packetgraph/lifecycle.h\
 	include/packetgraph/graph.h\
+	include/packetgraph/thread.h\
 	include/packetgraph/vtep.h\
 	include/packetgraph/firewall.h\
 	include/packetgraph/vhost.h\

@@ -23,6 +23,7 @@
 #include <packetgraph/errors.h>
 #include <packetgraph/packet.h>
 #include <packetgraph/graph.h>
+#include <packetgraph/thread.h>
 #include <packetgraph/antispoof.h>
 #include <packetgraph/diode.h>
 #include <packetgraph/firewall.h>
