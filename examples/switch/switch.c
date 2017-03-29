@@ -79,13 +79,6 @@ int main(int argc, char **argv)
 		--ac;
 		++av;
 	}
-	int n = nb > 0 ? nb : pg_nic_port_count();
-
-	if (!n) {
-		printf("You don't have any dpdk port to use\n");
-		printf("If you want to use vhost-user, use --vhost\n");
-		return 0;
-	}
 
 	/* init packetgraph */
 	pg_start(argc, argv, &error);
@@ -93,6 +86,14 @@ int main(int argc, char **argv)
 		pg_error_print(error);
 		pg_error_free(error);
 		return 1;
+	}
+
+	int n = nb > 0 ? nb : pg_nic_port_count();
+
+	if (!n) {
+		printf("You don't have any dpdk port to use\n");
+		printf("If you want to use vhost-user, use --vhost\n");
+		return 0;
 	}
 
 	/* init switch */
