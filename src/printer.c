@@ -28,6 +28,7 @@
 #include <endian.h>
 #include "printer.h"
 
+static void print_l3(uint16_t type, void *data, size_t size, FILE *o);
 static void print_l4(uint8_t type, void *data, size_t size, FILE *o);
 
 static void print_proto_tcp(void *data, size_t size, FILE *o)
@@ -227,6 +228,54 @@ static void print_proto_arp(void *data, size_t size, FILE *o)
 	fprintf(o, " [arp]");
 }
 
+struct vlan_802_1q {
+	uint8_t pcp: 3;
+	uint8_t cfi: 1;
+	uint16_t vid: 12;
+	uint16_t ethertype;
+} __attribute__((__packed__));
+
+static void print_proto_vlan(void *data, size_t size, FILE *o)
+{
+	struct vlan_802_1q *vlan = (struct vlan_802_1q *) data;
+	void *payload = (void *)(vlan + 1);
+	size_t payload_size = size - sizeof(struct vlan_802_1q);
+
+	fprintf(o, " [vlan prio=");
+
+	switch (vlan->pcp) {
+	case 0:
+		fprintf(o, "'best effort'");
+		break;
+	case 1:
+		fprintf(o, "'background'");
+		break;
+	case 2:
+		fprintf(o, "'excellent effort'");
+		break;
+	case 3:
+		fprintf(o, "'critical application'");
+		break;
+	case 4:
+		fprintf(o, "'video'");
+		break;
+	case 5:
+		fprintf(o, "'voice'");
+		break;
+	case 6:
+		fprintf(o, "'internetwork control'");
+		break;
+	case 7:
+		fprintf(o, "'network control'");
+		break;
+	}
+
+	fprintf(o, " drop=%u", vlan->cfi);
+	fprintf(o, " id=%u]", vlan->vid);
+
+	print_l3(vlan->ethertype, payload, payload_size, o);
+}
+
 static void print_l3(uint16_t type, void *data, size_t size, FILE *o)
 {
 	uint16_t t = be16toh(type);
@@ -240,6 +289,9 @@ static void print_l3(uint16_t type, void *data, size_t size, FILE *o)
 		break;
 	case ETHERTYPE_ARP:
 		print_proto_arp(data, size, o);
+		break;
+	case ETHERTYPE_VLAN:
+		print_proto_vlan(data, size, o);
 		break;
 	default:
 		fprintf(o, " [ethertype: %04x]", t);
