@@ -182,7 +182,7 @@ static void print_l4(uint8_t type, void *data, size_t size, FILE *o)
 		print_proto_ipv6_ext_mobility(data, size, o);
 		break;
 	default:
-		fprintf(o, " [type=%02x]", type);
+		fprintf(o, " [type=0x%02x]", type);
 		break;
 	}
 }
