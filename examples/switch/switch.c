@@ -124,8 +124,8 @@ int main(int argc, char **argv)
 
 	/* init with nic bricks */
 	if (!nb) {
-		if (n < 2) {
-			printf("You need two DPDK ports to run this example\n");
+		if (n < 1) {
+			printf("You need at least one DPDK ports\n");
 			printf("Try --help\n");
 			return 1;
 		}
