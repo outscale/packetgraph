@@ -37,6 +37,7 @@ struct pg_rxtx_state {
 	pg_rxtx_tx_callback_t tx;
 	pg_packet_t *rx_burst[PG_MAX_PKTS_BURST];
 	pg_packet_t *tx_burst[PG_MAX_PKTS_BURST];
+	uint64_t tx_bytes;
 };
 
 static struct pg_brick_config *rxtx_config_new(const char *name,
@@ -97,6 +98,7 @@ static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 {
 	struct pg_rxtx_state *state =
 		pg_brick_get_state(brick, struct pg_rxtx_state);
+	struct rte_mbuf **tx_burst;
 
 	if (!state->tx) {
 		*pkts_cnt = 0;
@@ -110,9 +112,14 @@ static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	*pkts_cnt = count;
 	if (unlikely(count == 0))
 		return 0;
+	tx_burst = state->tx_burst;
+	for (struct rte_mbuf *cur = tx_burst[0], *end = (cur + count);
+	     cur != end; ++cur) {
+		state->tx_bytes += cur->pkt_len;
+	}
 	return pg_brick_burst(s->edge.link, state->output,
 			      s->edge.pair_index,
-			      state->tx_burst,
+			      tx_burst,
 			      pg_mask_firsts(count), error);
 }
 
@@ -194,11 +201,17 @@ static enum pg_side rxtx_get_side(struct pg_brick *brick)
 	return pg_flip_side(state->output);
 }
 
+static uint64_t tx_bytes(struct pg_brick *brick)
+{
+	return pg_brick_get_state(brick, struct pg_rxtx_state)->tx_bytes;
+}
+
 static struct pg_brick_ops rxtx_ops = {
 	.name		= "rxtx",
 	.state_size	= sizeof(struct pg_rxtx_state),
 	.init		= rxtx_init,
 	.destroy	= rxtx_destroy,
+	.tx_bytes	= tx_bytes,
 	.link_notify	= rxtx_link,
 	.get_side	= rxtx_get_side,
 	.unlink		= pg_brick_generic_unlink,
