@@ -74,7 +74,7 @@ include npfmakefile.am
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-ip-fragment
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-ip-fragment tests-thread
 
 noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
@@ -187,6 +187,12 @@ tests_tap_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_tap_LDFLAGS = libpacketgraph-dev.la
 EXTRA_tests_tap_DEPENDENCIES = libpacketgraph-dev.la
 
+tests_thread_SOURCES = \
+	tests/thread/tests.c
+tests_thread_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_thread_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_thread_DEPENDENCIES = libpacketgraph-dev.la
+
 TESTS = \
 	tests/antispoof/test.sh\
 	tests/core/test.sh\
@@ -201,6 +207,7 @@ TESTS = \
 	tests/switch/test.sh\
 	tests/vtep/test.sh\
 	tests/tap/test.sh\
+	tests/thread/test.sh\
 	tests/integration/test.sh\
 	tests/vhost/test.sh
 

@@ -21,6 +21,7 @@ make tests-rxtx
 make tests-pmtud
 make tests-tap
 make tests-ip-fragment
+make tests-thread
 
 ./../tests/antispoof/test.sh
 ./../tests/core/test.sh
@@ -35,6 +36,7 @@ make tests-ip-fragment
 ./../tests/pmtud/test.sh
 ./../tests/tap/test.sh
 ./../tests/ip-fragment/test.sh
+./../tests/thread/test.sh
 
 ./../tests/antispoof/bench.sh
 ./../tests/core/bench.sh
