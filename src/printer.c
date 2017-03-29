@@ -303,7 +303,7 @@ static void print_l3(uint16_t type, void *data, size_t size, FILE *o)
 		print_proto_vlan(data, size, o);
 		break;
 	default:
-		fprintf(o, " [ethertype: %04x]", t);
+		fprintf(o, " [ethertype=%04x]", t);
 		break;
 	}
 }
