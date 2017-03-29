@@ -142,6 +142,12 @@ static void print_proto_ipv6_ext_mobility(void *data, size_t size, FILE *o)
 	print_l4(ext->ip6f_nxt, data, size - header_size, o);
 }
 
+static void print_proto_vrrp(void *data, size_t size, FILE *o)
+{
+	/* A lot more work TODO */
+	fprintf(o, " [vrrp]");
+}
+
 static void print_l4(uint8_t type, void *data, size_t size, FILE *o)
 {
 	switch (type) {
@@ -180,6 +186,9 @@ static void print_l4(uint8_t type, void *data, size_t size, FILE *o)
 		break;
 	case 0x87:
 		print_proto_ipv6_ext_mobility(data, size, o);
+		break;
+	case 0x70:
+		print_proto_vrrp(data, size, o);
 		break;
 	default:
 		fprintf(o, " [type=0x%02x]", type);
