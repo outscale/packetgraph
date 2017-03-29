@@ -106,9 +106,11 @@ int main(int argc, char **argv)
 	if (verbose)
 		for (int i = 0; i < n; i++) {
 			tmp = g_strdup_printf("print%i", i);
-			struct pg_brick *print = pg_print_new(tmp, NULL,
-							      PG_PRINT_FLAG_MAX,
-							      NULL, &error);
+			struct pg_brick *print =
+				pg_print_new(tmp, NULL,
+					     PG_PRINT_FLAG_SUMMARY |
+					     PG_PRINT_FLAG_TIMESTAMP,
+					     NULL, &error);
 			g_free(tmp);
 			if (error) {
 				pg_error_print(error);
