@@ -288,7 +288,7 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 	}
 
 	/* Setup queues */
-	ret = rte_eth_rx_queue_setup(state->portid, 0, 64,
+	ret = rte_eth_rx_queue_setup(state->portid, 0, 128,
 				     rte_eth_dev_socket_id(state->portid),
 				     NULL,
 				     mp);
@@ -299,7 +299,7 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 		return -1;
 	}
 
-	ret = rte_eth_tx_queue_setup(state->portid, 0, 64,
+	ret = rte_eth_tx_queue_setup(state->portid, 0, 128,
 				     rte_eth_dev_socket_id(state->portid),
 				     &tx_conf);
 	if (ret < 0) {
