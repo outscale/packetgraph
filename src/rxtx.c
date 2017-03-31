@@ -38,6 +38,7 @@ struct pg_rxtx_state {
 	pg_packet_t *rx_burst[PG_MAX_PKTS_BURST];
 	pg_packet_t *tx_burst[PG_MAX_PKTS_BURST];
 	uint64_t tx_bytes;
+	uint64_t rx_bytes;
 };
 
 static struct pg_brick_config *rxtx_config_new(const char *name,
@@ -75,6 +76,7 @@ static int rxtx_burst(struct pg_brick *brick, enum pg_side from,
 	for (; it_mask;) {
 		pg_low_bit_iterate(it_mask, i);
 		rx_burst[cnt] = pkts[i];
+		state->rx_bytes += pkts[i]->pkt_len;
 		cnt++;
 	}
 
@@ -206,12 +208,18 @@ static uint64_t tx_bytes(struct pg_brick *brick)
 	return pg_brick_get_state(brick, struct pg_rxtx_state)->tx_bytes;
 }
 
+static uint64_t rx_bytes(struct pg_brick *brick)
+{
+	return pg_brick_get_state(brick, struct pg_rxtx_state)->rx_bytes;
+}
+
 static struct pg_brick_ops rxtx_ops = {
 	.name		= "rxtx",
 	.state_size	= sizeof(struct pg_rxtx_state),
 	.init		= rxtx_init,
 	.destroy	= rxtx_destroy,
 	.tx_bytes	= tx_bytes,
+	.rx_bytes	= rx_bytes,
 	.link_notify	= rxtx_link,
 	.get_side	= rxtx_get_side,
 	.unlink		= pg_brick_generic_unlink,
