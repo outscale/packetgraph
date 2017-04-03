@@ -39,6 +39,7 @@
 #include "packets.h"
 #include "utils/bitmask.h"
 #include "utils/mempool.h"
+#include "utils/network.h"
 
 #define MAX_BURST 32
 
@@ -53,26 +54,6 @@ struct pg_vhost_socket {
 
 	LIST_ENTRY(pg_vhost_socket) socket_list; /* sockets list */
 };
-
-struct eth_ip_l4 {
-	struct ether_hdr ethernet;
-	union {
-		struct {
-			struct ipv4_hdr ipv4;
-			union {
-				struct udp_hdr v4udp;
-				struct tcp_hdr v4tcp;
-			} __attribute__((__packed__));
-		} __attribute__((__packed__));
-		struct {
-			struct ipv6_hdr ipv6;
-			union {
-				struct udp_hdr v6udp;
-				struct tcp_hdr v6tcp;
-			} __attribute__((__packed__));
-		} __attribute__((__packed__));
-	} __attribute__((__packed__));
-} __attribute__((__packed__));
 
 struct pg_vhost_state {
 	struct pg_brick brick;
