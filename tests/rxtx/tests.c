@@ -134,6 +134,8 @@ static void test_rxtx_rx_to_tx(void)
 
 		for (int i = 0; i < PG_RXTX_MAX_TX_BURST_LEN; i++)
 			g_assert(pd.rx_data[i] == 63 - i);
+		g_assert(pg_brick_tx_bytes(btx) > 0);
+		g_assert(pg_brick_rx_bytes(brx) > 0);
 	}
 	pg_graph_destroy(g);
 }
