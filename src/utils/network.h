@@ -34,4 +34,9 @@
 #define PG_VTEP_I_FLAG 0x08000000
 #define PG_VTEP_BE_I_FLAG PG_CPU_TO_BE_32(PG_VTEP_I_FLAG)
 
+struct eth_ipv4_hdr {
+	struct ether_hdr eth;
+	struct ipv4_hdr ip;
+} __attribute__((__packed__));
+
 #endif /* ifndef _PG_UTILS_NETWORK_H */
