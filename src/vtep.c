@@ -50,7 +50,7 @@
 #include "utils/mempool.h"
 #include "utils/mac-table.h"
 #include "utils/mac.h"
-#include "utils/network_const.h"
+#include "utils/network.h"
 #include "utils/ip.h"
 
 #include "vtep-internal.h"

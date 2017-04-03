@@ -15,8 +15,8 @@
  * along with Packetgraph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PG_UTILS_NETWORK_CONST_H
-#define _PG_UTILS_NETWORK_CONST_H
+#ifndef _PG_UTILS_NETWORK_H
+#define _PG_UTILS_NETWORK_H
 
 #include <rte_config.h>
 #include <rte_ether.h>
@@ -34,4 +34,4 @@
 #define PG_VTEP_I_FLAG 0x08000000
 #define PG_VTEP_BE_I_FLAG PG_CPU_TO_BE_32(PG_VTEP_I_FLAG)
 
-#endif /* ifndef _PG_UTILS_NETWORK_CONST_H */
+#endif /* ifndef _PG_UTILS_NETWORK_H */

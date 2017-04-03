@@ -24,7 +24,7 @@
 #include "utils/bitmask.h"
 #include "brick-int.h"
 #include "packets.h"
-#include "utils/network_const.h"
+#include "utils/network.h"
 #include "src/npf/npf/dpdk/npf_dpdk.h"
 
 #define FIREWALL_SIDE_TO_NPF(side) \
