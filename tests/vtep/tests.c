@@ -40,6 +40,7 @@
 #include "utils/errors.h"
 #include "utils/bitmask.h"
 #include "utils/ip.h"
+#include "utils/network.h"
 #include "packets.h"
 #include "packetsgen.h"
 #include "collect.h"
@@ -980,11 +981,6 @@ static void test_vtep_flood_encapsulate(void)
 	pg_brick_destroy(vtep_west);
 	pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));
 }
-
-struct eth_ipv4_hdr {
-	struct ether_hdr eth;
-	struct ipv4_hdr ip;
-} __attribute__((__packed__));
 
 static void test_vtep_fragment_encap_decap(void)
 {

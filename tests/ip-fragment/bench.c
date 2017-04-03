@@ -26,14 +26,10 @@
 
 #include "utils/bench.h"
 #include "utils/bitmask.h"
+#include "utils/network.h"
 #include "packets.h"
 #include "collect.h"
 #include "utils/mempool.h"
-
-struct eth_ipv4_hdr {
-	struct ether_hdr eth;
-	struct ipv4_hdr ip;
-} __attribute__((__packed__));
 
 static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt,
 				       const char *title,

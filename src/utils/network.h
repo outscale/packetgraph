@@ -44,5 +44,9 @@
 #define PG_IP_TYPE_ICMPV6 0x3A
 
 #define PG_ICMPV6_TYPE_NA 0x88
+struct eth_ipv4_hdr {
+	struct ether_hdr eth;
+	struct ipv4_hdr ip;
+} __attribute__((__packed__));
 
 #endif /* ifndef _PG_UTILS_NETWORK_H */
