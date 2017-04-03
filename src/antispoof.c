@@ -24,7 +24,7 @@
 #include "utils/bitmask.h"
 #include "utils/mac.h"
 #include "utils/ip.h"
-#include "utils/network_const.h"
+#include "utils/network.h"
 
 #define ARP_MAX 100
 #define NPD_MAX 100
