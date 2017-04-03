@@ -21,6 +21,8 @@
 #include <rte_config.h>
 #include <rte_ether.h>
 #include <rte_ip.h>
+#include <rte_udp.h>
+#include <rte_tcp.h>
 #include <endian.h>
 
 #include "utils/bitmask.h"
@@ -37,6 +39,26 @@
 struct eth_ipv4_hdr {
 	struct ether_hdr eth;
 	struct ipv4_hdr ip;
+} __attribute__((__packed__));
+
+struct eth_ip_l4 {
+	struct ether_hdr ethernet;
+	union {
+		struct {
+			struct ipv4_hdr ipv4;
+			union {
+				struct udp_hdr v4udp;
+				struct tcp_hdr v4tcp;
+			} __attribute__((__packed__));
+		} __attribute__((__packed__));
+		struct {
+			struct ipv6_hdr ipv6;
+			union {
+				struct udp_hdr v6udp;
+				struct tcp_hdr v6tcp;
+			} __attribute__((__packed__));
+		} __attribute__((__packed__));
+	} __attribute__((__packed__));
 } __attribute__((__packed__));
 
 #endif /* ifndef _PG_UTILS_NETWORK_H */

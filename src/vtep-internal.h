@@ -27,20 +27,6 @@ struct vtep_state;
 struct vtep_port;
 struct dest_addresses;
 
-struct eth_ip_l4 {
-	struct ether_hdr ethernet;
-	union {
-		struct {
-			struct ipv4_hdr ipv4;
-			struct tcp_hdr v4tcp;
-		} __attribute__((__packed__));
-		struct {
-			struct ipv6_hdr ipv6;
-			struct tcp_hdr v6tcp;
-		} __attribute__((__packed__));
-	} __attribute__((__packed__));
-} __attribute__((__packed__));
-
 enum operation {
 	MLD_SUBSCRIBE = 131,
 	MLD_UNSUBSCRIBE = 132,
