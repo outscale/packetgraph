@@ -23,7 +23,7 @@
 #include "brick-int.h"
 #include "tests.h"
 #include "packetgraph/queue.h"
-#include "utils/network_const.h"
+#include "utils/network.h"
 
 static void test_brick_core_simple_lifecycle(void)
 {

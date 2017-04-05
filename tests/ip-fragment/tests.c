@@ -26,13 +26,9 @@
 #include "packets.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
+#include "utils/network.h"
 #include "collect.h"
 #include "brick-int.h"
-
-struct eth_ipv4_hdr {
-	struct ether_hdr eth;
-	struct ipv4_hdr ip;
-} __attribute__((__packed__));
 
 static void test_fragment(void)
 {

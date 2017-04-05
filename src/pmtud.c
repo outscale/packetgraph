@@ -22,6 +22,7 @@
 #include <rte_ether.h>
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
+#include "utils/network.h"
 #include "packets.h"
 #include "brick-int.h"
 
@@ -40,9 +41,8 @@ struct pg_pmtud_state {
 	struct rte_mbuf *icmp;
 };
 
-struct eth_ipv4_hdr {
-	struct ether_hdr eth;
-	struct ipv4_hdr ip;
+struct eth_ipv4_u64 {
+	struct eth_ipv4_hdr h;
 	/* the begin of the message */
 	uint64_t beg_msg;
 } __attribute__((__packed__));
@@ -99,13 +99,13 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 
 	if (state->output == from) {
 		PG_FOREACH_BIT(pkts_mask, i) {
-			struct  eth_ipv4_hdr *pkt_buf =
+			struct eth_ipv4_u64 *pkt_buf =
 				rte_pktmbuf_mtod(pkts[i],
-						 struct eth_ipv4_hdr *);
-			int dont_fragment = (pkt_buf->ip.fragment_offset) &
+						 struct eth_ipv4_u64 *);
+			int dont_fragment = (pkt_buf->h.ip.fragment_offset) &
 				rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
 			int is_ipv4 =
-				(pkt_buf->eth.ether_type == ipv4_proto_be);
+				(pkt_buf->h.eth.ether_type == ipv4_proto_be);
 
 
 			if (is_ipv4 && dont_fragment &&
@@ -116,14 +116,14 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 						struct icmp_full_hdr *);
 
 				pkts_mask ^= (ONE64 << i);
-				icmp_buf->eth.s_addr = pkt_buf->eth.d_addr;
-				icmp_buf->eth.d_addr = pkt_buf->eth.s_addr;
-				icmp_buf->ip.src_addr = pkt_buf->ip.dst_addr;
-				icmp_buf->ip.dst_addr = pkt_buf->ip.src_addr;
+				icmp_buf->eth.s_addr = pkt_buf->h.eth.d_addr;
+				icmp_buf->eth.d_addr = pkt_buf->h.eth.s_addr;
+				icmp_buf->ip.src_addr = pkt_buf->h.ip.dst_addr;
+				icmp_buf->ip.dst_addr = pkt_buf->h.ip.src_addr;
 				icmp_buf->ip.hdr_checksum = 0;
 				icmp_buf->ip.hdr_checksum =
 					rte_ipv4_cksum(&icmp_buf->ip);
-				icmp_buf->icmp.ip = pkt_buf->ip;
+				icmp_buf->icmp.ip = pkt_buf->h.ip;
 				icmp_buf->icmp.last_msg = pkt_buf->beg_msg;
 				icmp_buf->icmp.checksum = 0;
 

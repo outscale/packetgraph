@@ -24,6 +24,7 @@
 #include <rte_memcpy.h>
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
+#include "utils/network.h"
 #include "packets.h"
 #include "brick-int.h"
 
@@ -40,11 +41,6 @@ struct pg_ip_fragment_state {
 	struct rte_ip_frag_tbl *tbl;
 	struct rte_ip_frag_death_row dr;
 };
-
-struct eth_ipv4_hdr {
-	struct ether_hdr eth;
-	struct ipv4_hdr ip;
-} __attribute__((__packed__));
 
 static struct pg_brick_config *ip_fragment_config_new(const char *name,
 						enum pg_side output,

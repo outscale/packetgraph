@@ -27,7 +27,7 @@
 #include "packets.h"
 #include "utils/bitmask.h"
 #include "utils/mempool.h"
-#include "utils/network_const.h"
+#include "utils/network.h"
 #include "utils/ip.h"
 
 struct rte_mbuf **pg_packets_create(uint64_t pkts_mask)
