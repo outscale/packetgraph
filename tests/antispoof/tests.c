@@ -31,6 +31,7 @@
 #include "collect.h"
 #include "fail.h"
 #include "utils/mac.h"
+#include "utils/ip.h"
 
 static struct rte_mbuf *build_packet(const unsigned char *data, size_t len)
 {
@@ -435,6 +436,144 @@ static void test_antispoof_empty_burst(void)
 	g_free(pkts);
 }
 
+static int test_antispoof_filter(struct pg_brick *antispoof,
+				 struct rte_mbuf *packet)
+{
+	struct pg_brick *gen_west;
+	struct pg_brick *col_east;
+	struct pg_error *error = NULL;
+	uint16_t packet_count;
+	uint64_t filtered_pkts_mask;
+
+	/* [generator>]--[antispoof]--[collector] */
+	gen_west = pg_packetsgen_new("gen_west", 1, 1, PG_EAST_SIDE,
+				     &packet, 1, &error);
+	g_assert(!error);
+	col_east = pg_collect_new("col_east", &error);
+	g_assert(!error);
+	pg_brick_chained_links(&error, gen_west, antispoof, col_east);
+	g_assert(!error);
+
+	/* replay traffic */
+	pg_brick_poll(gen_west, &packet_count, &error);
+	g_assert(!error);
+	g_assert(packet_count == 1);
+	pg_brick_west_burst_get(col_east, &filtered_pkts_mask, &error);
+	pg_brick_unlink(antispoof, &error);
+	g_assert(!error);
+	pg_brick_destroy(gen_west);
+	pg_brick_destroy(col_east);
+
+	return filtered_pkts_mask;
+}
+
+static void test_antispoof_ndp(void) {
+#	include "test-ndp.c"
+	struct ether_addr inside_mac;
+	uint8_t ip[16];
+	struct pg_brick *antispoof;
+	struct pg_error *error = NULL;
+	struct rte_mbuf *packet;
+
+	pg_scan_ether_addr(&inside_mac, "52:54:00:12:34:02");
+	antispoof = pg_antispoof_new("antispoof", PG_EAST_SIDE,
+				     &inside_mac, &error);
+	g_assert(!error);
+
+	/* enable ndp antispoof */
+	pg_antispoof_ndp_enable(antispoof);
+	pg_ip_from_str(ip, "2001:db8:2000:aff0::2");
+	pg_antispoof_ndp_add(antispoof, ip, &error);
+	g_assert(!error);
+
+	/* legit packet */
+	packet = build_packet(pkt0, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) > 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad target address */
+	packet = build_packet(pkt1, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad link layer address */
+	packet = build_packet(pkt2, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+
+	/* disable ndp antispoof */
+	pg_antispoof_ndp_disable(antispoof);
+
+	/* legit packet */
+	packet = build_packet(pkt0, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) > 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad target address */
+	packet = build_packet(pkt1, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) > 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad link layer address */
+	packet = build_packet(pkt2, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) > 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+
+	/* enable ndp antispoof and remove all addresses */
+	pg_antispoof_ndp_enable(antispoof);
+	pg_antispoof_ndp_del_all(antispoof);
+
+	/* legit packet */
+	packet = build_packet(pkt0, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad target address */
+	packet = build_packet(pkt1, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad link layer address */
+	packet = build_packet(pkt2, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+
+	/* add several bad addresses */
+	pg_ip_from_str(ip, "2001:db8:2000:aff0::42");
+	pg_antispoof_ndp_add(antispoof, ip, &error);
+	g_assert(!error);
+	pg_ip_from_str(ip, "2001:db8:2000:aff0::43");
+	pg_antispoof_ndp_add(antispoof, ip, &error);
+	g_assert(!error);
+
+	/* legit packet */
+	packet = build_packet(pkt0, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad target address */
+	packet = build_packet(pkt1, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad link layer address */
+	packet = build_packet(pkt2, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+
+	/* add correct address */
+	pg_ip_from_str(ip, "2001:db8:2000:aff0::2");
+	pg_antispoof_ndp_add(antispoof, ip, &error);
+	g_assert(!error);
+
+	/* legit packet */
+	packet = build_packet(pkt0, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) > 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad target address */
+	packet = build_packet(pkt1, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+	/* bad link layer address */
+	packet = build_packet(pkt2, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+
+	pg_brick_destroy(antispoof);
+}
+
 int main(int argc, char **argv)
 {
 	struct pg_error *error = NULL;
@@ -461,8 +600,9 @@ int main(int argc, char **argv)
 			test_pg_antispoof_arp_disable);
 	pg_test_add_func("/antispoof/mac/burst_not_propagate",
 			test_antispoof_empty_burst);
+	pg_test_add_func("/antispoof/ndp",
+			test_antispoof_ndp);
 	r = g_test_run();
-
 	pg_stop();
 	return r;
 }

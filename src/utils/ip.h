@@ -18,6 +18,7 @@
 #ifndef _PG_UTILS_IP_H
 #define _PG_UTILS_IP_H
 
+#include <arpa/inet.h>
 #include <rte_ether.h>
 #include <rte_ip.h>
 
