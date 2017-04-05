@@ -99,6 +99,7 @@ static struct rte_mbuf *build_ip_packet(const char *src_ip,
 	pkt->pkt_len = len;
 	pkt->data_len = len;
 	pkt->nb_segs = 1;
+	pkt->l2_len = sizeof(struct ether_hdr);
 	pkt->next = NULL;
 
 	hdr = rte_pktmbuf_mtod(pkt, struct header *);
@@ -130,6 +131,7 @@ static struct rte_mbuf *build_packet(const unsigned char *data, size_t len)
 
 	pkt->pkt_len = len;
 	pkt->data_len = len;
+	pkt->l2_len = sizeof(struct ether_hdr);
 	pkt->nb_segs = 1;
 	pkt->next = NULL;
 
