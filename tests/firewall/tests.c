@@ -308,11 +308,13 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb * 2 / 3);
 	for (; filtered_pkts_mask;) {
@@ -344,11 +346,13 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == 0);
 
@@ -367,11 +371,13 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
@@ -401,11 +407,13 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb * 2 / 3);
 	for (; filtered_pkts_mask;) {
@@ -440,11 +448,13 @@ static void firewall_filter_rules(enum pg_side dir)
 
 	/* check collect brick */
 	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == 0);
 
@@ -462,11 +472,13 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
@@ -501,11 +513,13 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(packet_count == nb);
 
 	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_west_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	else
-		filtered_pkts = pg_brick_east_burst_get(col, &filtered_pkts_mask,
-						     &error);
+		filtered_pkts = pg_brick_east_burst_get(col,
+							&filtered_pkts_mask,
+							&error);
 	g_assert(!error);
 	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
 	for (; filtered_pkts_mask;) {
@@ -580,7 +594,7 @@ static void firewall_replay(const unsigned char *pkts[],
 	for (i = 0; i < pkts_nb; i++) {
 		struct ip *ip;
 		uint32_t tmp1;
-		uint32_t tmp2;		
+		uint32_t tmp2;
 
 		packet = build_packet(pkts[i], pkts_size[i]);
 		eth = rte_pktmbuf_mtod(packet, struct ether_hdr*);
@@ -701,8 +715,9 @@ static void test_firewall_exotic(void)
 		build_ip_packet("10::2", "10::255", 42, AF_INET6)
 	};
 
-	// FIXME ipv6 protochain not working here
+	/* FIXME ipv6 protochain not working here */
 	const char *rule = "(ip proto 16) or (ip6 proto 16)";
+
 	g_assert(firewall_scenario_filter(rule, pkts, mask) == mask);
 
 	for (int i = 0; i < nb; i++)
@@ -711,7 +726,7 @@ static void test_firewall_exotic(void)
 
 static void test_firewall_empty_rules(void)
 {
-	// no rules, should not let packets pass
+	/* no rules, should not let packets pass */
 	struct rte_mbuf *pkt =
 		build_ip_packet("10.0.0.1", "10.0.0.255", 42, AF_INET);
 	g_assert(firewall_scenario_filter(NULL, &pkt, pg_mask_firsts(1)) == 0);
@@ -732,7 +747,7 @@ static void test_firewall_rules(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *fw = pg_firewall_new("fw", PG_NONE, &error);
-	const char *r[] = {
+	static const char * const r[] = {
 		"src host 10.0.0.1",
 		"udp",
 		"tcp",
@@ -752,7 +767,8 @@ static void test_firewall_rules(void)
 	};
 
 	for (int i = 0; r[i]; i++) {
-		g_assert(!pg_firewall_rule_add(fw, r[i], PG_WEST_SIDE, 0, &error));
+		g_assert(!pg_firewall_rule_add(fw, r[i], PG_WEST_SIDE,
+					       0, &error));
 		g_assert(!pg_firewall_reload(fw, &error));
 		g_assert(!error);
 		pg_firewall_rule_flush(fw);

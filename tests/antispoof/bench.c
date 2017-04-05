@@ -18,8 +18,7 @@
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
 #include "utils/tests.h"
-
-void test_benchmark_antispoof(int argc, char **argv);
+#include "bench.h"
 
 int main(int argc, char **argv)
 {

@@ -618,10 +618,10 @@ static void test_brick_sanity_check(struct pg_brick *brick)
 static void test_brick_sanity_check_expected(struct pg_brick *brick,
 					     int west, int east)
 {
-	g_assert(test_side_sanity_check(&brick->sides[PG_WEST_SIDE], brick->type)
-		 == west);
-	g_assert(test_side_sanity_check(&brick->sides[PG_EAST_SIDE], brick->type)
-		 == east);
+	g_assert(test_side_sanity_check(&brick->sides[PG_WEST_SIDE],
+		 brick->type) == west);
+	g_assert(test_side_sanity_check(&brick->sides[PG_EAST_SIDE],
+		 brick->type) == east);
 }
 
 
@@ -661,20 +661,24 @@ static void test_brick_core_verify_multiple_link(void)
 	links_count = pg_brick_links_count_get(west_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(west_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(west_brick, middle_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 2);
 	links_count = pg_brick_links_count_get(west_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 
-	links_count = pg_brick_links_count_get(middle_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick, middle_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick, west_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick, west_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 2);
-	links_count = pg_brick_links_count_get(middle_brick, east_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick, east_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
 
@@ -684,7 +688,8 @@ static void test_brick_core_verify_multiple_link(void)
 	links_count = pg_brick_links_count_get(east_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(east_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(east_brick, middle_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
 
@@ -700,20 +705,24 @@ static void test_brick_core_verify_multiple_link(void)
 	links_count = pg_brick_links_count_get(west_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(west_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(west_brick, middle_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 	links_count = pg_brick_links_count_get(west_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 
-	links_count = pg_brick_links_count_get(middle_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick,
+					       middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick, west_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick,
+					       west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick, east_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick,
+					       east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
 
@@ -723,7 +732,8 @@ static void test_brick_core_verify_multiple_link(void)
 	links_count = pg_brick_links_count_get(east_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(east_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(east_brick,
+					       middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
 
@@ -740,30 +750,36 @@ static void test_brick_core_verify_multiple_link(void)
 	links_count = pg_brick_links_count_get(west_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(west_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(west_brick,
+					       middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 	links_count = pg_brick_links_count_get(west_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 
-	links_count = pg_brick_links_count_get(middle_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick, middle_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick, west_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick, west_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick, east_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick, east_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 
-	links_count = pg_brick_links_count_get(east_brick, east_brick, &error);
+	links_count = pg_brick_links_count_get(east_brick, east_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 	links_count = pg_brick_links_count_get(east_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(east_brick, middle_brick, &error);
+	links_count = pg_brick_links_count_get(east_brick, middle_brick,
+					       &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 
@@ -782,12 +798,19 @@ static void test_brick_core_verify_re_link(void)
 {
 	struct pg_error *e = NULL;
 	struct pg_brick *v = pg_nop_new("v", &e);
+
 	g_assert(!e);
+
 	struct pg_brick *f = pg_nop_new("f", &e);
+
 	g_assert(!e);
+
 	struct pg_brick *a = pg_nop_new("a", &e);
+
 	g_assert(!e);
+
 	struct pg_brick *s = pg_nop_new("s", &e);
+
 	g_assert(!e);
 
 	/* Initial state: v -- f -- a */

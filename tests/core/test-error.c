@@ -98,7 +98,8 @@ static void test_error_format(void)
 {
 	struct pg_error *error = NULL;
 
-	error = pg_error_new_errno(EIO, "Bad write file=%s sector=%i", "foo", 5);
+	error = pg_error_new_errno(EIO, "Bad write file=%s sector=%i",
+				   "foo", 5);
 	g_assert(error->message);
 	g_assert_cmpstr(error->message, ==, "Bad write file=foo sector=5");
 	pg_error_free(error);

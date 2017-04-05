@@ -15,6 +15,7 @@
  * along with Packetgraph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bench.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <rte_config.h>
@@ -31,8 +32,6 @@
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 
-void test_benchmark_switch(int argc, char **argv);
-
 static void test_switch_benchmarks(int argc, char **argv, int west_max,
 				     int east_max, const char *title)
 {
@@ -40,11 +39,12 @@ static void test_switch_benchmarks(int argc, char **argv, int west_max,
 	struct pg_brick *sw;
 	struct pg_bench bench;
 	struct pg_bench_stats stats;
-	struct ether_addr mac1 = {{0x52,0x54,0x00,0x12,0x34,0x11}};
-	struct ether_addr mac2 = {{0x52,0x54,0x00,0x12,0x34,0x21}};
+	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
+	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
 	uint32_t len;
 
-	sw = pg_switch_new("switch", west_max, east_max, PG_DEFAULT_SIDE, &error);
+	sw = pg_switch_new("switch", west_max, east_max,
+			   PG_DEFAULT_SIDE, &error);
 	g_assert(!error);
 	g_assert(!pg_bench_init(&bench, title, argc, argv, &error));
 	bench.input_brick = sw;
@@ -80,7 +80,7 @@ static void test_switch_benchmarks(int argc, char **argv, int west_max,
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(sw);
 }
-void test_benchmark_switch(int argc, char **argv) 
+void test_benchmark_switch(int argc, char **argv)
 {
 	test_switch_benchmarks(argc, argv, 20, 20,
 			       "switch : 20 edges at each sides");
