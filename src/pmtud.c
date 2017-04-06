@@ -182,6 +182,8 @@ static int pmtud_init(struct pg_brick *brick,
 			       sizeof(struct icmp_hdr) +
 			       sizeof(struct ipv4_hdr),
 			       ICMP_PROTOCOL_NUMBER);
+	state->icmp->l2_len = sizeof(struct ether_hdr);
+	state->icmp->l2_type = PG_BE_ETHER_TYPE_IPv4;
 	icmp = (struct icmp_hdr *)rte_pktmbuf_append(state->icmp,
 						     sizeof(struct icmp_hdr));
 	icmp->type = 3;
