@@ -199,13 +199,7 @@ static inline int antispoof_arp(struct pg_antispoof_state *state,
 {
 	uint16_t size = state->arps_size;
 	struct pg_antispoof_arp *p;
-	uint16_t etype = pg_utils_get_ether_type(pkt);
 	struct pg_antispoof_arp *a = pg_utils_get_l3(pkt);
-
-	if (unlikely(etype == PG_BE_ETHER_TYPE_RARP))
-		return -1;
-	else if (likely(etype != PG_BE_ETHER_TYPE_ARP))
-		return 0;
 
 	for (uint16_t i = 0; i < size; i++) {
 		/* Check that all fields match reference packet except the
@@ -287,9 +281,6 @@ void pg_antispoof_ndp_disable(struct pg_brick *brick)
 static inline int antispoof_ndp(struct pg_antispoof_state *state,
 				struct rte_mbuf *pkt)
 {
-	if (pg_utils_get_ether_type(pkt) != PG_BE_ETHER_TYPE_IPv6)
-		return 0;
-
 	/* jump all ipv6 extension headers to ICMPv6 */
 	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
 	uint8_t next_header = h6->proto;
@@ -363,6 +354,8 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 {
 	struct pg_antispoof_state *state;
 	struct pg_brick_side *s;
+	struct ether_hdr *eth;
+	uint16_t etype;
 	uint64_t it_mask;
 	uint64_t bit;
 	uint16_t i;
@@ -377,30 +370,24 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 	/* packets come from inside, let's check few things */
 	it_mask = pkts_mask;
 	for (; it_mask;) {
-		struct ether_hdr *eth;
-
 		pg_low_bit_iterate_full(it_mask, bit, i);
 		eth = rte_pktmbuf_mtod(pkts[i], struct ether_hdr*);
+		etype = pg_utils_get_ether_type(pkts[i]);
 
 		/* MAC antispoof */
 		if (unlikely(memcmp(&eth->s_addr, &state->mac,
-				    ETHER_ADDR_LEN))) {
+				    ETHER_ADDR_LEN)))
 			pkts_mask &= ~bit;
-			continue;
-		}
-
-		/* ARP antispoof */
-		if (state->arp_enabled &&
-		    unlikely(antispoof_arp(state, pkts[i]) < 0)) {
+		else if (unlikely(etype == PG_BE_ETHER_TYPE_RARP))
 			pkts_mask &= ~bit;
-			continue;
-		}
-
-		/* Neighbor Discovery antispoof */
-		if (state->ndp_enabled && antispoof_ndp(state, pkts[i]) < 0) {
+		else if (state->arp_enabled &&
+			 unlikely(etype == PG_BE_ETHER_TYPE_ARP) &&
+			 antispoof_arp(state, pkts[i]) < 0)
 			pkts_mask &= ~bit;
-			continue;
-		}
+		else if (state->ndp_enabled &&
+			 unlikely(etype == PG_BE_ETHER_TYPE_IPv6) &&
+			 antispoof_ndp(state, pkts[i]) < 0)
+			pkts_mask &= ~bit;
 	}
 	if (unlikely(pkts_mask == 0))
 		return 0;
