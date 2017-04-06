@@ -94,6 +94,46 @@ inline void *pg_utils_get_l3(struct rte_mbuf *pkt)
 	return rte_pktmbuf_mtod(pkt, char *) + pkt->l2_len;
 }
 
+inline int pg_utils_get_ipv6_l4(struct rte_mbuf *pkt, uint8_t *ip_type,
+				uint8_t **ip_payload)
+{
+	/* jump all ipv6 extension headers to ICMPv6 */
+	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
+	uint8_t next_header = h6->proto;
+	uint8_t *next_data = (uint8_t *)(h6 + 1);
+	uint8_t loop_cnt = 0;
+	bool loop = true;
+
+	while (loop) {
+		if (++loop_cnt == 8)
+			return -1;
+		switch (next_header) {
+		case PG_IP_TYPE_IPV6_OPTION_DESTINATION:
+		case PG_IP_TYPE_IPV6_OPTION_HOP_BY_HOP:
+		case PG_IP_TYPE_IPV6_OPTION_ROUTING:
+		case PG_IP_TYPE_IPV6_OPTION_MOBILITY:
+			next_header = next_data[0];
+			next_data = next_data + (next_data[1] + 1) * 8;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_FRAGMENT:
+			next_header = next_data[0];
+			next_data = next_data + 8;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_AUTHENTICATION_HEADER:
+			next_header = next_data[0];
+			next_data = next_data + (next_data[1] + 2) * 4;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_ESP:
+			/* cannot get into this */
+		default:
+			loop = false;
+		}
+	}
+	*ip_type = next_header;
+	*ip_payload = next_data;
+	return 0;
+}
+
 inline void pg_utils_guess_l2(struct rte_mbuf *pkt)
 {
 	struct ether_hdr *eth;
