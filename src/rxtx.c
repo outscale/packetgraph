@@ -21,6 +21,7 @@
 #include "brick-int.h"
 #include "packets.h"
 #include "utils/mempool.h"
+#include "utils/network.h"
 
 struct pg_rxtx_config {
 	void *private_data;
@@ -115,10 +116,11 @@ static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	if (unlikely(count == 0))
 		return 0;
 	tx_burst = state->tx_burst;
-	for (struct rte_mbuf *cur = tx_burst[0], *end = (cur + count);
-	     cur != end; ++cur) {
-		state->tx_bytes += cur->pkt_len;
+	for (int i = 0; i < count; ++i) {
+		pg_utils_guess_metadata(tx_burst[i]);
+		state->tx_bytes += tx_burst[i]->pkt_len;
 	}
+
 	return pg_brick_burst(s->edge.link, state->output,
 			      s->edge.pair_index,
 			      tx_burst,
