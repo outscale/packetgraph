@@ -30,6 +30,7 @@
 #include "packets.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
+#include "utils/network.h"
 #include "nic-int.h"
 
 #define NIC_ARGS_MAX_SIZE 1024
@@ -241,6 +242,7 @@ static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	uint16_t nb_pkts;
 	struct pg_nic_state *state =
 		pg_brick_get_state(brick, struct pg_nic_state);
+	struct rte_mbuf **pkts = state->pkts;
 
 	nb_pkts = rte_eth_rx_burst(state->portid, 0,
 				   state->pkts, PG_MAX_PKTS_BURST);
@@ -249,6 +251,9 @@ static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		return 0;
 	}
 
+
+	for (int i = 0; i < nb_pkts; i++)
+		pg_utils_guess_metadata(pkts[i]);
 	*pkts_cnt = nb_pkts;
 	return nic_poll_forward(state, brick, nb_pkts, errp);
 }
