@@ -281,44 +281,17 @@ void pg_antispoof_ndp_disable(struct pg_brick *brick)
 static inline int antispoof_ndp(struct pg_antispoof_state *state,
 				struct rte_mbuf *pkt)
 {
-	/* jump all ipv6 extension headers to ICMPv6 */
-	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
-	uint8_t next_header = h6->proto;
-	uint8_t *next_data = (uint8_t *)(h6 + 1);
-	uint8_t loop_cnt = 0;
-	bool loop = true;
+	uint8_t ipv6_type;
+	uint8_t *ipv6_payload;
 
-	while (loop) {
-		if (++loop_cnt == 8)
-			return -1;
-		switch (next_header) {
-		case PG_IP_TYPE_IPV6_OPTION_DESTINATION:
-		case PG_IP_TYPE_IPV6_OPTION_HOP_BY_HOP:
-		case PG_IP_TYPE_IPV6_OPTION_ROUTING:
-		case PG_IP_TYPE_IPV6_OPTION_MOBILITY:
-			next_header = next_data[0];
-			next_data = next_data + (next_data[1] + 1) * 8;
-			break;
-		case PG_IP_TYPE_IPV6_OPTION_FRAGMENT:
-			next_header = next_data[0];
-			next_data = next_data + 8;
-			break;
-		case PG_IP_TYPE_IPV6_OPTION_AUTHENTICATION_HEADER:
-			next_header = next_data[0];
-			next_data = next_data + (next_data[1] + 2) * 4;
-			break;
-		case PG_IP_TYPE_ICMPV6:
-			loop = false;
-			break;
-		case PG_IP_TYPE_IPV6_OPTION_ESP:
-		default:
-			return 0;
-		}
-	}
+	if (pg_utils_get_ipv6_l4(pkt, &ipv6_type, &ipv6_payload) < 0)
+		return -1;
+	if (likely(ipv6_type != PG_IP_TYPE_ICMPV6))
+		return 0;
 
 	/* check ICMPv6 message type */
 	struct neighbor_advertisement *na =
-		(struct neighbor_advertisement *) next_data;
+		(struct neighbor_advertisement *) ipv6_payload;
 
 	if (likely(na->type != PG_ICMPV6_TYPE_NA))
 		return 0;
@@ -327,6 +300,7 @@ static inline int antispoof_ndp(struct pg_antispoof_state *state,
 	uint16_t size = state->ndps_size;
 	struct ndp *ndps = state->ndps;
 	bool ipv6_allowed = false;
+	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
 
 	for (uint16_t i = 0; i < size; i++) {
 		if (pg_ip_is_same(h6->src_addr, ndps[i].ip) &&
