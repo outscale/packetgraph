@@ -35,18 +35,15 @@ fi
 
 # directories and files to scan
 # Note: using -path ./folder_to_exclude -prune
-c_filelist=$(find $PACKETGRAPH_ROOT/src/ -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.c" -printf %p\ )
-h_filelist=$(find $PACKETGRAPH_ROOT/{src,include}/ -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.h" -printf %p\ )
-c_filelist_tests=$(find $PACKETGRAPH_ROOT/tests/ -type f -name "*.c" -printf %p\ )
-h_filelist_tests=$(find $PACKETGRAPH_ROOT/tests/ -type f -name "*.h" -printf %p\ )
-c_filelist_examples=$(find $PACKETGRAPH_ROOT/examples/ -type f -name "*.c" -printf %p\ )
-h_filelist_examples=$(find $PACKETGRAPH_ROOT/examples/ -type f -name "*.h" -printf %p\ )
+filelist=$(find $PACKETGRAPH_ROOT/src/ -path $PACKETGRAPH_ROOT/src/npf -prune -o -type f -name "*.c" -printf %p\  -o -type f -name "*.h" -printf %p\ )
+filelist_tests=$(find $PACKETGRAPH_ROOT/tests/ -type f -name "*.c" -printf %p\  -o -type f -name "*.h" -printf %p\ )
+filelist_examples=$(find $PACKETGRAPH_ROOT/examples/ -type f -name "*.c" -printf %p\  -o -type f -name "*.h" -printf %p\ )
 
 # checkpatch tests
 
-$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON --show-types --no-tree -q -f $c_filelist $h_filelist
-$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,MACRO_WITH_FLOW_CONTROL,SPLIT_STRING  --show-types --no-tree -q -f $c_filelist_tests $h_filelist_tests
-$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,SPLIT_STRING --show-types --no-tree -q -f $c_filelist_examples $h_filelist_examples
+$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON --show-types --no-tree -q -f $filelist
+$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,MACRO_WITH_FLOW_CONTROL,SPLIT_STRING  --show-types --no-tree -q -f $filelist_tests
+$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,SPLIT_STRING --show-types --no-tree -q -f $filelist_examples
 
 if [ $? != 0 ]; then
     echo "checkpatch tests failed"
@@ -82,7 +79,7 @@ else
     if [[ $major -lt 1 || $minor -lt 71 ]]; then
         echo "cppcheck version >= 1.71 required (currently have ${major}.${minor}), skip test"
     else
-        cppcheck -q  -f -I $PACKETGRAPH_ROOT/src -I $PACKETGRAPH_ROOT/include --error-exitcode=43  --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $c_filelist
+        cppcheck -q  -f -I $PACKETGRAPH_ROOT/src -I $PACKETGRAPH_ROOT/include --error-exitcode=43  --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $filelist
         if [ $? != 0 ]; then
 	    echo "cppcheck tests failed"
             exit 1
@@ -98,7 +95,7 @@ rats &> /dev/null
 if [ $? != 0 ]; then
     echo "rats is not installed, some tests will be skipped"
 else
-    rats  $c_filelist
+    rats  $filelist
     if [ $? != 0 ]; then
 	echo "rats tests failed"
 	exit 1
@@ -113,7 +110,7 @@ flawfinder &> /dev/null
 if [ $? != 0 ]; then
     echo "flawfinder is not installed, some tests will be skipped"
 else
-    flawfinder --quiet $c_filelist
+    flawfinder --quiet $filelist
     if [ $? != 0 ]; then
 	echo "flawfinder tests failed"
 	exit 1
