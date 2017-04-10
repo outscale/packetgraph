@@ -41,12 +41,6 @@ struct pg_pmtud_state {
 	struct rte_mbuf *icmp;
 };
 
-struct eth_ipv4_u64 {
-	struct eth_ipv4_hdr h;
-	/* the begin of the message */
-	uint64_t beg_msg;
-} __attribute__((__packed__));
-
 struct icmp_hdr {
 	uint8_t type;
 	uint8_t code;
@@ -94,19 +88,18 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 	enum pg_side to = pg_flip_side(from);
 	struct pg_brick_side *s = &brick->sides[to];
 	struct pg_brick_side *s_from = &brick->sides[from];
-	uint16_t ipv4_proto_be = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
 	uint32_t eth_mtu_size = state->eth_mtu_size;
 
 	if (state->output == from) {
 		PG_FOREACH_BIT(pkts_mask, i) {
-			struct eth_ipv4_u64 *pkt_buf =
-				rte_pktmbuf_mtod(pkts[i],
-						 struct eth_ipv4_u64 *);
-			int dont_fragment = (pkt_buf->h.ip.fragment_offset) &
+			struct ipv4_hdr *ip = pg_utils_get_l3(pkts[i]);
+			struct ether_hdr *eth =
+				rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
+			uint64_t *beg_msg = (uint64_t *)(ip + 1);
+			int dont_fragment = ip->fragment_offset &
 				rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
-			int is_ipv4 =
-				(pkt_buf->h.eth.ether_type == ipv4_proto_be);
-
+			int is_ipv4 = pg_utils_get_ether_type(pkts[i]) ==
+				PG_BE_ETHER_TYPE_IPv4;
 
 			if (is_ipv4 && dont_fragment &&
 			    pkts[i]->pkt_len > eth_mtu_size) {
@@ -116,15 +109,15 @@ static int pmtud_burst(struct pg_brick *brick, enum pg_side from,
 						struct icmp_full_hdr *);
 
 				pkts_mask ^= (ONE64 << i);
-				icmp_buf->eth.s_addr = pkt_buf->h.eth.d_addr;
-				icmp_buf->eth.d_addr = pkt_buf->h.eth.s_addr;
-				icmp_buf->ip.src_addr = pkt_buf->h.ip.dst_addr;
-				icmp_buf->ip.dst_addr = pkt_buf->h.ip.src_addr;
+				icmp_buf->eth.s_addr = eth->d_addr;
+				icmp_buf->eth.d_addr = eth->s_addr;
+				icmp_buf->ip.src_addr = ip->dst_addr;
+				icmp_buf->ip.dst_addr = ip->src_addr;
 				icmp_buf->ip.hdr_checksum = 0;
 				icmp_buf->ip.hdr_checksum =
 					rte_ipv4_cksum(&icmp_buf->ip);
-				icmp_buf->icmp.ip = pkt_buf->h.ip;
-				icmp_buf->icmp.last_msg = pkt_buf->beg_msg;
+				icmp_buf->icmp.ip = *ip;
+				icmp_buf->icmp.last_msg = *beg_msg;
 				icmp_buf->icmp.checksum = 0;
 
 				icmp_buf->icmp.checksum =
