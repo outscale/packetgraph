@@ -48,6 +48,7 @@ static void test_fragment(void)
 			       1600 - sizeof(struct eth_ipv4_hdr), 0);
 
 	PG_FOREACH_BIT(mask, i) {
+		pkts[i]->l2_len = sizeof(struct ether_hdr);
 		pkt_buf = rte_pktmbuf_mtod(pkts[i], struct eth_ipv4_hdr *);
 		pkt_buf->ip.fragment_offset = 0;
 		hdr = *pkt_buf;

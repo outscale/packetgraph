@@ -62,9 +62,7 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 {
 	uint64_t mask;
 	int32_t nb_frags;
-	struct  eth_ipv4_hdr *pkt_buf = rte_pktmbuf_mtod(pkt,
-							 struct eth_ipv4_hdr *);
-	struct ether_hdr eth = pkt_buf->eth;
+	struct ether_hdr *eth = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 	struct rte_mbuf **pkts_out = state->pkts_out;
 	int l2_size = pkt->l2_len;
 	int ret;
@@ -87,7 +85,7 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 	PG_FOREACH_BIT(mask, i) {
 		rte_memcpy(rte_pktmbuf_prepend(pkts_out[i],
 					       l2_size),
-		       &eth, l2_size);
+			   eth, l2_size);
 		pkts_out[i]->l2_len = l2_size;
 		pkts_out[i]->udata64 |= PG_FRAGMENTED_MBUF;
 	}
@@ -99,11 +97,13 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 }
 
 static inline bool
-should_be_reassemble(struct eth_ipv4_hdr const * const restrict pkt_buf)
+should_be_reassemble(struct rte_mbuf const * const restrict pkt)
 {
-	return rte_cpu_to_be_16(pkt_buf->eth.ether_type) ==
-		ETHER_TYPE_IPv4 &&
-		rte_ipv4_frag_pkt_is_fragmented(&pkt_buf->ip);
+	return pg_utils_get_ether_type((struct rte_mbuf *) pkt) ==
+		PG_BE_ETHER_TYPE_IPv4 &&
+		rte_ipv4_frag_pkt_is_fragmented(
+			(struct ipv4_hdr *) pg_utils_get_l3(
+				(struct rte_mbuf *) pkt));
 }
 
 static inline int do_reassemble(struct pg_ip_fragment_state *state,
@@ -118,11 +118,10 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 	uint64_t cur_time = rte_rdtsc();
 
 	PG_FOREACH_BIT(*pkts_mask, i) {
-		struct  eth_ipv4_hdr *pkt_buf =
-			rte_pktmbuf_mtod(pkts[i],
-					 struct eth_ipv4_hdr *);
+		struct ipv4_hdr *ip =
+			(struct ipv4_hdr *) pg_utils_get_l3(pkts[i]);
 
-		if (should_be_reassemble(pkt_buf)) {
+		if (should_be_reassemble(pkts[i])) {
 			struct rte_mbuf *tmp;
 
 			remove_mask |= (ONE64 << i);
@@ -130,15 +129,13 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 							      &state->dr,
 							      pkts[i],
 							      cur_time,
-							      &pkt_buf->
 							      ip);
 			if (tmp) {
-				struct eth_ipv4_hdr *tmp_buf =
-					rte_pktmbuf_mtod(tmp,
-							 struct eth_ipv4_hdr *);
-				tmp_buf->ip.hdr_checksum = 0;
-				tmp_buf->ip.hdr_checksum =
-					rte_ipv4_cksum(&tmp_buf->ip);
+				struct ipv4_hdr *tmp_ip =
+					(struct ipv4_hdr *)
+					pg_utils_get_l3(tmp);
+				tmp_ip->hdr_checksum = 0;
+				tmp_ip->hdr_checksum = rte_ipv4_cksum(tmp_ip);
 				state->pkts_out[j] = tmp;
 				snd_mask |= (ONE64 << j);
 				++j;
@@ -158,15 +155,14 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 	return ret;
 }
 
-static inline bool should_be_fragmented(struct rte_mbuf const * const pkt,
+static inline bool should_be_fragmented(struct rte_mbuf *pkt,
 	const struct pg_ip_fragment_state * const restrict state)
 {
-	struct eth_ipv4_hdr *pkt_buf = rte_pktmbuf_mtod(pkt,
-							struct eth_ipv4_hdr *);
-	int dont_fragment = (pkt_buf->ip.fragment_offset) &
+	struct ipv4_hdr *ip = (struct ipv4_hdr *) pg_utils_get_l3(pkt);
+	int dont_fragment = (ip->fragment_offset) &
 		rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
 
-	return rte_cpu_to_be_16(pkt_buf->eth.ether_type) == ETHER_TYPE_IPv4 &&
+	return pg_utils_get_ether_type(pkt) == PG_BE_ETHER_TYPE_IPv4 &&
 		(!dont_fragment) && pkt->pkt_len > state->mtu_size;
 }
 
