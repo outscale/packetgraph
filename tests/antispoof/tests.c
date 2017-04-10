@@ -42,6 +42,7 @@ static struct rte_mbuf *build_packet(const unsigned char *data, size_t len)
 	pkt->pkt_len = len;
 	pkt->data_len = len;
 	pkt->nb_segs = 1;
+	pkt->l2_len = sizeof(struct ether_hdr);
 	pkt->next = NULL;
 
 	packet = rte_pktmbuf_mtod(pkt, void*);
