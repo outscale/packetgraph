@@ -195,12 +195,12 @@ static struct pg_brick_config *antispoof_config_new(const char *name,
 }
 
 static inline int antispoof_arp(struct pg_antispoof_state *state,
-				struct ether_hdr *eth)
+				struct rte_mbuf *pkt)
 {
 	uint16_t size = state->arps_size;
 	struct pg_antispoof_arp *p;
-	uint16_t etype = eth->ether_type;
-	struct pg_antispoof_arp *a = (struct pg_antispoof_arp *)(eth + 1);
+	uint16_t etype = pg_utils_get_ether_type(pkt);
+	struct pg_antispoof_arp *a = pg_utils_get_l3(pkt);
 
 	if (unlikely(etype == PG_BE_ETHER_TYPE_RARP))
 		return -1;
@@ -285,14 +285,13 @@ void pg_antispoof_ndp_disable(struct pg_brick *brick)
 }
 
 static inline int antispoof_ndp(struct pg_antispoof_state *state,
-			       struct ether_hdr *eth)
+				struct rte_mbuf *pkt)
 {
-	struct ipv6_hdr *h6 = (struct ipv6_hdr *)(eth + 1);
-
-	if (eth->ether_type != PG_BE_ETHER_TYPE_IPv6)
+	if (pg_utils_get_ether_type(pkt) != PG_BE_ETHER_TYPE_IPv6)
 		return 0;
 
 	/* jump all ipv6 extension headers to ICMPv6 */
+	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
 	uint8_t next_header = h6->proto;
 	uint8_t *next_data = (uint8_t *)(h6 + 1);
 	uint8_t loop_cnt = 0;
@@ -392,13 +391,13 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 
 		/* ARP antispoof */
 		if (state->arp_enabled &&
-		    unlikely(antispoof_arp(state, eth) < 0)) {
+		    unlikely(antispoof_arp(state, pkts[i]) < 0)) {
 			pkts_mask &= ~bit;
 			continue;
 		}
 
 		/* Neighbor Discovery antispoof */
-		if (state->ndp_enabled && antispoof_ndp(state, eth) < 0) {
+		if (state->ndp_enabled && antispoof_ndp(state, pkts[i]) < 0) {
 			pkts_mask &= ~bit;
 			continue;
 		}
