@@ -28,7 +28,7 @@ before_install:
  - make config T=x86_64-native-linuxapp-clang
  - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" build/.config
  - make EXTRA_CFLAGS='-fPIC'
- 
+
 script:
  - cd $TRAVIS_BUILD_DIR
  - ./autogen.sh
