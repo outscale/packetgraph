@@ -447,8 +447,7 @@ static inline void classify_pkts(struct rte_mbuf **pkts,
 			     PG_BE_ETHER_TYPE_IP ||
 			     pg_ip_proto(tmp->ip) != 17 ||
 			     tmp->udp.dst_port != udp_dst_port_be ||
-			     tmp->vxlan.vx_flags !=
-			     PG_VTEP_BE_I_FLAG))
+			     tmp->vxlan.vx_flags != PG_VTEP_BE_I_FLAG))
 			continue;
 		if (tmp->udp.dgram_cksum) {
 			if (unlikely(!check_udp_checksum(hdrs[i])))
@@ -567,10 +566,8 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 					  hitted_mask, multicast_mask);
 
 			restore_metadata(out_pkts, hdrs, hitted_mask);
-			if (unlikely(pg_brick_burst(s->edges[i].link,
-						    from,
-						    i, out_pkts,
-						    hitted_mask,
+			if (unlikely(pg_brick_burst(s->edges[i].link, from,
+						    i, out_pkts, hitted_mask,
 						    errp) < 0)) {
 				if (!(state->flags & PG_VTEP_NO_COPY))
 					pg_packets_free(out_pkts, vni_mask);
@@ -635,11 +632,8 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 				  vni_mask, multicast_mask);
 		restore_metadata(pkts, hdrs, vni_mask);
 
-		if (unlikely(pg_brick_burst(edges[i].link,
-					    from,
-					    i, pkts,
-					    vni_mask,
-					    errp) < 0))
+		if (unlikely(pg_brick_burst(edges[i].link, from, i, pkts,
+					    vni_mask, errp) < 0))
 			return -1;
 	}
 	return 0;
