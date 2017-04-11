@@ -413,15 +413,6 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 	}
 }
 
-static inline int from_vtep_failure(struct rte_mbuf **pkts,
-				    uint64_t pkts_mask,
-				    int no_copy)
-{
-	if (!no_copy)
-		pg_packets_free(pkts, pkts_mask);
-	return -1;
-}
-
 /**
  * @return false if checksum is not valid
  */
@@ -578,11 +569,11 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 						    from,
 						    i, out_pkts,
 						    hitted_mask,
-						    errp) < 0))
-				return from_vtep_failure(out_pkts,
-							 vni_mask,
-							 state->flags &
-							 PG_VTEP_NO_COPY);
+						    errp) < 0)) {
+				if (!(state->flags & PG_VTEP_NO_COPY))
+					pg_packets_free(out_pkts, vni_mask);
+				return -1;
+			}
 		}
 
 		if (unlikely(!(state->flags & PG_VTEP_NO_COPY)))
