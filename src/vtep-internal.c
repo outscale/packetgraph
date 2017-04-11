@@ -101,7 +101,7 @@ struct vtep_state {
 	struct pg_brick brick;
 	struct ether_addr mac;		/* MAC address of the VTEP */
 	enum pg_side output;		/* side the VTEP packets will go */
-	uint16_t udp_dst_port;		/* UDP destination port */
+	uint16_t udp_dst_port_be;		/* UDP destination port */
 	struct vtep_port *ports;
 	uint16_t packet_id;       /* IP identification number */
 	int flags;
@@ -202,7 +202,7 @@ static inline void udp_build(struct udp_hdr *udp_hdr,
 			     uint16_t seed)
 {
 	udp_hdr->src_port = rte_cpu_to_be_16(src_port_compute(seed));
-	udp_hdr->dst_port = rte_cpu_to_be_16(udp_dst_port);
+	udp_hdr->dst_port = udp_dst_port;
 	udp_hdr->dgram_len = rte_cpu_to_be_16(datagram_len);
 	/* UDP checksum SHOULD be transmited as zero */
 	udp_hdr->dgram_cksum = 0;
@@ -284,7 +284,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	/* It is recommended to have UDP source port randomized to be
 	 * ECMP/load-balancing friendly. Let's use computed hash from
 	 * IP header. */
-	udp_build(&headers->udp, state->udp_dst_port,
+	udp_build(&headers->udp, state->udp_dst_port_be,
 		  packet_len + udp_overhead(), ((uint16_t *)pkt)[0]);
 
 	pkt->l2_len = HEADER_LENGTH + sizeof(struct ether_hdr);
@@ -526,7 +526,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 
 	check_multicasts_pkts(pkts, pkts_mask, hdrs,
 			      &multicast_mask, &pkts_mask,
-			      rte_cpu_to_be_16(state->udp_dst_port));
+			      state->udp_dst_port_be);
 
 	for (i = 0; i < s->nb; ++i) {
 		struct vtep_port *port = &ports[i];
@@ -617,7 +617,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 
 	check_multicasts_pkts(pkts, pkts_mask, hdrs,
 			      &multicast_mask, &pkts_mask,
-			      rte_cpu_to_be_16(state->udp_dst_port));
+			      state->udp_dst_port_be);
 
 	for (int i = 0, nb = s->nb; pkts_mask && i < nb; ++i) {
 		struct vtep_port *port = &ports[i];
@@ -799,7 +799,7 @@ static int vtep_init(struct pg_brick *brick,
 	state->ip = vtep_config->ip;
 	ether_addr_copy(&vtep_config->mac, &state->mac);
 	state->flags = vtep_config->flags;
-	state->udp_dst_port = vtep_config->udp_dst_port;
+	state->udp_dst_port_be = rte_cpu_to_be_16(vtep_config->udp_dst_port);
 	#if IP_VERSION == 4
 	state->packet_id = 0;
 	#endif
