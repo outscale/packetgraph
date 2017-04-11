@@ -20,22 +20,29 @@
  * Copyright 2010-2015 Oryx Embedded SARL.(www.oryx-embedded.com)
  */
 
-
-#ifndef IP_TYPE
-#error "IP_TYPE is not define"
-#endif
-
-#ifndef IP_IN_TYPE
-#error "IP_IN_TYPE is not define"
-#endif
-
-
-#ifndef BRICK_NAME
-#error "BRICK_NAME is not define"
-#endif
-
 _Static_assert(IP_VERSION == 4 || IP_VERSION == 6,
 	       "IP_VERSION must be set to 4 or 6");
+
+#define CATCAT(a, b, c) a ## b ## c
+#define CAT(a, b) a ## b
+
+#define BRICK_NAME_4 "vtep4"
+#define BRICK_NAME_6 "vtep6"
+
+#define BRICK_NAME_(t) CAT(BRICK_NAME_, t)
+static const char BRICK_NAME[] = BRICK_NAME_(IP_VERSION);
+
+#define IP_TYPE_4 uint32_t
+#define IP_TYPE_6 union pg_ipv6_addr
+
+#define IP_TYPE_(t) CAT(IP_TYPE_, t)
+#define IP_TYPE IP_TYPE_(IP_VERSION)
+
+#define IP_IN_TYPE_4 uint32_t
+#define IP_IN_TYPE_6 uint8_t *
+
+#define IP_IN_TYPE_(t) CAT(IP_IN_TYPE_, t)
+#define IP_IN_TYPE IP_IN_TYPE_(IP_VERSION)
 
 struct dest_addresses {
 	struct ether_addr mac;
@@ -57,9 +64,6 @@ struct vtep_config {
 #define UDP_PROTOCOL_NUMBER 17
 #define TCP_PROTOCOL_NUMBER 6
 
-
-#define CATCAT(a, b, c) a ## b ## c
-#define CAT(a, b) a ## b
 
 #define ip_udptcp_cksum(a, b, version)			\
 	CATCAT(rte_ipv, version, _udptcp_cksum)(a, b)
@@ -943,3 +947,14 @@ int pg_vtep_add_vni_(struct pg_brick *brick,
 #undef multicast_unsubscribe_
 #undef multicast_unsubscribe
 #undef ip_build
+#undef BRICK_NAME_4
+#undef BRICK_NAME_6
+#undef BRICK_NAME_
+#undef IP_TYPE_4
+#undef IP_TYPE_6
+#undef IP_TYPE_
+#undef IP_TYPE
+#undef IP_IN_TYPE_4
+#undef IP_IN_TYPE_6
+#undef IP_IN_TYPE_
+#undef IP_IN_TYPE

@@ -79,14 +79,9 @@ static void multicast6_unsubscribe(struct vtep_state *state,
 				   union pg_ipv6_addr multicast_ip,
 				   struct pg_error **errp);
 
-#define IP_TYPE union pg_ipv6_addr
-#define IP_IN_TYPE uint8_t *
 #define IP_VERSION 6
-#define BRICK_NAME "vtep6"
 #include "vtep-internal.c"
 #undef IP_VERSION
-#undef IP_IN_TYPE
-#undef IP_TYPE
 
 struct mld_hdr {
 	uint8_t type;
@@ -208,4 +203,3 @@ static struct pg_brick_ops vtep_ops = {
 
 pg_brick_register(vtep, &vtep_ops);
 
-#undef BRICK_NAME
