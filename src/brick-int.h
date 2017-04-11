@@ -36,7 +36,6 @@
  * directions west or east.
  */
 
-#define BRICK_NAME_LENGTH	32
 
 /**
  * The structure containing a brick private data must start with a
@@ -123,7 +122,7 @@ struct pg_brick {
  *
  */
 struct pg_brick_ops {
-	char name[BRICK_NAME_LENGTH];		/* Flawfinder: ignore */
+	const char *name;			/* Flawfinder: ignore */
 						/* note: brick_ops structures
 						 * will always be declared
 						 * statically so will be name.
