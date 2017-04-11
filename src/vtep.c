@@ -79,14 +79,9 @@ static void multicast4_unsubscribe(struct vtep_state *state,
 
 #define IGMP_PROTOCOL_NUMBER 0x02
 
-#define BRICK_NAME "vtep4"
-#define IP_TYPE uint32_t
-#define IP_IN_TYPE uint32_t
 #define IP_VERSION 4
 #include "vtep-internal.c"
 #undef IP_VERSION
-#undef IP_TYPE
-#undef IP_IN_TYPE
 
 struct igmp_hdr {
 	uint8_t type;
@@ -256,4 +251,3 @@ static struct pg_brick_ops vtep_ops = {
 pg_brick_register(vtep, &vtep_ops);
 
 #undef IGMP_PROTOCOL_NUMBER
-#undef BRICK_NAME
