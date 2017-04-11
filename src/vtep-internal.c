@@ -425,13 +425,16 @@ static inline bool check_udp_checksum(struct header *hdr)
 }
 
 
-
-static inline void check_multicasts_pkts(struct rte_mbuf **pkts,
-					 uint64_t mask,
-					 struct header **hdrs,
-					 uint64_t *multicast_mask,
-					 uint64_t *computed_mask,
-					 uint16_t udp_dst_port_be)
+/**
+ * @multicast_mask store multicast packets
+ * @computed_mask store package contening a valide vxlan header
+ */
+static inline void classify_pkts(struct rte_mbuf **pkts,
+				 uint64_t mask,
+				 struct header **hdrs,
+				 uint64_t *multicast_mask,
+				 uint64_t *computed_mask,
+				 uint16_t udp_dst_port_be)
 {
 	for (*multicast_mask = 0, *computed_mask = 0; mask;) {
 		int i;
@@ -524,9 +527,8 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	struct rte_mbuf **out_pkts = state->pkts;
 	uint64_t multicast_mask;
 
-	check_multicasts_pkts(pkts, pkts_mask, hdrs,
-			      &multicast_mask, &pkts_mask,
-			      state->udp_dst_port_be);
+	classify_pkts(pkts, pkts_mask, hdrs, &multicast_mask, &pkts_mask,
+		      state->udp_dst_port_be);
 
 	for (i = 0; i < s->nb; ++i) {
 		struct vtep_port *port = &ports[i];
@@ -615,9 +617,8 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 	struct pg_brick_edge *edges = s->edges;
 	uint64_t multicast_mask;
 
-	check_multicasts_pkts(pkts, pkts_mask, hdrs,
-			      &multicast_mask, &pkts_mask,
-			      state->udp_dst_port_be);
+	classify_pkts(pkts, pkts_mask, hdrs, &multicast_mask, &pkts_mask,
+		      state->udp_dst_port_be);
 
 	for (int i = 0, nb = s->nb; pkts_mask && i < nb; ++i) {
 		struct vtep_port *port = &ports[i];
