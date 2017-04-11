@@ -77,6 +77,8 @@ static void multicast4_unsubscribe(struct vtep_state *state,
 				   uint32_t multicast_ip,
 				   struct pg_error **errp);
 
+#define IGMP_PROTOCOL_NUMBER 0x02
+
 #define BRICK_NAME "vtep4"
 #define IP_TYPE uint32_t
 #define IP_IN_TYPE uint32_t
@@ -253,4 +255,5 @@ static struct pg_brick_ops vtep_ops = {
 
 pg_brick_register(vtep, &vtep_ops);
 
+#undef IGMP_PROTOCOL_NUMBER
 #undef BRICK_NAME

@@ -55,7 +55,6 @@ struct vtep_config {
 #define UDP_MIN_PORT 49152
 #define UDP_PORT_RANGE 16383
 #define UDP_PROTOCOL_NUMBER 17
-#define IGMP_PROTOCOL_NUMBER 0x02
 #define TCP_PROTOCOL_NUMBER 6
 
 
@@ -922,3 +921,25 @@ int pg_vtep_add_vni_(struct pg_brick *brick,
 	return 0;
 }
 
+#undef VTEP_I_FLAG
+#undef UDP_MIN_PORT
+#undef UDP_PORT_RANGE
+#undef UDP_PROTOCOL_NUMBER
+#undef TCP_PROTOCOL_NUMBER
+#undef CATCAT
+#undef CAT
+#undef ip_udptcp_cksum
+#undef header_
+#undef header
+#undef fullhdr_
+#undef fullhdr
+#undef HEADER_LENGTH
+#undef ETHER_TYPE_IP_
+#undef ETHER_TYPE_IP
+#undef PG_BE_ETHER_TYPE_IP_
+#undef PG_BE_ETHER_TYPE_IP
+#undef multicast_subscribe_
+#undef multicast_subscribe
+#undef multicast_unsubscribe_
+#undef multicast_unsubscribe
+#undef ip_build
