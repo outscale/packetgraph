@@ -85,11 +85,7 @@ struct vtep_config {
 #define ip_udptcp_cksum(a, b, version)			\
 	CATCAT(rte_ipv, version, _udptcp_cksum)(a, b)
 
-#define header headers
-
-#define fullhdr full_header
-
-#define HEADER_LENGTH sizeof(struct header)
+#define HEADER_LENGTH sizeof(struct headers)
 
 #define ETHER_TYPE_IP_(version) CAT(ETHER_TYPE_IPv, version)
 #define ETHER_TYPE_IP ETHER_TYPE_IP_(IP_VERSION)
@@ -267,11 +263,11 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 {
 	struct ether_hdr *eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 	uint16_t packet_len = rte_pktmbuf_data_len(pkt);
-	struct fullhdr *full_header;
-	struct header *headers;
+	struct full_header *full_header;
+	struct headers *headers;
 
 	full_header =
-		(struct fullhdr *)rte_pktmbuf_prepend(pkt, HEADER_LENGTH);
+		(struct full_header *)rte_pktmbuf_prepend(pkt, HEADER_LENGTH);
 	if (unlikely(!full_header)) {
 		*errp = pg_error_new("%s on a packet of %ld/%d",
 				     "No enough headroom to add VTEP headers",
@@ -401,7 +397,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 static inline void add_dst_iner_macs(struct vtep_state *state,
 				     struct vtep_port *port,
 				     struct rte_mbuf **pkts,
-				     struct header **hdrs,
+				     struct headers **hdrs,
 				     uint64_t pkts_mask,
 				     uint64_t multicast_mask)
 {
@@ -434,7 +430,7 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 /**
  * @return false if checksum is not valid
  */
-static inline bool check_udp_checksum(struct header *hdr)
+static inline bool check_udp_checksum(struct headers *hdr)
 {
 	uint16_t cksum = hdr->udp.dgram_cksum;
 
@@ -449,17 +445,17 @@ static inline bool check_udp_checksum(struct header *hdr)
  */
 static inline void classify_pkts(struct rte_mbuf **pkts,
 				 uint64_t mask,
-				 struct header **hdrs,
+				 struct headers **hdrs,
 				 uint64_t *multicast_mask,
 				 uint64_t *computed_mask,
 				 uint16_t udp_dst_port_be)
 {
 	for (*multicast_mask = 0, *computed_mask = 0; mask;) {
 		int i;
-		struct header *tmp;
+		struct headers *tmp;
 
 		pg_low_bit_iterate(mask, i);
-		tmp = rte_pktmbuf_mtod(pkts[i], struct header *);
+		tmp = rte_pktmbuf_mtod(pkts[i], struct headers *);
 		hdrs[i] = tmp;
 		if (unlikely(tmp->ethernet.ether_type !=
 			     PG_BE_ETHER_TYPE_IP ||
@@ -482,7 +478,7 @@ static inline void classify_pkts(struct rte_mbuf **pkts,
 static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 						struct rte_mbuf **pkts,
 						uint64_t mask,
-						struct header **hdrs,
+						struct headers **hdrs,
 						struct vtep_port *port,
 						struct rte_mbuf **out_pkts)
 {
@@ -514,7 +510,7 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 }
 
 static inline void restore_metadata(struct rte_mbuf **pkts,
-				    struct header **hdrs,
+				    struct headers **hdrs,
 				    uint64_t vni_mask)
 {
 	PG_FOREACH_BIT(vni_mask, it) {
@@ -540,7 +536,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	int i;
 	struct vtep_port *ports = state->ports;
-	struct header *hdrs[64];
+	struct headers *hdrs[64];
 	struct rte_mbuf **out_pkts = state->pkts;
 	uint64_t multicast_mask;
 
@@ -601,7 +597,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 
 static inline uint64_t check_vni_pkts(struct rte_mbuf **pkts,
 				      uint64_t mask,
-				      struct header **hdrs,
+				      struct headers **hdrs,
 				      struct vtep_port *port)
 {
 	uint64_t vni_mask = 0;
@@ -628,7 +624,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	struct vtep_port *ports =  state->ports;
-	struct header *hdrs[64];
+	struct headers *hdrs[64];
 	struct pg_brick_edge *edges = s->edges;
 	uint64_t multicast_mask;
 
