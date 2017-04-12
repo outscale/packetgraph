@@ -44,6 +44,24 @@ static const char BRICK_NAME[] = BRICK_NAME_(IP_VERSION);
 #define IP_IN_TYPE_(t) CAT(IP_IN_TYPE_, t)
 #define IP_IN_TYPE IP_IN_TYPE_(IP_VERSION)
 
+#define ip_hdr_(version) CATCAT(ipv, version, _hdr)
+#define ip_hdr ip_hdr_(IP_VERSION)
+
+/**
+ * Composite structure of all the headers required to wrap a packet in VTEP
+ */
+struct headers {
+	struct ether_hdr ethernet; /* define in rte_ether.h */
+	struct ip_hdr	 ip; /* define in rte_ip.h */
+	struct udp_hdr	 udp; /* define in rte_udp.h */
+	struct vxlan_hdr vxlan; /* define in rte_ether.h */
+} __attribute__((__packed__));
+
+struct full_header {
+	struct headers outer;
+	struct eth_ip_l4 inner;
+} __attribute__((__packed__));
+
 struct dest_addresses {
 	struct ether_addr mac;
 	IP_TYPE ip;
@@ -64,15 +82,12 @@ struct vtep_config {
 #define UDP_PROTOCOL_NUMBER 17
 #define TCP_PROTOCOL_NUMBER 6
 
-
 #define ip_udptcp_cksum(a, b, version)			\
 	CATCAT(rte_ipv, version, _udptcp_cksum)(a, b)
 
-#define header_(version) CAT(headers, version)
-#define header header_(IP_VERSION)
+#define header headers
 
-#define fullhdr_(version) CAT(full_header, version)
-#define fullhdr fullhdr_(IP_VERSION)
+#define fullhdr full_header
 
 #define HEADER_LENGTH sizeof(struct header)
 
