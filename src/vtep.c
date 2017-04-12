@@ -55,18 +55,6 @@
 
 #include "vtep-internal.h"
 
-struct headers4 {
-	struct ether_hdr ethernet; /* define in rte_ether.h */
-	struct ipv4_hdr	 ip; /* define in rte_ip.h */
-	struct udp_hdr	 udp; /* define in rte_udp.h */
-	struct vxlan_hdr vxlan; /* define in rte_ether.h */
-} __attribute__((__packed__));
-
-struct full_header4 {
-	struct headers4 outer;
-	struct eth_ip_l4 inner;
-} __attribute__((__packed__));
-
 static void multicast4_subscribe(struct vtep_state *state,
 				 struct vtep_port *port,
 				 uint32_t multicast_ip,

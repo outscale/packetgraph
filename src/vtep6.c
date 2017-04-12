@@ -54,21 +54,6 @@
 
 #include "vtep-internal.h"
 
-/**
- * Composite structure of all the headers required to wrap a packet in VTEP
- */
-struct headers6 {
-	struct ether_hdr ethernet; /* define in rte_ether.h */
-	struct ipv6_hdr	 ip; /* define in rte_ip.h */
-	struct udp_hdr	 udp; /* define in rte_udp.h */
-	struct vxlan_hdr vxlan; /* define in rte_ether.h */
-} __attribute__((__packed__));
-
-struct full_header6 {
-	struct headers6 outer;
-	struct eth_ip_l4 inner;
-} __attribute__((__packed__));
-
 static void multicast6_subscribe(struct vtep_state *state,
 				 struct vtep_port *port,
 				 union pg_ipv6_addr multicast_ip,
