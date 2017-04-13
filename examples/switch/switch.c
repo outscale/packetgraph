@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	g_assert(!error);
 
 	/* init print bricks */
-	if (verbose)
+	if (verbose) {
 		for (int i = 0; i < n; i++) {
 			tmp = g_strdup_printf("print%i", i);
 			struct pg_brick *print =
@@ -120,6 +120,7 @@ int main(int argc, char **argv)
 			pg_brick_link(print, sw, &error);
 			g_assert(!error);
 		}
+	}
 	pg_graph_explore(graph, "switch", &error);
 
 	/* init with nic bricks */
