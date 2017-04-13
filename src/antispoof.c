@@ -195,17 +195,11 @@ static struct pg_brick_config *antispoof_config_new(const char *name,
 }
 
 static inline int antispoof_arp(struct pg_antispoof_state *state,
-				struct ether_hdr *eth)
+				struct rte_mbuf *pkt)
 {
 	uint16_t size = state->arps_size;
 	struct pg_antispoof_arp *p;
-	uint16_t etype = eth->ether_type;
-	struct pg_antispoof_arp *a = (struct pg_antispoof_arp *)(eth + 1);
-
-	if (unlikely(etype == PG_BE_ETHER_TYPE_RARP))
-		return -1;
-	else if (likely(etype != PG_BE_ETHER_TYPE_ARP))
-		return 0;
+	struct pg_antispoof_arp *a = pg_utils_get_l3(pkt);
 
 	for (uint16_t i = 0; i < size; i++) {
 		/* Check that all fields match reference packet except the
@@ -285,50 +279,19 @@ void pg_antispoof_ndp_disable(struct pg_brick *brick)
 }
 
 static inline int antispoof_ndp(struct pg_antispoof_state *state,
-			       struct ether_hdr *eth)
+				struct rte_mbuf *pkt)
 {
-	struct ipv6_hdr *h6 = (struct ipv6_hdr *)(eth + 1);
+	uint8_t ipv6_type;
+	uint8_t *ipv6_payload;
 
-	if (eth->ether_type != PG_BE_ETHER_TYPE_IPv6)
+	if (pg_utils_get_ipv6_l4(pkt, &ipv6_type, &ipv6_payload) < 0)
+		return -1;
+	if (likely(ipv6_type != PG_IP_TYPE_ICMPV6))
 		return 0;
-
-	/* jump all ipv6 extension headers to ICMPv6 */
-	uint8_t next_header = h6->proto;
-	uint8_t *next_data = (uint8_t *)(h6 + 1);
-	uint8_t loop_cnt = 0;
-	bool loop = true;
-
-	while (loop) {
-		if (++loop_cnt == 8)
-			return -1;
-		switch (next_header) {
-		case PG_IP_TYPE_IPV6_OPTION_DESTINATION:
-		case PG_IP_TYPE_IPV6_OPTION_HOP_BY_HOP:
-		case PG_IP_TYPE_IPV6_OPTION_ROUTING:
-		case PG_IP_TYPE_IPV6_OPTION_MOBILITY:
-			next_header = next_data[0];
-			next_data = next_data + (next_data[1] + 1) * 8;
-			break;
-		case PG_IP_TYPE_IPV6_OPTION_FRAGMENT:
-			next_header = next_data[0];
-			next_data = next_data + 8;
-			break;
-		case PG_IP_TYPE_IPV6_OPTION_AUTHENTICATION_HEADER:
-			next_header = next_data[0];
-			next_data = next_data + (next_data[1] + 2) * 4;
-			break;
-		case PG_IP_TYPE_ICMPV6:
-			loop = false;
-			break;
-		case PG_IP_TYPE_IPV6_OPTION_ESP:
-		default:
-			return 0;
-		}
-	}
 
 	/* check ICMPv6 message type */
 	struct neighbor_advertisement *na =
-		(struct neighbor_advertisement *) next_data;
+		(struct neighbor_advertisement *) ipv6_payload;
 
 	if (likely(na->type != PG_ICMPV6_TYPE_NA))
 		return 0;
@@ -337,6 +300,7 @@ static inline int antispoof_ndp(struct pg_antispoof_state *state,
 	uint16_t size = state->ndps_size;
 	struct ndp *ndps = state->ndps;
 	bool ipv6_allowed = false;
+	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
 
 	for (uint16_t i = 0; i < size; i++) {
 		if (pg_ip_is_same(h6->src_addr, ndps[i].ip) &&
@@ -364,6 +328,8 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 {
 	struct pg_antispoof_state *state;
 	struct pg_brick_side *s;
+	struct ether_hdr *eth;
+	uint16_t etype;
 	uint64_t it_mask;
 	uint64_t bit;
 	uint16_t i;
@@ -378,30 +344,24 @@ static int antispoof_burst(struct pg_brick *brick, enum pg_side from,
 	/* packets come from inside, let's check few things */
 	it_mask = pkts_mask;
 	for (; it_mask;) {
-		struct ether_hdr *eth;
-
 		pg_low_bit_iterate_full(it_mask, bit, i);
 		eth = rte_pktmbuf_mtod(pkts[i], struct ether_hdr*);
+		etype = pg_utils_get_ether_type(pkts[i]);
 
 		/* MAC antispoof */
 		if (unlikely(memcmp(&eth->s_addr, &state->mac,
-				    ETHER_ADDR_LEN))) {
+				    ETHER_ADDR_LEN)))
 			pkts_mask &= ~bit;
-			continue;
-		}
-
-		/* ARP antispoof */
-		if (state->arp_enabled &&
-		    unlikely(antispoof_arp(state, eth) < 0)) {
+		else if (unlikely(etype == PG_BE_ETHER_TYPE_RARP))
 			pkts_mask &= ~bit;
-			continue;
-		}
-
-		/* Neighbor Discovery antispoof */
-		if (state->ndp_enabled && antispoof_ndp(state, eth) < 0) {
+		else if (state->arp_enabled &&
+			 unlikely(etype == PG_BE_ETHER_TYPE_ARP) &&
+			 antispoof_arp(state, pkts[i]) < 0)
 			pkts_mask &= ~bit;
-			continue;
-		}
+		else if (state->ndp_enabled &&
+			 unlikely(etype == PG_BE_ETHER_TYPE_IPv6) &&
+			 antispoof_ndp(state, pkts[i]) < 0)
+			pkts_mask &= ~bit;
 	}
 	if (unlikely(pkts_mask == 0))
 		return 0;

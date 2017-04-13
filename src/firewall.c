@@ -197,23 +197,22 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 	uint16_t i;
 	int ret;
 	struct rte_mbuf *tmp;
+	uint16_t ether_type;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	pf_side = FIREWALL_SIDE_TO_NPF(from);
 
 	it_mask = pkts_mask;
 	for (; it_mask;) {
-		struct ether_hdr *eth;
-
 		pg_low_bit_iterate_full(it_mask, bit, i);
 		tmp = pkts[i];
+		ether_type = pg_utils_get_ether_type(tmp);
 
 		/* Firewall only manage IPv4 or IPv6 filtering.
 		 * Let non-ip packets (like ARP) pass.
 		 */
-		eth = rte_pktmbuf_mtod(tmp, struct ether_hdr *);
-		if (unlikely(eth->ether_type != PG_BE_ETHER_TYPE_IPv4 &&
-			     eth->ether_type != PG_BE_ETHER_TYPE_IPv6)) {
+		if (unlikely(ether_type != PG_BE_ETHER_TYPE_IPv4 &&
+			     ether_type != PG_BE_ETHER_TYPE_IPv6)) {
 			continue;
 		}
 
@@ -224,16 +223,14 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		 * We directly modify data_off instead of calling
 		 * rte_pktmbuf_adj because it's faster
 		 */
-		tmp->data_off += sizeof(struct ether_hdr);
-
-		/* filter packet */
+		tmp->data_off += tmp->l2_len;
 		ret = npf_packet_handler(state->npf,
 					 (struct mbuf **) &tmp,
 					 state->ifp,
 					 pf_side);
+		pkts[i]->data_off -= pkts[i]->l2_len;
 		if (ret)
 			pkts_mask &= ~bit;
-		pkts[i]->data_off -= sizeof(struct ether_hdr);
 	}
 	if (unlikely(pkts_mask == 0))
 		return 0;

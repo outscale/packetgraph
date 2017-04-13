@@ -33,6 +33,7 @@
 #include "packets.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
+#include "utils/network.h"
 
 struct pg_tap_config {
 	char ifname[IFNAMSIZ];
@@ -151,6 +152,7 @@ static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		struct rte_mbuf *packet = pkts[nb_pkts];
 
 		rte_pktmbuf_reset(packet);
+		pg_utils_guess_metadata(packet);
 		char *data = rte_pktmbuf_mtod(packet, char *);
 		int read_size = read(fd, data, PG_MBUF_SIZE);
 

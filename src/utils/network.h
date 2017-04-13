@@ -31,6 +31,7 @@
 #define PG_BE_ETHER_TYPE_RARP PG_CPU_TO_BE_16(ETHER_TYPE_RARP)
 #define PG_BE_ETHER_TYPE_IPv4 PG_CPU_TO_BE_16(ETHER_TYPE_IPv4)
 #define PG_BE_ETHER_TYPE_IPv6 PG_CPU_TO_BE_16(ETHER_TYPE_IPv6)
+#define PG_BE_ETHER_TYPE_VLAN PG_CPU_TO_BE_16(ETHER_TYPE_VLAN)
 #define PG_BE_IPV4_HDR_DF_FLAG PG_CPU_TO_BE_16(IPV4_HDR_DF_FLAG)
 /* 0000 1000 0000 ... */
 #define PG_VTEP_I_FLAG 0x08000000
@@ -70,5 +71,86 @@ struct eth_ip_l4 {
 		} __attribute__((__packed__));
 	} __attribute__((__packed__));
 } __attribute__((__packed__));
+
+struct vlan_802_1q {
+	uint8_t pcp: 3;
+	uint8_t cfi: 1;
+	uint16_t vid: 12;
+	uint16_t ether_type;
+} __attribute__((__packed__));
+
+inline uint16_t pg_utils_get_ether_type(struct rte_mbuf *pkt)
+{
+	/* Ethertype should be located just before the start of L3.
+	 * This way, it works for vlan-tagged and non-vlan tagged
+	 * packets (l2_len must be correct).
+	 */
+	return *(uint16_t *)(rte_pktmbuf_mtod(pkt, uint8_t *) +
+			     pkt->l2_len - 2);
+}
+
+inline void *pg_utils_get_l3(struct rte_mbuf *pkt)
+{
+	return rte_pktmbuf_mtod(pkt, char *) + pkt->l2_len;
+}
+
+inline int pg_utils_get_ipv6_l4(struct rte_mbuf *pkt, uint8_t *ip_type,
+				uint8_t **ip_payload)
+{
+	/* jump all ipv6 extension headers to ICMPv6 */
+	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
+	uint8_t next_header = h6->proto;
+	uint8_t *next_data = (uint8_t *)(h6 + 1);
+	uint8_t loop_cnt = 0;
+	bool loop = true;
+
+	while (loop) {
+		if (++loop_cnt == 8)
+			return -1;
+		switch (next_header) {
+		case PG_IP_TYPE_IPV6_OPTION_DESTINATION:
+		case PG_IP_TYPE_IPV6_OPTION_HOP_BY_HOP:
+		case PG_IP_TYPE_IPV6_OPTION_ROUTING:
+		case PG_IP_TYPE_IPV6_OPTION_MOBILITY:
+			next_header = next_data[0];
+			next_data = next_data + (next_data[1] + 1) * 8;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_FRAGMENT:
+			next_header = next_data[0];
+			next_data = next_data + 8;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_AUTHENTICATION_HEADER:
+			next_header = next_data[0];
+			next_data = next_data + (next_data[1] + 2) * 4;
+			break;
+		case PG_IP_TYPE_IPV6_OPTION_ESP:
+			/* cannot get into this */
+		default:
+			loop = false;
+		}
+	}
+	*ip_type = next_header;
+	*ip_payload = next_data;
+	return 0;
+}
+
+inline void pg_utils_guess_l2(struct rte_mbuf *pkt)
+{
+	struct ether_hdr *eth;
+
+	pkt->l2_type = RTE_PTYPE_L2_ETHER;
+	pkt->l2_len = sizeof(struct ether_hdr);
+
+	eth = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
+	if (eth->ether_type == PG_BE_ETHER_TYPE_VLAN) {
+		pkt->l2_len += sizeof(struct vlan_802_1q);
+		pkt->l2_type |= RTE_PTYPE_L2_ETHER_VLAN;
+	}
+}
+
+inline void pg_utils_guess_metadata(struct rte_mbuf *pkt)
+{
+	pg_utils_guess_l2(pkt);
+}
 
 #endif /* ifndef _PG_UTILS_NETWORK_H */
