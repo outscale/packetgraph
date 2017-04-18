@@ -155,14 +155,17 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 	return ret;
 }
 
-static inline bool should_be_fragmented(struct rte_mbuf *pkt,
-	const struct pg_ip_fragment_state * const restrict state)
+static inline bool
+should_be_fragmented(struct rte_mbuf const * const pkt,
+		     const struct pg_ip_fragment_state * const restrict state)
 {
-	struct ipv4_hdr *ip = (struct ipv4_hdr *) pg_utils_get_l3(pkt);
+	struct ipv4_hdr *ip = (struct ipv4_hdr *)
+		pg_utils_get_l3((struct rte_mbuf *) pkt);
 	int dont_fragment = (ip->fragment_offset) &
 		rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
 
-	return pg_utils_get_ether_type(pkt) == PG_BE_ETHER_TYPE_IPv4 &&
+	return pg_utils_get_ether_type((struct rte_mbuf *) pkt) ==
+			PG_BE_ETHER_TYPE_IPv4 &&
 		(!dont_fragment) && pkt->pkt_len > state->mtu_size;
 }
 
