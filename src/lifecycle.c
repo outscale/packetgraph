@@ -34,10 +34,15 @@ int pg_start_str(const char *dpdk_args)
 	int dpdk_argc;
 	GError *err = NULL;
 	char *tmp = g_strdup_printf("dpdk %s", dpdk_args);
+	char *pg_glob_dpdk_argv2[128];
 
 	if (!g_shell_parse_argv(tmp, &dpdk_argc, &pg_glob_dpdk_argv, &err))
 		return -1;
-	int ret = pg_start(dpdk_argc, pg_glob_dpdk_argv);
+	if (dpdk_argc > 127)
+		return -1;
+	memcpy(pg_glob_dpdk_argv2, pg_glob_dpdk_argv,
+	       sizeof(char *) * (dpdk_argc + 1));
+	int ret = pg_start(dpdk_argc, pg_glob_dpdk_argv2);
 
 	g_free(tmp);
 	return ret;
