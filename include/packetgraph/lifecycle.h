@@ -37,7 +37,7 @@ int pg_start(int argc, char **argv);
  * This function should be called before any other packetgraph function.
  *
  * @param       dpdk_args a string with all dpdk arguments
- * @return      -1 in case of error, 0 otherwise
+ * @return      same result as pg_start()
  */
 int pg_start_str(const char *dpdk_args);
 
