@@ -21,7 +21,6 @@
 
 #include <packetgraph/errors.h>
 
-struct pg_brick *pg_collect_new(const char *name,
-				struct pg_error **errp);
+struct pg_brick *pg_collect_new(const char *name, struct pg_error **errp);
 
 #endif  /* _PG_COLLECT_H */
