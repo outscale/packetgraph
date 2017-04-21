@@ -110,6 +110,13 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 					       VIRTIO_RXQ,
 					       state->out,
 					       pkts_count);
+	if (bursted_pkts < pkts_count) {
+		bursted_pkts += rte_vhost_enqueue_burst(
+			virtio_net,
+			VIRTIO_RXQ,
+			state->out + bursted_pkts,
+			pkts_count - bursted_pkts);
+	}
 	rte_atomic32_clear(&state->allow_queuing);
 
 	/* count tx bytes: burst is packed so we can directly iterate */
