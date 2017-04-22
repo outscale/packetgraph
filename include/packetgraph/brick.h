@@ -18,7 +18,6 @@
 #ifndef _PG_BRICK_H
 #define _PG_BRICK_H
 
-#include <stdarg.h>
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 
