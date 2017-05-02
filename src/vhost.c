@@ -55,6 +55,25 @@ struct pg_vhost_socket {
 	LIST_ENTRY(pg_vhost_socket) socket_list; /* sockets list */
 };
 
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+
+
+#define VHOST_DEC_CHECK_COUNTER(state) do {				\
+		state->check_counter -= 1;				\
+		if (unlikely(!state->check_counter)) {			\
+			state->check_atomic = 1024;			\
+			rte_atomic32_clear(&state->allow_queuing);	\
+		}							\
+	} while (0)
+
+
+#define VHOST_GET_CHECK_ATOMIC(state) state->check_atomic
+
+#else
+#define VHOST_DEC_CHECK_COUNTER(state) {}
+#define VHOST_GET_CHECK_ATOMIC(state) 1
+#endif /* PG_VHOST_FASTER_YET_BROKEN_POLL */
+
 struct pg_vhost_state {
 	struct pg_brick brick;
 	enum pg_side output;
@@ -65,6 +84,10 @@ struct pg_vhost_state {
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
 	rte_atomic64_t tx_bytes; /* TX: [vhost] --> VM */
 	rte_atomic64_t rx_bytes; /* RX: [vhost] <-- VM */
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+	int check_atomic;
+	int check_counter;
+#endif
 };
 
 static int new_vm(int dev);
@@ -102,16 +125,17 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
 		       uint64_t pkts_mask, struct pg_error **errp)
 {
-	struct pg_vhost_state *state;
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick, struct pg_vhost_state);
 	int virtio_net;
 	uint16_t pkts_count;
 	uint16_t bursted_pkts;
 	uint64_t tx_bytes = 0;
-
-	state = pg_brick_get_state(brick, struct pg_vhost_state);
+	const int check_atomic = VHOST_GET_CHECK_ATOMIC(state);
 
 	/* Try lock */
-	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
+	if (unlikely(check_atomic &&
+		     !rte_atomic32_test_and_set(&state->allow_queuing)))
 		return 0;
 
 	virtio_net = state->vid;
@@ -120,7 +144,8 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 					       VIRTIO_RXQ,
 					       state->out,
 					       pkts_count);
-	rte_atomic32_clear(&state->allow_queuing);
+	if (check_atomic)
+		rte_atomic32_clear(&state->allow_queuing);
 
 	/* count tx bytes: burst is packed so we can directly iterate */
 	for (int i = 0; i < bursted_pkts; i++)
@@ -140,6 +165,20 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 #define TCP_PROTOCOL_NUMBER 6
 #define UDP_PROTOCOL_NUMBER 17
 
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+
+void pg_vhost_request_remove(struct pg_brick *brick)
+{
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick, struct pg_vhost_state);
+
+	state->check_counter = 0;
+	state->check_atomic = 16384;
+	rte_atomic32_clear(&state->allow_queuing);
+}
+
+#endif /* PG_VHOST_FASTER_YET_BROKEN_POLL */
+
 static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		      struct pg_error **errp)
 {
@@ -153,13 +192,13 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	int ret;
 	struct rte_mbuf **in = state->in;
 	uint64_t rx_bytes = 0;
+	const int check_atomic = VHOST_GET_CHECK_ATOMIC(state);
 
 	*pkts_cnt = 0;
 	/* Try lock */
-	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
+	if (check_atomic && !rte_atomic32_test_and_set(&state->allow_queuing))
 		return 0;
 
-	rte_atomic32_set(&state->allow_queuing, 0);
 	virtio_net = state->vid;
 	*pkts_cnt = 0;
 
@@ -167,7 +206,23 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 					MAX_BURST);
 	*pkts_cnt = count;
 
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+	if (check_atomic) {
+		state->check_atomic -= 1;
+		if (unlikely(!state->check_atomic))
+			state->check_counter = 16384;
+		else
+			rte_atomic32_clear(&state->allow_queuing);
+	} else {
+		state->check_counter -= 1;
+		if (unlikely(!state->check_counter)) {
+			state->check_atomic = 1024;
+			rte_atomic32_clear(&state->allow_queuing);
+		}
+	}
+#else
 	rte_atomic32_clear(&state->allow_queuing);
+#endif
 	if (!count)
 		return 0;
 
@@ -288,6 +343,10 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	rte_atomic32_init(&state->allow_queuing);
 	rte_atomic32_set(&state->allow_queuing, 1);
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+	state->check_atomic = 1024;
+	state->check_counter = 0;
+#endif /* PG_VHOST_FASTER_YET_BROKEN_POLL */
 
 	return 0;
 }
@@ -390,6 +449,10 @@ static void destroy_vm(int dev)
 			while (!rte_atomic32_test_and_set(
 				       &s->state->allow_queuing))
 				sched_yield();
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+			s->state->check_atomic = 1024;
+			s->state->check_counter = 0;
+#endif /* PG_VHOST_FASTER_YET_BROKEN_POLL */
 			s->state->vid = -1;
 			break;
 		}
