@@ -61,6 +61,20 @@
 
 struct pg_brick;
 
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+
+/**
+ * Unlock vhost intel counter so the qemu can be destroy
+ * without entering a dead lock
+ */
+void pg_vhost_request_remove(struct pg_brick *brick);
+
+#else
+
+#define pg_vhost_request_remove(brick)
+#endif /* PG_VHOST_FASTER_YET_BROKEN_POLL */
+
+
 /**
  * Create a new vhost brick.
  * vhost interface is configured with offload features disabled.

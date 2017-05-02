@@ -731,6 +731,7 @@ static void qemu_duo_destroy(struct qemu_duo_test_params *p)
 	void *ret;
 
 	for (int i = 0; i < 2; i++) {
+		pg_vhost_request_remove(p->vhost[i]);
 		kill(p->qemu_pid[i], SIGQUIT);
 		waitpid(p->qemu_pid[i], &exit_status, 0);
 	}
