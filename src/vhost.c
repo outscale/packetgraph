@@ -161,9 +161,15 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	if (!count)
 		return 0;
 
-	for (int i = 0; i < count; i += 1) {
+	for (int i = 0; i < count; i++) {
 		rx_bytes += rte_pktmbuf_pkt_len(in[i]);
 		pg_utils_guess_metadata(in[i]);
+		if (in[i]->ol_flags & PKT_TX_TCP_SEG) {
+			pkt->ol_flags = PKT_TX_IPV4 |
+					PKT_TX_IP_CKSUM |
+					PKT_TX_TCP_CKSUM |
+					PKT_TX_TCP_SEG;
+		}
 	}
 
 	rte_atomic64_add(&state->rx_bytes, rx_bytes);
