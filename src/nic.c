@@ -261,6 +261,7 @@ static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 {
 	int ret;
+	struct rte_eth_dev_info dev_info;
 	struct rte_mempool *mp = pg_get_mempool();
 	static const struct rte_eth_conf port_conf = {
 		.rxmode = {
@@ -279,9 +280,6 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 		.txmode = {
 			.mq_mode = ETH_MQ_TX_NONE,
 		},
-	};
-	static const struct rte_eth_txconf tx_conf = {
-		.txq_flags = 0,
 	};
 
 	ret = rte_eth_dev_configure(state->portid, 1, 1, &port_conf);
@@ -304,9 +302,11 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 		return -1;
 	}
 
+	rte_eth_dev_info_get(state->portid, &dev_info);
+	dev_info.default_txconf.txq_flags = 0;
 	ret = rte_eth_tx_queue_setup(state->portid, 0, 128,
 				     rte_eth_dev_socket_id(state->portid),
-				     &tx_conf);
+				     &dev_info.default_txconf);
 	if (ret < 0) {
 		*errp = pg_error_new(
 			"Setup failed for port tx queue 0, port %d",
