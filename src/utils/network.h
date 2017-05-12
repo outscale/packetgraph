@@ -23,6 +23,7 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
+#include <rte_ether.h>
 #include <endian.h>
 
 #include "utils/bitmask.h"
@@ -88,6 +89,13 @@ inline uint16_t pg_utils_get_ether_type(struct rte_mbuf *pkt)
 	return *(uint16_t *)(rte_pktmbuf_mtod(pkt, uint8_t *) +
 			     pkt->l2_len - 2);
 }
+
+#define pg_util_get_ether_src_addr(pkt)				\
+	(rte_pktmbuf_mtod(pkt, struct ether_addr *) + 1)
+
+#define pg_util_get_ether_dst_addr(pkt)			\
+	(rte_pktmbuf_mtod(pkt, struct ether_addr *))
+
 
 inline void *pg_utils_get_l3(struct rte_mbuf *pkt)
 {
