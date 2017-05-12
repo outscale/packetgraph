@@ -23,6 +23,7 @@ libpacketgraph_la_SOURCES = \
 	src/packetsgen.c\
 	src/vhost.c\
 	src/rxtx.c\
+	src/user-dipole.c\
 	src/npf/npf/dpdk/npf_dpdk.c\
 	src/antispoof.c\
 	src/collect.c\
@@ -57,6 +58,7 @@ pkginclude_HEADERS = \
 	include/packetgraph/firewall.h\
 	include/packetgraph/vhost.h\
 	include/packetgraph/rxtx.h\
+	include/packetgraph/user-dipole.h\
 	include/packetgraph/switch.h\
 	include/packetgraph/queue.h\
 	include/packetgraph/pmtud.h\
