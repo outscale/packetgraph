@@ -32,15 +32,12 @@ static inline int pg_mask_count(uint64_t pkts_mask)
 	return __builtin_popcountll(pkts_mask);
 }
 
-#if __SIZEOF_POINTER__ == 8
-#define ONE64	1LU
-#define ctz64	__builtin_ctzl
-#define clz64	__builtin_clzl
-#elif __SIZEOF_POINTER__ == 4
 #define ONE64	1LLU
-#define ctz64	__builtin_ctzll
+static inline int ctz64(long long i)
+{
+	return __builtin_ctzll(i);
+}
 #define clz64   __builtin_clzll
-#endif
 
 /**
  * Made as a macro for performance reason since a function would imply a 10%
