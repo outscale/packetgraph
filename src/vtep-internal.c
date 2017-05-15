@@ -51,13 +51,13 @@ static const char BRICK_NAME[] = BRICK_NAME_(IP_VERSION);
  * Composite structure of all the headers required to wrap a packet in VTEP
  */
 struct headers {
-	struct ether_hdr ethernet; /* define in rte_ether.h */
 	struct ip_hdr	 ip; /* define in rte_ip.h */
 	struct udp_hdr	 udp; /* define in rte_udp.h */
 	struct vxlan_hdr vxlan; /* define in rte_ether.h */
 } __attribute__((__packed__));
 
 struct full_header {
+	struct ether_hdr ethernet; /* define in rte_ether.h */
 	struct headers outer;
 	struct eth_ip_l4 inner;
 } __attribute__((__packed__));
@@ -85,7 +85,7 @@ struct vtep_config {
 #define ip_udptcp_cksum(a, b, version)			\
 	CATCAT(rte_ipv, version, _udptcp_cksum)(a, b)
 
-#define HEADER_LENGTH sizeof(struct headers)
+#define HEADER_LENGTH (sizeof(struct headers) + sizeof(struct ether_hdr))
 
 #define ETHER_TYPE_IP_(version) CAT(ETHER_TYPE_IPv, version)
 #define ETHER_TYPE_IP ETHER_TYPE_IP_(IP_VERSION)
@@ -265,6 +265,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	uint16_t packet_len = rte_pktmbuf_data_len(pkt);
 	struct full_header *full_header;
 	struct headers *headers;
+	struct ether_hdr *ethernet;
 
 	full_header =
 		(struct full_header *)rte_pktmbuf_prepend(pkt, HEADER_LENGTH);
@@ -275,13 +276,13 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		return -1;
 	}
 
+	ethernet = &full_header->ethernet;
 	headers = &full_header->outer;
 	vxlan_build(&headers->vxlan, port->vni);
 
 	/* select destination IP and MAC address */
 	if (likely(unicast)) {
-		ethernet_build(&headers->ethernet, &state->mac,
-			       &entry->mac);
+		ethernet_build(ethernet, &state->mac, &entry->mac);
 		ip_build(state, &headers->ip, state->ip, entry->ip,
 			 packet_len + ip_overhead());
 	} else {
@@ -290,8 +291,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 		if (!(state->flags & PG_VTEP_NO_INNERMAC_CHECK))
 			do_add_mac(port, &eth_hdr->s_addr);
-		ethernet_build(&headers->ethernet, &state->mac,
-			       &dst);
+		ethernet_build(ethernet, &state->mac, &dst);
 		ip_build(state, &headers->ip, state->ip, port->multicast_ip,
 			 packet_len + ip_overhead());
 	}
@@ -397,6 +397,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 static inline void add_dst_iner_macs(struct vtep_state *state,
 				     struct vtep_port *port,
 				     struct rte_mbuf **pkts,
+				     struct ether_addr **eths,
 				     struct headers **hdrs,
 				     uint64_t pkts_mask,
 				     uint64_t multicast_mask)
@@ -415,7 +416,7 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 		pg_low_bit_iterate_full(mask, bit, i);
 
 		pkt_addr = rte_pktmbuf_mtod(pkts[i], struct ether_hdr *);
-		ether_addr_copy(&hdrs[i]->ethernet.s_addr, &dst.mac);
+		ether_addr_copy(eths[i], &dst.mac);
 #if IP_VERSION == 4
 		dst.ip = hdrs[i]->ip.src_addr;
 #else
@@ -445,6 +446,7 @@ static inline bool check_udp_checksum(struct headers *hdr)
  */
 static inline void classify_pkts(struct rte_mbuf **pkts,
 				 uint64_t mask,
+				 struct ether_addr **eths,
 				 struct headers **hdrs,
 				 uint64_t *multicast_mask,
 				 uint64_t *computed_mask,
@@ -455,11 +457,10 @@ static inline void classify_pkts(struct rte_mbuf **pkts,
 		struct headers *tmp;
 
 		pg_low_bit_iterate(mask, i);
-		tmp = rte_pktmbuf_mtod(pkts[i], struct headers *);
+		tmp = pg_utils_get_l3(pkts[i]);
+		eths[i] = pg_util_get_ether_src_addr(pkts[i]);
 		hdrs[i] = tmp;
-		if (unlikely(tmp->ethernet.ether_type !=
-			     PG_BE_ETHER_TYPE_IP ||
-			     pg_ip_proto(tmp->ip) != 17 ||
+		if (unlikely(pg_ip_proto(tmp->ip) != 17 ||
 			     tmp->udp.dst_port != udp_dst_port_be ||
 			     tmp->vxlan.vx_flags != PG_VTEP_BE_I_FLAG))
 			continue;
@@ -515,7 +516,7 @@ static inline void restore_metadata(struct rte_mbuf **pkts,
 {
 	PG_FOREACH_BIT(vni_mask, it) {
 		pkts[it]->l2_len = sizeof(struct ether_hdr);
-		uint16_t eth_type = hdrs[it]->ethernet.ether_type;
+		uint16_t eth_type = pg_utils_get_ether_type(pkts[it]);
 
 		switch (eth_type) {
 		case PG_BE_ETHER_TYPE_IPv4:
@@ -536,11 +537,12 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	int i;
 	struct vtep_port *ports = state->ports;
+	struct ether_addr *eths[64];
 	struct headers *hdrs[64];
 	struct rte_mbuf **out_pkts = state->pkts;
 	uint64_t multicast_mask;
 
-	classify_pkts(pkts, pkts_mask, hdrs, &multicast_mask, &pkts_mask,
+	classify_pkts(pkts, pkts_mask, eths, hdrs, &multicast_mask, &pkts_mask,
 		      state->udp_dst_port_be);
 
 	for (i = 0; i < s->nb; ++i) {
@@ -576,7 +578,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 		}
 
 		if (hitted_mask) {
-			add_dst_iner_macs(state, port, out_pkts, hdrs,
+			add_dst_iner_macs(state, port, out_pkts, eths, hdrs,
 					  hitted_mask, multicast_mask);
 
 			restore_metadata(out_pkts, hdrs, hitted_mask);
@@ -624,11 +626,12 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
 	struct vtep_port *ports =  state->ports;
+	struct ether_addr *eths[64];
 	struct headers *hdrs[64];
 	struct pg_brick_edge *edges = s->edges;
 	uint64_t multicast_mask;
 
-	classify_pkts(pkts, pkts_mask, hdrs, &multicast_mask, &pkts_mask,
+	classify_pkts(pkts, pkts_mask, eths, hdrs, &multicast_mask, &pkts_mask,
 		      state->udp_dst_port_be);
 
 	for (int i = 0, nb = s->nb; pkts_mask && i < nb; ++i) {
@@ -642,7 +645,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 			continue;
 
 		pkts_mask ^= vni_mask;
-		add_dst_iner_macs(state, port, pkts, hdrs,
+		add_dst_iner_macs(state, port, pkts, eths, hdrs,
 				  vni_mask, multicast_mask);
 		restore_metadata(pkts, hdrs, vni_mask);
 

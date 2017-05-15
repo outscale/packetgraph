@@ -168,6 +168,15 @@ multicast_get_dst6_addr(union pg_ipv6_addr ip)
 	return dst;
 }
 
+static void l2_shorter(struct pg_brick *brick, enum pg_side output,
+		       pg_packet_t **pkts, uint64_t *pkts_mask,
+		       void *private_data)
+{
+	PG_PACKETS_FOREACH(pkts, *pkts_mask, pkt, it) {
+		pg_packet_set_l2_len(pkt, sizeof(struct ether_hdr));
+	}
+}
+
 static void test_vtep6_simple(void)
 {
 	struct ether_addr mac_dest = {{0xb0, 0xb1, 0xb2,
@@ -178,6 +187,7 @@ static void test_vtep6_simple(void)
 	struct pg_brick *vtep_west, *vtep_east;
 	struct pg_brick *collect_west1, *collect_east1;
 	struct pg_brick *collect_west2, *collect_east2;
+	struct pg_brick *callback;
 	struct pg_brick *collect_hub, *hub;
 	struct pg_graph *graph;
 	struct rte_mempool *mp = pg_get_mempool();
@@ -221,6 +231,9 @@ static void test_vtep6_simple(void)
 	hub = pg_hub_new("hub", 3, 3, &error);
 	g_assert(!error);
 	g_assert(hub);
+	callback = pg_user_dipole_new("call me", l2_shorter, NULL, &error);
+	g_assert(!error);
+	g_assert(callback);
 
 	/*
 	 * Here is an ascii graph of the links:
@@ -236,7 +249,7 @@ static void test_vtep6_simple(void)
 	 * [CW2] -/         \-[CH]  \- [CE2]
 	 */
 	pg_brick_chained_links(&error, collect_west1, vtep_west, hub,
-			       vtep_east, collect_east1);
+			       callback, vtep_east, collect_east1);
 	g_assert(!error);
 	pg_brick_link(collect_west2, vtep_west, &error);
 	g_assert(!error);
@@ -296,6 +309,7 @@ static void test_vtep6_simple(void)
 
 		pkts[i] = rte_pktmbuf_alloc(mp);
 		g_assert(pkts[i]);
+		pkts[i]->l2_len = sizeof(struct ether_hdr);
 		pkts[i]->udata64 = i;
 		pg_set_mac_addrs(pkts[i],
 				 pg_printable_mac(&mac_src, buf),
@@ -312,6 +326,7 @@ static void test_vtep6_simple(void)
 	g_assert(!error);
 
 	pg_error_make_ctx(1);
+
 	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get,
 				      NB_PKTS);
 
@@ -388,6 +403,7 @@ static void test_vtep_simple_internal(int flag)
 	struct pg_brick *collect_west1, *collect_east1;
 	struct pg_brick *collect_west2, *collect_east2;
 	struct pg_brick *collect_hub;
+	struct pg_brick *callback;
 	struct pg_brick *hub;
 	struct rte_mempool *mp = pg_get_mempool();
 	struct rte_mbuf *pkts[NB_PKTS];
@@ -438,6 +454,9 @@ static void test_vtep_simple_internal(int flag)
 		pg_error_print(error);
 	g_assert(!error);
 	g_assert(hub);
+	callback = pg_user_dipole_new("call me", l2_shorter, NULL, &error);
+	g_assert(!error);
+	g_assert(callback);
 
 	/*
 	 * here is an ascii graph of the links:
@@ -462,7 +481,7 @@ static void test_vtep_simple_internal(int flag)
 	pg_brick_link(hub, collect_hub, &error);
 	g_assert(!error);
 
-	pg_brick_link(hub, vtep_east, &error);
+	pg_brick_chained_links(&error, hub, callback, vtep_east);
 	g_assert(!error);
 	pg_brick_link(vtep_east, collect_east1, &error);
 	g_assert(!error);
@@ -811,6 +830,7 @@ static void test_vtep_flood_encap_decap(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *nop_east, *pktgen_west, *vtep_east, *vtep_west;
+	struct pg_brick *callback;
 	struct ether_addr  multicast_mac1;
 	struct ether_addr  multicast_mac2;
 	uint64_t tot_send_pkts = 0;
@@ -849,8 +869,12 @@ static void test_vtep_flood_encap_decap(void)
 	nop_east = pg_nop_new("nop-east", &error);
 	CHECK_ERROR(error);
 
+	callback = pg_user_dipole_new("call me", l2_shorter, NULL, &error);
+	g_assert(!error);
+	g_assert(callback);
+
 	pg_brick_chained_links(&error, pktgen_west, vtep_west,
-			       vtep_east, nop_east);
+			       callback, vtep_east, nop_east);
 	CHECK_ERROR(error);
 
 	pg_vtep_add_vni(vtep_west, pktgen_west, 0,
