@@ -49,3 +49,33 @@ uint16_t pg_packet_ipv4_checksum(uint8_t *ip_hdr)
 {
 	return rte_ipv4_cksum((struct ipv4_hdr *) ip_hdr);
 }
+
+void pg_packet_set_l2_len(pg_packet_t *packet, unsigned int len)
+{
+	packet->l2_len = len;
+}
+
+int pg_packet_get_l2_len(pg_packet_t *packet)
+{
+	return packet->l2_len;
+}
+
+void pg_packet_set_l3_len(pg_packet_t *packet, unsigned int len)
+{
+	packet->l3_len = len;
+}
+
+int pg_packet_get_l3_len(pg_packet_t *packet)
+{
+	return packet->l3_len;
+}
+
+void pg_packet_set_l4_len(pg_packet_t *packet, unsigned int len)
+{
+	packet->l4_len = len;
+}
+
+int pg_packet_get_l4_len(pg_packet_t *packet)
+{
+	return packet->l4_len;
+}

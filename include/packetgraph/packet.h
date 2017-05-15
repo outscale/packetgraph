@@ -60,6 +60,27 @@ unsigned int pg_packet_max_len(pg_packet_t *packet);
  */
 int pg_packet_set_len(pg_packet_t *packet, unsigned int len);
 
+void pg_packet_set_l2_len(pg_packet_t *packet, unsigned int len);
+int pg_packet_get_l2_len(pg_packet_t *packet);
+void pg_packet_set_l3_len(pg_packet_t *packet, unsigned int len);
+int pg_packet_get_l3_len(pg_packet_t *packet);
+void pg_packet_set_l4_len(pg_packet_t *packet, unsigned int len);
+int pg_packet_get_l4_len(pg_packet_t *packet);
+
+/**
+ * iterate on each packets in @pkts base on @mask
+ *
+ * @pkt:	current packet
+ * @it:		current pos
+ */
+#define PG_PACKETS_FOREACH(pkts, mask, pkt, it)				\
+	pg_packet_t *pkt;						\
+	for (uint64_t tmpmask = (mask), it;				\
+	     ((it = __builtin_ctzll(tmpmask)) || 1)			\
+		     && (pkt = (pkts)[it]) && tmpmask;			\
+	     tmpmask &= ~(1LLU << it))
+
+
 /**
  * Compute checksum of an ipv4 header
  *
