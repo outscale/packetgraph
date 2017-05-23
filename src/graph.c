@@ -379,3 +379,8 @@ int pg_graph_dot(struct pg_graph *graph, FILE *fd,
 {
 	return pg_brick_dot(get_any_brick(graph), fd, error);
 }
+
+void pg_graph_empty(struct pg_graph *graph)
+{
+	empty_graph(graph);
+}

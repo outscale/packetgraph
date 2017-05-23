@@ -139,6 +139,13 @@ struct pg_brick *pg_graph_unsafe_pop(struct pg_graph *graph,
 				     const char *brick_name);
 
 /**
+ * Remove all bricks from a graph without destroying them
+ *
+ * @param	graph graph where to remove all bricks
+ */
+void pg_graph_empty(struct pg_graph *graph);
+
+/**
  * Add a single brick to graph.
  *
  * @param	graph graph where to add a brick
