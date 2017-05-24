@@ -95,6 +95,14 @@ int pg_brick_poll(struct pg_brick *brick, uint16_t *count,
 		  struct pg_error **errp);
 
 /**
+ * Know if a brick can be polled or not.
+ *
+ * @param	brick brick
+ * @return	true if the brick can be polled, false otherwise
+ */
+bool pg_brick_pollable(struct pg_brick *brick);
+
+/**
  * Number packets received by a specific side.
  *
  * @param	brick brick pointer
