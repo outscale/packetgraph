@@ -20,12 +20,16 @@
 #include <rte_virtio_net.h>
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
+#include "utils/mempool.h"
 #include "dpdk_symbols.h"
 
 int pg_start(int argc, char **argv)
 {
 	mp_hdlr_init_ops_stack();
-	return rte_eal_init(argc, argv);
+	int ret = rte_eal_init(argc, argv);
+
+	pg_get_mempool();
+	return ret;
 }
 
 char **pg_glob_dpdk_argv;
