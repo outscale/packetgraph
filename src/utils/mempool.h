@@ -31,8 +31,6 @@ void pg_alloc_mempool(void);
 
 static inline struct rte_mempool *pg_get_mempool(void)
 {
-	if (unlikely(!mp))
-		pg_alloc_mempool();
 	return mp;
 }
 
