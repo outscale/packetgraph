@@ -40,6 +40,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 - queue: temporally store packets between graph
 - pmtud(ipv4 only): Path MTU Discovery is an implementation of [RFC 1191](https://tools.ietf.org/html/rfc1191)
 - fragment-ip: fragment and reassemble packets
+- user-dipole: setup your own callback in a dipole brick, to filter or implement your own protocol
 
 A lot of other bricks can be created, check our [wall](https://github.com/outscale/packetgraph/issues?q=is%3Aopen+is%3Aissue+label%3Awall) ;)
 
