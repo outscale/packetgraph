@@ -195,10 +195,8 @@ struct pg_brick *pg_graph_get(struct pg_graph *graph, const char *brick_name)
 {
 	struct pg_brick *b;
 
-	if (g_hash_table_lookup_extended(graph->all,
-					 brick_name,
-					 NULL,
-					 (void **) &b))
+	if (g_hash_table_lookup_extended(graph->all, brick_name,
+					 NULL, (void **) &b))
 		return b;
 	return NULL;
 }
