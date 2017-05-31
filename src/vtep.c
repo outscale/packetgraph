@@ -81,6 +81,11 @@ struct igmp_hdr {
 struct multicast_pkt {
 	struct ether_hdr ethernet;
 	struct ipv4_hdr ipv4;
+	struct {
+		uint8_t type;
+		uint8_t size;
+		uint16_t unused;
+	} __attribute__((__packed__)) ip_option;
 	struct igmp_hdr igmp;
 } __attribute__((__packed__));
 
@@ -159,9 +164,10 @@ static void multicast4_internal(struct vtep_state *state,
 	hdr->ethernet.ether_type = PG_BE_ETHER_TYPE_IPv4;
 
 	/* 4-5 = 0x45 */
-	hdr->ipv4.version_ihl = 0x45;
+	hdr->ipv4.version_ihl = 0x46;
 	hdr->ipv4.type_of_service = 0;
 	hdr->ipv4.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr) +
+						  sizeof(uint32_t) +
 						  sizeof(struct igmp_hdr));
 	hdr->ipv4.packet_id = 0;
 	hdr->ipv4.fragment_offset = 0;
@@ -170,6 +176,9 @@ static void multicast4_internal(struct vtep_state *state,
 	hdr->ipv4.hdr_checksum = 0;
 	hdr->ipv4.src_addr = state->ip;
 
+	hdr->ip_option.type = 0x94;
+	hdr->ip_option.size = 4;
+	hdr->ip_option.unused = 0;
 	switch (action) {
 	case IGMP_SUBSCRIBE:
 		hdr->ipv4.dst_addr = multicast_ip;
@@ -181,8 +190,10 @@ static void multicast4_internal(struct vtep_state *state,
 		*errp = pg_error_new("action not handle");
 		goto clear;
 	}
-	hdr->ipv4.hdr_checksum = rte_ipv4_cksum(&hdr->ipv4);
-
+	hdr->ipv4.hdr_checksum = rte_raw_cksum(&hdr->ipv4,
+					       sizeof(struct ipv4_hdr) +
+					       sizeof(uint32_t));
+	hdr->ipv4.hdr_checksum = ~hdr->ipv4.hdr_checksum;
 	hdr->igmp.type = action;
 	hdr->igmp.max_resp_time = 0;
 	hdr->igmp.checksum = 0;
