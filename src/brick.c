@@ -654,6 +654,11 @@ int pg_brick_poll(struct pg_brick *brick,
 	return brick->poll(brick, count, errp);
 }
 
+bool pg_brick_pollable(struct pg_brick *brick)
+{
+	return brick && brick->poll;
+}
+
 /* These functions are are for automated testing purpose */
 struct rte_mbuf **pg_brick_west_burst_get(struct pg_brick *brick,
 					  uint64_t *pkts_mask,
