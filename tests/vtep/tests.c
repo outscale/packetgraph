@@ -81,6 +81,7 @@ struct igmp_hdr {
 struct multicast_pkt {
 	struct ether_hdr ethernet;
 	struct ipv4_hdr ipv4;
+	uint32_t ip;
 	struct igmp_hdr igmp;
 } __attribute__((__packed__));
 
@@ -123,7 +124,7 @@ static void check_multicast_hdr(struct multicast_pkt *hdr, uint32_t ip_dst,
 {
 	(void)hdr->igmp.checksum; /* cppcheck, don't speak please */
 	g_assert(hdr->ethernet.ether_type == rte_cpu_to_be_16(ETHER_TYPE_IPv4));
-	g_assert(hdr->ipv4.version_ihl == 0x45);
+	g_assert(hdr->ipv4.version_ihl == 0x46);
 	g_assert(hdr->ipv4.next_proto_id == 0x02);
 	g_assert(hdr->ipv4.dst_addr == ip_dst);
 	g_assert(hdr->ipv4.src_addr == ip_src);

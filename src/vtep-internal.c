@@ -502,7 +502,9 @@ static inline uint64_t check_and_clone_vni_pkts(struct vtep_state *state,
 			if (unlikely(!tmp))
 				return 0;
 			out_pkts[j] = tmp;
-			if (!rte_pktmbuf_adj(out_pkts[j], HEADER_LENGTH))
+			if (!rte_pktmbuf_adj(out_pkts[j],
+					     out_pkts[j]->l2_len +
+					     sizeof(struct headers)))
 				return 0;
 			vni_mask |= (1LLU << j);
 		}
@@ -610,7 +612,9 @@ static inline uint64_t check_vni_pkts(struct rte_mbuf **pkts,
 
 		pg_low_bit_iterate_full(mask, bit, j);
 		if (hdrs[j]->vxlan.vx_vni == port->vni) {
-			rte_pktmbuf_adj(pkts[j], HEADER_LENGTH);
+			rte_pktmbuf_adj(pkts[j],
+					pkts[j]->l2_len +
+					sizeof(struct headers));
 			vni_mask |= bit;
 		}
 	}
