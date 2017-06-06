@@ -46,7 +46,6 @@ static void test_brick_core_dot(void)
 	struct pg_brick *a, *b, *c, *d, *e, *f, *g, *h, *i, *j, *k;
 	struct pg_error *error = NULL;
 	char result[RESULT_SIZE];
-	FILE *fd;
 
 	a = pg_hub_new("a", 5, 5, &error);
 	g_assert(!error);
@@ -84,9 +83,7 @@ static void test_brick_core_dot(void)
 	pg_brick_chained_links(&error, j, h);
 	g_assert(!error);
 
-	fd = fmemopen(result, RESULT_SIZE, "w+");
-	ret = pg_brick_dot(k, fd, &error);
-	fclose(fd);
+	ret = pg_brick_dot_mem(k, result, RESULT_SIZE, &error);
 	g_assert(!error);
 	g_assert(ret == 0);
 

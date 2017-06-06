@@ -815,6 +815,16 @@ static GList *pg_brick_dot_add(GList *todo, GList *done,
 	return todo;
 }
 
+
+int pg_brick_dot_mem(struct pg_brick *brick, char *array, int array_size,
+		     struct pg_error **errp) {
+	FILE *fd = fmemopen(array, array_size, "w+");
+	int ret = pg_brick_dot(brick, fd, errp);
+
+	fclose(fd);
+	return ret;
+}
+
 int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 {
 	GList *todo = NULL;
