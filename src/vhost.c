@@ -60,6 +60,8 @@ struct pg_vhost_state {
 	enum pg_side output;
 	struct pg_vhost_socket *socket;
 	rte_atomic32_t allow_queuing;
+	int check_atomic;
+	int check_counter;
 	int vid;
 	struct rte_mbuf *in[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
@@ -92,16 +94,17 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 		       uint16_t edge_index, struct rte_mbuf **pkts,
 		       uint64_t pkts_mask, struct pg_error **errp)
 {
-	struct pg_vhost_state *state;
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick, struct pg_vhost_state);
 	int virtio_net;
 	uint16_t pkts_count;
 	uint16_t bursted_pkts;
 	uint64_t tx_bytes = 0;
-
-	state = pg_brick_get_state(brick, struct pg_vhost_state);
+	int check_atomic = state->check_atomic;
 
 	/* Try lock */
-	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
+	if (unlikely(check_atomic &&
+		     !rte_atomic32_test_and_set(&state->allow_queuing)))
 		return 0;
 
 	virtio_net = state->vid;
@@ -110,7 +113,8 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 					       VIRTIO_RXQ,
 					       state->out,
 					       pkts_count);
-	rte_atomic32_clear(&state->allow_queuing);
+	if (check_atomic)
+		rte_atomic32_clear(&state->allow_queuing);
 
 	/* count tx bytes: burst is packed so we can directly iterate */
 	for (int i = 0; i < bursted_pkts; i++)
@@ -143,13 +147,13 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	int ret;
 	struct rte_mbuf **in = state->in;
 	uint64_t rx_bytes = 0;
+	int check_atomic = state->check_atomic;
 
 	*pkts_cnt = 0;
 	/* Try lock */
-	if (unlikely(!rte_atomic32_test_and_set(&state->allow_queuing)))
+	if (check_atomic && !rte_atomic32_test_and_set(&state->allow_queuing))
 		return 0;
 
-	rte_atomic32_set(&state->allow_queuing, 0);
 	virtio_net = state->vid;
 	*pkts_cnt = 0;
 
@@ -157,13 +161,31 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 					MAX_BURST);
 	*pkts_cnt = count;
 
-	rte_atomic32_clear(&state->allow_queuing);
+	if (check_atomic) {
+		state->check_atomic -= 1;
+		if (unlikely(!state->check_atomic))
+			state->check_counter = 16384;
+		else
+			rte_atomic32_clear(&state->allow_queuing);
+	} else {
+		state->check_counter -= 1;
+		if (unlikely(!state->check_counter)) {
+			state->check_atomic = 1024;
+			rte_atomic32_clear(&state->allow_queuing);
+		}
+	}
 	if (!count)
 		return 0;
 
-	for (int i = 0; i < count; i += 1) {
+	for (int i = 0; i < count; i++) {
 		rx_bytes += rte_pktmbuf_pkt_len(in[i]);
 		pg_utils_guess_metadata(in[i]);
+		if (in[i]->ol_flags & PKT_TX_TCP_SEG) {
+			in[i]->ol_flags = PKT_TX_IPV4 |
+					  PKT_TX_IP_CKSUM |
+					  PKT_TX_TCP_CKSUM |
+					  PKT_TX_TCP_SEG;
+		}
 	}
 
 	rte_atomic64_add(&state->rx_bytes, rx_bytes);
@@ -260,6 +282,8 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	rte_atomic32_init(&state->allow_queuing);
 	rte_atomic32_set(&state->allow_queuing, 1);
+	state->check_atomic = 1024;
+	state->check_counter = 0;
 
 	return 0;
 }
@@ -361,6 +385,8 @@ static void destroy_vm(int dev)
 			while (!rte_atomic32_test_and_set(&s->state->
 							  allow_queuing))
 				sched_yield();
+			s->state->check_atomic = 1024;
+			s->state->check_counter = 0;
 			s->state->vid = -1;
 			break;
 		}
