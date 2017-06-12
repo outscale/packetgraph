@@ -80,13 +80,13 @@ in our firewall example.
 
 We can also use NICs which are not optimized to be used with DPDK.
 This will just requiere to pass some additional DPDK arguments to our example:
-"--vdev=eth_pcap0,iface=eth0 --vdev=eth_pcap0,iface=eth1".
+"--vdev=eth_pcap0,iface=eth0 --vdev=eth_pcap1,iface=eth1".
 
 # Run example
 
 You can just run the firewall like:
 ```
-$ ./firewall -c1 -n1
+$ ./examples/firewall/run.sh
 ```
 
 The program will use the first two DPDK ports available.
@@ -99,7 +99,7 @@ command.
 
 For example, you can set isolcpu=0 and run the firewall on the first core:
 ```
-$ taskset -c 0 ./firewall -c1 -n1
+$ taskset -c 0 ./examples/firewall/run.sh
 ```
 
 # Test firewall
