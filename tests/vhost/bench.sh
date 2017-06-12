@@ -53,9 +53,9 @@ if [ ! -d /mnt/huge ]; then
 fi
 
 # Get VM image & key
-IMG_URL=https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/arch-100816.qcow
-IMG_MD5=1ca000ddbc5ac271c77d1875fab71083
-KEY_URL=https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/arch-100816.rsa
+IMG_URL=https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/arch-260417.qcow
+IMG_MD5=7bd77480631145b679bc8fac3583b163
+KEY_URL=https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/arch-260417.rsa
 KEY_MD5=eb3d700f2ee166e0dbe00f4e0aa2cef9
 download $IMG_URL $IMG_MD5 vm.qcow
 download $KEY_URL $KEY_MD5 vm.rsa
