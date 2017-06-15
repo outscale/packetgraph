@@ -229,10 +229,7 @@ int pg_graph_merge(struct pg_graph *graph1,
  *
  * @param	graph graph structure used to build dot graph
  * @param	fd file descriptor where to write the graph description
- * @param	error is set in case of an error
- * @return	0 on success, -1 on error
  */
-int pg_graph_dot(struct pg_graph *graph, FILE *fd,
-		 struct pg_error **error);
+void pg_graph_dot(struct pg_graph *graph, FILE *fd);
 
 #endif /* _PG_GRAPH_H */

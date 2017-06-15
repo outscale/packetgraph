@@ -372,10 +372,9 @@ int pg_graph_merge(struct pg_graph *graph_west,
 	return 0;
 }
 
-int pg_graph_dot(struct pg_graph *graph, FILE *fd,
-		 struct pg_error **error)
+void pg_graph_dot(struct pg_graph *graph, FILE *fd)
 {
-	return pg_brick_dot(get_any_brick(graph), fd, error);
+	return pg_brick_dot_fd(get_any_brick(graph), fd);
 }
 
 void pg_graph_empty(struct pg_graph *graph)
