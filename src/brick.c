@@ -800,12 +800,12 @@ int pg_brick_unlink_edge(struct pg_brick *west,
 
 static GList *pg_brick_dot_add(GList *todo, GList *done,
 			       struct pg_brick *b, struct pg_brick *n,
-			       enum pg_side i, FILE *fd)
+			       enum pg_side i, GString *s)
 {
 	if (!g_list_find(todo, n) &&
 	    !g_list_find(done, n))
 		todo = g_list_append(todo, n);
-	fprintf(fd, "  \"%s:%s\":%s -- \"%s:%s\":%s\n",
+	g_string_append_printf(s, "  \"%s:%s\":%s -- \"%s:%s\":%s\n",
 		b->ops->name,
 		b->name,
 		(i == PG_WEST_SIDE ? "west" : "east"),
@@ -815,27 +815,25 @@ static GList *pg_brick_dot_add(GList *todo, GList *done,
 	return todo;
 }
 
+void pg_brick_dot_fd(struct pg_brick *brick, FILE *fd)
+{
+	char *string = pg_brick_dot(brick);
 
-int pg_brick_dot_mem(struct pg_brick *brick, char *array, int array_size,
-		     struct pg_error **errp) {
-	FILE *fd = fmemopen(array, array_size, "w+");
-	int ret = pg_brick_dot(brick, fd, errp);
-
-	fclose(fd);
-	return ret;
+	fprintf(fd, "%s", string);
+	free(string);
 }
 
-int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
+char *pg_brick_dot(struct pg_brick *brick)
 {
 	GList *todo = NULL;
 	GList *done = NULL;
+	GString *s = g_string_new("strict graph G {\n");
 	int i, j;
 
-	fprintf(fd, "strict graph G {\n");
-	fprintf(fd, "  rankdir=LR\n");
-	fprintf(fd, "  nodesep=1\n");
-	fprintf(fd, "  node [shape=record];\n");
 	todo = g_list_append(todo, brick);
+	s = g_string_append(s, "  rankdir=LR\n");
+	s = g_string_append(s, "  nodesep=1\n");
+	s = g_string_append(s, "  node [shape=record];\n");
 
 	while (todo != NULL) {
 		/* Take the first brick to analyse. */
@@ -844,7 +842,7 @@ int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 		todo = g_list_remove(todo, b);
 
 		/* declare node */
-		fprintf(fd,
+		g_string_append_printf(s,
 		"  \"%s:%s\" [ label=\"{ <west> | %s&#92;n%s |<east> }\"];\n",
 			b->ops->name,
 			b->name,
@@ -857,7 +855,7 @@ int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 			if (!n)
 				goto continue_while;
 			todo = pg_brick_dot_add(todo, done, b,
-						n, PG_WEST_SIDE, fd);
+						n, PG_WEST_SIDE, s);
 			goto continue_while;
 		}
 
@@ -870,7 +868,7 @@ int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 					continue;
 				todo = pg_brick_dot_add(todo, done, b,
 							b->sides[i].edge.link,
-							i, fd);
+							i, s);
 			} else {
 				for (j = 0; j < b->sides[i].max; j++) {
 					/* get target */
@@ -881,7 +879,7 @@ int pg_brick_dot(struct pg_brick *brick, FILE *fd, struct pg_error **errp)
 						continue;
 					/* A new brick appears */
 					todo = pg_brick_dot_add(todo, done,
-								b, n, i, fd);
+								b, n, i, s);
 				}
 			}
 		}
@@ -889,6 +887,7 @@ continue_while:
 		/* mark this brick as done */
 		done = g_list_append(done, b);
 	}
-	fprintf(fd, "}\n");
-	return 0;
+	g_string_append(s, "}\n");
+	return g_string_free(s, false);
 }
+
