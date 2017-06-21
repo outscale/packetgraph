@@ -75,9 +75,9 @@ int pg_packet_get_l4_len(pg_packet_t *packet);
  */
 #define PG_PACKETS_FOREACH(pkts, mask, pkt, it)				\
 	pg_packet_t *pkt;						\
-	for (uint64_t tmpmask = (mask), it;				\
-	     ((it = __builtin_ctzll(tmpmask)) || 1)			\
-		     && (pkt = (pkts)[it]) && tmpmask;			\
+	for (uint64_t tmpmask = (mask), it = 0;				\
+	     tmpmask && ((it = __builtin_ctzll(tmpmask)) || 1)		\
+		     && (pkt = (pkts)[it]);				\
 	     tmpmask &= ~(1LLU << it))
 
 
