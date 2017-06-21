@@ -761,6 +761,9 @@ static void vtep_unlink_notify(struct pg_brick *brick,
 
 static void vtep_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
+	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+
+	g_free(state->ports);
 }
 
 static struct pg_brick_config *vtep_config_new(const char *name,
