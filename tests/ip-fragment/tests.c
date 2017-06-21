@@ -96,6 +96,7 @@ static void test_fragment(void)
 	g_assert(pg_mask_count(mask) == 1);
 
 	pg_brick_destroy(col_east);
+	pg_brick_destroy(col_west);
 	pg_brick_destroy(frag);
 	pg_packets_free(pkts, mask);
 	g_free(pkts);
