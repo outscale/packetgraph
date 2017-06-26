@@ -128,6 +128,7 @@ struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
 			continue;					\
 		ip_hdr.version_ihl = 0x45;				\
 		ip_hdr.total_length = rte_cpu_to_be_16(datagram_len);	\
+		ip_hdr.type_of_service = 0;				\
 		ip_hdr.packet_id = 0;					\
 		ip_hdr.time_to_live = 64;				\
 		ip_hdr.hdr_checksum = 0;				\
