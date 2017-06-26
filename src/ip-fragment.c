@@ -241,6 +241,16 @@ static int ip_fragment_init(struct pg_brick *brick,
 					      FRAG_TIMEOUT_IN_S,
 					      SOCKET_ID_ANY);
 	if (!state->tbl) {
+		state->tbl =
+			rte_ip_frag_table_create(FRAG_TBL_NB_PKTS_PER_BUCKETS /
+						 2,
+						 FRAG_TBL_NB_BUCKETS,
+						 FRAG_TBL_TOTAL_MAX_PKTS,
+						 rte_get_timer_hz() *
+						 FRAG_TIMEOUT_IN_S,
+						 SOCKET_ID_ANY);
+	}
+	if (!state->tbl) {
 		*errp = pg_error_new("can't create ip frag table");
 		return -1;
 	}
