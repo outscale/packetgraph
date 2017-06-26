@@ -435,6 +435,9 @@ static inline bool check_udp_checksum(struct headers *hdr)
 {
 	uint16_t cksum = hdr->udp.dgram_cksum;
 
+#if IP_VERSION == 4
+	hdr->ip.hdr_checksum = 0;
+#endif
 	hdr->udp.dgram_cksum = 0;
 	return (ip_udptcp_cksum(&hdr->ip, &hdr->udp, IP_VERSION) == cksum);
 }

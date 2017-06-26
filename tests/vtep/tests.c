@@ -1067,6 +1067,8 @@ static void test_vtep_fragment_encap_decap(void)
 		g_assert(tmp_pkts[it]->l2_len == sizeof(struct ether_hdr));
 		g_assert(tmp_pkts[it]->l3_len == sizeof(struct ipv4_hdr));
 		g_assert(tmp_pkts[it]->ol_flags == PKT_TX_UDP_CKSUM);
+		hdr->ipv4.hdr_checksum = 0;
+		hdr->udp.dgram_cksum = 0;
 		hdr->udp.dgram_cksum =
 			rte_ipv4_udptcp_cksum(&hdr->ipv4, &hdr->udp);
 		hdr += 1;
