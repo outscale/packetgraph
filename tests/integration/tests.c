@@ -41,6 +41,7 @@
 #include <packetgraph/firewall.h>
 #include <packetgraph/antispoof.h>
 #include <packetgraph/errors.h>
+#include <packetgraph/graph.h>
 #include "packets.h"
 #include "brick-int.h"
 #include "collect.h"
@@ -77,33 +78,6 @@ struct branch {
 static char *glob_vm_path;
 static char *glob_vm_key_path;
 static char *glob_hugepages_path;
-
-static inline void pg_gc_chained_add_int(GList **name, ...)
-{
-	va_list ap;
-	struct pg_brick *cur;
-
-	va_start(ap, name);
-	while ((cur = va_arg(ap, struct pg_brick *)) != NULL)
-		*name = g_list_append(*name, cur);
-	va_end(ap);
-}
-
-#define PG_GC_CHAINED_ADD(name, args...)		\
-	(pg_gc_chained_add_int(&name, args, NULL))
-
-
-static void pg_brick_destroy_wraper(void *arg, void *useless)
-{
-	pg_brick_destroy(arg);
-}
-
-static void pg_gc_destroy(GList *graph)
-{
-	g_list_foreach(graph, pg_brick_destroy_wraper, NULL);
-	g_list_free(graph);
-}
-
 
 #define ASSERT(check) do {						\
 		if (!(check)) {						\
@@ -174,11 +148,6 @@ static int ring_port(void)
 	r1 = rte_ring_create("R1", 256, 0, RING_F_SP_ENQ|RING_F_SC_DEQ);
 	port1 = rte_eth_from_rings("r1-port", &r1, 1, &r1, 1, 0);
 	return port1;
-}
-
-static void rm_graph_branch(struct branch *branch)
-{
-	pg_gc_destroy(branch->collector);
 }
 
 static inline const char *sock_path_graph(struct branch *branch,
@@ -264,11 +233,6 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 				     NULL, &error);
 	CHECK_ERROR(error);
 
-	PG_GC_CHAINED_ADD(branch->collector, branch->firewall,
-			  branch->antispoof, branch->vhost,
-			  branch->vhost_reader, branch->collect,
-			  branch->print);
-
 	if (print && antispoof) {
 		pg_brick_chained_links(&error, branch->firewall,
 				       branch->antispoof, branch->print,
@@ -311,16 +275,15 @@ static void test_graph_type1(void)
 	struct ether_addr mac2 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x21} };
 	const char mac_reader_1[18] = "52:54:00:12:34:12";
 	const char mac_reader_2[18] = "52:54:00:12:34:22";
+	struct pg_graph *graph = NULL, *graph1 = NULL, *graph2 = NULL;
 	struct branch branch1, branch2;
 	int qemu1_pid = 0;
 	int qemu2_pid = 0;
 	struct rte_mbuf **pkts = NULL;
 	struct rte_mbuf **result_pkts;
-	uint16_t count;
-	uint64_t pkts_mask = 0;
+	uint64_t pkts_mask = 0, count = 0;
 	int ret = -1;
 	uint32_t len;
-	GList *brick_gc = NULL;
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
@@ -338,8 +301,6 @@ static void test_graph_type1(void)
 			     NULL, &error);
 	CHECK_ERROR(error);
 
-	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
-
 	g_assert(add_graph_branch(&branch1, 1, mac1, 0, 0));
 	g_assert(add_graph_branch(&branch2, 2, mac2, 0, 0));
 
@@ -349,6 +310,11 @@ static void test_graph_type1(void)
 	 *		      /
 	 * NIC -- PRINT-- VTEP
 	 *	              \ FIREWALL2 -- ANTISPOOF2 -- VHOST2
+	 *
+	 *
+	 * Todo this graph is the goal for this test, but we
+	 * don't use ANTISPOOF in the graph yet.
+	 *
 	 */
 	pg_brick_chained_links(&error, nic, print, vtep);
 	CHECK_ERROR(error);
@@ -356,7 +322,10 @@ static void test_graph_type1(void)
 	g_assert(link_graph_branch(&branch1, vtep));
 	g_assert(link_graph_branch(&branch2, vtep));
 
-	/* Translate MAC to strings */
+	graph = pg_graph_new("graph_1", nic, &error);
+	CHECK_ERROR(error);
+	graph1 = pg_graph_new("graph_2", branch1.vhost_reader, &error);
+	CHECK_ERROR(error);
 
 	g_assert(g_file_test(sock_path_graph(&branch1, &error),
 			     G_FILE_TEST_EXISTS));
@@ -370,10 +339,10 @@ static void test_graph_type1(void)
 	g_assert(g_file_test(glob_vm_key_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_hugepages_path, G_FILE_TEST_EXISTS));
 	/* spawm time ! */
-	qemu1_pid = start_qemu_graph(&branch1, mac_reader_1,  &error);
+	qemu1_pid = start_qemu_graph(&branch1, mac_reader_1, &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu1_pid);
-	qemu2_pid = start_qemu_graph(&branch2, mac_reader_2,  &error);
+	qemu2_pid = start_qemu_graph(&branch2, mac_reader_2, &error);
 	CHECK_ERROR_ASSERT(error);
 	g_assert(qemu2_pid);
 
@@ -412,34 +381,37 @@ static void test_graph_type1(void)
 
 	/* Write the packet into the ring */
 	rte_eth_tx_burst(ring_port(), 0, pkts, 1);
-	pg_brick_poll(nic, &count, &error);
-
+	g_assert(pg_graph_poll(graph, &error) == 0);
 	CHECK_ERROR_ASSERT(error);
-	ASSERT(count);
 
 	/* Check all step of the transmition :) */
 	ASSERT(pg_brick_pkts_count_get(nic, PG_WEST_SIDE));
 	ASSERT(pg_brick_pkts_count_get(vtep, PG_EAST_SIDE));
 	ASSERT(pg_brick_pkts_count_get(branch1.firewall, PG_EAST_SIDE));
 	ASSERT(pg_brick_pkts_count_get(branch1.vhost, PG_EAST_SIDE));
-
 	/* check the collect1 */
 	for (int i = 0; i < 10; i++) {
 		usleep(100000);
-		pg_brick_poll(branch1.vhost_reader, &count, &error);
+		g_assert(pg_graph_poll(graph1, &error) == 0);
 		CHECK_ERROR_ASSERT(error);
+		count = pg_brick_pkts_count_get(branch1.collect, PG_EAST_SIDE);
 		if (count)
 			break;
 	}
-
-	CHECK_ERROR_ASSERT(error);
-	ASSERT(pg_brick_pkts_count_get(branch1.collect,
-				       PG_EAST_SIDE));
 	ASSERT(count);
 	/* same with VNI 2 */
 	result_pkts = pg_brick_west_burst_get(branch1.collect, &pkts_mask,
 					      &error);
 	ASSERT(result_pkts);
+	/* split graph */
+	graph2 = pg_graph_split(graph, "graph-2", "print", "vt",
+						"q_west", "q_east", &error);
+	CHECK_ERROR(error);
+	/* merge graph after splitted */
+	g_assert(pg_graph_merge(graph, graph2, &error) == 0);
+	CHECK_ERROR(error);
+	g_assert(pg_graph_poll(graph, &error) == 0);
+	CHECK_ERROR_ASSERT(error);
 
 	/* Write in vhost2_reader */
 	/* Check all step of the transmition (again in the oposit way) */
@@ -459,50 +431,50 @@ exit:
 		pg_packets_free(pkts, 1);
 		g_free(pkts);
 	}
-	rm_graph_branch(&branch1);
-	rm_graph_branch(&branch2);
-	pg_gc_destroy(brick_gc);
+	pg_graph_destroy(graph1);
+	pg_graph_destroy(graph);
 	pg_vhost_stop();
 	g_assert(!ret);
 }
 
 static void test_graph_firewall_intense(void)
 {
-	struct pg_brick *nic, *vtep, *print;
+	struct pg_brick *nic, *vtep, *print, *vhost, *firewall;
 	struct pg_error *error = NULL;
 	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
 				       0xb3, 0xb4, 0xb5} };
-	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
-	struct branch branch1;
 	int ret = -1;
-	GList *brick_gc = NULL;
+	struct pg_graph *graph = NULL;
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
 
-	nic = pg_nic_new_by_id("nic", ring_port(), &error);
-	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", 50, PG_WEST_SIDE,
-			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
-			   PG_VTEP_ALL_OPTI, &error);
-	CHECK_ERROR(error);
-
-	print = pg_print_new("main-print", NULL, PG_PRINT_FLAG_MAX,
-			     NULL, &error);
-	CHECK_ERROR(error);
-	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
-
-	pg_brick_chained_links(&error, nic, print, vtep);
-	CHECK_ERROR(error);
-
 	for (int i = 0; i < 100; ++i) {
-		g_assert(add_graph_branch(&branch1, 1, mac1, 0, 0));
-		g_assert(link_graph_branch(&branch1, vtep));
-
+		nic = pg_nic_new_by_id("nic", ring_port(), &error);
+		CHECK_ERROR(error);
+		vtep = pg_vtep_new("vt", 50, PG_WEST_SIDE,
+				    0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
+					PG_VTEP_ALL_OPTI, &error);
+		CHECK_ERROR(error);
+		print = pg_print_new("main-print", NULL, PG_PRINT_FLAG_MAX,
+							 NULL, &error);
+		CHECK_ERROR(error);
+		firewall = pg_firewall_new("firewall",
+						   PG_NO_CONN_WORKER, &error);
+		CHECK_ERROR(error);
+		vhost = pg_vhost_new("vhost", 0, &error);
+		CHECK_ERROR(error);
+		pg_brick_chained_links(&error, nic, print, vtep,
+					   firewall, vhost);
+		CHECK_ERROR(error);
+		/* Created graph */
+		graph = pg_graph_new("graph_1", nic, &error);
+		CHECK_ERROR(error);
 		/* Add firewall rule */
-		ASSERT(pg_firewall_rule_add(branch1.firewall, "icmp",
-					     PG_MAX_SIDE, 1, &error) == 0);
-		rm_graph_branch(&branch1);
+		ASSERT(pg_firewall_rule_add(firewall, "icmp",
+						PG_MAX_SIDE, 1, &error) == 0);
+		CHECK_ERROR_ASSERT(error);
+		pg_graph_destroy(graph);
 		sleep(1);
 	}
 
@@ -510,7 +482,6 @@ static void test_graph_firewall_intense(void)
 
 	ret = 0;
 exit:
-	pg_gc_destroy(brick_gc);
 	pg_vhost_stop();
 	g_assert(!ret);
 }
@@ -519,45 +490,46 @@ exit:
 
 static void test_graph_firewall_intense_multiple(void)
 {
-	struct pg_brick *nic, *vtep, *print;
 	struct pg_error *error = NULL;
-	struct ether_addr mac_vtep = {{0xb0, 0xb1, 0xb2,
-				       0xb3, 0xb4, 0xb5} };
-	struct ether_addr mac1 = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
 	struct branch branches[PG_BRANCHES_NB];
+	struct pg_graph *graphs[PG_BRANCHES_NB];
+	GString *tmp = g_string_new(NULL);
 	int ret = -1;
-	GList *brick_gc = NULL;
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
 
-	nic = pg_nic_new_by_id("nic", ring_port(), &error);
-	CHECK_ERROR(error);
-	vtep = pg_vtep_new("vt", PG_BRANCHES_NB, PG_WEST_SIDE,
-			   0x000000EE, mac_vtep, PG_VTEP_DST_PORT,
-			   PG_VTEP_ALL_OPTI, &error);
-	CHECK_ERROR(error);
-
-	print = pg_print_new("main-print", NULL, PG_PRINT_FLAG_MAX,
-			     NULL, &error);
-	CHECK_ERROR(error);
-	PG_GC_CHAINED_ADD(brick_gc, nic, vtep, print);
-
-	pg_brick_chained_links(&error, nic, print, vtep);
-	CHECK_ERROR(error);
-
 	for (int i = 0; i < 100; ++i) {
 		for (int j = 0; j < PG_BRANCHES_NB; j++) {
-			g_assert(add_graph_branch(&branches[j], j, mac1, 0, 0));
-			g_assert(link_graph_branch(&branches[j], vtep));
+
+			/* Create graph brick */
+			g_string_printf(tmp, "fw-%d%d", i, j);
+			branches[j].firewall = pg_firewall_new(tmp->str,
+						   PG_NO_CONN_WORKER, &error);
+			CHECK_ERROR(error);
+			g_string_printf(tmp, "vhost-%d%d", i, j);
+			branches[j].vhost = pg_vhost_new(tmp->str, 0, &error);
+			CHECK_ERROR(error);
+
+			/* Link brick */
+			pg_brick_chained_links(&error, branches[j].firewall,
+							   branches[j].vhost);
+			CHECK_ERROR(error);
+
+			/* create graph */
+			g_string_printf(tmp, "graph-%d", j);
+			graphs[j] = pg_graph_new(tmp->str,
+						 branches[j].firewall, &error);
+			CHECK_ERROR(error);
 
 			/* Add firewall rule */
 			ASSERT(pg_firewall_rule_add(branches[j].firewall,
 						    "icmp", PG_MAX_SIDE,
 						    1, &error) == 0);
+			CHECK_ERROR(error);
 		}
 		for (int j = 0; j < PG_BRANCHES_NB; j++)
-			rm_graph_branch(&branches[j]);
+			pg_graph_destroy(graphs[j]);
 
 		/* FIXME: remove this once dpdk merge patch that shrink fdset */
 		sleep(1);
@@ -567,7 +539,7 @@ static void test_graph_firewall_intense_multiple(void)
 
 	ret = 0;
 exit:
-	pg_gc_destroy(brick_gc);
+	g_string_free(tmp, 1);
 	pg_vhost_stop();
 	g_assert(!ret);
 }
