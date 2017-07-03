@@ -25,10 +25,10 @@ IGNORE_NEW_TYPEDEFS typedef struct rte_mbuf pg_packet_t;
 /**
  * Get pointer to packet's data
  *
- * @packet:	packet
- * @return:	a pointer to packet's data.
- *		If you alter packet's content, you may want to set it's size
- *		with pg_packet_len_set.
+ * @param   packet the packet
+ * @return  a pointer to packet's data.
+ *          If you alter packet's content, you may want to set it's size
+ *          with pg_packet_len_set.
  */
 PG_WARN_UNUSED
 uint8_t *pg_packet_data(pg_packet_t *packet);
@@ -36,8 +36,8 @@ uint8_t *pg_packet_data(pg_packet_t *packet);
 /**
  * Get packet's length
  *
- * @packet:	packet
- * @return:	len of the packet in bytes
+ * @param   packet the packet
+ * @return  len of the packet in bytes
  */
 PG_WARN_UNUSED
 unsigned int pg_packet_len(pg_packet_t *packet);
@@ -45,8 +45,8 @@ unsigned int pg_packet_len(pg_packet_t *packet);
 /**
  * Get packet's max length
  *
- * @packet:	packet
- * @return:	maximum len of the packet in bytes
+ * @param   packet the packet
+ * @return  maximum len of the packet in bytes
  */
 PG_WARN_UNUSED
 unsigned int pg_packet_max_len(pg_packet_t *packet);
@@ -54,9 +54,9 @@ unsigned int pg_packet_max_len(pg_packet_t *packet);
 /**
  * Set packet's len
  *
- * @packet:	packet's pointer
- * @len:	new packet's length
- * @retun	-1 of len exceeds packet's max size, 0 otherwise
+ * @param   packet packet's pointer
+ * @param   len new packet's length
+ * @return  -1 of len exceeds packet's max size, 0 otherwise
  */
 int pg_packet_set_len(pg_packet_t *packet, unsigned int len);
 
@@ -68,10 +68,11 @@ void pg_packet_set_l4_len(pg_packet_t *packet, unsigned int len);
 int pg_packet_get_l4_len(pg_packet_t *packet);
 
 /**
- * iterate on each packets in @pkts base on @mask
- *
- * @pkt:	current packet
- * @it:		current pos
+ * iterate on each packets in 'pkts' base on 'mask'
+ * @param   pkts an array packets
+ * @param   mask packet mask
+ * @param   pkt the current packet
+ * @param   it the current pos
  */
 #define PG_PACKETS_FOREACH(pkts, mask, pkt, it)				\
 	pg_packet_t *pkt;						\
@@ -85,8 +86,8 @@ int pg_packet_get_l4_len(pg_packet_t *packet);
  * Compute checksum of an ipv4 header
  *
  * Note: you should set your checksum to 0.
- * @ip_hdr	pointer to ip's header
- * @return	checksum value
+ * @param   ip_hdr pointer to ip's header
+ * @return  checksum value
  */
 uint16_t pg_packet_ipv4_checksum(uint8_t *ip_hdr);
 

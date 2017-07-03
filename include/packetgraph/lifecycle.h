@@ -24,11 +24,11 @@ void mp_hdlr_init_ops_stack(void);
  * Initialize packetgraph.
  * This function should be called before any other packetgraph function.
  *
- * @param	size of argv
- * @param	argv all arguments passwed to packetgraph, it may contain
- *		DPDK arugments.
- * @return	In case of failure: a negative number.
- *              In case of success: the number of parsed arguments (>=0)
+ * @param   argc size of argv
+ * @param   argv all arguments passwed to packetgraph, it may contain
+ *          DPDK arugments.
+ * @return  In case of failure: a negative number.
+ *          In case of success: the number of parsed arguments (>=0)
  */
 int pg_start(int argc, char **argv);
 
@@ -36,8 +36,8 @@ int pg_start(int argc, char **argv);
  * Initilize packetgraph.
  * This function should be called before any other packetgraph function.
  *
- * @param       dpdk_args a string with all dpdk arguments
- * @return      same result as pg_start()
+ * @param   dpdk_args a string with all dpdk arguments
+ * @return  same result as pg_start()
  */
 int pg_start_str(const char *dpdk_args);
 

@@ -61,10 +61,10 @@ struct pg_brick;
  * vhost interface is configured with offload features disabled.
  * Note: this brick support pg_brick_rx_bytes and pg_brick_tx_bytes.
  *
- * @name:	name of the brick
- * @flags:      features to pass (see PG_VHOST_USER_*)
- * @errp:	set in case of an error
- * @return:	a pointer to a brick structure on success, NULL on error
+ * @param   name name of the brick
+ * @param   flags features to pass (see PG_VHOST_USER_*)
+ * @param   errp set in case of an error
+ * @return  a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_vhost_new(const char *name, uint64_t flags,
@@ -76,18 +76,17 @@ struct pg_brick *pg_vhost_new(const char *name, uint64_t flags,
  * Does not take care of cleaning up everything on failure since
  * the program will abort in this case.
  *
- * @param: the base directory where the vhost-user socket will be
- * @param: an error pointer
- * @return: 0 on success, -1 on error
+ * @param   base_dir the base directory where the vhost-user socket will be
+ * @param   errp an error pointer
+ * @return  0 on success, -1 on error
  */
 int pg_vhost_start(const char *base_dir, struct pg_error **errp);
 
 /**
  * Get path to the unix socket path.
- * @param: brick pointer to the vhost brick
- * @param: an error pointer
- * @param: errp is set in case of an error
- * @return: string containing the socket path or NULL in case of error
+ * @param   brick pointer to the vhost brick
+ * @param   errp is set in case of an error
+ * @return  string containing the socket path or NULL in case of error
  */
 const char *pg_vhost_socket_path(struct pg_brick *brick,
 				 struct pg_error **errp);
@@ -99,15 +98,15 @@ void pg_vhost_stop(void);
 
 /**
  * Enable virtio features.
- * @feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
- * @return 0 on success, -1 on error
+ * @param   feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
+ * @return  0 on success, -1 on error
  */
 int pg_vhost_enable(uint64_t feature_mask);
 
 /**
  * Disable virtio features.
- * @feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
- * @return: 0 on success, -1 on error
+ * @param   feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
+ * @return  0 on success, -1 on error
  *
  * example: pg_vhost_disable(1ULL << VIRTIO_NET_F_HOST_TSO4)
  */

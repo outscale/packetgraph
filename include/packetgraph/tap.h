@@ -27,12 +27,12 @@
  * If you want a faster interface, you should look at special dpdk interfaces
  * KNI (http://dpdk.org/doc/guides/prog_guide/kernel_nic_interface.html)
  *
- * @name:	name of the brick
- * @ifname:	interface name, set to NULL to automatically get an name.
-		If provided, interface name must have a max size of IFNAMSIZ.
-		Larger names will be truncated.
- * @errp:	is set in case of an error
- * @return:	a pointer to a brick structure on success, 0 on error
+ * @param   name of the brick
+ * @param   ifname interface name, set to NULL to automatically get an name.
+ *          If provided, interface name must have a max size of IFNAMSIZ.
+ *          Larger names will be truncated.
+ * @param   errp is set in case of an error
+ * @return  a pointer to a brick structure on success, 0 on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_tap_new(const char *name,
@@ -42,17 +42,18 @@ struct pg_brick *pg_tap_new(const char *name,
 /**
  * Get interface's name.
  *
- * @brick:	brick's pointer
- * @return:	a pointer to interface's name (you MUST NOT free it)
+ * @param   brick brick's pointer
+ * @return  a pointer to interface's name (you MUST NOT free it)
  */
 const char *pg_tap_ifname(struct pg_brick *brick);
 
-/** get the mac address of the tap brick
+/**
+ * Get the mac address of the tap brick.
  *
- * @param tap	a pointer to a tap brick
- * @param addr	a pointer to a ether_addr structure to to filled with the
- *		Ethernet address
- * @return	0 on success, -1 on error
+ * @param   tap a pointer to a tap brick
+ * @param   addr a pointer to a ether_addr structure to to filled with the
+ *          Ethernet address
+ * @return  0 on success, -1 on error
  */
 int pg_tap_get_mac(struct pg_brick *tap, struct ether_addr *addr);
 
