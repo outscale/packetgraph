@@ -29,9 +29,8 @@ struct ether_addr;
  * ARP antispoof is disabled by default
  *
  * @param	name name of the brick
- * @param	west_max maximum of links you can connect on the west side
- * @param	east_max maximum of links you can connect on the east side
- * @param	outside side where packets are not inspected
+ * @param	outside content maximum of links you can connect on the west
+ * and east side
  * @param	mac valid pointer to a mac address that should not be spoofed
  * @param	errp is set in case of an error
  * @return	a pointer to a brick structure on success, NULL on error

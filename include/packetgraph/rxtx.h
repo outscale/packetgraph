@@ -65,7 +65,6 @@ typedef void (*pg_rxtx_tx_callback_t)(struct pg_brick *brick,
  * @param	rx optional callback used when packets flow to brick
  * @param	tx optional callback used to send packets to graph
  * @param	private_data pointer to user's data
- * @param	errp is set in case of an error
  * @return	a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED

@@ -98,14 +98,15 @@ static inline int firewall_side_to_npf_rule(enum pg_side side)
 }
 
 int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
-			 enum pg_side dir, int stateful, struct pg_error **errp)
+			 enum pg_side side, int stateful,
+			 struct pg_error **errp)
 {
 	struct pg_firewall_state *state;
 	struct nl_rule *rule;
 	int options = 0;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
-	options |= firewall_side_to_npf_rule(dir);
+	options |= firewall_side_to_npf_rule(side);
 	if (stateful)
 		options |= NPF_RULE_STATEFUL;
 	rule = npf_rule_create(NULL, NPF_RULE_PASS | options, NULL);

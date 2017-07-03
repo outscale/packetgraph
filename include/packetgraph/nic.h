@@ -25,14 +25,14 @@
  * Create a new nic brick
  * Note: this brick support pg_brick_rx_bytes and pg_brick_tx_bytes.
  *
- * @name:	name of the brick
- * @ifname:	the name of the interface you want to use.
- *	This is the same syntax as --vdev in DPDK:
- *	http://pktgen.readthedocs.org/en/latest/usage_eal.html?highlight=vdev
- *	For example, if you want to open a system NIC, put:
- *	"eth_pcap0,iface=eth2"
- * @errp:	set in case of an error
- * @return:	a pointer to a brick structure on success, NULL on error
+ * @param   name the brick's name
+ * @param   ifname the name of the interface you want to use.
+ *  This is the same syntax as --vdev in DPDK:
+ *  http://pktgen.readthedocs.org/en/latest/usage_eal.html?highlight=vdev
+ *  For example, if you want to open a system NIC, put:
+ *  "eth_pcap0,iface=eth2"
+ * @param   errp set in case of an error
+ * @return  a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_nic_new(const char *name,
@@ -42,11 +42,10 @@ struct pg_brick *pg_nic_new(const char *name,
 /**
  * Create a new nic brick
  *
- * @name:	name of the brick
- * @output:	The side of the output (so the side of the nic)
- * @portid:	the id of the interface you want to use
- * @errp:	set in case of an error
- * @return:	a pointer to a brick structure, on success, 0 on error
+ * @param   name name of the brick
+ * @param   portid the id of the interface you want to use
+ * @param   errp set in case of an error
+ * @return  a pointer to a brick structure, on success, 0 on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_nic_new_by_id(const char *name,
@@ -56,17 +55,17 @@ struct pg_brick *pg_nic_new_by_id(const char *name,
 /**
  * Get number of available DPDK ports
  *
- * @return:	number of DPDK ports
+ * @return  number of DPDK ports
  */
 int pg_nic_port_count(void);
 
 /**
  * Set a custom MTU on the nic
  *
- * @param nic	the brick nic
- * @param mtu	MTU to be applied
- * @errp	set in case of an error
- * @return	0 on success, -1 on error
+ * @param   brick the brick nic
+ * @param   mtu MTU to be applied
+ * @param   errp set in case of an error
+ * @return  0 on success, -1 on error
  */
 int pg_nic_set_mtu(struct pg_brick *brick, uint16_t mtu,
 		   struct pg_error **errp);
@@ -74,19 +73,20 @@ int pg_nic_set_mtu(struct pg_brick *brick, uint16_t mtu,
 /**
  * Get MTU of the nic
  *
- * @param nic	the brick nic
- * @mtu		set in case of success
- * @errp	set in case of an error
- * @return	0 on success, -1 on error
+ * @param   brick the nic brick
+ * @param   mtu set in case of success
+ * @param   errp set in case of an error
+ * @return  0 on success, -1 on error
  */
 int pg_nic_get_mtu(struct pg_brick *brick, uint16_t *mtu,
 		   struct pg_error **errp);
 
-/** get the mac address of the nic brick
+/**
+ * Get the mac address of the nic brick
  *
- * @param nic	a pointer to a nic brick
- * @param addr	a pointer to a ether_addr structure to to filled with the
- *		Ethernet address
+ * @param   nic a pointer to a nic brick
+ * @param   addr a pointer to a ether_addr structure to to filled with the
+ *  Ethernet address
  */
 void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr);
 
@@ -111,9 +111,9 @@ void pg_nic_get_mac(struct pg_brick *nic, struct ether_addr *addr);
 /**
  * Get capabilities of the nic
  *
- * @nic     pointer to a nic brick
- * @rx      rx capabilities, see PG_NIC_RX_* flags
- * @tx      tx capabilities, see PG_NIC_TX_* flags
+ * @param   nic pointer to a nic brick
+ * @param   rx capabilities, see PG_NIC_RX_* flags
+ * @param   tx capabilities, see PG_NIC_TX_* flags
  */
 void pg_nic_capabilities(struct pg_brick *nic, uint32_t *rx, uint32_t *tx);
 

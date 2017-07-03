@@ -40,19 +40,20 @@ struct ether_addr;
 
 /**
  * Get MAC address of the vtep
- * @param	brick a pointer to a vtep brick
- * @return	mac address of the vtep
+ * @param   brick a pointer to a vtep brick
+ * @return  mac address of the vtep
  */
 struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick);
 
 /**
  * Add a VNI to the VTEP
  *
- * @param	brick the brick we are working on
- * @param	neighbor a brick connected to the VTEP port
- * @param	vni the VNI to add, must be < 2^24
- * @param	multicast_ip the multicast ip to associate to the VNI
- * @param	errp an error pointer
+ * @param   brick the brick we are working on
+ * @param   neighbor a brick connected to the VTEP port
+ * @param   vni the VNI to add, must be < 2^24
+ * @param   multicast_ip the multicast ip to associate to the VNI
+ * @param   errp an error pointer
+ * @return  0 on success, -1 on error
  */
 int pg_vtep4_add_vni(struct pg_brick *brick,
 		     struct pg_brick *neighbor,
@@ -62,11 +63,12 @@ int pg_vtep4_add_vni(struct pg_brick *brick,
 /**
  * Add a VNI to the VTEP
  *
- * @param	brick the brick we are working on
- * @param	neighbor a brick connected to the VTEP port
- * @param	vni the VNI to add, must be < 2^24
- * @param	multicast_ip the multicast ip to associate to the VNI
- * @param	errp an error pointer
+ * @param   brick the brick we are working on
+ * @param   neighbor a brick connected to the VTEP port
+ * @param   vni the VNI to add, must be < 2^24
+ * @param   multicast_ip the multicast ip to associate to the VNI
+ * @param   errp an error pointer
+ * @return  0 on success, -1 on error
  */
 int pg_vtep6_add_vni(struct pg_brick *brick, struct pg_brick *neighbor,
 		     uint32_t vni, uint8_t *multicast_ip,
@@ -77,13 +79,13 @@ int pg_vtep6_add_vni(struct pg_brick *brick, struct pg_brick *neighbor,
 /**
  * Add a VNI to the VTEP
  *
- * @brick		the brick we are working on
- * @neighbor		a brick connected to the VTEP port
- * @vni			the VNI to add, must be < 2^24
- * @multicast_ip	the multicast ip to associate to the VNI
- *			if an 'uint32_t' is given then an ipv4 is add,
- *			if an 'uint8_t *' is given then an ipv6 is add
- * @param		errp an error pointer
+ * @param   brick the brick we are working on
+ * @param   neighbor a brick connected to the VTEP port
+ * @param   vni the VNI to add, must be < 2^24
+ * @param   multicast_ip the multicast ip to associate to the VNI
+ *  if an 'uint32_t' is given then an ipv4 is add,
+ *  if an 'uint8_t *' is given then an ipv6 is add
+ * @param  errp an error pointer
  */
 #define pg_vtep_add_vni(brick, neighbor, vni, multicast_ip, errp)	\
 	(_Generic((multicast_ip), uint32_t : pg_vtep4_add_vni,		\
@@ -118,10 +120,11 @@ inline int pg_vtep_add_vni(struct pg_brick *brick,
 /**
  * Add a MAC to the VTEP VNI
  *
- * @param	brick the brick we are working on
- * @param	vni the vni on which you want to add @mac
- * @param	mac the mac
- * @param	errp an error pointer
+ * @param   brick the brick we are working on
+ * @param   vni the vni on which you want to add mac
+ * @param   mac the mac
+ * @param   errp an error pointer
+ * @return  0 on success, -1 on error
  */
 int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
 		    struct ether_addr *mac, struct pg_error **errp);
@@ -129,16 +132,16 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
 /**
  * Create a new vtep
  *
- * @name:	  brick name
- * @max:	  maximum number of connections
- * @output:	  side where packets are encapsuled in VXLAN
- * @ip:		  vtep ip
- * @mac:	  vtep mac
- * @udp_dst_port: udp destination port of vxlan packets (in cpu endinaness)
- *                default port is PG_VTEP_DST_PORT
- * @flag:	  vtep flags (see pg_vtep_flags)
- * @errp:	  error pointer set on error
- * @return	  pointer to a brick structure on success, NULL on error
+ * @param   name brick name
+ * @param   max maximum number of connections
+ * @param   output side where packets are encapsuled in VXLAN
+ * @param   ip vtep ip
+ * @param   mac vtep mac
+ * @param   udp_dst_port udp destination port of vxlan packets (in cpu endinaness)
+ *  default port is PG_VTEP_DST_PORT
+ * @param   flag vtep flags (see pg_vtep_flags)
+ * @param   errp error pointer set on error
+ * @return  pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_vtep6_new(const char *name, uint32_t max,
@@ -149,16 +152,16 @@ struct pg_brick *pg_vtep6_new(const char *name, uint32_t max,
 /**
  * Create a new vtep
  *
- * @name:	  brick name
- * @max:	  maximum number of connections
- * @output:	  side where packets are encapsuled in VXLAN
- * @ip:		  vtep ip
- * @mac:	  vtep mac
- * @udp_dst_port: udp destination port of vxlan packets (in cpu endinaness)
- *                default port is PG_VTEP_DST_PORT
- * @flag:	  vtep flags (see pg_vtep_flags)
- * @errp:	  error pointer set on error
- * @return	  pointer to a brick structure on success, NULL on error
+ * @param   name brick name
+ * @param   max maximum number of connections
+ * @param   output side where packets are encapsuled in VXLAN
+ * @param   ip vtep ip
+ * @param   mac vtep mac
+ * @param   udp_dst_port udp destination port of vxlan packets (in cpu endinaness)
+ *  default port is PG_VTEP_DST_PORT
+ * @param   flag vtep flags (see pg_vtep_flags)
+ * @param   errp error pointer set on error
+ * @return  pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_vtep4_new(const char *name, uint32_t max,
@@ -180,17 +183,17 @@ struct pg_brick *pg_vtep_new_by_string(const char *name, uint32_t max,
 /**
  * Create a new vtep
  *
- * @name:	  brick name
- * @max:	  maximum number of connections
- * @output:	  side where packets are encapsuled in VXLAN
- * @ip:		  if an 'uint32_t' is given then an ipv4 vtep is created,
- *		  if an 'uint8_t *' is given then an ipv6 vtep is created
- * @mac:	  vtep mac
- * @udp_dst_port: udp destination port of vxlan packets (in cpu endinaness)
- *                default port is PG_VTEP_DST_PORT
- * @flag:	  vtep flags (see pg_vtep_flags)
- * @errp:	  error pointer set on error
- * @return	  pointer to a brick structure on success, NULL on error
+ * @param   name brick name
+ * @param   max maximum number of connections
+ * @param   output side where packets are encapsuled in VXLAN
+ * @param   ip if an 'uint32_t' is given then an ipv4 vtep is created,
+ *  if an 'uint8_t *' is given then an ipv6 vtep is created
+ * @param   mac vtep mac
+ * @param   udp_dst_port udp destination port of vxlan packets (in cpu endinaness)
+ *  default port is PG_VTEP_DST_PORT
+ * @param   flags vtep flags (see pg_vtep_flags)
+ * @param   errp error pointer set on error
+ * @return  pointer to a brick structure on success, NULL on error
  */
 #define pg_vtep_new(name, max, output, ip, mac, udp_dst_port, flags, errp) \
 	(_Generic((ip), uint32_t : pg_vtep4_new,			\

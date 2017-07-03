@@ -48,8 +48,6 @@ enum pg_print_flags {
  * Create a new print brick
  *
  * @param	name name of the brick
- * @param	west_max maximum of links you can connect on the west side
- * @param	east_max maximum of links you can connect on the east side
  * @param	output file descriptor where to write packets informations
  *		NULL means to use the standard output (stdout).
  * @param	flags print flags from enum pg_print_flags.

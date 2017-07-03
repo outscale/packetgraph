@@ -24,11 +24,11 @@
 /**
  * Create a new path MTU discovery brick
  *
- * @name:	name of the brick
- * @output:	side where packets can exit without been check
- * @mtu_size:	allowed MTU size (ethernet and protocols above)
- * @errp:	is set in case of an error
- * @return:	a pointer to a brick, NULL on error
+ * @param   name ame of the brick
+ * @param   output side where packets can exit without been check
+ * @param   mtu_size allowed MTU size (ethernet and protocols above)
+ * @param   errp is set in case of an error
+ * @return  a pointer to a brick, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_pmtud_new(const char *name,
