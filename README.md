@@ -2,7 +2,7 @@
 
 Packetgraph is a library aiming to give the user a tool to build networks graph easily, It's built upon the fast [DPDK library](http://dpdk.org/).
 
-[![Build Status](https://travis-ci.org/outscale/packetgraph.svg?branch=master)](https://travis-ci.org/outscale/packetgraph)
+[![Build Status](https://travis-ci.org/outscale/packetgraph.svg?branch=master)](https://travis-ci.org/outscale/packetgraph) [![packetgraph documentation](doc/packetgraph_doc.png)](https://outscale.github.io/packetgraph/doc/master)
 
 The goal of this library is to provide a really EASY interface to
 build you own DPDK based application using [Network Function
