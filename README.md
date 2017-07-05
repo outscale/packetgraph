@@ -126,8 +126,8 @@ For more information, check LICENSE file.
 
 # Contribute
 
-New to packetgraph ? Want to contribute and/or create a new brick ?
-Some [developper guidelines](doc/contrib.md) are available.
+New to packetgraph ? Want to contribute and/or create a new brick ? Some
+[developper guidelines](https://github.com/outscale/packetgraph/blob/master/doc/contrib.md/) are available.
 
 # Question ? Contact us !
 
