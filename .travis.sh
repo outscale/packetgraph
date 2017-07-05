@@ -22,6 +22,7 @@ make tests-pmtud
 make tests-tap
 make tests-ip-fragment
 make tests-thread
+make doc
 
 ./../tests/antispoof/test.sh
 ./../tests/core/test.sh
