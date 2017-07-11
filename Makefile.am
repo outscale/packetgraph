@@ -402,7 +402,9 @@ doxygen.conf: $(srcdir)/doc/doxygen.conf.template
 
 .PHONY: doc
 doc: doxygen.conf
+	$(srcdir)/doc/sed_readme.sh
 	doxygen $^
+	$(srcdir)/doc/check_error.sh
 
 # libtoolize recommanded this
 ACLOCAL_AMFLAGS = -I m4
