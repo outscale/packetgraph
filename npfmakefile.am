@@ -16,7 +16,7 @@ libprop_la_SOURCES = \
 	src/npf/proplib/src/prop_zlib.c\
 	src/npf/proplib/src/rb.c
 libprop_la_includes = -I$(srcdir)/src/npf/proplib/include
-libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all -Ofast -std=gnu11 -fPIC
+libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -fstack-protector-all -std=gnu11 -fPIC
 
 liblpm_la_SOURCES = \
 	src/npf/liblpm/src/lpm.c
@@ -41,11 +41,11 @@ libsljit_la_SOURCES = \
 	src/npf/sljit/regexJIT.c\
 	src/npf/sljit/sljitLir.c
 libsljit_includes = -I$(srcdir)/src/npf/sljit
-libsljit_la_CFLAGS = -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -Ofast -fPIC
+libsljit_la_CFLAGS = -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -fPIC
 
 libbpfjit_la_SOURCES = src/npf/bpfjit/bpfjit.c
 libbpfjit_includes = -I$(srcdir)/src/npf/bpfjit
-libbpfjit_la_CFLAGS = $(libsljit_includes) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -Ofast -fPIC
+libbpfjit_la_CFLAGS = $(libsljit_includes) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -fPIC
 libbpfjit_la_LIBADD = libsljit.la
 
 libnpf_la_SOURCES = src/npf/npf/src/libnpf/npf.c
