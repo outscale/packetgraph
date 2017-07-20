@@ -73,7 +73,7 @@ static int packetsgen_poll(struct pg_brick *brick,
 	s = &brick->sides[state->output];
 
 
-	pkts = g_new0(struct rte_mbuf*, state->packets_nb);
+	pkts = g_new(struct rte_mbuf*, state->packets_nb);
 	for (i = 0; i < state->packets_nb; i++) {
 		pkts[i] = rte_pktmbuf_clone(state->packets[i], mp);
 		g_assert(pkts[i]);
