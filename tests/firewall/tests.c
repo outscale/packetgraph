@@ -216,7 +216,7 @@ static void firewall_filter_rules(enum pg_side dir)
 	struct pg_error *error = NULL;
 	uint16_t i;
 	static uint16_t nb = 30;
-	struct rte_mbuf *packets[nb];
+	struct rte_mbuf *packets[30];
 	uint64_t filtered_pkts_mask;
 	struct rte_mbuf **filtered_pkts;
 	uint64_t bit;
@@ -666,7 +666,7 @@ static void test_firewall_noip(void)
 {
 	uint16_t i;
 	int nb = 30;
-	struct rte_mbuf *pkts[nb];
+	struct rte_mbuf *pkts[30];
 	uint64_t mask = pg_mask_firsts(nb);
 
 	/* build some non-IP packets */
