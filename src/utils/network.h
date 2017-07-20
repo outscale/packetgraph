@@ -80,7 +80,7 @@ struct vlan_802_1q {
 	uint16_t ether_type;
 } __attribute__((__packed__));
 
-inline uint16_t pg_utils_get_ether_type(struct rte_mbuf *pkt)
+static inline uint16_t pg_utils_get_ether_type(struct rte_mbuf *pkt)
 {
 	/* Ethertype should be located just before the start of L3.
 	 * This way, it works for vlan-tagged and non-vlan tagged
@@ -97,13 +97,13 @@ inline uint16_t pg_utils_get_ether_type(struct rte_mbuf *pkt)
 	(rte_pktmbuf_mtod(pkt, struct ether_addr *))
 
 
-inline void *pg_utils_get_l3(struct rte_mbuf *pkt)
+static inline void *pg_utils_get_l3(struct rte_mbuf *pkt)
 {
 	return rte_pktmbuf_mtod(pkt, char *) + pkt->l2_len;
 }
 
-inline int pg_utils_get_ipv6_l4(struct rte_mbuf *pkt, uint8_t *ip_type,
-				uint8_t **ip_payload)
+static inline int pg_utils_get_ipv6_l4(struct rte_mbuf *pkt, uint8_t *ip_type,
+				       uint8_t **ip_payload)
 {
 	/* jump all ipv6 extension headers to ICMPv6 */
 	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
@@ -142,7 +142,7 @@ inline int pg_utils_get_ipv6_l4(struct rte_mbuf *pkt, uint8_t *ip_type,
 	return 0;
 }
 
-inline void pg_utils_guess_l2(struct rte_mbuf *pkt)
+static inline void pg_utils_guess_l2(struct rte_mbuf *pkt)
 {
 	struct ether_hdr *eth;
 
@@ -156,7 +156,7 @@ inline void pg_utils_guess_l2(struct rte_mbuf *pkt)
 	}
 }
 
-inline void pg_utils_guess_metadata(struct rte_mbuf *pkt)
+static inline void pg_utils_guess_metadata(struct rte_mbuf *pkt)
 {
 	pg_utils_guess_l2(pkt);
 }
