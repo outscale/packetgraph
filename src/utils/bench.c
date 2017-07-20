@@ -211,6 +211,7 @@ int pg_bench_run(struct pg_bench *bench, struct pg_bench_stats *result,
 		pg_brick_unlink(count_brick, error);
 		if (*error)
 			return -1;
+		pg_brick_destroy(count_brick);
 	}
 
 	/* We know that this brick burst all packets. */
