@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-[ -z "$RTE_SDK" ] && echo "RTE_SDK path is not set" && exit 1
+source error_print.sh
+
+[ -z "$RTE_SDK" ] && error_print "RTE_SDK path is not set" && exit 1
 
 tmp=pg_tmp
 

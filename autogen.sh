@@ -1,9 +1,15 @@
 #!/bin/bash
-set -e
+
 if ! [ -z $1 ]; then
     cd $1;
 fi
-libtoolize -c --force --install && aclocal && automake -c --add-missing && autoconf && ./dpdk_symbols.sh
+libtoolize -c --force --install && aclocal && automake -c --add-missing && autoconf
+
+if ! ./dpdk_symbols.sh ; then
+    rm ./configure
+    exit 1;
+fi
+
 if ! [ -z $1 ]; then
     cd -;
 fi
