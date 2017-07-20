@@ -72,11 +72,9 @@ void test_benchmark_vhost(char *vm_image_path,
 				  PG_VHOST_USER_DEQUEUE_ZERO_COPY, &error);
 	g_assert(!error);
 
-	socket_path_enter = pg_vhost_socket_path(vhost_enter, &error);
-	g_assert(!error);
+	socket_path_enter = pg_vhost_socket_path(vhost_enter);
 	g_assert(socket_path_enter);
-	socket_path_exit = pg_vhost_socket_path(vhost_exit, &error);
-	g_assert(!error);
+	socket_path_exit = pg_vhost_socket_path(vhost_exit);
 	g_assert(socket_path_exit);
 
 	qemu_pid = pg_util_spawn_qemu(socket_path_enter,

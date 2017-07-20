@@ -29,7 +29,7 @@
 #include <rte_config.h>
 #include <linux/virtio_net.h>
 #include <linux/virtio_ring.h>
-#include <rte_virtio_net.h>
+#include <rte_vhost.h>
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
@@ -67,14 +67,24 @@ struct pg_vhost_state {
 	rte_atomic64_t rx_bytes; /* RX: [vhost] <-- VM */
 };
 
+static int new_vm(int dev);
+static void destroy_vm(int dev);
+
+static const struct vhost_device_ops virtio_net_device_ops = {
+	.new_device = new_vm,
+	.destroy_device = destroy_vm,
+};
+
 /* head of the socket list */
 static LIST_HEAD(socket_list, pg_vhost_socket) sockets;
 static char *sockets_path;
 static int vhost_start_ok;
+static int disable_freacture_mask;
+static int enable_freacture_mask;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static pthread_t vhost_session_thread;
+enum {VIRTIO_RXQ, VIRTIO_TXQ, VIRTIO_QNUM};
 
 static struct pg_brick_config *vhost_config_new(const char *name,
 						uint64_t flags)
@@ -208,13 +218,26 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 			 RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
 
 	ret = rte_vhost_driver_register(path, flags);
+	if (ret) {
+		*errp = pg_error_new_errno(-ret,
+			"Failed to start vhost user driver");
+		goto free_exit;
+	}
 
+
+	ret = rte_vhost_driver_callback_register(path, &virtio_net_device_ops);
+	if (ret) {
+		*errp = pg_error_new_errno(-ret,
+			"Failed to register vhost-user callbacks");
+		goto free_exit;
+	}
+
+	rte_vhost_driver_start(path);
 	if (ret) {
 		*errp = pg_error_new_errno(-ret,
 			"Error registering driver for socket %s",
 			path);
-		g_free(path);
-		return;
+		goto free_exit;
 	}
 
 	pthread_mutex_lock(&mutex);
@@ -228,6 +251,9 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 	LIST_INSERT_HEAD(&sockets, s, socket_list);
 
 	pthread_mutex_unlock(&mutex);
+	return;
+free_exit:
+	g_free(path);
 }
 
 #define VHOST_NOT_READY							\
@@ -250,6 +276,8 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	state->vid = -1;
 	rte_atomic64_set(&state->rx_bytes, 0);
 	rte_atomic64_set(&state->tx_bytes, 0);
+	pg_vhost_enable(brick, enable_freacture_mask);
+	pg_vhost_disable(brick, disable_freacture_mask);
 
 	vhost_create_socket(state, vhost_config->flags, errp);
 	if (pg_error_is_set(errp))
@@ -301,12 +329,13 @@ static void vhost_destroy(struct pg_brick *brick, struct pg_error **errp)
 	pthread_mutex_unlock(&mutex);
 }
 
-const char *pg_vhost_socket_path(struct pg_brick *brick,
-				 struct pg_error **errp)
+const char *pg_vhost_socket_path(struct pg_brick *brick)
 {
 	struct pg_vhost_state *state;
 
 	state = pg_brick_get_state(brick, struct pg_vhost_state);
+	if (unlikely(!brick || !state || !state->socket))
+		return NULL;
 	return state->socket->path;
 }
 
@@ -373,11 +402,6 @@ static void destroy_vm(int dev)
 #undef CONCAT_VOLATILE
 #undef VOLATILE
 
-static const struct virtio_net_device_ops virtio_net_device_ops = {
-	.new_device = new_vm,
-	.destroy_device = destroy_vm,
-};
-
 /**
  * Check that the socket path exists and has the right perm and store it
  *
@@ -426,16 +450,8 @@ free_exit:
 	g_free(resolved_path);
 }
 
-static void *vhost_session_thread_body(void *opaque)
-{
-	rte_vhost_driver_session_start();
-	pthread_exit(NULL);
-}
-
 int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 {
-	int ret;
-
 	if (vhost_start_ok) {
 		*errp = pg_error_new("vhost already started");
 		return -1;
@@ -446,41 +462,42 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 	check_and_store_base_dir(base_dir, errp);
 	if (pg_error_is_set(errp))
 		return -1;
-
-	ret = rte_vhost_driver_callback_register(&virtio_net_device_ops);
-	if (ret) {
-		*errp = pg_error_new_errno(-ret,
-			"Failed to register vhost-user callbacks");
-		goto free_exit;
-	}
-
-	ret = pthread_create(&vhost_session_thread, NULL,
-			     vhost_session_thread_body, NULL);
-
-	if (ret) {
-		*errp = pg_error_new_errno(-ret,
-			"Failed to start vhost user thread");
-		goto free_exit;
-	}
-
 	/* Store that vhost start was successful. */
 	vhost_start_ok = 1;
 
 	return 0;
-
-free_exit:
-	g_free(sockets_path);
-	return -1;
 }
 
-int pg_vhost_enable(uint64_t feature_mask)
+int pg_vhost_global_enable(uint64_t feature_mask)
 {
-	return rte_vhost_feature_enable(feature_mask) ? -1 : 0;
+	enable_freacture_mask |= feature_mask;
+	return 0;
 }
 
-int pg_vhost_disable(uint64_t feature_mask)
+int pg_vhost_global_disable(uint64_t feature_mask)
 {
-	return rte_vhost_feature_disable(feature_mask) ? -1 : 0;
+	disable_freacture_mask |= feature_mask;
+	return 0;
+}
+
+int pg_vhost_enable(struct pg_brick *brick, uint64_t feature_mask)
+{
+	const char *path = pg_vhost_socket_path(brick);
+
+	if (unlikely(!path))
+		return -1;
+	return rte_vhost_driver_enable_features(path,
+						feature_mask) ? -1 : 0;
+}
+
+int pg_vhost_disable(struct pg_brick *brick, uint64_t feature_mask)
+{
+	const char *path = pg_vhost_socket_path(brick);
+
+	if (unlikely(!path))
+		return -1;
+	return rte_vhost_driver_disable_features(path,
+						 feature_mask) ? -1 : 0;
 }
 
 static void vhost_link(struct pg_brick *brick, enum pg_side side, int edge)
@@ -493,14 +510,10 @@ static void vhost_link(struct pg_brick *brick, enum pg_side side, int edge)
 
 void pg_vhost_stop(void)
 {
-	void *ret;
-
 	if (!vhost_start_ok)
 		return;
 	g_free(sockets_path);
 	sockets_path = NULL;
-	pthread_cancel(vhost_session_thread);
-	pthread_join(vhost_session_thread, &ret);
 	vhost_start_ok = 0;
 }
 

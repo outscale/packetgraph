@@ -85,11 +85,9 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp);
 /**
  * Get path to the unix socket path.
  * @param   brick pointer to the vhost brick
- * @param   errp is set in case of an error
  * @return  string containing the socket path or NULL in case of error
  */
-const char *pg_vhost_socket_path(struct pg_brick *brick,
-				 struct pg_error **errp);
+const char *pg_vhost_socket_path(struct pg_brick *brick);
 /**
  * Un-initialize vhost-user.
  * You should have call pg_vhost_start in the past before calling this.
@@ -97,19 +95,35 @@ const char *pg_vhost_socket_path(struct pg_brick *brick,
 void pg_vhost_stop(void);
 
 /**
- * Enable virtio features.
+ * Enable virtio features, every vhost brick will inherit from this
  * @param   feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
  * @return  0 on success, -1 on error
  */
-int pg_vhost_enable(uint64_t feature_mask);
+int pg_vhost_global_disable(uint64_t feature_mask);
 
 /**
- * Disable virtio features.
+ * Enable virtio features, every vhost brick will inherit from this
  * @param   feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
+ * @return  0 on success, -1 on error
+ */
+int pg_vhost_global_enable(uint64_t feature_mask);
+
+/**
+ * Enable virtio features on a brick.
+ * @param   feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
+ * @param   brick
+ * @return  0 on success, -1 on error
+ */
+int pg_vhost_enable(struct pg_brick *brick, uint64_t feature_mask);
+
+/**
+ * Disable virtio features on a brick.
+ * @param   feature_mask virtio feature (see VIRTIO_NET_F_* in linux/virtio_net.h)
+ * @param   brick
  * @return  0 on success, -1 on error
  *
  * example: pg_vhost_disable(1ULL << VIRTIO_NET_F_HOST_TSO4)
  */
-int pg_vhost_disable(uint64_t feature_mask);
+int pg_vhost_disable(struct pg_brick *brick, uint64_t feature_mask);
 
 #endif  /* _PG_VHOST_H */

@@ -17,7 +17,7 @@
 
 #include <rte_config.h>
 #include <rte_eal.h>
-#include <rte_virtio_net.h>
+#include <rte_vhost.h>
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
 #include "utils/mempool.h"

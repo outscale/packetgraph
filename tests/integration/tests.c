@@ -150,16 +150,14 @@ static int ring_port(void)
 	return port1;
 }
 
-static inline const char *sock_path_graph(struct branch *branch,
-					  struct pg_error **errp)
+static inline const char *sock_path_graph(struct branch *branch)
 {
-	return pg_vhost_socket_path(branch->vhost, errp);
+	return pg_vhost_socket_path(branch->vhost);
 }
 
-static inline const char *sock_read_path_graph(struct branch *branch,
-					       struct pg_error **errp)
+static inline const char *sock_read_path_graph(struct branch *branch)
 {
-	return pg_vhost_socket_path(branch->vhost_reader, errp);
+	return pg_vhost_socket_path(branch->vhost_reader);
 }
 
 static inline int start_qemu_graph(struct branch *branch,
@@ -170,8 +168,8 @@ static inline int start_qemu_graph(struct branch *branch,
 	char tmp_mac[20];
 
 	g_assert(pg_printable_mac(&branch->mac, tmp_mac));
-	int qemu_pid = pg_util_spawn_qemu(sock_path_graph(branch, errp),
-					  sock_read_path_graph(branch, errp),
+	int qemu_pid = pg_util_spawn_qemu(sock_path_graph(branch),
+					  sock_read_path_graph(branch),
 					  tmp_mac, mac_reader,
 					  glob_vm_path,
 					  glob_vm_key_path,
@@ -327,13 +325,13 @@ static void test_graph_type1(void)
 	graph1 = pg_graph_new("graph_2", branch1.vhost_reader, &error);
 	CHECK_ERROR(error);
 
-	g_assert(g_file_test(sock_path_graph(&branch1, &error),
+	g_assert(g_file_test(sock_path_graph(&branch1),
 			     G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(sock_read_path_graph(&branch1, &error),
+	g_assert(g_file_test(sock_read_path_graph(&branch1),
 			     G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(sock_path_graph(&branch2, &error),
+	g_assert(g_file_test(sock_path_graph(&branch2),
 			     G_FILE_TEST_EXISTS));
-	g_assert(g_file_test(sock_read_path_graph(&branch2, &error),
+	g_assert(g_file_test(sock_read_path_graph(&branch2),
 			     G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_vm_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(glob_vm_key_path, G_FILE_TEST_EXISTS));

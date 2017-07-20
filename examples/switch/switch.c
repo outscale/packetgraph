@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 				g_assert(!error);
 			}
 			printf("vhost-user socket created at %s\n",
-			       pg_vhost_socket_path(vh, &error));
+			       pg_vhost_socket_path(vh));
 			g_assert(!error);
 		}
 	}

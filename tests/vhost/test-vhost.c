@@ -86,10 +86,10 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	g_assert(!error);
 
 	/* spawn first QEMU */
-	socket_path_0 = pg_vhost_socket_path(vhost_0, &error);
+	socket_path_0 = pg_vhost_socket_path(vhost_0);
 	g_assert(!error);
 	g_assert(socket_path_0);
-	socket_path_1 = pg_vhost_socket_path(vhost_1, &error);
+	socket_path_1 = pg_vhost_socket_path(vhost_1);
 	g_assert(!error);
 	g_assert(socket_path_1);
 
@@ -254,15 +254,15 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 
 	/* spawn QEMU */
-	socket_path_00 = pg_vhost_socket_path(vhost_00, &error);
+	socket_path_00 = pg_vhost_socket_path(vhost_00);
 	g_assert(!error);
 	g_assert(socket_path_00);
-	socket_path_01 = pg_vhost_socket_path(vhost_01, &error);
+	socket_path_01 = pg_vhost_socket_path(vhost_01);
 	g_assert(!error);
-	socket_path_10 = pg_vhost_socket_path(vhost_10, &error);
+	socket_path_10 = pg_vhost_socket_path(vhost_10);
 	g_assert(!error);
 	g_assert(socket_path_10);
-	socket_path_11 = pg_vhost_socket_path(vhost_11, &error);
+	socket_path_11 = pg_vhost_socket_path(vhost_11);
 	g_assert(!error);
 	g_assert(socket_path_11);
 	qemu_pid0 = pg_util_spawn_qemu(socket_path_00, socket_path_01,
@@ -561,12 +561,12 @@ static void test_vhost_reco(void)
 	pg_brick_link(params.collect, params.vhost[1], &error);
 	g_assert(!error);
 
-	params.socket_path[0] = pg_vhost_socket_path(params.vhost[0], &error);
+	params.socket_path[0] = pg_vhost_socket_path(params.vhost[0]);
 	g_assert(!error);
 	g_assert(params.socket_path[0]);
 	g_assert(g_file_test(params.socket_path[0], G_FILE_TEST_EXISTS));
 
-	params.socket_path[1] = pg_vhost_socket_path(params.vhost[1], &error);
+	params.socket_path[1] = pg_vhost_socket_path(params.vhost[1]);
 	g_assert(!error);
 	g_assert(params.socket_path[1]);
 	g_assert(g_file_test(params.socket_path[1], G_FILE_TEST_EXISTS));
@@ -632,10 +632,10 @@ static void test_vhost_destroy(void)
 	g_assert(vhost_1);
 
 	/* spawn QEMU */
-	socket_path_0 = pg_vhost_socket_path(vhost_0, &error);
+	socket_path_0 = pg_vhost_socket_path(vhost_0);
 	g_assert(!error);
 	g_assert(socket_path_0);
-	socket_path_1 = pg_vhost_socket_path(vhost_1, &error);
+	socket_path_1 = pg_vhost_socket_path(vhost_1);
 	g_assert(!error);
 	g_assert(socket_path_1);
 
@@ -707,7 +707,7 @@ static void qemu_duo_new(struct qemu_duo_test_params *p)
 		g_free(tmp);
 		g_assert(!error);
 		g_assert(p->vhost[i]);
-		socket_path = pg_vhost_socket_path(p->vhost[i], &error);
+		socket_path = pg_vhost_socket_path(p->vhost[i]);
 		g_assert(socket_path);
 		g_assert(!error);
 
