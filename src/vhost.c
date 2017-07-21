@@ -297,7 +297,7 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 static enum pg_side vhost_get_side(struct pg_brick *brick)
 {
 	struct pg_vhost_state *state =
-	pg_brick_get_state(brick, struct pg_vhost_state);
+		pg_brick_get_state(brick, struct pg_vhost_state);
 
 	return pg_flip_side(state->output);
 }
@@ -435,7 +435,6 @@ static void check_and_store_base_dir(const char *base_dir,
 
 	/* Flawfinder: ignore */
 	sockets_path = realpath(base_dir, resolved_path);
-	/* Neither base_dir nor resolved_path is smaller than PATH_MAX. */
 	if (!sockets_path) {
 		*errp = pg_error_new_errno(errno, "Cannot resolve path of %s",
 					   base_dir);
