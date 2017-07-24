@@ -143,6 +143,7 @@ static inline int do_reassemble(struct pg_ip_fragment_state *state,
 		}
 	}
 
+	pg_packets_incref(pkts, *pkts_mask);
 	if (unlikely(snd_mask)) {
 		ret = pg_brick_burst(s->edge.link, from, s->edge.pair_index,
 				     state->pkts_out, snd_mask, errp);
@@ -187,8 +188,8 @@ static int ip_fragment_burst(struct pg_brick *brick, enum pg_side from,
 					pkts_mask ^= (ONE64 << i);
 			}
 		}
-	} else if (do_reassemble(state, pkts, s, from, &pkts_mask, errp) < 0) {
-		return -1;
+	} else {
+		return do_reassemble(state, pkts, s, from, &pkts_mask, errp);
 	}
 	if (!pkts_mask)
 		return 0;
