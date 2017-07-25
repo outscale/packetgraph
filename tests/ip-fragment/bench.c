@@ -82,6 +82,7 @@ static void test_benchmark_ip_fragment(int mtu, int max_burst_cnt,
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(ip_fragment);
+	g_free(bench.pkts);
 }
 
 static void test_benchmark_ip_defragment(int mtu, const char *title,
@@ -147,6 +148,7 @@ static void test_benchmark_ip_defragment(int mtu, const char *title,
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(ip_fragment);
 	pg_brick_destroy(collect);
+	g_free(tmp_pkts);
 }
 
 static void benchmark_ip_frag_and_defragment(int mtu, const char *title,
@@ -211,6 +213,7 @@ static void benchmark_ip_frag_and_defragment(int mtu, const char *title,
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(ip_fragment);
 	pg_brick_destroy(ip_reasemble);
+	g_free(tmp_pkts);
 }
 
 int main(int argc, char **argv)
