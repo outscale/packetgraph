@@ -73,7 +73,7 @@ else
     if [[ $major -lt 1 || $minor -lt 71 ]]; then
         echo "cppcheck version >= 1.71 required (currently have ${major}.${minor}), skip test"
     else
-        cppcheck -q  -f -I $PACKETGRAPH_ROOT/src -I $PACKETGRAPH_ROOT/include --error-exitcode=43  --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning $filelist
+        cppcheck -q  -f -I $PACKETGRAPH_ROOT/src -I $PACKETGRAPH_ROOT/include --error-exitcode=43  --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning -U TYPE_NAME $filelist
         if [ $? != 0 ]; then
 	    echo "cppcheck tests failed"
             exit 1
