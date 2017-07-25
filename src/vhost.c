@@ -324,7 +324,7 @@ static uint64_t tx_bytes(struct pg_brick *brick)
 
 static int new_vm(int dev)
 {
-	struct pg_vhost_socket *s;
+	struct pg_vhost_socket *s = NULL;
 	char buf[256];
 
 	rte_vhost_get_ifname(dev, buf, 256);
@@ -347,7 +347,7 @@ static int new_vm(int dev)
 
 static void destroy_vm(int dev)
 {
-	struct pg_vhost_socket *s;
+	struct pg_vhost_socket *s = NULL;
 	char buf[256];
 
 	rte_vhost_get_ifname(dev, buf, 256);
