@@ -423,9 +423,7 @@ static void test_vhost_fd(void)
 
 static void test_vhost_fd_loop(void)
 {
-	int i;
-
-	for (i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 		test_vhost_fd();
 }
 
