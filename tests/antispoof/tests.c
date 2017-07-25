@@ -187,12 +187,12 @@ static void test_antispoof_generic(const unsigned char **pkts,
 		pg_brick_poll(gen_west, &packet_count, &error); \
 		g_assert(!error); \
 		g_assert(packet_count == 1); \
-		filtered_pkts = pg_brick_west_burst_get(col_east, \
+		filtered_pkts = pg_brick_west_burst_get(col_east,	\
 							&filtered_pkts_mask, \
 							&error); \
 		g_assert(!error); \
 		g_assert(pg_mask_count(filtered_pkts_mask) == (pass)); \
-		pg_packets_free(filtered_pkts, filtered_pkts_mask); \
+		g_assert(!!filtered_pkts == pass);			       \
 		rte_pktmbuf_free(packet); \
 	}
 
