@@ -905,9 +905,8 @@ static void test_vtep_flood_encap_decap(void)
 		pg_brick_burst_to_west(nop_east, 0, &tmp, 1, &error);
 	} while (0);
 
-	while (end.tv_sec - start.tv_sec < 5) {
+	while (end.tv_sec - start.tv_sec < 10) {
 		uint16_t nb_send_pkts;
-
 		for (int i = 0; i < 100; ++i) {
 			g_assert(pg_brick_poll(pktgen_west,
 					       &nb_send_pkts, &error) == 0);
@@ -1066,7 +1065,7 @@ static void test_vtep_fragment_encap_decap(void)
 
 		g_assert(tmp_pkts[it]->l2_len == sizeof(struct ether_hdr));
 		g_assert(tmp_pkts[it]->l3_len == sizeof(struct ipv4_hdr));
-		g_assert(tmp_pkts[it]->ol_flags == PKT_TX_UDP_CKSUM);
+		g_assert(tmp_pkts[it]->ol_flags & PKT_TX_UDP_CKSUM);
 		hdr->ipv4.hdr_checksum = 0;
 		hdr->udp.dgram_cksum = 0;
 		hdr->udp.dgram_cksum =

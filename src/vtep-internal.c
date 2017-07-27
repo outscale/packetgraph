@@ -306,9 +306,9 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	if (unlikely(pkt->udata64 & PG_FRAGMENTED_MBUF)) {
 		pkt->l2_len = sizeof(struct ether_hdr);
 		pkt->l3_len = sizeof(struct ipv4_hdr);
-		pkt->ol_flags = PKT_TX_UDP_CKSUM;
+		pkt->ol_flags |= PKT_TX_UDP_CKSUM;
 	} else if (pkt->ol_flags & PKT_TX_TCP_SEG) {
-		pkt->ol_flags = PKT_TX_IPV4 | PKT_TX_IP_CKSUM |
+		pkt->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM |
 			PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
 	}
 
@@ -389,8 +389,9 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 		return -1;
 
 	ret = pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
-	if (!(state->flags & PG_VTEP_NO_COPY))
+	if (!(state->flags & PG_VTEP_NO_COPY)) {
 		pg_packets_free(state->pkts, pkts_mask);
+	}
 	return ret;
 }
 
@@ -590,14 +591,16 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			if (unlikely(pg_brick_burst(s->edges[i].link, from,
 						    i, out_pkts, hitted_mask,
 						    errp) < 0)) {
-				if (!(state->flags & PG_VTEP_NO_COPY))
+				if (!(state->flags & PG_VTEP_NO_COPY)) {
 					pg_packets_free(out_pkts, vni_mask);
+				}
 				return -1;
 			}
 		}
 
-		if (unlikely(!(state->flags & PG_VTEP_NO_COPY)))
+		if (unlikely(!(state->flags & PG_VTEP_NO_COPY))) {
 			pg_packets_free(out_pkts, vni_mask);
+		}
 	}
 	return 0;
 }
