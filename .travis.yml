@@ -1,8 +1,6 @@
 
 language: c
 
-dist: trusty
-
 before_install:
  - sudo apt-get install -y linux-headers-$(uname -r)
  - sudo apt-get install -y automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev
@@ -41,6 +39,8 @@ before_install:
 
 script:
  - cd $TRAVIS_BUILD_DIR
+ - git config user.name "${GH_USER_NAME}"
+ - git config user.email "${USER_MAIL}"
  - ./autogen.sh
  - mkdir build
  - cd build
