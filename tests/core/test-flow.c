@@ -20,6 +20,7 @@
 #include <packetgraph/nop.h>
 #include "utils/tests.h"
 #include "brick-int.h"
+#include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "utils/config.h"
 #include "tests.h"
@@ -31,7 +32,6 @@ static void test_brick_flow_west(void)
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
 	struct pg_brick *brick1, *brick2, *collect_west, *collect_east;
-	static struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[NB_PKTS];
 	uint16_t i;
@@ -40,8 +40,8 @@ static void test_brick_flow_west(void)
 
 	/* prepare the packets to send */
 	for (i = 0; i < NB_PKTS; i++) {
-		mbufs[i].udata64 = i;
-		pkts[i] = &mbufs[i];
+		pkts[i] = rte_pktmbuf_alloc(pg_get_mempool());
+		pkts[i]->udata64 = i;
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
@@ -129,7 +129,6 @@ static void test_brick_flow_east(void)
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
 	struct pg_brick *brick1, *brick2, *collect_west, *collect_east;
-	static struct rte_mbuf mbufs[NB_PKTS];
 	struct rte_mbuf **result_pkts;
 	struct rte_mbuf *pkts[NB_PKTS];
 	uint16_t i;
@@ -138,8 +137,8 @@ static void test_brick_flow_east(void)
 
 	/* prepare the packets to send */
 	for (i = 0; i < NB_PKTS; i++) {
-		mbufs[i].udata64 = i;
-		pkts[i] = &mbufs[i];
+		pkts[i] = rte_pktmbuf_alloc(pg_get_mempool());
+		pkts[i]->udata64 = i;
 	}
 
 	/* create a chain of a few nop brick with collectors on each sides */
