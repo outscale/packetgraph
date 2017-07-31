@@ -22,8 +22,6 @@
 #include "utils/tests.h"
 #include "tests.h"
 
-#define RESULT_SIZE 100000
-
 static void test_brick_core_dot(void)
 {
 	/* Create a weird graph and make a representation using dot.
@@ -42,10 +40,9 @@ static void test_brick_core_dot(void)
 	 *                      [J]----------------------[K]
 	 *
 	 */
-	int ret;
 	struct pg_brick *a, *b, *c, *d, *e, *f, *g, *h, *i, *j, *k;
 	struct pg_error *error = NULL;
-	char result[RESULT_SIZE];
+	char *graph;
 
 	a = pg_hub_new("a", 5, 5, &error);
 	g_assert(!error);
@@ -83,16 +80,14 @@ static void test_brick_core_dot(void)
 	pg_brick_chained_links(&error, j, h);
 	g_assert(!error);
 
-	ret = pg_brick_dot_mem(k, result, RESULT_SIZE, &error);
-	g_assert(!error);
-	g_assert(ret == 0);
+	graph = pg_brick_dot(k);
 
 	/* ugly test is ugly */
 
 	/* unsigned int x; */
 	/* printf("\n{"); */
-	/*	for (x = 0; x < strlen(result); x++) */
-	/*		printf("%i,", result[x]); */
+	/*	for (x = 0; x < strlen(graph); x++) */
+	/*		printf("%i,", graph[x]); */
 	/* printf("};\n"); */
 
 	char compare[] = {
@@ -194,7 +189,8 @@ static void test_brick_core_dot(void)
 		 116, 32, 45, 45, 32, 34, 104, 117, 98, 58, 102, 34, 58, 101,
 		 97, 115, 116, 10, 125, 10, 0};
 
-	g_assert(memcmp(compare, result, strlen(compare)) == 0);
+	g_assert(memcmp(compare, graph, strlen(compare)) == 0);
+	g_free(graph);
 
 	pg_brick_destroy(a);
 	pg_brick_destroy(b);
