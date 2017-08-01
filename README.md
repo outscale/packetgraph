@@ -39,7 +39,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs, can encapsulate packets over ipv4 or ipv6
 - queue: temporally store packets between graph
 - pmtud(ipv4 only): Path MTU Discovery is an implementation of [RFC 1191](https://tools.ietf.org/html/rfc1191)
-- fragment-ip: fragment and reassemble packets
+- fragment-ip(ipv4 only): fragment and reassemble packets, currently broken(https://github.com/outscale/packetgraph/issues/401)
 - user-dipole: setup your own callback in a dipole brick, to filter or implement your own protocol
 
 A lot of other bricks can be created, check our [wall](https://github.com/outscale/packetgraph/issues?q=is%3Aopen+is%3Aissue+label%3Awall) ;)
@@ -82,7 +82,7 @@ $ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-d
 ```
 $ git clone http://dpdk.org/git/dpdk
 $ cd dpdk
-$ git checkout -b v17.02 v17.02
+$ git checkout -b v17.05 v17.05
 $ make config T=x86_64-native-linuxapp-gcc
 ```
 
