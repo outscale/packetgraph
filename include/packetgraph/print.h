@@ -47,16 +47,14 @@ enum pg_print_flags {
 /**
  * Create a new print brick
  *
- * @param	name name of the brick
- * @param	west_max maximum of links you can connect on the west side
- * @param	east_max maximum of links you can connect on the east side
- * @param	output file descriptor where to write packets informations
- *		NULL means to use the standard output (stdout).
- * @param	flags print flags from enum pg_print_flags.
- * @param	type_filter ethernet type skiped at printing,
- *		NULL to skip none.
- * @param	errp is set in case of an error
- * @return	a pointer to a brick structure on success, NULL on error
+ * @param   name name of the brick
+ * @param   output file descriptor where to write packets informations
+ *          NULL means to use the standard output (stdout).
+ * @param   flags print flags from enum pg_print_flags.
+ * @param   type_filter ethernet type skiped at printing,
+ *          NULL to skip none.
+ * @param   errp is set in case of an error
+ * @return  a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_print_new(const char *name,
@@ -68,8 +66,8 @@ struct pg_brick *pg_print_new(const char *name,
 /**
  * Set print flags of a print brick.
  *
- * @param	brick pointer to a print brick
- * @param	flags print flags from enum pg_print_flags.
+ * @param   brick pointer to a print brick
+ * @param   flags print flags from enum pg_print_flags.
  */
 void pg_print_set_flags(struct pg_brick *brick, int flags);
 

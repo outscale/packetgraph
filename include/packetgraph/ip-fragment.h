@@ -24,12 +24,12 @@
 /**
  * Create a new ip fragment brick
  *
- * @name:	name of the brick
- * @output:	side where packets can be fragmented,
- *		the oposite side is where packets are reasemble
- * @mtu_size:	allowed MTU size, must be a multiple of 8
- * @errp:	is set in case of an error
- * @return:	a pointer to a brick, NULL on error
+ * @param   name name of the brick
+ * @param   output side where packets can be fragmented,
+ *          the oposite side is where packets are reasemble
+ * @param   mtu_size allowed MTU size, must be a multiple of 8
+ * @param   errp is set in case of an error
+ * @return  a pointer to a brick, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_ip_fragment_new(const char *name,

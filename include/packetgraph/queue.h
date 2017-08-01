@@ -46,12 +46,11 @@
  * Queues have a maximal size, if you try to burst in a full queue, the oldest
  * burst will be free.
  *
- * @name:	name of the brick
- * @size:	maximal size of the queue. If the queue is full, old bursts
- *		will be dropped. If size <= 0, a default queue size of 10 will
- *		be chosen.
- * @error:	is set in case of an error
- * @return:	a pointer to a brick structure on success, NULL on error
+ * @param   name name of the brick
+ * @param   size maximal size of the queue. If the queue is full, old bursts
+ *          will be dropped. If size <= 0, a default queue size of 10 will be chosen.
+ * @param   error is set in case of an error
+ * @return  a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_queue_new(const char *name, int size,
@@ -60,10 +59,10 @@ struct pg_brick *pg_queue_new(const char *name, int size,
 /**
  * Make two queues friend together.
  *
- * @queue_1:	first queue to friend
- * @queue_2:	second queue to friend
- * @error:	is set in case of an error
- * @return:	0 on success, -1 on error
+ * @param   queue_1 first queue to friend
+ * @param   queue_2 second queue to friend
+ * @param   error is set in case of an error
+ * @return  0 on success, -1 on error
  */
 int pg_queue_friend(struct pg_brick *queue_1,
 		    struct pg_brick *queue_2,
@@ -72,31 +71,31 @@ int pg_queue_friend(struct pg_brick *queue_1,
 /**
  * Check if two queues are friend or not
  *
- * @queue_1:	first queue to test
- * @queue_2:	the other queue to test
- * @return:	true if queues are friend, false otherwise
+ * @param   queue_1 first queue to test
+ * @param   queue_2 the other queue to test
+ * @return  true if queues are friend, false otherwise
  */
 bool pg_queue_are_friend(struct pg_brick *queue_1,
 			 struct pg_brick *queue_2);
 
 /**
  * Get friend if exists.
- * @queue:	queue who potentially have a friend
- * @return:	pointer to friend queue or NULL if have no friend
+ * @param   queue who potentially have a friend
+ * @return  pointer to friend queue or NULL if have no friend
  */
 struct pg_brick *pg_queue_get_friend(struct pg_brick *queue);
 
 /**
  * Unfriend two queues.
- * @queue:	queue to unfriend, the other queue will be unfriend too
+ * @param   queue to unfriend, the other queue will be unfriend too
  */
 void pg_queue_unfriend(struct pg_brick *queue);
 
 /**
  * Get queue pressure of bursting queue.
  *
- * @queue:	queue to analyse
- * @return:	range [0, 255]. 0: empty queue, 255: full queue.
+ * @param   queue to analyse
+ * @return  range [0, 255]. 0: empty queue, 255: full queue.
  */
 uint8_t pg_queue_pressure(struct pg_brick *queue);
 

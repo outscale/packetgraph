@@ -21,11 +21,11 @@
  * The rx callback is called each time packets flow to brick.
  * To send a response, check tx callback.
  *
- * @param	brick pointer to the rxtx brick
- * @param	rx_burst array of received packets.
- *		You MUST NOT write or free data in this array.
- * @param	rx_burst_len array's size of received packets
- * @param	private_data give back user's data
+ * @param   brick pointer to the rxtx brick
+ * @param   rx_burst array of received packets.
+ *          You MUST NOT write or free data in this array.
+ * @param   rx_burst_len array's size of received packets
+ * @param   private_data give back user's data
  */
 typedef void (*pg_rxtx_rx_callback_t)(struct pg_brick *brick,
 				      pg_packet_t **rx_burst,
@@ -35,17 +35,17 @@ typedef void (*pg_rxtx_rx_callback_t)(struct pg_brick *brick,
 /**
  * The tx callback is called each time the brick is polled.
  *
- * @param	brick pointer to the rxtx brick
- * @param	tx_burst array of pre-allocated packets.
- *		The array size if given with tx_burst_len.
- *		Use pg_packet_data to get a pointer where to write data.
- *		Use pg_packet_set_len to set len of your packet.
- *		You must not write data once callback is done.
- *		You will get back the same packet array at each	call.
- *		You can take advantage of this to only write what you need to.
- * @param	rx_burst_len number of packets ready to be sent.
- *		Must not be > PG_RXTX_MAX_TX_BURST_LEN
- * @param	private_data give back user's data
+ * @param   brick pointer to the rxtx brick
+ * @param   tx_burst array of pre-allocated packets.
+ *          The array size if given with tx_burst_len.
+ *          Use pg_packet_data to get a pointer where to write data.
+ *          Use pg_packet_set_len to set len of your packet.
+ *          You must not write data once callback is done.
+ *          You will get back the same packet array at each	call.
+ *          You can take advantage of this to only write what you need to.
+ * @param   rx_burst_len number of packets ready to be sent.
+ *          Must not be > PG_RXTX_MAX_TX_BURST_LEN
+ * @param   private_data give back user's data
  */
 typedef void (*pg_rxtx_tx_callback_t)(struct pg_brick *brick,
 				      pg_packet_t **tx_burst,
@@ -61,12 +61,11 @@ typedef void (*pg_rxtx_tx_callback_t)(struct pg_brick *brick,
  * An rxtx brick allow users to easily create their own packet processing
  * applications by just providing callbacks to send and receive packets.
  *
- * @param	name name of the brick
- * @param	rx optional callback used when packets flow to brick
- * @param	tx optional callback used to send packets to graph
- * @param	private_data pointer to user's data
- * @param	errp is set in case of an error
- * @return	a pointer to a brick structure on success, NULL on error
+ * @param   name name of the brick
+ * @param   rx optional callback used when packets flow to brick
+ * @param   tx optional callback used to send packets to graph
+ * @param   private_data pointer to user's data
+ * @return  a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_rxtx_new(const char *name,
@@ -76,8 +75,8 @@ struct pg_brick *pg_rxtx_new(const char *name,
 
 /**
  * Get back private data if needed outside rx or tx.
- * @param	brick pointer to the rxtx brick
- * @return	pointer to provided private data during pg_rxtx_new.
+ * @param   brick pointer to the rxtx brick
+ * @return  pointer to provided private data during pg_rxtx_new.
  */
 void *pg_rxtx_private_data(struct pg_brick *brick);
 

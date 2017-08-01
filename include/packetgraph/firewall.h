@@ -31,15 +31,13 @@ extern uint32_t pg_npf_nworkers;
  * This function should be call in the same thread than the one
  * which process packets.
  *
- * @param	name name of the brick
- * @param	west_max maximum of links you can connect on the west side
- * @param	east_max maximum of links you can connect on the east side
- * @param	flags pass PG_NO_CONN_WORKER if you don't want NPF to spawn a
- *              separated thread to run garbage collector to clean old
- *              connexions. If you pass this flag, then you will be responsible
- *              of calling pg_firewall_gc.
- * @param	errp is set in case of an error
- * @return	a pointer to a brick structure on success, NULL on error
+ * @param   name name of the brick
+ * @param   flags pass PG_NO_CONN_WORKER if you don't want NPF to spawn a
+ *          separated thread to run garbage collector to clean old connexions.
+ *          If you pass this flag, then you will be responsible of calling
+ *          pg_firewall_gc.
+ * @param   errp is set in case of an error
+ * @return  a pointer to a brick structure on success, NULL on error
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_firewall_new(const char *name, uint64_t flags,
@@ -51,17 +49,19 @@ struct pg_brick *pg_firewall_new(const char *name, uint64_t flags,
  * firewall_reload() before. Offcourse, you can call firewall_rule_add
  * several times before firewall_reload().
  *
- * @param	brick pointer to the firewall brick
- * @param	filter a pcap-filter string to apply, if a NULL string is
- *		passed, it will allow all traffic.
- * @param	side side where the filter will occurs, you can use SIDE_MAX
- *		to specify both sides.
- * @param	errp is set in case of an error
- * @return	0 if the rule has been correctly built and added
- *		-1 on error and errp is set.
+ * @param   brick pointer to the firewall brick
+ * @param   filter a pcap-filter string to apply, if a NULL string is
+ *          passed, it will allow all traffic.
+ * @param   side side where the filter will occurs, you can use SIDE_MAX
+ *          to specify both sides.
+ * @param   stateful allow packet inspection to distinguish legitimate
+ *          packets for different types of connections.
+ * @param   errp is set in case of an error
+ * @return  0 if the rule has been correctly built and added -1 on error
+ *          and errp is set.
  */
 int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
-			 enum pg_side dir, int stateful,
+			 enum pg_side side, int stateful,
 			 struct pg_error **errp);
 
 /**
@@ -70,7 +70,7 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
  * To clean old connexions, we must manually call the connexion garbage
  * collection when PG_NO_CONN_WORKER flag shas not been set at brick creation.
  *
- * @param	brick pointer to the firewall brick
+ * @param   brick pointer to the firewall brick
  */
 void pg_firewall_gc(struct pg_brick *brick);
 
@@ -79,7 +79,7 @@ void pg_firewall_gc(struct pg_brick *brick);
  * Note that the flush won't be effective, you will need to call
  * firewall_reload() before.
  *
- * @param	brick pointer to the firewall brick
+ * @param   brick pointer to the firewall brick
  */
 void pg_firewall_rule_flush(struct pg_brick *brick);
 
@@ -88,10 +88,10 @@ void pg_firewall_rule_flush(struct pg_brick *brick);
  * All rules added in the firewall will be loaded.
  * Old rules won't be effective anymore.
  *
- * @param	brick pointer to the firewall brick
- * @param	errp is set in case of an error
- * @return	0 if the firewall has reloaded correctly
- *		-1 otherwise and errp is set.
+ * @param   brick pointer to the firewall brick
+ * @param   errp is set in case of an error
+ * @return  0 if the firewall has reloaded correctly -1 otherwise
+ *          and errp is set.
  */
 int pg_firewall_reload(struct pg_brick *brick, struct pg_error **errp);
 
