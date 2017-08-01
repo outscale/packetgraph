@@ -57,7 +57,7 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 		collector[it] = rte_pktmbuf_clone(pkts[it], pg_get_mempool());
 		collector[it]->udata64 = pkts[it]->udata64;
 		collector[it]->tx_offload = pkts[it]->tx_offload;
-		collector[it]->ol_flags = pkts[it]->ol_flags;
+		collector[it]->ol_flags |= pkts[it]->ol_flags;
 	}
 	return 0;
 }
@@ -104,6 +104,19 @@ static enum pg_side collect_get_side(struct pg_brick *brick)
 	return pg_flip_side(state->output);
 }
 
+static void collect_destroy(struct pg_brick *brick, struct pg_error **errp)
+{
+	enum pg_side i;
+	struct pg_collect_state *state =
+		pg_brick_get_state(brick, struct pg_collect_state);
+
+	for (i = 0; i < PG_MAX_SIDE; i++) {
+		if (!state->pkts_mask[i])
+			continue;
+		pg_packets_free(state->pkts[i], state->pkts_mask[i]);
+	}
+}
+
 static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
 {
 	enum pg_side i;
@@ -143,6 +156,7 @@ static struct pg_brick_ops collect_ops = {
 	.unlink		= pg_brick_generic_unlink,
 
 	.reset		= collect_reset,
+	.destroy	= collect_destroy,
 	.burst_get	= collect_burst_get,
 };
 
