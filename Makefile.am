@@ -405,6 +405,7 @@ doc: doxygen.conf
 	$(srcdir)/doc/sed_readme.sh
 	doxygen $^
 	$(srcdir)/doc/check_error.sh
+	$(srcdir)/doc/deploy_documentation.sh
 
 # libtoolize recommanded this
 ACLOCAL_AMFLAGS = -I m4
