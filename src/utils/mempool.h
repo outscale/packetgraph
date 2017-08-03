@@ -27,7 +27,10 @@
 
 extern struct rte_mempool *mp;
 
-void pg_alloc_mempool(void);
+/**
+ * @param flags mempool flags
+ */
+void pg_alloc_mempool(uint32_t flags);
 
 static inline struct rte_mempool *pg_get_mempool(void)
 {

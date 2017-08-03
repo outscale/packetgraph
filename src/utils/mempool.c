@@ -22,14 +22,14 @@
 
 struct rte_mempool *mp;
 
-void pg_alloc_mempool(void)
+void pg_alloc_mempool(uint32_t flags)
 {
 	mp = rte_mempool_create("pg_mempool", PG_NUM_MBUFS, PG_MBUF_SIZE,
 				PG_MBUF_CACHE_SIZE,
 				sizeof(struct rte_pktmbuf_pool_private),
 				rte_pktmbuf_pool_init, NULL,
 				rte_pktmbuf_init, NULL,
-				rte_socket_id(), 0);
+				rte_socket_id(), flags);
 	g_assert(mp);
 }
 

@@ -25,10 +25,16 @@
 
 int pg_start(int argc, char **argv)
 {
+	uint32_t flags = 0;
+
+	for (int i = 1; i < argc; ++i) {
+		if (!strcmp(argv[i], "--no-huge"))
+			flags |= MEMPOOL_F_NO_PHYS_CONTIG;
+	}
 	mp_hdlr_init_ops_stack();
 	int ret = rte_eal_init(argc, argv);
 
-	pg_alloc_mempool();
+	pg_alloc_mempool(flags);
 	return ret;
 }
 
