@@ -20,7 +20,7 @@
 
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
-
+#include <arpa/inet.h>
 
 /**
  *  Create a new dhcp brick.
@@ -31,6 +31,32 @@
  *  @return: a pointer to a brick structure on success, NULL on error
  **/
 
-struct pg_brick *pg_dhcp_new(const char *name, const char *ipcidr,
-			     enum pg_side outside, struct pg_error **errp);
+struct pg_brick *pg_dhcp_new(const char *name, const char *cidr,
+			     struct pg_error **errp);
 
+
+/**
+ * Calculate the number of potential adresses
+ * @ipcidr : ip adress with cidr to calculate the range
+ */
+int pg_calcul_range_ip(network_addr_t ipcidr);
+
+/**
+ * Check if a packet is a dhcp discover packet
+ * @pkts : the packet to check
+ */
+bool is_discover(struct rte_mbuf *pkts);
+
+/**
+ * Check if a packet is a dhcp discover packet
+ * @pkts : the packet to check
+ */
+bool is_request(struct rte_mbuf *pkts);
+
+/**
+ * Print all the mac adresses register
+ * @dhcp : brick dhcp 
+ */
+void pg_print_allocate_macs(struct pg_brick *dhcp);
+
+#endif /* _PG_DHCP_H */

@@ -32,20 +32,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <packetgraph/packetgraph.h>
 
-
-static int	Jflg = 0;	/* = 1 if "-J" specified */
 static char	*PROG;
-
-
-/*---------------------------------------------------------------------*/
-/* network address type: one field for the net address, one for prefix */
-/*---------------------------------------------------------------------*/
-typedef struct network_addr {
-  in_addr_t addr;
-  int pfx;
-} network_addr_t;
-
 
 /*------------------------------------------------------------------*/
 /* Set a bit to a given value (0 or 1); MSB is bit 1, LSB is bit 32 */
@@ -108,59 +97,10 @@ void print_addr( in_addr_t addr, int prefix ) {
 
 } /* print_addr() */
 
-
-/*------------------------------------------------------------*/
-/* Recursively compute network addresses to cover range lo-hi */
-/*------------------------------------------------------------*/
-/* Note: Worst case scenario is when lo=0.0.0.1 and hi=255.255.255.254
- *  *       We then have 62 CIDR bloks to cover this interval, and 125
- *   *       calls to split_range();
- *    *       The maximum possible recursion depth is 32.
- *     */
-int split_range( in_addr_t addr, int prefix, in_addr_t lo, in_addr_t hi ) {
-
-  in_addr_t bc, lower_half, upper_half;
-
-  if ( (prefix < 0) || (prefix > 32) ) {
-    fprintf( stderr, "%s: Invalid mask size %d!\n", PROG,  prefix );
-    return -1;
-  }
-
-  bc = broadcast(addr, prefix);
-
-  if ( (lo < addr) || (hi > bc) ) {
-    fprintf( stderr, "%s: Out of range limits: %x, %x for "
-                     "network %x/%d, broadcast: %x!\n",
-             PROG, lo, hi, addr, prefix, bc );
-    return -1;
-  }
-
-  if ( (lo == addr) && (hi == bc) ) {
-    print_addr( addr, prefix );
-    return;
-  }
-
-  prefix++;
-  lower_half = addr;
-  upper_half = set_bit( addr, prefix, 1 );
-  
-  if ( hi < upper_half ) {
-    split_range( lower_half, prefix, lo, hi );
-  } else if ( lo >= upper_half ) {
-    split_range( upper_half, prefix, lo, hi );
-  } else {
-    split_range( lower_half, prefix, lo, broadcast(lower_half, prefix) );
-    split_range( upper_half, prefix, upper_half, hi );
-  }
-
-} /* split_range() */
-
-
 /*-----------------------------------------------------------*/
 /* Convert an A.B.C.D address into a 32-bit host-order value */
 /*-----------------------------------------------------------*/
-in_addr_t a_to_hl( char *ipstr ) {
-
+in_addr_t a_to_hl(const char *ipstr ) {
   struct in_addr in;
   if ( !inet_aton(ipstr, &in) ) {
     fprintf( stderr, "%s: Invalid address %s!\n", PROG, ipstr );
@@ -176,24 +116,26 @@ in_addr_t a_to_hl( char *ipstr ) {
 /* convert a network address char string into a host-order network */
 /* address and an integer prefix value                             */
 /*-----------------------------------------------------------------*/
-int str_to_netaddr( char *ipstr, network_addr_t *netaddr) {
-
+int str_to_netaddr(const char *ipstr, network_addr_t *netaddr) {
   long int prefix = 32;
   char *prefixstr;
-
+   
   if ( (prefixstr = strchr(ipstr, '/')) ) {
     *prefixstr = '\0';
     prefixstr++;
     prefix = strtol( prefixstr, (char **) NULL, 10 );
-    if ( errno || (*prefixstr == '\0') || (prefix < 0) || (prefix > 32) ) {
+    printf("prefix %i\n", (int) prefix);
+    if ((*prefixstr == '\0') || (prefix < 0) || (prefix > 32)) {
       fprintf( stderr, "%s: Invalid prefix /%s...!\n", PROG, prefixstr );
       return -1;
     }
   }
+  else {
+    printf("no prefix");
+  }
   
-  *netaddr.pfx = (int) prefix;
-  *netaddr.addr = network( a_to_hl(ipstr), prefix );
-
+  netaddr->pfx = (int) prefix;
+  netaddr->addr = network( a_to_hl(ipstr), prefix );
   return 0;
 
 } /* str_to_netaddr() */
