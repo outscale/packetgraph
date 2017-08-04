@@ -907,6 +907,7 @@ static void test_vtep_flood_encap_decap(void)
 
 	while (end.tv_sec - start.tv_sec < 10) {
 		uint16_t nb_send_pkts;
+
 		for (int i = 0; i < 100; ++i) {
 			g_assert(pg_brick_poll(pktgen_west,
 					       &nb_send_pkts, &error) == 0);

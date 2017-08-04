@@ -389,9 +389,8 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 		return -1;
 
 	ret = pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
-	if (!(state->flags & PG_VTEP_NO_COPY)) {
+	if (!(state->flags & PG_VTEP_NO_COPY))
 		pg_packets_free(state->pkts, pkts_mask);
-	}
 	return ret;
 }
 
@@ -591,16 +590,14 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			if (unlikely(pg_brick_burst(s->edges[i].link, from,
 						    i, out_pkts, hitted_mask,
 						    errp) < 0)) {
-				if (!(state->flags & PG_VTEP_NO_COPY)) {
+				if (!(state->flags & PG_VTEP_NO_COPY))
 					pg_packets_free(out_pkts, vni_mask);
-				}
 				return -1;
 			}
 		}
 
-		if (unlikely(!(state->flags & PG_VTEP_NO_COPY))) {
+		if (unlikely(!(state->flags & PG_VTEP_NO_COPY)))
 			pg_packets_free(out_pkts, vni_mask);
-		}
 	}
 	return 0;
 }
