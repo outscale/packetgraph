@@ -158,7 +158,6 @@ const char *pg_brick_type(struct pg_brick *brick);
  *
  * @param	brick any brick pointer from which to start analyse the graph
  * @param	fd file descriptor where to write the graph description
- * @param	errp is set in case of an error
  */
 void pg_brick_dot_fd(struct pg_brick *brick, FILE *fd);
 
@@ -167,7 +166,6 @@ void pg_brick_dot_fd(struct pg_brick *brick, FILE *fd);
  * Get a allocated string of dot graph. It's up to the user to call free().
  *
  * @param	brick any brick pointer from which to start analyse the graph
- * @param	errp is set in case of an error
  * @return	allocated string which must be free by the user
  */
 char *pg_brick_dot(struct pg_brick *brick);
