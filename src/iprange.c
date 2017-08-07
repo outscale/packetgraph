@@ -124,7 +124,6 @@ int str_to_netaddr(const char *ipstr, network_addr_t *netaddr) {
     *prefixstr = '\0';
     prefixstr++;
     prefix = strtol( prefixstr, (char **) NULL, 10 );
-    printf("prefix %i\n", (int) prefix);
     if ((*prefixstr == '\0') || (prefix < 0) || (prefix > 32)) {
       fprintf( stderr, "%s: Invalid prefix /%s...!\n", PROG, prefixstr );
       return -1;

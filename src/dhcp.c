@@ -139,10 +139,10 @@ static int dhcp_burst(struct pg_brick *brick, enum pg_side from,
 		if (RTE_ETH_IS_IPV4_HDR(tmp->packet_type)) {
 			if (((tmp->packet_type) & RTE_PTYPE_L4_UDP)) {
 				if (is_request(tmp)) {
-					while(state->check_ip[j] == 0)
+					while(state->check_ip[j] != 0)
                                                 j++;
-                                        mac_pkts = &ethernet->s_addr;
-                                        state->mac[j] = mac_pkts;
+                                	mac_pkts = &ethernet->s_addr;
+                                	state->mac[j] = mac_pkts;
 					dhcp_poll(brick, &pkts_cnt, errp);
 				}
 			}
@@ -232,13 +232,13 @@ bool is_request(struct rte_mbuf *pkts) {
 	uint16_t udp_dest = 67;
 	uint16_t udp_src = 68;
 	uint8_t dhcp_mes_type = 3;
+	uint32_t hdrs_len = sizeof(struct ether_hdr) + sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr);
 
 	struct ether_hdr *ethernet = (struct ether_hdr *) rte_pktmbuf_mtod(pkts, char *);
 	struct ipv4_hdr *ip = (struct ipv4_hdr *) pg_utils_get_l3(pkts);
         struct udp_hdr *udp = (struct udp_hdr *) pg_utils_get_l4(pkts);
 	struct dhcp_messages_payload *dhcp_hdr = (struct dhcp_messages_payload *)
-						 rte_pktmbuf_mtod(pkts, char *)
-				   + pkts->l2_len + pkts->l3_len + pkts->l4_len;
+						 rte_pktmbuf_mtod_offset(pkts, char *, hdrs_len);
 
         if (eth_compare(ethernet->d_addr.addr_bytes, eth_dest) == false)
                 result = false;
@@ -249,37 +249,18 @@ bool is_request(struct rte_mbuf *pkts) {
         if (ip->dst_addr != ip_dest)
                 result = false;
 
-	printf("ip dest : %u \n", ip->dst_addr);
-	printf("ip dest2 : %u \n", ip_dest);
-	printf("%d\n", result);
-
         if (ip->src_addr != ip_src)
                 result = false;
-
-	printf("ip src : %u \n", ip->src_addr);
-	printf("ip src : %u \n", ip_src);
-	printf("%d\n", result);
 
         if (rte_be_to_cpu_16(udp->dst_port) != udp_dest)
                 result = false;
 
-	printf("udp dest : %u \n", udp->dst_port);
-	printf("udp dest2 : %u \n", udp_dest);
-	printf("%d\n", result);
-
         if (rte_be_to_cpu_16(udp->src_port) != udp_src)
                 result = false;
 
-	printf("udp src : %u \n", udp->src_port);
-	printf("udp src2 : %u \n", udp_src);
-	printf("%d\n", result);
-
 	if (dhcp_hdr->dhcp_m_type != dhcp_mes_type)
 		result = false;
-	printf("dhcp_messages type : %u \n", dhcp_hdr->dhcp_m_type);
-	printf("dhcp_messages type2 : %u \n", dhcp_mes_type);
 
-	printf("%d\n", result);
         return result;
 }
 

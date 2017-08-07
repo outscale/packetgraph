@@ -134,9 +134,7 @@ struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
 		ip_hdr.hdr_checksum = 0;				\
 		ip_hdr.next_proto_id = proto;				\
 		ip_hdr.src_addr = src_ip;				\
-		printf(" src_ip %u \n", ip_hdr.src_addr);      \
 		ip_hdr.dst_addr = dst_ip;				\
-		printf(" dst_ip %u \n", ip_hdr.dst_addr);      \
 		ip_hdr.fragment_offset =				\
 			rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);		\
 		ip_hdr.hdr_checksum = rte_ipv4_cksum(&ip_hdr);		\
@@ -211,14 +209,13 @@ struct rte_mbuf **pg_packets_append_ipv6(struct rte_mbuf **pkts,
 		if (!pkts[j])						\
 			continue;					\
 		udp_hdr.src_port = rte_cpu_to_be_16(src_port);		\
-		printf(" udp src %u \n", rte_be_to_cpu_16(udp_hdr.src_port));      \
 		udp_hdr.dst_port = rte_cpu_to_be_16(dst_port);		\
-		printf(" udp dest %u \n", rte_be_to_cpu_16(udp_hdr.dst_port));      \
 		udp_hdr.dgram_len = rte_cpu_to_be_16(datagram_len);	\
 		udp_hdr.dgram_cksum = 0;				\
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(udp_hdr));	\
 		if (!tmp)						\
 			return NULL;					\
+		pkts[j]->l4_len = sizeof(struct udp_hdr);		\
 		pkts[j]->packet_type += 512;				\
 		memcpy(tmp, &udp_hdr, sizeof(udp_hdr));			\
 	}								\
