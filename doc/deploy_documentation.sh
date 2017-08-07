@@ -22,11 +22,10 @@ if [ -d "$dir/html" ] && [ -s "$dir/html/index.html" ]; then
     # Add everything in this directory (the Doxygen code documentation)
     git add -A .
     # Commit the added files with a title and description containing the Travis CI
-    git commit -m "Deploy code docs to GitHub Pages\
-    \
-    Travis build info:\
-    branch name ${TRAVIS_BRANCH}\
-    build number${TRAVIS_BUILD_NUMBER}"
+    git commit -m "Deploy code docs to GitHub Pages
+
+    branch: ${TRAVIS_BRANCH}
+    build: ${TRAVIS_BUILD_NUMBER}"
     # Force push to the remote master branch.
     git push --force "https://${GH_PACKETGRAPH_TOKEN}@${GH_REPO_REF}" master:master
 else
