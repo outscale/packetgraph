@@ -7,16 +7,6 @@ before_install:
  - sudo apt-get install -y build-essential make git hugepages
  - sudo apt-get install -y rats cppcheck flawfinder python-setuptools
  - sudo apt-get install -y bridge-utils
- - cd ~
- - git clone https://github.com/doxygen/doxygen.git
- - cd doxygen
- - git checkout -b Release_1_8_13 Release_1_8_13
- - mkdir build
- - cd build
- - cmake -G "Unix Makefiles" ..
- - make
- - sudo bash -c "make install"
- - cd ~
 
  - sudo bash -c "echo 1024 > /proc/sys/vm/nr_hugepages"
  - sudo bash -c "mkdir -p /mnt/huge"
