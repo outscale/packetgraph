@@ -473,7 +473,6 @@ static void test_graph_firewall_intense(void)
 						PG_MAX_SIDE, 1, &error) == 0);
 		CHECK_ERROR_ASSERT(error);
 		pg_graph_destroy(graph);
-		sleep(1);
 	}
 
 	CHECK_ERROR_ASSERT(error);
@@ -528,9 +527,6 @@ static void test_graph_firewall_intense_multiple(void)
 		}
 		for (int j = 0; j < PG_BRANCHES_NB; j++)
 			pg_graph_destroy(graphs[j]);
-
-		/* FIXME: remove this once dpdk merge patch that shrink fdset */
-		sleep(1);
 	}
 
 	CHECK_ERROR_ASSERT(error);
