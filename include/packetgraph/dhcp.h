@@ -32,8 +32,8 @@
  **/
 
 struct pg_brick *pg_dhcp_new(const char *name, const char *cidr,
+			     struct ether_addr mac_dhcp,
 			     struct pg_error **errp);
-
 
 /**
  * Calculate the number of potential adresses
@@ -54,9 +54,24 @@ bool is_discover(struct rte_mbuf *pkts);
 bool is_request(struct rte_mbuf *pkts);
 
 /**
- * Print all the mac adresses register
- * @dhcp : brick dhcp 
+ * Create dhcp packet to burst
+ * @msg_type : dhcp message type : 1 : Discover
+ * 				   2 : Offer
+ * 				   3 : Request
+ * 				   4 : Decline
+ * 				   5 : Acknowledgment
+ * 				   6 : Negative Acknowledgment 
+ * 				   7 : Realease
+ * 				   8 : Informationnal
+ * @mac : Mac adresse of the brick
+ * @ip_offer : ip to give to the brick
+ * @bail : number of seconds for bail of the ip adresse to the brick
+ * @ip_router : ip of the default gateaway
+ * @mask : subnet mask used by the client
  */
-void pg_print_allocate_macs(struct pg_brick *dhcp);
+struct rte_mbuf **pg_dhcp_packet_create(struct pg_brick *brick,
+					uint8_t msg_type, struct ether_addr mac,
+                                        uint32_t ip_offer, int bail,
+                                        uint32_t ip_router, uint32_t mask);
 
 #endif /* _PG_DHCP_H */
