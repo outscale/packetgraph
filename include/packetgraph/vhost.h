@@ -52,6 +52,11 @@
 
 #define PG_VHOST_USER_CLIENT		(1ULL << 0)
 #define PG_VHOST_USER_NO_RECONNECT	(1ULL << 1)
+
+/*
+ * warning, this doesn't work at all yet
+ * using this flag is asking for problem
+ */
 #define PG_VHOST_USER_DEQUEUE_ZERO_COPY	(1ULL << 2)
 
 struct pg_brick;
