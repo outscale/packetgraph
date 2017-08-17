@@ -158,9 +158,6 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	/* kill QEMU */
 	pg_util_stop_qemu(qemu_pid, qemu_exit_signal);
 
-	/* free result packets */
-	pg_packets_free(result_pkts, pkts_mask);
-
 	/* free sent packet */
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
@@ -353,9 +350,6 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 	g_assert(result_pkts);
 
-	/* free result packets */
-	pg_packets_free(result_pkts, pkts_mask);
-
 	/* free sent packet */
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
@@ -517,9 +511,6 @@ static void qemu_test(struct qemu_test_params *p)
 	kill(qemu_pid, p->killsig);
 	waitpid(qemu_pid, &exit_status, 0);
 	g_spawn_close_pid(qemu_pid);
-
-	/* free result packets */
-	pg_packets_free(result_pkts, pkts_mask);
 
 	/* free sent packet */
 	for (int i = 0; i < NB_PKTS; i++)
