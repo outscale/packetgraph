@@ -56,8 +56,6 @@ static int collect_burst(struct pg_brick *brick, enum pg_side from,
 	PG_FOREACH_BIT(pkts_mask, it) {
 		collector[it] = rte_pktmbuf_clone(pkts[it], pg_get_mempool());
 		collector[it]->udata64 = pkts[it]->udata64;
-		collector[it]->tx_offload = pkts[it]->tx_offload;
-		collector[it]->ol_flags |= pkts[it]->ol_flags;
 	}
 	return 0;
 }
