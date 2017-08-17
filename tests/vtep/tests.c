@@ -46,7 +46,8 @@
 #include "collect.h"
 
 /* redeclar here for testing purpose,
- * theres stucture should not be use by user */
+ * theres stucture should not be use by user
+ */
 
 #define CHECK_ERROR(error) do {			\
 		if (error)			\

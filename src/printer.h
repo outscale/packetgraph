@@ -27,7 +27,7 @@
  * @param	size packet's size.
  * @param	output where to write informations
  */
-void print_summary(void *data, size_t size, FILE *ouput);
+void print_summary(void *data, size_t size, FILE *output);
 
 /**
  * Inspect a packet and write it's raw data (hex)

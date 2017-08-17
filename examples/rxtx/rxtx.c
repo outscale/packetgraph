@@ -43,7 +43,8 @@ static void rx_callback(struct pg_brick *brick,
 
 	for (int i = 0; i < rx_burst_len; i++) {
 		/* note: you can access packet data with
-		 * pg_packet_data(rx_burst[i]) */
+		 * pg_packet_data(rx_burst[i])
+		 */
 		g_printf("[%lf] received a packet of len %i\n",
 			 (current - start_time) / 1000000.,
 			 pg_packet_len(rx_burst[i]));

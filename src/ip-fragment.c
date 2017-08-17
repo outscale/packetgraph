@@ -68,10 +68,12 @@ static int do_fragmentation(struct pg_ip_fragment_state *state,
 	int ret;
 
 	rte_pktmbuf_adj(pkt, l2_size);
-	/* Because ip RCF ask for the fragment size to be a multiple of 8,
-	* and rte_ipv4_fragment_packet don't check if fragment size is
-	* a multiple of 8, we need to be sure to give a multiple of 8 for the
-	* 4rd argument*/
+	/*
+	 * Because ip RCF ask for the fragment size to be a multiple of 8,
+	 * and rte_ipv4_fragment_packet don't check if fragment size is
+	 * a multiple of 8, we need to be sure to give a multiple of 8 for the
+	 * 4rd argument
+	 */
 	nb_frags = rte_ipv4_fragment_packet(pkt, pkts_out, 64,
 					    state->mtu_size - l2_size -
 					    (8 - ((sizeof(struct ipv4_hdr) +

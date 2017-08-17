@@ -295,9 +295,11 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 		ip_build(state, &headers->ip, state->ip, port->multicast_ip,
 			 packet_len + ip_overhead());
 	}
-	/* It is recommended to have UDP source port randomized to be
+	/*
+	 * It is recommended to have UDP source port randomized to be
 	 * ECMP/load-balancing friendly. Let's use computed hash from
-	 * IP header. */
+	 * IP header.
+	 */
 	udp_build(&headers->udp, state->udp_dst_port_be,
 		  packet_len + udp_overhead(), ((uint16_t *)pkt)[0]);
 
@@ -798,8 +800,10 @@ static int vtep_burst(struct pg_brick *brick, enum pg_side from,
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
-	/* if pkts come from the outside,
-	 * so the pkts are entering in the vtep */
+	/*
+	 * if pkts come from the outside,
+	 * so the pkts are entering in the vtep
+	 */
 	if (from == state->output)
 		return from_vtep(brick, from, edge_index,
 				 pkts, pkts_mask, errp);
@@ -826,7 +830,8 @@ static int vtep_init(struct pg_brick *brick,
 	state->packet_id = 0;
 	#endif
 
-	/* do a lazy allocation of the VTEP ports: the code will init them
+	/*
+	 * do a lazy allocation of the VTEP ports: the code will init them
 	 * at VNI port add
 	 */
 	max = pg_side_get_max(brick, pg_flip_side(state->output));

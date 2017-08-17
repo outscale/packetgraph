@@ -182,9 +182,9 @@ static void test_vhost_flow_(int qemu_exit_signal)
 
 static void test_vhost_flow(void)
 {
-	printf("------- test_vhost_flow SIGKILL ---------\n");
+	printf("------- %s SIGKILL ---------\n", __func__);
 	test_vhost_flow_(SIGKILL);
-	printf("------- test_vhost_flow SIGINT  ---------\n");
+	printf("------- %s SIGINT  ---------\n", __func__);
 	test_vhost_flow_(SIGINT);
 }
 
@@ -422,9 +422,9 @@ static void test_vhost_fd_loop(void)
 
 static void test_vhost_multivm(void)
 {
-	printf("------- test_vhost_multivm SIGKILL ---------\n");
+	printf("------- %s SIGKILL ---------\n", __func__);
 	test_vhost_multivm_(SIGKILL);
-	printf("------- test_vhost_multivm SIGINT ---------\n");
+	printf("------- %s SIGINT ---------\n", __func__);
 	test_vhost_multivm_(SIGINT);
 }
 

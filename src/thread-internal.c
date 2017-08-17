@@ -41,8 +41,8 @@ static int enqueue_(int16_t thread_id, enum pg_thread_op op, ARG_TYPE arg)
 	int ret = -1;
 	int queue_pos;
 
-	while (!rte_atomic16_test_and_set(&thread_ids[thread_id]->
-					  is_queue_locked))
+	while (!rte_atomic16_test_and_set(
+		       &thread_ids[thread_id]->is_queue_locked))
 		sched_yield();
 	queue_pos = thread_ids[thread_id]->queue_size;
 	if ((queue_pos + 1) == PG_THREAD_MAX_OP)

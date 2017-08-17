@@ -241,8 +241,10 @@ again:
 int16_t pg_thread_max(void)
 {
 	if (!is_init) {
-		/* As rte_lcore_count equal numbers of slave + master
-		 * we need to substract 1, because we are on master */
+		/*
+		 * As rte_lcore_count equal numbers of slave + master
+		 * we need to substract 1, because we are on master
+		 */
 		threads_max = rte_lcore_count() - 1;
 		if (threads_max > PG_THREAD_MAX)
 			threads_max = PG_THREAD_MAX;

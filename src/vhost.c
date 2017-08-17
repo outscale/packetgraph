@@ -387,8 +387,8 @@ static void destroy_vm(int dev)
 
 	LIST_FOREACH(s, &sockets, socket_list) {
 		if (!strcmp(s->path, buf)) {
-			while (!rte_atomic32_test_and_set(&s->state->
-							  allow_queuing))
+			while (!rte_atomic32_test_and_set(
+				       &s->state->allow_queuing))
 				sched_yield();
 			s->state->vid = -1;
 			break;

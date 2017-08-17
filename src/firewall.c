@@ -278,7 +278,8 @@ static int firewall_init(struct pg_brick *brick,
 }
 
 static void firewall_destroy(struct pg_brick *brick,
-			     struct pg_error **errp) {
+			     struct pg_error **errp)
+{
 	struct pg_firewall_state *state;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);

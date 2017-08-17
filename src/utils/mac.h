@@ -1,5 +1,4 @@
 /* Copyright 2014-2015 Nodalink EURL
-
  * This file is part of Packetgraph.
  *
  * Packetgraph is free software: you can redistribute it and/or modify

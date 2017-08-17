@@ -41,9 +41,9 @@ filelist_examples=$(find $PACKETGRAPH_ROOT/examples/ -type f -name "*.c" -printf
 
 # checkpatch tests
 
-$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON --show-types --no-tree -q -f $filelist || exit 1
-$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,MACRO_WITH_FLOW_CONTROL,SPLIT_STRING  --show-types --no-tree -q -f $filelist_tests || exit 1
-$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore TRAILING_SEMICOLON,SPLIT_STRING --show-types --no-tree -q -f $filelist_examples || exit 1
+$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore SPACING,CONST_STRUCT,TRAILING_SEMICOLON --show-types --no-tree -q -f $filelist || exit 1
+$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore BLOCK_COMMENT_STYLE,SPACING,CONST_STRUCT,TRAILING_SEMICOLON,MACRO_WITH_FLOW_CONTROL,SPLIT_STRING  --show-types --no-tree -q -f $filelist_tests || exit 1
+$PACKETGRAPH_ROOT/tests/style/checkpatch.pl --ignore SPACING,CONST_STRUCT,TRAILING_SEMICOLON,SPLIT_STRING --show-types --no-tree -q -f $filelist_examples || exit 1
 echo "checkpatch tests OK"
 
 # lizard tests
