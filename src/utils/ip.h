@@ -53,7 +53,7 @@ union pg_ipv6_vtc {
 #define PG_IPV6_HALF_FORMAT "%02x%02x:%02x%02x:%02x%02x:%02x%02x"
 #define PG_IPV6_FORMAT PG_IPV6_HALF_FORMAT":"PG_IPV6_HALF_FORMAT
 
-static inline const char *pg_ipv6_to_str(uint8_t *ip)
+static inline const char *pg_ipv6_to_str(const uint8_t *ip)
 {
 	static char static_bufs[16][64];
 	static int cur;
@@ -108,7 +108,8 @@ static inline bool pg_is_same_ipv4(uint32_t a, uint32_t b)
 	return a == b;
 }
 
-static inline bool pg_is_same_ipv6_tab_tab(uint8_t *dest, uint8_t *src)
+static inline bool pg_is_same_ipv6_tab_tab(uint8_t *dest,
+					   uint8_t *src)
 {
 	return !memcmp(dest, src, sizeof(union pg_ipv6_addr));
 }
@@ -220,7 +221,7 @@ static inline struct ether_addr pg_multicast_get_dst_addr4(uint32_t ip)
 }
 
 static inline struct ether_addr
-pg_multicast_get_dst_addr6(uint8_t *ip)
+pg_multicast_get_dst_addr6(const uint8_t *ip)
 {
 	struct ether_addr dst;
 
@@ -234,7 +235,7 @@ pg_multicast_get_dst_addr6(uint8_t *ip)
 	return dst;
 }
 static inline struct ether_addr
-pg_multicast_get_dst_addru6(union pg_ipv6_addr ip)
+pg_multicast_get_dst_addru6(const union pg_ipv6_addr ip)
 {
 	return pg_multicast_get_dst_addr6(ip.word8);
 }

@@ -43,7 +43,7 @@ struct ether_addr;
  * @param   brick a pointer to a vtep brick
  * @return  mac address of the vtep
  */
-struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick);
+struct ether_addr *pg_vtep_get_mac(const struct pg_brick *brick);
 
 /**
  * Add a VNI to the VTEP

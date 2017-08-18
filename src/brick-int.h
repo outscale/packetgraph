@@ -194,10 +194,10 @@ struct pg_brick *pg_brick_decref(struct pg_brick *brick,
 int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp);
 
 /* testing */
-uint32_t pg_brick_links_count_get(struct pg_brick *brick,
-				  struct pg_brick *target,
+uint32_t pg_brick_links_count_get(const struct pg_brick *brick,
+				  const struct pg_brick *target,
 				  struct pg_error **errp);
-int64_t pg_brick_refcount(struct pg_brick *brick);
+int64_t pg_brick_refcount(const struct pg_brick *brick);
 
 /* generic functions used to factorize code */
 
@@ -251,7 +251,7 @@ struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
 /**
  * return the maximum number of brick a side can have
  */
-uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side);
+uint32_t pg_side_get_max(const struct pg_brick *brick, enum pg_side side);
 
 
 struct pg_brick_edge_iterator {
