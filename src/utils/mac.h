@@ -38,10 +38,10 @@ void pg_set_mac_addrs(struct rte_mbuf *mb, const char *src, const char *dst);
 
 void pg_set_ether_type(struct rte_mbuf *mb, uint16_t ether_type);
 
-void pg_get_ether_addrs(struct rte_mbuf *mb, struct ether_hdr **dest);
+void pg_get_ether_addrs(const struct rte_mbuf *mb, struct ether_hdr **dest);
 
-void pg_print_mac(struct ether_addr *eth_addr);
+void pg_print_mac(const struct ether_addr *eth_addr);
 
-const char *pg_printable_mac(struct ether_addr *eth_addr, char *buf);
+const char *pg_printable_mac(const struct ether_addr *eth_addr, char *buf);
 
 #endif /* _PG_UTILS_MAC_H */

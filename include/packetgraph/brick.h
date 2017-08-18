@@ -100,7 +100,7 @@ int pg_brick_poll(struct pg_brick *brick, uint16_t *count,
  * @param	brick brick
  * @return	true if the brick can be polled, false otherwise
  */
-bool pg_brick_pollable(struct pg_brick *brick);
+bool pg_brick_pollable(const struct pg_brick *brick);
 
 /**
  * Number packets received by a specific side.
@@ -109,7 +109,8 @@ bool pg_brick_pollable(struct pg_brick *brick);
  * @param	side specific side
  * @return	number of packets the brick got on the specified side.
  */
-uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side);
+uint64_t pg_brick_pkts_count_get(struct pg_brick *brick,
+				 enum pg_side side);
 
 /**
  * Data received by brick from outside world.
@@ -142,7 +143,7 @@ void pg_brick_destroy(struct pg_brick *brick);
  * @param	brick brick to get name from
  * @return	string containing the name of the brick
  */
-const char *pg_brick_name(struct pg_brick *brick);
+const char *pg_brick_name(const struct pg_brick *brick);
 
 /**
  * Get brick's type name.
@@ -150,7 +151,7 @@ const char *pg_brick_name(struct pg_brick *brick);
  * @param	brick brick to get type name from
  * @return	string containing the type of the brick
  */
-const char *pg_brick_type(struct pg_brick *brick);
+const char *pg_brick_type(const struct pg_brick *brick);
 
 /**
  * Describe connected bricks through a dot (graphviz) graph.

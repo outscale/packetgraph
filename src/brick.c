@@ -295,14 +295,14 @@ int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp)
  * @param	brick the brick to get the refcount from
  * @return	the refcount
  */
-int64_t pg_brick_refcount(struct pg_brick *brick)
+int64_t pg_brick_refcount(const struct pg_brick *brick)
 {
 	g_assert(brick->refcount > 0);
 	return brick->refcount;
 }
 
-static uint16_t count_side(struct pg_brick_side *side,
-			   struct pg_brick *target)
+static uint16_t count_side(const struct pg_brick_side *side,
+			   const struct pg_brick *target)
 {
 	uint16_t j, count = 0;
 	int max = side->max;
@@ -321,13 +321,13 @@ static uint16_t count_side(struct pg_brick_side *side,
  * @param	errp a return pointer for an error message
  * @return	the total number of link from the brick to the target
  */
-uint32_t pg_brick_links_count_get(struct pg_brick *brick,
-				  struct pg_brick *target,
+uint32_t pg_brick_links_count_get(const struct pg_brick *brick,
+				  const struct pg_brick *target,
 				  struct pg_error **errp)
 {
 	uint32_t count = 0;
 	enum pg_side i;
-	struct pg_brick_side *side;
+	const struct pg_brick_side *side;
 
 	if (!brick) {
 		*errp = pg_error_new("brick is NULL");
@@ -660,7 +660,7 @@ int pg_brick_poll(struct pg_brick *brick,
 	return brick->poll(brick, count, errp);
 }
 
-bool pg_brick_pollable(struct pg_brick *brick)
+bool pg_brick_pollable(const struct pg_brick *brick)
 {
 	return brick && brick->poll;
 }
@@ -719,7 +719,8 @@ int pg_brick_side_forward(struct pg_brick_side *brick_side, enum pg_side from,
 	return 0;
 }
 
-uint64_t pg_brick_pkts_count_get(struct pg_brick *brick, enum pg_side side)
+uint64_t pg_brick_pkts_count_get(struct pg_brick *brick,
+				 enum pg_side side)
 {
 	if (!brick)
 		return 0;
@@ -740,17 +741,17 @@ uint64_t pg_brick_tx_bytes(struct pg_brick *brick)
 	return brick->ops->tx_bytes(brick);
 }
 
-const char *pg_brick_name(struct pg_brick *brick)
+const char *pg_brick_name(const struct pg_brick *brick)
 {
 	return brick->name;
 }
 
-const char *pg_brick_type(struct pg_brick *brick)
+const char *pg_brick_type(const struct pg_brick *brick)
 {
 	return brick->ops->name;
 }
 
-uint32_t pg_side_get_max(struct pg_brick *brick, enum pg_side side)
+uint32_t pg_side_get_max(const struct pg_brick *brick, enum pg_side side)
 {
 	return brick->sides[side].max;
 }

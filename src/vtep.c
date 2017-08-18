@@ -114,7 +114,7 @@ struct pg_brick *pg_vtep_new_by_string(const char *name, uint32_t max,
 }
 
 
-inline struct ether_addr *pg_vtep_get_mac(struct pg_brick *brick)
+inline struct ether_addr *pg_vtep_get_mac(const struct pg_brick *brick)
 {
 	return brick ? &pg_brick_get_state(brick, struct vtep_state)->mac :
 		NULL;
