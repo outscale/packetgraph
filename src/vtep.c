@@ -113,12 +113,13 @@ struct pg_brick *pg_vtep_new_by_string(const char *name, uint32_t max,
 			   errp);
 }
 
-
 inline struct ether_addr *pg_vtep_get_mac(const struct pg_brick *brick)
 {
-	return brick ? &pg_brick_get_state(brick, struct vtep_state)->mac :
-		NULL;
+	if (unlikely(!brick))
+		return NULL;
+	return &pg_brick_get_state(brick, struct vtep_state)->mac;
 }
+
 static inline void do_add_mac(struct vtep_port *port, struct ether_addr *mac);
 
 static inline uint16_t igmp_checksum(struct igmp_hdr *msg)
