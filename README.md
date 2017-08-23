@@ -82,7 +82,7 @@ $ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-d
 ```
 $ git clone http://dpdk.org/git/dpdk
 $ cd dpdk
-$ git checkout -b v17.05 v17.05
+$ git checkout -b v17.08 v17.08
 $ make config T=x86_64-native-linuxapp-gcc
 ```
 
