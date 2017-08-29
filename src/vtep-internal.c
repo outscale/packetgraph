@@ -136,9 +136,7 @@ static inline void ip6_build(struct vtep_state *state, struct ipv6_hdr *ip_hdr,
 			     union pg_ipv6_addr dst_ip,
 			     uint16_t pkt_len)
 {
-	union pg_ipv6_vtc vtc = {.version = 6, .traffic_class = 0,
-				 .flow_label = 0};
-	ip_hdr->vtc_flow = vtc.vtc_flow;
+	ip_hdr->vtc_flow = PG_CPU_TO_BE_32(6 << 28);
 	ip_hdr->payload_len = rte_cpu_to_be_16(pkt_len);
 	ip_hdr->proto = UDP_PROTOCOL_NUMBER;
 	ip_hdr->hop_limits = 0xff;
