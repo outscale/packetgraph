@@ -138,9 +138,7 @@ static void multicast6_internal(struct vtep_state *state,
 	ether_addr_copy(&dst, &hdr->ethernet.d_addr);
 	hdr->ethernet.ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv6);
 
-	union pg_ipv6_vtc vtc = {.version = 6, .traffic_class = 0,
-				 .flow_label = 0};
-	hdr->ipv6.vtc_flow = vtc.vtc_flow;
+	hdr->ipv6.vtc_flow = PG_CPU_TO_BE_32(6 << 28);
 	hdr->ipv6.payload_len = rte_cpu_to_be_16(sizeof(struct multicast_pkt) -
 		sizeof(struct ether_hdr));
 	#define ICMPV6_PROTOCOL_NUMBER 58
