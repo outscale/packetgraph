@@ -86,6 +86,21 @@ struct multicast_pkt {
 	struct igmp_hdr igmp;
 } __attribute__((__packed__));
 
+struct mld_hdr {
+	uint8_t type;
+	uint8_t code;
+	uint16_t cksum;
+	uint32_t max_response_time;
+	uint32_t reserved;
+	union pg_ipv6_addr multicast_addr;
+} __attribute__((__packed__));
+
+struct multicast6_pkt {
+	struct ether_hdr ethernet;
+	struct ipv6_hdr ipv6;
+	struct mld_hdr mld;
+} __attribute__((__packed__));
+
 struct vtep_state {
 	struct pg_brick brick;
 	struct ether_addr mac;		/* MAC address of the VTEP */
@@ -136,10 +151,17 @@ static void check_multicast_hdr(struct multicast_pkt *hdr, uint32_t ip_dst,
 	g_assert(is_same_ether_addr(&hdr->ethernet.s_addr, src_addr));
 }
 
+static void check_multicast6_hdr(struct multicast6_pkt *hdr)
+{
+	g_assert(hdr->ethernet.ether_type ==
+		 rte_cpu_to_be_16(ETHER_TYPE_IPv6));
+	g_assert(hdr->ipv6.vtc_flow == 0x60);
+}
+
 #define multicast_get_dst_addr(ip)					\
 	(_Generic((ip),							\
-		 uint32_t : multicast_get_dst4_addr,			\
-		 union pg_ipv6_addr : multicast_get_dst6_addr) (ip))
+		  uint32_t : multicast_get_dst4_addr,			\
+		  union pg_ipv6_addr : multicast_get_dst6_addr) (ip))
 
 static struct ether_addr multicast_get_dst4_addr(uint32_t ip)
 {
@@ -155,8 +177,7 @@ static struct ether_addr multicast_get_dst4_addr(uint32_t ip)
 	return dst;
 }
 
-static inline struct ether_addr
-multicast_get_dst6_addr(union pg_ipv6_addr ip)
+static struct ether_addr multicast_get_dst6_addr(union pg_ipv6_addr ip)
 {
 	struct ether_addr dst;
 
@@ -271,7 +292,10 @@ static void test_vtep6_simple(void)
 			 ip_vni1.word8, &error);
 	g_assert(!error);
 	pg_error_make_ctx(1);
-	check_collector(collect_hub, pg_brick_west_burst_get, 1);
+	result_pkts = check_collector(collect_hub, pg_brick_west_burst_get, 1);
+	check_multicast6_hdr(rte_pktmbuf_mtod(result_pkts[0],
+					      struct multicast6_pkt *));
+
 	pg_vtep6_add_vni(vtep_east, collect_east2, 1,
 			 ip_vni2.word8, &error);
 	g_assert(!error);
