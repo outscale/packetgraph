@@ -79,8 +79,6 @@ struct vtep_config {
 
 #define UDP_MIN_PORT 49152
 #define UDP_PORT_RANGE 16383
-#define UDP_PROTOCOL_NUMBER 17
-#define TCP_PROTOCOL_NUMBER 6
 
 #define ip_udptcp_cksum(a, b, version)			\
 	CATCAT(rte_ipv, version, _udptcp_cksum)(a, b)
@@ -118,6 +116,7 @@ struct vtep_state {
 	uint16_t udp_dst_port_be;		/* UDP destination port */
 	struct vtep_port *ports;
 	uint16_t packet_id;       /* IP identification number */
+	uint32_t sum;
 	int flags;
 	struct rte_mbuf *pkts[64];
 	IP_TYPE ip; /* IP of the VTEP */
@@ -138,7 +137,7 @@ static inline void ip6_build(struct vtep_state *state, struct ipv6_hdr *ip_hdr,
 {
 	ip_hdr->vtc_flow = PG_CPU_TO_BE_32(6 << 28);
 	ip_hdr->payload_len = rte_cpu_to_be_16(pkt_len);
-	ip_hdr->proto = UDP_PROTOCOL_NUMBER;
+	ip_hdr->proto = PG_UDP_PROTOCOL_NUMBER;
 	ip_hdr->hop_limits = 0xff;
 
 	/* the header checksum computation is to be offloaded in the NIC */
@@ -150,16 +149,20 @@ static inline void ip4_build(struct vtep_state *state, struct ipv4_hdr *ip_hdr,
 			     uint32_t src_ip, uint32_t dst_ip,
 			     uint16_t datagram_len)
 {
+	uint16_t total_length = rte_cpu_to_be_16(datagram_len);
+
 	ip_hdr->version_ihl = 0x45;
-	ip_hdr->total_length = rte_cpu_to_be_16(datagram_len);
+	ip_hdr->type_of_service = 0;
+	ip_hdr->total_length = total_length;
 	state->packet_id += 1;
 	ip_hdr->packet_id = state->packet_id;
 	ip_hdr->time_to_live = 64;
-	ip_hdr->hdr_checksum = 0;
-	ip_hdr->next_proto_id = UDP_PROTOCOL_NUMBER;
+	ip_hdr->fragment_offset = 0;
+	ip_hdr->next_proto_id = PG_UDP_PROTOCOL_NUMBER;
 	ip_hdr->src_addr = src_ip;
 	ip_hdr->dst_addr = dst_ip;
-	ip_hdr->hdr_checksum = rte_ipv4_cksum(ip_hdr);
+	ip_hdr->hdr_checksum = pg_ipv4_udp_cksum(state->sum, total_length,
+						 state->packet_id, dst_ip);
 }
 
 #define ip_build(state, ip_hdr, src_ip, dst_ip, len)		\
@@ -826,6 +829,7 @@ static int vtep_init(struct pg_brick *brick,
 	state->flags = vtep_config->flags;
 	state->udp_dst_port_be = rte_cpu_to_be_16(vtep_config->udp_dst_port);
 	#if IP_VERSION == 4
+	state->sum = pg_ipv4_init_cksum(state->ip);
 	state->packet_id = 0;
 	#endif
 
@@ -956,8 +960,6 @@ int pg_vtep_add_vni_(struct pg_brick *brick,
 #undef VTEP_I_FLAG
 #undef UDP_MIN_PORT
 #undef UDP_PORT_RANGE
-#undef UDP_PROTOCOL_NUMBER
-#undef TCP_PROTOCOL_NUMBER
 #undef CATCAT
 #undef CAT
 #undef ip_udptcp_cksum
