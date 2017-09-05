@@ -21,7 +21,10 @@
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
 #include "utils/mempool.h"
+#include "utils/ip.h"
 #include "dpdk_symbols.h"
+
+uint16_t pg_base_cksum_ipv4;
 
 int pg_start(int argc, char **argv)
 {

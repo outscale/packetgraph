@@ -41,8 +41,60 @@ union pg_ipv6_addr {
 		_Generic((ip), PG_IP_GENERIC_IPV6(ip), uint32_t : &(ip)) \
 		))
 
+#define PG_UDP_PROTOCOL_NUMBER 17
+#define PG_TCP_PROTOCOL_NUMBER 6
+
 #define PG_IPV6_HALF_FORMAT "%02x%02x:%02x%02x:%02x%02x:%02x%02x"
 #define PG_IPV6_FORMAT PG_IPV6_HALF_FORMAT":"PG_IPV6_HALF_FORMAT
+
+/**
+ * Compute a precalculate semi ipv4 checksum, that need to be use with
+ * pg_ipv4_udp_cksum
+ * @return the semi checksum
+ */
+static inline uint32_t pg_ipv4_init_cksum(uint32_t src_ip)
+{
+	struct ipv4_hdr ip_hdr;
+
+	ip_hdr.version_ihl = 0x45;
+	ip_hdr.type_of_service = 0;
+	ip_hdr.total_length = 0;
+	ip_hdr.packet_id = 0;
+	ip_hdr.time_to_live = 64;
+	ip_hdr.fragment_offset = 0;
+	ip_hdr.hdr_checksum = 0;
+	ip_hdr.next_proto_id = PG_UDP_PROTOCOL_NUMBER;
+	ip_hdr.src_addr = src_ip;
+	ip_hdr.dst_addr = 0;
+	return __rte_raw_cksum(&ip_hdr, sizeof(ip_hdr), 0);
+}
+
+/**
+ * Assume that all udp ip packets are similar with only
+ * packet_len, packet_id and dst_addr different from other packets
+ * from this assumption, do a fast checksum
+ *
+ * @param base_sum_ipv4 semi checksum precalculate by pg_ipv4_init_cksum
+ * @param pkt_len packet len
+ * @param id packet_id
+ * @param dts_ip destination ip
+ * @return the checksum
+ */
+static inline uint16_t pg_ipv4_udp_cksum(uint32_t base_sum_ipv4,
+					 uint16_t pkt_len, uint16_t id,
+					 uint32_t dts_ip)
+{
+	union {
+		uint32_t ip;
+		uint16_t ipp[2];
+	} __attribute__((__packed__)) ip = { .ip = dts_ip };
+	uint16_t sum = __rte_raw_cksum_reduce(base_sum_ipv4 + pkt_len + id +
+					      ip.ipp[0] + ip.ipp[1]);
+
+	if (unlikely(sum == 0xffff))
+		return 0xffff;
+	return ~sum;
+}
 
 static inline const char *pg_ipv6_to_str(const uint8_t *ip)
 {
