@@ -206,11 +206,28 @@ static inline uint16_t src_port_compute(uint16_t seed)
 /**
  * Build the UDP header
  *
+ * @param	ip pointer to the IP header
  * @param	udp_hdr pointer to the UDP header
  * @param	udp_dst_port UDP destination port
  * @param	datagram_len length of the UDP datagram
  * @param	seed seed for udp src port building
  */
+static inline void udp_build_cksum(struct ip_hdr *ip,
+				   struct udp_hdr *udp_hdr,
+				   uint16_t udp_dst_port,
+				   uint16_t datagram_len,
+				   uint16_t seed)
+{
+	udp_hdr->src_port = rte_cpu_to_be_16(src_port_compute(seed));
+	udp_hdr->dst_port = udp_dst_port;
+	udp_hdr->dgram_len = rte_cpu_to_be_16(datagram_len);
+	/* UDP checksum SHOULD be transmited as zero */
+	udp_hdr->dgram_cksum = 0;
+#if IP_VERSION == 6
+	udp_hdr->dgram_cksum = ip_udptcp_cksum(ip, udp_hdr, 6);
+#endif
+}
+
 static inline void udp_build(struct udp_hdr *udp_hdr,
 			     uint16_t udp_dst_port,
 			     uint16_t datagram_len,
@@ -301,8 +318,15 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 	 * ECMP/load-balancing friendly. Let's use computed hash from
 	 * IP header.
 	 */
-	udp_build(&headers->udp, state->udp_dst_port_be,
-		  packet_len + udp_overhead(), ((uint16_t *)pkt)[0]);
+	if (unlikely(state->flags & PG_VTEP_FORCE_UPD_IPV6_CHECKSUM)) {
+		udp_build_cksum(&headers->ip, &headers->udp,
+				state->udp_dst_port_be,
+				packet_len + udp_overhead(),
+				((uint16_t *)pkt)[0]);
+	} else {
+		udp_build(&headers->udp, state->udp_dst_port_be,
+			  packet_len + udp_overhead(), ((uint16_t *)pkt)[0]);
+	}
 
 	pkt->l2_len = HEADER_LENGTH + sizeof(struct ether_hdr);
 
