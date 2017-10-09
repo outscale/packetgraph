@@ -135,7 +135,7 @@ tests_firewall_SOURCES = \
 	tests/firewall/test-icmp.c\
 	tests/firewall/tests.c\
 	tests/firewall/test-tcp.c
-tests_firewall_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_firewall_CFLAGS = $(libpacketgraph_dev_la_CFLAGS) -Wno-address-of-packed-member
 tests_firewall_LDFLAGS = libpacketgraph-dev.la
 EXTRA_tests_firewall_DEPENDENCIES = libpacketgraph-dev.la
 
@@ -392,7 +392,7 @@ example_nic_LDFLAGS = libpacketgraph.la
 EXTRA_example_nic_DEPENDENCIES = libpacketgraph.la
 
 example_dperf_SOURCES = examples/dperf/dperf.c
-example_dperf_CFLAGS = $(libpacketgraph_la_CFLAGS)
+example_dperf_CFLAGS = $(libpacketgraph_la_CFLAGS) -Wno-address-of-packed-member
 example_dperf_LDFLAGS = libpacketgraph.la
 EXTRA_example_dperf_DEPENDENCIES = libpacketgraph.la
 endif
