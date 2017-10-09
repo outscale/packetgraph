@@ -33,6 +33,7 @@ enum pg_vtep_flags {
 	/* don't check if the VNI has the coresponding mac,
 	 * when incoming packets, just forward it */
 	PG_VTEP_NO_INNERMAC_CHECK = 2,
+	PG_VTEP_FORCE_UPD_IPV6_CHECKSUM = 4,
 	PG_VTEP_ALL_OPTI = PG_VTEP_NO_COPY | PG_VTEP_NO_INNERMAC_CHECK
 };
 
