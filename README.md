@@ -119,6 +119,8 @@ $ make install
 
 Note: to build with clang, you can use `./configure_clang` wrapper instead of `./configure`.
 
+Note 2: You need a compiller that support C11 (gcc 4.9 or superior, or clang 3.6 or superior).
+
 # License
 
 Packetgraph project is published under [GNU GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.en.html).
