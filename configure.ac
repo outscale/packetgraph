@@ -1,5 +1,5 @@
 AC_PREREQ([2.69])
-AC_INIT([packetgraph], [17.05.0], [jerome.jutteau@outscale.com matthias.gatto@outscale.com], [], [https://github.com/outscale/packetgraph])
+AC_INIT([packetgraph], [17.08.0], [matthias.gatto@outscale.com], [], [https://github.com/outscale/packetgraph])
 AM_INIT_AUTOMAKE([foreign -Wall subdir-objects])
 #AC_CONFIG_SRCDIR([include/packetgraph/print.h])
 #AC_CONFIG_HEADERS([config.h])
