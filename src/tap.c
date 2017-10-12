@@ -125,50 +125,36 @@ static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	struct pg_tap_state *state =
 		pg_brick_get_state(brick, struct pg_tap_state);
 	int fd = state->tap_fd;
-	int fd1 = fd + 1;
 	struct pg_brick_side *s = &brick->side;
 	struct rte_mbuf **pkts = state->pkts;
-	/* inplicitly init struct to 0 so we won't wait in select() */
-	static struct timeval timeout;
 
 	if (unlikely(s->edge.link == NULL))
 		return 0;
 
 	for (nb_pkts = 0; nb_pkts < PG_MAX_PKTS_BURST; nb_pkts++) {
-		fd_set fdset;
-
-		FD_ZERO(&fdset);
-		FD_SET(fd, &fdset);
-		if (select(fd1, &fdset, NULL, NULL, &timeout)  < 0) {
-			if (errno == EINTR)
-				break;
-			*errp = pg_error_new("%s", strerror(errno));
-			return -1;
-		}
-
-		if (!FD_ISSET(fd, &fdset))
-			break;
-
 		struct rte_mbuf *packet = pkts[nb_pkts];
 
 		rte_pktmbuf_reset(packet);
-		pg_utils_guess_metadata(packet);
 		char *data = rte_pktmbuf_mtod(packet, char *);
 		int read_size = read(fd, data, PG_MBUF_SIZE);
 
 		static_assert(PG_MBUF_SIZE > 1500,
 			      "reminder: should fix code below");
+
+		if (read_size < 0) {
+			if (likely(errno == EAGAIN))
+				break;
+			*errp = pg_error_new("%s", strerror(errno));
+			return -1;
+		}
 		/* ignore potential truncated packets */
 		if (unlikely(read_size == PG_MBUF_SIZE)) {
 			nb_pkts--;
 			continue;
 		}
 
-		if (unlikely(read_size < 0)) {
-			*errp = pg_error_new("%s", strerror(errno));
-			return -1;
-		}
 		rte_pktmbuf_append(packet, read_size);
+		pg_utils_guess_metadata(packet);
 	}
 
 	*pkts_cnt = nb_pkts;
@@ -189,7 +175,7 @@ static int tap_init(struct pg_brick *brick, struct pg_brick_config *config,
 	struct rte_mempool *pool = pg_get_mempool();
 	int tap_fd;
 
-	tap_fd = open("/dev/net/tun", O_RDWR);
+	tap_fd = open("/dev/net/tun", O_NONBLOCK | O_RDWR);
 	if (tap_fd < 0) {
 		*errp = pg_error_new("Cannot open /dev/net/tun");
 		return -1;
