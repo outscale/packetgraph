@@ -29,15 +29,6 @@ union pg_ipv6_addr {
 	uint64_t word64[2];
 } __attribute__((__packed__));
 
-union pg_ipv6_vtc {
-	struct {
-		uint8_t version : 4;
-		uint8_t traffic_class : 8;
-		uint32_t flow_label : 20;
-	};
-	uint32_t vtc_flow;
-} __attribute__((__packed__));
-
 #define PG_IP_GENERIC_IPV6(callback)		\
 	uint8_t[16] : callback,			\
 		uint8_t * : callback

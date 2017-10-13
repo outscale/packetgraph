@@ -171,12 +171,10 @@ struct rte_mbuf **pg_packets_prepend_ipv4(struct rte_mbuf **pkts,
 			 datagram_len, proto, ops)			\
 	struct ipv6_hdr	ip_hdr;						\
 	char *tmp;							\
-	union pg_ipv6_vtc vtc = {.version = 6, .traffic_class = 0,	\
-				 .flow_label = 0};			\
 	PG_FOREACH_BIT(pkts_mask, j) {					\
 		if (!pkts[j])						\
 			continue;					\
-		ip_hdr.vtc_flow = vtc.vtc_flow;				\
+		ip_hdr.vtc_flow = PG_CPU_TO_BE_32(6 << 28);		\
 		ip_hdr.payload_len = rte_cpu_to_be_16(datagram_len);	\
 		ip_hdr.hop_limits = 64;					\
 		ip_hdr.proto = proto;					\
