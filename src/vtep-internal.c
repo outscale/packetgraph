@@ -122,14 +122,6 @@ struct vtep_state {
 	IP_TYPE ip; /* IP of the VTEP */
 };
 
-/**
- * Build the IP header
- *
- * @param	ip_hdr pointer to the ip header to build
- * @param	src_ip the source IP
- * @param	dst_ip the destination IP
- * @param	datagram_len the lenght of the datagram including the header
- */
 static inline void ip6_build(struct vtep_state *state, struct ipv6_hdr *ip_hdr,
 			     union pg_ipv6_addr src_ip,
 			     union pg_ipv6_addr dst_ip,
