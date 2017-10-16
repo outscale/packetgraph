@@ -11,6 +11,7 @@ libpacketgraph_la_SOURCES = \
 	src/lifecycle.c\
 	src/nop.c\
 	src/utils/mempool.c\
+	src/utils/malloc.c\
 	src/utils/bench.c\
 	src/utils/qemu.c\
 	src/utils/errors.c\
@@ -82,7 +83,7 @@ noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols
-libpacketgraph_dev_la_CFLAGS = -fstack-protector-all -Wstack-protector $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH
+libpacketgraph_dev_la_CFLAGS = -fstack-protector-all -Wstack-protector $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
 
 tests_antispoof_SOURCES = \
 	tests/antispoof/test-arp-gratuitous.c\

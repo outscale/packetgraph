@@ -18,11 +18,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 #include <rte_memcpy.h>
 #include "utils/mac.h"
 #include "utils/bitmask.h"
+#include "utils/malloc.h"
 
 #ifndef PG_UTILS_MAC_TABLE_H
 #define PG_UTILS_MAC_TABLE_H
@@ -75,7 +75,8 @@ struct pg_mac_table_iterator {
 
 static inline int pg_mac_table_init(struct pg_mac_table *ma)
 {
-	ma->ptrs = malloc((0xffffff + 1) * sizeof(struct pg_mac_table_ptr *));
+	ma->ptrs = pg_malloc((0xffffff + 1) *
+			     sizeof(struct pg_mac_table_ptr *));
 	if (!ma->ptrs)
 		return -1;
 	memset(ma->mask, 0, (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
@@ -112,11 +113,11 @@ static inline void pg_mac_table_elem_set(struct pg_mac_table *ma,
 	/* Part 1 is unset */
 	if (unlikely(!pg_mac_table_is_set(*ma, part1))) {
 		pg_mac_table_mask_set(*ma, part1);
-		ma->elems[part1] = malloc(sizeof(struct pg_mac_table_elem));
+		ma->elems[part1] = pg_malloc(sizeof(struct pg_mac_table_elem));
 		g_assert(ma->elems[part1]);
 		memset(ma->ptrs[part1]->mask, 0,
 		       (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
-		ma->elems[part1]->entries = malloc((0xffffff + 1) * elem_size);
+		ma->elems[part1]->entries = pg_malloc((0xffffff + 1) * elem_size);
 	}
 
 	if (pg_mac_table_is_set(*ma->elems[part1], part2))
@@ -136,12 +137,12 @@ static inline void pg_mac_table_ptr_set(struct pg_mac_table *ma,
 	/* Part 1 is unset */
 	if (unlikely(!pg_mac_table_is_set(*ma, part1))) {
 		pg_mac_table_mask_set(*ma, part1);
-		ma->ptrs[part1] = malloc(sizeof(struct pg_mac_table_ptr));
+		ma->ptrs[part1] = pg_malloc(sizeof(struct pg_mac_table_ptr));
 		g_assert(ma->ptrs[part1]);
 		memset(ma->ptrs[part1]->mask, 0,
 		       (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
 		ma->ptrs[part1]->entries =
-			malloc((0xffffff + 1) * sizeof(void *));
+			pg_malloc((0xffffff + 1) * sizeof(void *));
 	}
 
 	/*

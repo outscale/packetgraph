@@ -19,6 +19,7 @@
 #include <string.h>
 #include "brick-int.h"
 #include "packets.h"
+#include "utils/malloc.h"
 #include "utils/mempool.h"
 #include "utils/bitmask.h"
 #include "utils/mac.h"
