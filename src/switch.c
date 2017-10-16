@@ -45,9 +45,11 @@ struct pg_switch_side {
 struct pg_switch_state {
 	struct pg_brick brick;
 	struct pg_mac_table table;
+	int is_table_dead;
 	enum pg_side output;
 	/* sides of the switch */
 	struct pg_switch_side sides[PG_MAX_SIDE];
+	jmp_buf exeption_env;
 };
 
 struct pg_switch_config {
@@ -234,6 +236,18 @@ static void do_switch(struct pg_switch_state *state,
 	flood(state, source, flood_mask);
 }
 
+static int mac_table_no_mem(struct pg_brick *brick, struct pg_error **errp)
+{
+#define MAC_TBL_FAIL_MSG			\
+	"Failed to create hash for switch brick '%s'"
+
+	*errp = pg_error_new_errno(ENOMEM,
+				   MAC_TBL_FAIL_MSG,
+				   brick->name);
+#undef MAC_TBL_FAIL_MSG
+	return -1;
+}
+
 static int switch_burst(struct pg_brick *brick, enum pg_side from,
 			uint16_t edge_index, struct rte_mbuf **pkts,
 			uint64_t pkts_mask,
@@ -244,6 +258,15 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	uint64_t unicast_mask = 0;
 	struct pg_address_source *source;
 
+	if (unlikely(setjmp(state->exeption_env))) {
+		pg_mac_table_free(&state->table);
+		state->is_table_dead = 1;
+	}
+	if (unlikely(state->is_table_dead)) {
+		if (pg_mac_table_init(&state->table, &state->exeption_env) < 0)
+			return mac_table_no_mem(brick, errp);
+		state->is_table_dead = 0;
+	}
 	source = &state->sides[from].sources[edge_index];
 	source->from = from;
 	source->edge_index = edge_index;
@@ -265,13 +288,9 @@ static int switch_init(struct pg_brick *brick,
 
 	brick->burst = switch_burst;
 
-	if (pg_mac_table_init(&state->table) < 0) {
-		*errp = pg_error_new(
-				"Failed to create hash for switch brick '%s'",
-				brick->name);
-		return -1;
-	}
-
+	state->is_table_dead = 0;
+	if (pg_mac_table_init(&state->table, &state->exeption_env) < 0)
+		return mac_table_no_mem(brick, errp);
 	for (i = 0; i < PG_MAX_SIDE; i++) {
 		uint16_t max = brick->sides[i].max;
 
@@ -324,6 +343,8 @@ static void switch_destroy(struct pg_brick *brick, struct pg_error **errp)
 		g_free(state->sides[i].sources);
 	}
 
+	if (state->is_table_dead)
+		return;
 	pg_mac_table_free(&state->table);
 }
 
@@ -334,6 +355,8 @@ static void switch_unlink_notify(struct pg_brick *brick,
 	struct pg_switch_state *state =
 		pg_brick_get_state(brick, struct pg_switch_state);
 
+	if (state->is_table_dead)
+		return;
 	PG_MAC_TABLE_FOREACH_PTR(&state->table, cur_mac,
 				 struct pg_address_source, src) {
 		if (src->from == side &&
