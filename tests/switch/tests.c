@@ -57,6 +57,12 @@ static void test_switch_lifecycle(void)
 
 	pg_brick_decref(brick, &error);
 	CHECK_ERROR(error);
+	pg_malloc_should_fail = 1;
+	brick = pg_switch_new("switch", 20, 20, PG_DEFAULT_SIDE, &error);
+	pg_malloc_should_fail = 0;
+	g_assert(error && error->err_no == ENOMEM);
+	g_assert(!brick);
+	pg_error_free(error);
 }
 
 static void test_switch_learn(void)
@@ -71,13 +77,13 @@ static void test_switch_learn(void)
 	g_assert(brick);
 	CHECK_ERROR(error);
 
-	collect1 = pg_collect_new("collect", &error);
+	collect1 = pg_collect_new("collect 1", &error);
 	CHECK_ERROR(error);
 
-	collect2 = pg_collect_new("collect", &error);
+	collect2 = pg_collect_new("collect 2", &error);
 	CHECK_ERROR(error);
 
-	collect3 = pg_collect_new("collect", &error);
+	collect3 = pg_collect_new("collect 3", &error);
 	CHECK_ERROR(error);
 
 	pg_brick_link(collect1, brick, &error);
@@ -204,13 +210,49 @@ static void test_switch_learn(void)
 		g_assert(result_pkts[i]);
 		g_assert(result_pkts[i]->udata64 == i);
 	}
-
 	g_assert(pg_brick_reset(collect1, &error) == 0);
 	CHECK_ERROR(error);
 	g_assert(pg_brick_reset(collect2, &error) == 0);
 	CHECK_ERROR(error);
 	g_assert(pg_brick_reset(collect3, &error) == 0);
 	CHECK_ERROR(error);
+
+	pg_malloc_should_fail = 1;
+	for (i = 0; i < NB_PKTS; i++) {
+		pg_set_mac_addrs(pkts[i],
+				 "F0:F1:A2:F3:F4:F5", "A0:A1:A2:A3:A4:A5");
+	}
+	g_assert(pg_brick_burst_to_east(brick, 0, pkts, pg_mask_firsts(NB_PKTS),
+					&error) < 0);
+	g_assert(error && error->err_no == ENOMEM);
+	pg_error_free(error);
+	error = NULL;
+
+	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
+	g_assert(!pkts_mask);
+	g_assert(!result_pkts);
+	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
+	g_assert(!pkts_mask);
+	g_assert(!result_pkts);
+	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
+	g_assert(!pkts_mask);
+	g_assert(!result_pkts);
+
+	pg_malloc_should_fail = 0;
+	g_assert(!pg_brick_burst_to_east(brick, 0, pkts,
+					 pg_mask_firsts(NB_PKTS),
+					 &error));
+
+	result_pkts = pg_brick_east_burst_get(collect1, &pkts_mask, &error);
+	g_assert(!pkts_mask);
+	g_assert(!result_pkts);
+	result_pkts = pg_brick_east_burst_get(collect2, &pkts_mask, &error);
+	g_assert(pkts_mask);
+	g_assert(result_pkts);
+	result_pkts = pg_brick_west_burst_get(collect3, &pkts_mask, &error);
+	g_assert(pkts_mask);
+	g_assert(result_pkts);
+
 
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
