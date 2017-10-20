@@ -100,6 +100,9 @@ struct vtep_config {
 	CATCAT(multicast, ip_version, _unsubscribe)
 #define multicast_unsubscribe multicast_unsubscribe_(IP_VERSION)
 
+#define IS_MAC_TO_DST_DEAD 1
+#define IS_KNOWN_MAC_DEAD 2
+#define HAS_BEEN_BROKEN 4
 
 /* structure used to describe a port of the vtep */
 struct vtep_port {
@@ -107,6 +110,7 @@ struct vtep_port {
 	IP_TYPE multicast_ip;
 	struct pg_mac_table mac_to_dst;
 	struct pg_mac_table known_mac;	/* is the MAC adress on this port  */
+	int32_t dead_tables;
 };
 
 struct vtep_state {
@@ -120,7 +124,14 @@ struct vtep_state {
 	int flags;
 	struct rte_mbuf *pkts[64];
 	IP_TYPE ip; /* IP of the VTEP */
+	jmp_buf exeption_env;
+	uint64_t out_pkts_mask;
 };
+
+static inline int are_mac_tables_dead(struct vtep_port *port)
+{
+	return port->dead_tables & (IS_MAC_TO_DST_DEAD | IS_KNOWN_MAC_DEAD);
+}
 
 static inline void ip6_build(struct vtep_state *state, struct ipv6_hdr *ip_hdr,
 			     union pg_ipv6_addr src_ip,
@@ -391,6 +402,30 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 	return 0;
 }
 
+static inline int try_fix_tables(struct vtep_state *state,
+				 struct vtep_port *port,
+				 struct pg_error **errp)
+{
+	if (port->dead_tables & IS_MAC_TO_DST_DEAD) {
+		if (pg_mac_table_init(&port->mac_to_dst,
+				      &state->exeption_env) < 0) {
+			*errp = pg_error_new_errno(ENOMEM, "out of memory");
+			return -1;
+		}
+		port->dead_tables ^= IS_MAC_TO_DST_DEAD;
+	}
+
+	if (port->dead_tables & IS_KNOWN_MAC_DEAD) {
+		if (pg_mac_table_init(&port->known_mac,
+				      &state->exeption_env)  < 0) {
+			*errp = pg_error_new_errno(ENOMEM, "out of memory");
+			return -1;
+		}
+		port->dead_tables ^= IS_KNOWN_MAC_DEAD;
+	}
+	return 0;
+}
+
 static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 		    uint16_t edge_index, struct rte_mbuf **pkts,
 		    uint64_t pkts_mask,
@@ -401,6 +436,22 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	struct vtep_port *port = &state->ports[edge_index];
 	int ret;
 
+	if (unlikely(!(state->flags & PG_VTEP_NO_INNERMAC_CHECK))) {
+		if (setjmp(state->exeption_env)) {
+			port->dead_tables = IS_KNOWN_MAC_DEAD | HAS_BEEN_BROKEN;
+			pg_mac_table_free(&port->known_mac);
+			if (!state->flags & PG_VTEP_NO_COPY)
+				pg_packets_free(state->pkts,
+						state->out_pkts_mask);
+			*errp = pg_error_new_errno(ENOMEM,
+						   "not enouth space to add mac");
+			return -1;
+		}
+	}
+
+	if (unlikely(are_mac_tables_dead(port) &&
+		     try_fix_tables(state, port, errp) < 0))
+		return -1;
 	/* if the port VNI is not set up ignore the packets */
 	if (unlikely(!pg_is_multicast_ip(port->multicast_ip)))
 		return 0;
@@ -427,6 +478,9 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 	union pg_mac tmp;
 
 	tmp.mac = 0;
+
+	if (unlikely(port->dead_tables))
+		multicast_mask = pkts_mask;
 
 	for (mask = multicast_mask; mask;) {
 		int i;
@@ -556,11 +610,11 @@ static inline void restore_metadata(struct rte_mbuf **pkts,
 
 static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 			      uint16_t edge_index, struct rte_mbuf **pkts,
-			      uint64_t pkts_mask, struct pg_error **errp)
+			      uint64_t pkts_mask,
+			      struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
-	int i;
 	struct vtep_port *ports = state->ports;
 	struct ether_addr *eths[64];
 	struct headers *hdrs[64];
@@ -570,13 +624,16 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 	classify_pkts(pkts, pkts_mask, eths, hdrs, &multicast_mask, &pkts_mask,
 		      state->udp_dst_port_be);
 
-	for (i = 0; i < s->nb; ++i) {
+	for (int i = 0; i < s->nb; ++i) {
 		struct vtep_port *port = &ports[i];
 		uint64_t hitted_mask = 0;
 		uint64_t vni_mask;
 
 		if (!pkts_mask)
 			break;
+		if (unlikely(are_mac_tables_dead(port) &&
+			     try_fix_tables(state, port,errp) < 0))
+			return -1;
 		/* Decaspulate and check the vni*/
 		vni_mask = check_and_clone_vni_pkts(state, pkts, pkts_mask,
 						    hdrs, port, out_pkts);
@@ -652,7 +709,7 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 	struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
-	struct vtep_port *ports =  state->ports;
+	struct vtep_port *ports = state->ports;
 	struct ether_addr *eths[64];
 	struct headers *hdrs[64];
 	struct pg_brick_edge *edges = s->edges;
@@ -665,6 +722,9 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 		struct vtep_port *port = &ports[i];
 		uint64_t vni_mask;
 
+		if (unlikely(are_mac_tables_dead(port) &&
+			     try_fix_tables(state, port, errp) < 0))
+			return -1;
 		/* Decaspulate and check the vni*/
 		vni_mask = check_vni_pkts(pkts, pkts_mask,
 					  hdrs, port);
@@ -689,6 +749,22 @@ static inline int from_vtep(struct pg_brick *brick, enum pg_side from,
 		      struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+
+	if (unlikely(setjmp(state->exeption_env))) {
+		struct pg_brick_side *s = &brick->sides[pg_flip_side(from)];
+
+		/* free all ports */
+		for (int i = 0; i < s->nb; ++i) {
+			struct vtep_port *port = &state->ports[i];
+
+			port->dead_tables = IS_MAC_TO_DST_DEAD |
+				HAS_BEEN_BROKEN;
+			pg_mac_table_free(&port->mac_to_dst);
+		}
+		*errp = pg_error_new_errno(ENOMEM,
+					   "not enouth space to add mac");
+		return -1;
+	}
 
 	if (state->flags == PG_VTEP_ALL_OPTI)
 		return decapsulate_simple(brick, from, edge_index, pkts,
@@ -720,8 +796,8 @@ static int do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	port->vni = rte_cpu_to_be_32(vni << 8);
 	pg_ip_copy(multicast_ip, &port->multicast_ip);
 
-	g_assert(!pg_mac_table_init(&port->mac_to_dst));
-	g_assert(!pg_mac_table_init(&port->known_mac));
+	g_assert(!pg_mac_table_init(&port->mac_to_dst, &state->exeption_env));
+	g_assert(!pg_mac_table_init(&port->known_mac, &state->exeption_env));
 
 	multicast_subscribe(state, port, multicast_ip, errp);
 	return 0;
@@ -751,8 +827,10 @@ static void do_remove_vni(struct vtep_state *state,
 		return;
 
 	/* Do the hash destroy at the end since it's the less idempotent */
-	pg_mac_table_free(&port->known_mac);
-	pg_mac_table_free(&port->mac_to_dst);
+	if (!(port->dead_tables & IS_KNOWN_MAC_DEAD))
+		pg_mac_table_free(&port->known_mac);
+	if (!(port->dead_tables & IS_MAC_TO_DST_DEAD))
+		pg_mac_table_free(&port->mac_to_dst);
 
 	/* clear for next user */
 	memset(port, 0, sizeof(struct vtep_port));
@@ -785,7 +863,16 @@ static void vtep_unlink_notify(struct pg_brick *brick,
 static void vtep_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
 
+	for (int i = 0; i < s->nb; ++i) {
+		struct vtep_port *port = &state->ports[i];
+
+		if (!(port->dead_tables & IS_MAC_TO_DST_DEAD))
+			pg_mac_table_free(&port->mac_to_dst);
+		if (!(port->dead_tables & IS_KNOWN_MAC_DEAD))
+			pg_mac_table_free(&port->known_mac);
+	}
 	g_free(state->ports);
 }
 
@@ -872,7 +959,16 @@ int pg_vtep_add_mac_(struct pg_brick *brick, uint32_t vni,
 	vni = rte_cpu_to_be_32(vni << 8);
 	for (int i = 0; i < s->nb; ++i) {
 		if (state->ports[i].vni == vni) {
-			do_add_mac(&state->ports[i], mac);
+			struct vtep_port *port = &state->ports[i];
+
+			if (unlikely(setjmp(state->exeption_env))) {
+				port->dead_tables = IS_KNOWN_MAC_DEAD;
+				pg_mac_table_free(&port->mac_to_dst);
+				*errp = pg_error_new_errno(ENOMEM,
+							   "not enouth space to add mac");
+				return -1;
+			}
+			do_add_mac(port, mac);
 			return 0;
 		}
 	}
