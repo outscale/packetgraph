@@ -39,6 +39,7 @@
 #include <rte_udp.h>
 #include <rte_tcp.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
