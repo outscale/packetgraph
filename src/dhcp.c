@@ -118,7 +118,7 @@ static int dhcp_burst(struct pg_brick *brick, enum pg_side from,
 
 	it_mask = pkts_mask;
 	for (; it_mask;) {
-		j = 0;
+		j = 1;
 		pg_low_bit_iterate_full(it_mask, bit, i);
 		tmp = pkts[i];
 		struct ether_hdr *eth = (struct ether_hdr *)
@@ -138,14 +138,14 @@ static int dhcp_burst(struct pg_brick *brick, enum pg_side from,
 				if (is_discover(tmp)) {
 					while(state->check_ip[j] != 0)
                                                 j++;
-					in_addr_t ip_offer =
+					uint32_t ip_offer =
 						state->addr_net + j;
 					pkt_offer =
 					pg_dhcp_packet_create(brick, 2,
 						eth->s_addr, ip_offer, 3600,
 						state->addr_net,
 						netmask(state->prefix));
-					return  pg_brick_burst(s->edge.link,
+					return pg_brick_burst(s->edge.link,
 					from, s->edge.pair_index, pkt_offer,
 					pkts_mask, errp);
 				}
@@ -154,6 +154,7 @@ static int dhcp_burst(struct pg_brick *brick, enum pg_side from,
 							 state->addr_net;
 					if (!state->check_ip[index])
 					{
+						printf("check \n");
 						pkt_offer =
                                 		pg_dhcp_packet_create(brick, 5,
 							eth->s_addr,
