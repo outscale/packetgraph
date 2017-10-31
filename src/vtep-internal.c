@@ -864,7 +864,16 @@ static void vtep_unlink_notify(struct pg_brick *brick,
 static void vtep_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
 
+	for (int i = 0; i < s->nb; ++i) {
+		struct vtep_port *port = &state->ports[i];
+
+		if (!(port->dead_tables & MAC_TO_DST_IS_DEAD))
+			pg_mac_table_free(&port->mac_to_dst);
+		if (!(port->dead_tables & KNOWN_MAC_IS_DEAD))
+			pg_mac_table_free(&port->known_mac);
+	}
 	g_free(state->ports);
 }
 
