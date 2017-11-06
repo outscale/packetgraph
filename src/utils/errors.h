@@ -24,7 +24,6 @@ extern struct pg_error_context pg_error_global_ctx;
 
 extern int pg_error_assert_enable;
 
-
 #define PG_ERROR_FAIL_ASSERT						\
 	"can use pg_assert only by calling pg_error_make_ctx before\n"
 

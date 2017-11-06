@@ -18,11 +18,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 #include <rte_memcpy.h>
+#include <setjmp.h>
 #include "utils/mac.h"
 #include "utils/bitmask.h"
+#include "utils/malloc.h"
 
 #ifndef PG_UTILS_MAC_TABLE_H
 #define PG_UTILS_MAC_TABLE_H
@@ -39,7 +40,6 @@ struct pg_mac_table_elem {
 	int8_t *entries;
 };
 
-
 /**
  * A mac array contening a ptr
  */
@@ -49,6 +49,7 @@ struct pg_mac_table {
 		struct pg_mac_table_ptr **ptrs;
 		struct pg_mac_table_elem **elems;
 	};
+	jmp_buf *exeption_env;
 };
 
 struct pg_mac_table_iterator {
@@ -73,12 +74,15 @@ struct pg_mac_table_iterator {
 	 (ONE64 << pg_mac_table_mask_pos(mac_p)))
 
 
-static inline int pg_mac_table_init(struct pg_mac_table *ma)
+static inline int pg_mac_table_init(struct pg_mac_table *ma,
+				    jmp_buf *exeption_env)
 {
-	ma->ptrs = malloc((0xffffff + 1) * sizeof(struct pg_mac_table_ptr *));
+	ma->ptrs = pg_malloc((0xffffff + 1) *
+			     sizeof(struct pg_mac_table_ptr *));
 	if (!ma->ptrs)
 		return -1;
 	memset(ma->mask, 0, (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
+	ma->exeption_env = exeption_env;
 	return 0;
 }
 
@@ -102,6 +106,16 @@ static inline void pg_mac_table_free(struct pg_mac_table *ma)
 #define pg_mac_table_part2(mac) (mac.part2 & 0x00ffffff)
 #define pg_mac_table_part1(mac) (mac.bytes32[0] & 0x00ffffff)
 
+static inline void pg_mac_table_alloc_fail_exeption(struct pg_mac_table *ma)
+{
+	if (!ma->exeption_env) {
+		fprintf(stderr,
+			"pg_mac_table: malloc fail and exeption_env is unset");
+		abort();
+	}
+	longjmp(*ma->exeption_env, 1);
+}
+
 static inline void pg_mac_table_elem_set(struct pg_mac_table *ma,
 					 union pg_mac mac, void *entry,
 					 size_t elem_size)
@@ -111,12 +125,16 @@ static inline void pg_mac_table_elem_set(struct pg_mac_table *ma,
 
 	/* Part 1 is unset */
 	if (unlikely(!pg_mac_table_is_set(*ma, part1))) {
+		ma->elems[part1] = pg_malloc(sizeof(struct pg_mac_table_elem));
+		if (unlikely(!ma->elems[part1]))
+			pg_mac_table_alloc_fail_exeption(ma);
 		pg_mac_table_mask_set(*ma, part1);
-		ma->elems[part1] = malloc(sizeof(struct pg_mac_table_elem));
-		g_assert(ma->elems[part1]);
 		memset(ma->ptrs[part1]->mask, 0,
 		       (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
-		ma->elems[part1]->entries = malloc((0xffffff + 1) * elem_size);
+		ma->elems[part1]->entries = pg_malloc((0xffffff + 1) *
+						      elem_size);
+		if (unlikely(!ma->elems[part1]->entries))
+			pg_mac_table_alloc_fail_exeption(ma);
 	}
 
 	if (pg_mac_table_is_set(*ma->elems[part1], part2))
@@ -135,13 +153,16 @@ static inline void pg_mac_table_ptr_set(struct pg_mac_table *ma,
 
 	/* Part 1 is unset */
 	if (unlikely(!pg_mac_table_is_set(*ma, part1))) {
+		ma->ptrs[part1] = pg_malloc(sizeof(struct pg_mac_table_ptr));
+		if (unlikely(!ma->ptrs[part1]))
+			pg_mac_table_alloc_fail_exeption(ma);
 		pg_mac_table_mask_set(*ma, part1);
-		ma->ptrs[part1] = malloc(sizeof(struct pg_mac_table_ptr));
-		g_assert(ma->ptrs[part1]);
 		memset(ma->ptrs[part1]->mask, 0,
 		       (PG_MAC_TABLE_MASK_SIZE) * sizeof(uint64_t));
 		ma->ptrs[part1]->entries =
-			malloc((0xffffff + 1) * sizeof(void *));
+			pg_malloc((0xffffff + 1) * sizeof(void *));
+		if (unlikely(!ma->ptrs[part1]->entries))
+			pg_mac_table_alloc_fail_exeption(ma);
 	}
 
 	/*

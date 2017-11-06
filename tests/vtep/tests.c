@@ -41,6 +41,7 @@
 #include "utils/bitmask.h"
 #include "utils/ip.h"
 #include "utils/network.h"
+#include "utils/malloc.h"
 #include "packets.h"
 #include "packetsgen.h"
 #include "collect.h"
@@ -414,7 +415,25 @@ static void test_vtep6_simple(void)
 		g_assert(pg_ip_is_same(hdr->ipv6.dst_addr, ipp));
 	}
 
-	/* kill'em all */
+	for (i = 0; i < NB_PKTS; i++) {
+		pg_get_ether_addrs(pkts[i], &tmp);
+		tmp->s_addr.addr_bytes[3] = 0xc0;
+		tmp->d_addr.addr_bytes[3] = 0xc1;
+	}
+	pg_malloc_should_fail = 1;
+
+	g_assert(pg_brick_burst_to_east(vtep_west, 0, pkts,
+					pg_mask_firsts(NB_PKTS), &error) < 0);
+
+	g_assert(error && error->err_no == ENOMEM);
+	pg_malloc_should_fail = 0;
+	error = NULL;
+
+	g_assert(!pg_brick_burst_to_east(vtep_west, 0, pkts,
+					 pg_mask_firsts(NB_PKTS - 1), &error));
+
+	g_assert(!error);
+	/* As tomino used to say: kill'em all */
 	pg_graph_destroy(graph);
 }
 
@@ -775,7 +794,7 @@ static void test_vtep_vnis(int flag)
 		pg_packets_prepend_ether(pkts, mask, &mac1, &mac1,
 					 ETHER_TYPE_IPv4);
 
-		pg_brick_burst_to_east(vtep, 0,  pkts, mask, &error);
+		pg_brick_burst_to_east(vtep, 0, pkts, mask, &error);
 		g_assert(!error);
 		for (uint32_t j = 0; j < NB_VNIS; ++j) {
 			tmp_mask = 0;
@@ -811,8 +830,51 @@ static void test_vtep_vnis(int flag)
 			}
 		}
 	}
+	if (!(flag & PG_VTEP_NO_INNERMAC_CHECK))
+		goto exit;
 
 	g_assert(pg_brick_pkts_count_get(vtep, PG_EAST_SIDE) == 60 * 64);
+	PG_FOREACH_BIT(mask, it) {
+		rte_pktmbuf_adj(pkts[it], sizeof(struct ether_hdr));
+	}
+	mac1.addr_bytes[3] = 33;
+	pg_packets_prepend_ether(pkts, mask, &mac1, &mac1, ETHER_TYPE_IPv4);
+	pg_packets_prepend_vxlan(pkts, mask, 0);
+
+	pg_packets_prepend_udp(pkts, mask, 1000, PG_VTEP_DST_PORT,
+			       1400);
+	pg_packets_prepend_ipv4(pkts, mask, 0x000000EE,
+				0xE70000E7, len, 17);
+	pg_packets_prepend_ether(pkts, mask, &mac1, &mac1,
+				 ETHER_TYPE_IPv4);
+
+	pg_malloc_should_fail = 1;
+	g_assert(pg_brick_burst_to_east(vtep, 0, pkts, mask, &error) < 0);
+	error = NULL;
+	pg_malloc_should_fail = 0;
+
+	if (!(flag & PG_VTEP_NO_COPY)) {
+		PG_FOREACH_BIT(mask, it) {
+			rte_pktmbuf_adj(pkts[it],
+					sizeof(struct ipv4_hdr) +
+					sizeof(struct udp_hdr) +
+					sizeof(struct vxlan_hdr) +
+					sizeof(struct ether_hdr));
+		}
+	}
+	pg_packets_prepend_vxlan(pkts, mask, 0);
+
+	pg_packets_prepend_udp(pkts, mask, 1000, PG_VTEP_DST_PORT,
+			       1400);
+	pg_packets_prepend_ipv4(pkts, mask, 0x000000EE,
+				0xE70000E7, len, 17);
+	pg_packets_prepend_ether(pkts, mask, &mac1, &mac1,
+				 ETHER_TYPE_IPv4);
+
+	g_assert(!pg_brick_burst_to_east(vtep, 0, pkts, mask, &error));
+	g_assert(!error);
+
+exit:
 	for (int i = 0; i < NB_VNIS; ++i)
 		pg_brick_destroy(collects[i]);
 	pg_brick_destroy(vtep);
