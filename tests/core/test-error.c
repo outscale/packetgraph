@@ -37,6 +37,7 @@ static void test_error_vanilla(void)
 {
 	uint64_t line;
 	struct pg_error *error = NULL;
+	char *pathname;
 
 	line = __LINE__ + 1;
 	error = pg_error_new("Trashcan overflow");
@@ -48,9 +49,9 @@ static void test_error_vanilla(void)
 	g_assert(!error->has_err_no);
 
 	g_assert(error->context.file);
-	g_assert_cmpstr(g_path_get_basename(error->context.file),
-			==,
-			"test-error.c");
+	pathname = g_path_get_basename(error->context.file);
+	g_assert_cmpstr(pathname, ==, "test-error.c");
+	g_free(pathname);
 
 	g_assert(error->context.function);
 	g_assert_cmpstr(error->context.function,
@@ -67,6 +68,7 @@ static void test_error_errno(void)
 {
 	uint64_t line;
 	struct pg_error *error = NULL;
+	char *pathname;
 
 	line = __LINE__ + 1;
 	error = pg_error_new_errno(EIO, "Bad write");
@@ -79,9 +81,9 @@ static void test_error_errno(void)
 	g_assert(error->err_no == EIO);
 
 	g_assert(error->context.file);
-	g_assert_cmpstr(g_path_get_basename(error->context.file),
-			==,
-			"test-error.c");
+	pathname = g_path_get_basename(error->context.file);
+	g_assert_cmpstr(pathname, ==, "test-error.c");
+	g_free(pathname);
 
 	g_assert(error->context.function);
 	g_assert_cmpstr(error->context.function,

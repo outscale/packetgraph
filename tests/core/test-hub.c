@@ -44,7 +44,7 @@
 		pg_brick_unlink(collect1_2, &error);			\
 		g_assert(!error);					\
 		pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));		\
-		pg_brick_decref(hub, &error);				\
+		g_assert(!pg_brick_decref(hub, &error));		\
 		g_assert(!error);					\
 		pg_brick_reset(collect0_1, &error);			\
 		g_assert(!error);					\
@@ -54,13 +54,13 @@
 		g_assert(!error);					\
 		pg_brick_reset(collect1_2, &error);			\
 		g_assert(!error);					\
-		pg_brick_decref(collect0_1, &error);			\
+		g_assert(!pg_brick_decref(collect0_1, &error));		\
 		g_assert(!error);					\
-		pg_brick_decref(collect0_2, &error);			\
+		g_assert(!pg_brick_decref(collect0_2, &error));		\
 		g_assert(!error);					\
-		pg_brick_decref(collect1_1, &error);			\
+		g_assert(!pg_brick_decref(collect1_1, &error));		\
 		g_assert(!error);					\
-		pg_brick_decref(collect1_2, &error);			\
+		g_assert(!pg_brick_decref(collect1_2, &error));		\
 		g_assert(!error);					\
 	} while (0)
 
@@ -290,7 +290,8 @@ static void test_hub_one_side_null(void)
 	error = NULL;
 	pg_brick_link(hub2, collect2_1, &error);
 	g_assert(error);
-	g_free(error);
+	pg_error_free(error);
+	error = NULL;
 	pg_brick_link(hub2, collect2_1, &error);
 	g_assert(error);
 	pg_error_free(error);
@@ -321,8 +322,7 @@ static void test_hub_one_side_null(void)
 	/* check packets on collect2_2 */
 	TEST_HUB_COLLECT_AND_TEST(pg_brick_east_burst_get, collect2_2, 0);
 
-	pg_brick_unlink(hub1, &error);
-	g_assert(!error);
+	pg_brick_destroy(hub1);
 
 	TEST_HUB_DESTROY();
 	pg_brick_unlink(collect2_1, &error);
@@ -333,9 +333,9 @@ static void test_hub_one_side_null(void)
 	g_assert(!error);
 	pg_brick_reset(collect2_2, &error);
 	g_assert(!error);
-	pg_brick_decref(collect2_1, &error);
+	g_assert(!pg_brick_decref(collect2_1, &error));
 	g_assert(!error);
-	pg_brick_decref(collect2_2, &error);
+	g_assert(!pg_brick_decref(collect2_2, &error));
 	g_assert(!error);
 }
 

@@ -183,6 +183,7 @@ static void test_graph_lifecycle(void)
 		g_assert(pg_graph_get(g, "nop20") == NULL);
 		g_assert(pg_graph_get(g, "que30") == NULL);
 	}
+	pg_graph_destroy(g);
 }
 
 static void test_graph_explore(void)
