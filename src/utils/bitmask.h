@@ -24,7 +24,7 @@ static inline uint64_t pg_mask_firsts(uint8_t count)
 {
 	if (count >= 64)
 		return 0xffffffffffffffff;
-	return (1LL << count) - 1LL;
+	return (1LLU << count) - 1LLU;
 }
 
 static inline int pg_mask_count(uint64_t pkts_mask)
@@ -76,9 +76,9 @@ static inline int ctz64(long long i)
  */
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define PG_CPU_TO_BE_16(i) ((uint16_t) ((i) << 8 | (i) >> 8))
-#define PG_CPU_TO_BE_32(i) (uint32_t)(( \
-	(PG_CPU_TO_BE_16(((i) & 0xffff0000) >> 16)) | \
-	(PG_CPU_TO_BE_16((i) & 0x0000ffff) << 16)))
+#define PG_CPU_TO_BE_32(i) ((uint32_t)( \
+	(PG_CPU_TO_BE_16(((i) & 0xffff0000U) >> 16)) | \
+	((uint32_t)PG_CPU_TO_BE_16((i) & 0x0000ffffU) << 16)))
 #else
 #define PG_CPU_TO_BE_16(i) (i)
 #define PG_CPU_TO_BE_32(i) (i)
