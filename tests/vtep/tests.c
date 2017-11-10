@@ -713,7 +713,7 @@ static void test_vtep_simple_internal(int flag)
 	g_assert(!error);
 	pg_brick_decref(collect_east2, &error);
 	g_assert(!error);
-
+	pg_brick_destroy(callback);
 }
 
 static void test_vtep_simple_no_flags(void)
@@ -1009,6 +1009,7 @@ static void test_vtep_flood_encap_decap(void)
 	g_assert(pg_brick_pkts_count_get(nop_east, PG_EAST_SIDE) ==
 		 tot_send_pkts);
 	pg_brick_destroy(nop_east);
+	pg_brick_destroy(callback);
 	pg_brick_destroy(pktgen_west);
 	pg_brick_destroy(vtep_east);
 	pg_brick_destroy(vtep_west);
@@ -1177,6 +1178,10 @@ static void test_vtep_fragment_encap_decap(void)
 	g_assert(tmp_pkts[0]->ol_flags & PKT_TX_TCP_CKSUM);
 	pg_packets_free(pkts, pg_mask_firsts(64));
 	g_free(pkts);
+	pg_brick_destroy(vtep);
+	pg_brick_destroy(collect_west);
+	pg_brick_destroy(collect_east);
+	pg_brick_destroy(ip_fragment);
 }
 
 #undef NB_PKTS
