@@ -39,17 +39,19 @@ static bool iface_exists(const char *ifname)
 {
 	struct ifaddrs *ifa_ori;
 	struct ifaddrs *ifa;
+	int ret = false;
 
 	g_assert(ifname);
 	g_assert(getifaddrs(&ifa_ori) == 0);
 	for (ifa = ifa_ori; ifa != NULL; ifa = ifa->ifa_next) {
 		if (g_strcmp0(ifname, ifa->ifa_name) == 0) {
-			freeifaddrs(ifa_ori);
-			return true;
+			ret = true;
+			goto exit;
 		}
 	}
+exit:
 	freeifaddrs(ifa_ori);
-	return false;
+	return ret;
 }
 
 static void test_tap_lifecycle(void)
@@ -57,6 +59,7 @@ static void test_tap_lifecycle(void)
 	struct pg_brick *tap, *tap2;
 	struct pg_error *error = NULL;
 	const char *ifname;
+	char *ifname_dup;
 
 	/* create tap */
 	g_assert(!iface_exists("YAY"));
@@ -123,9 +126,10 @@ static void test_tap_lifecycle(void)
 	g_assert(strlen(ifname) > 0);
 	g_assert(g_strcmp0(ifname, ifname_available) == 0);
 	g_assert(iface_exists(ifname));
+	g_assert((ifname_dup = g_strdup(ifname)));
 	pg_brick_destroy(tap);
-	g_assert(!iface_exists(ifname));
-
+	g_assert(!iface_exists(ifname_dup));
+	g_free(ifname_dup);
 	g_free(ifname_available);
 }
 
