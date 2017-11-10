@@ -43,7 +43,7 @@ enum pg_thread_state {
 extern const char *pg_thread_str_states[PG_THREAD_RUNNING + 1];
 
 /**
- *@param    errp is set in case of an error
+ * @param    errp is set in case of an error
  * @return  thread id (tid) on sucess, -1 on failure
  */
 int16_t pg_thread_init(struct pg_error **errp);
