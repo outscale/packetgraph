@@ -41,6 +41,7 @@ static void test_threads_lifecycle(void)
 	tid = pg_thread_init(&error);
 	g_assert(tid < 0);
 	g_assert(error);
+	pg_error_free(error);
 	error = NULL;
 	if (pg_thread_max() > 1) {
 		pg_thread_destroy(2);
@@ -95,6 +96,7 @@ static void test_threads_run(void)
 
 	g_assert(pg_brick_tx_bytes(rxtx) > 100);
 	pg_thread_destroy(tid);
+	pg_graph_destroy(graph);
 }
 
 static void test_threads_errors(void)
@@ -125,9 +127,13 @@ static void test_threads_errors(void)
 	g_assert(pg_thread_pop_error(tid, &gid, &error) == 1);
 	g_assert(!gid);
 	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
 	g_assert(pg_thread_pop_error(tid, &gid, &error) == 0);
 	g_assert(!gid);
 	g_assert(error);
+	pg_error_free(error);
+	error = NULL;
 	g_assert(pg_thread_pop_error(tid, &gid, &error) == -1);
 	g_assert(gid == -1);
 	g_assert(pg_brick_tx_bytes(rxtx) == 200);
