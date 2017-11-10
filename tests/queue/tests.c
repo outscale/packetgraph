@@ -218,9 +218,15 @@ static void test_queue_burst(void)
 	/* clean */
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
+	pg_brick_unlink(queue1, &error);
+	CHECK_ERROR(error);
 	pg_brick_decref(queue1, &error);
 	CHECK_ERROR(error);
+	pg_brick_unlink(queue2, &error);
+	CHECK_ERROR(error);
 	pg_brick_decref(queue2, &error);
+	CHECK_ERROR(error);
+	pg_brick_unlink(collect, &error);
 	CHECK_ERROR(error);
 	pg_brick_decref(collect, &error);
 	CHECK_ERROR(error);
@@ -396,6 +402,10 @@ static void test_queue_limit(void)
 	/* clean */
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
+	pg_brick_unlink(queue1, &error);
+	CHECK_ERROR(error);
+	pg_brick_unlink(queue2, &error);
+	CHECK_ERROR(error);
 	pg_brick_decref(queue1, &error);
 	CHECK_ERROR(error);
 	pg_brick_decref(queue2, &error);
@@ -485,6 +495,10 @@ static void test_queue_reset(void)
 	/* clean */
 	for (i = 0; i < NB_PKTS; i++)
 		rte_pktmbuf_free(pkts[i]);
+	pg_brick_unlink(queue1, &error);
+	CHECK_ERROR(error);
+	pg_brick_unlink(queue2, &error);
+	CHECK_ERROR(error);
 	pg_brick_decref(queue1, &error);
 	CHECK_ERROR(error);
 	pg_brick_decref(queue2, &error);
