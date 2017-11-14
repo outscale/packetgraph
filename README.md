@@ -5,9 +5,8 @@ Packetgraph is a library aiming to give the user a tool to build networks graph 
 [![Build Status](https://travis-ci.org/outscale/packetgraph.svg?branch=master)](https://travis-ci.org/outscale/packetgraph) [![packetgraph documentation](doc/packetgraph_doc.png)](https://outscale.github.io/packetgraph/doc/master)
 
 The goal of this library is to provide a really EASY interface to
-build you own DPDK based application using [Network Function
-Virtualization](https://en.wikipedia.org/wiki/Network_function_virtualization)
-Everyone is free to use this library to build up there own network application.
+build you own DPDK based application using [Network Function Virtualization](https://en.wikipedia.org/wiki/Network_function_virtualization)
+Everyone is free to use this library to build up their own network application.
 
 Once you have created and connected all bricks in you network graph,
 some bricks will be able to poll a burst of packets (max 64 packets)
@@ -22,7 +21,7 @@ split on demand to be run on different core or even merged.
 
 If you want a graphical representation of a graph, you can generate a [dot](https://en.wikipedia.org/wiki/DOT_%28graph_description_language%29) output.
 
-![packetgraph features](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_features.png "packetgraph features")
+![Packetgraph features](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_features.png "packetgraph features")
 
 # Available bricks (ipv4/ipv6):
 
@@ -30,10 +29,10 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 - rxtx: setup your own callbacks to get and sent packets
 - tap: classic kernel virtual interface
 - vhost: allow to connect a vhost NIC to a virtual machine (virtio based)
-- firewall: allow to filter traffic passing through it (based on [NPF](https://github.com/rmind/npf))
+- firewall: allow traffic filtering passing through it (based on [NPF](https://github.com/rmind/npf))
 - diode: only let packets pass in one direction
 - hub: act as a hub device, passing packets to all connected bricks
-- nic: allow to pass packets to a NIC of the system (accelerated by DPDK)
+- nic: allow passing packets to a NIC of the system (accelerated by DPDK)
 - print: a basic print brick to show packets flowing through it
 - antispoof: a basic mac checking, arp anti-spoofing and ipv6 neighbor discovery anti-spoofing
 - vtep: VXLAN Virtual Terminal End Point switching packets on virtual LANs, can encapsulate packets over ipv4 or ipv6
@@ -44,13 +43,13 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 
 A lot of other bricks can be created, check our [wall](https://github.com/outscale/packetgraph/issues?q=is%3Aopen+is%3Aissue+label%3Awall) ;)
 
-# How should I use packetgraph ?
+# How should I use Packetgraph ?
 
-![packetgraph usage flow](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_flow.png "packetgraph usage flow")
+![Packetgraph usage flow](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_flow.png "packetgraph usage flow")
 
 # Examples
 
-To build and run examples, you may first check how to build packetgraph below and adjust your configure command before make:
+To build and run examples, you may first check how to build Packetgraph below and adjust your configure command before make:
 ```
 $ ./configure --with-examples
 $ make
@@ -68,11 +67,11 @@ $ ./examples/dperf/run.sh
 
 # Building
 
-You will need to build DPDK before building packetgraph.
+You will need to build DPDK before building Packetgraph.
 
 ## Install needed tools
 
-You may adapt this depending of your linux distribution:
+You may adapt this depending on your Linux distribution:
 ```
 $ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev
 ```
@@ -96,7 +95,7 @@ you will have to set the following parameters to 'n':
 - CONFIG_RTE_EAL_IGB_UIO
 - CONFIG_RTE_KNI_KMOD
 
-Once your .config file is read, you can now build dpdk as follow:
+Once your .config file is read, you can now build dpdk as follows:
 
 ```
 $ make EXTRA_CFLAGS='-fPIC'
@@ -119,9 +118,9 @@ $ make install
 
 Note: to build with clang, you can use `./configure_clang` wrapper instead of `./configure`.
 
-Note 2: You need a compiller that support C11 (gcc 4.9 or superior, or clang 3.6 or superior).
+Note 2: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.6 or superior).
 
-# License
+# Licence
 
 Packetgraph project is published under [GNU GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.en.html).
 For more information, check LICENSE file.
@@ -129,7 +128,7 @@ For more information, check LICENSE file.
 # Contribute
 
 New to packetgraph ? Want to contribute and/or create a new brick ? Some
-[developper guidelines](https://github.com/outscale/packetgraph/blob/master/doc/contrib.md/) are available.
+[developer guidelines](https://github.com/outscale/packetgraph/blob/master/doc/contrib.md/) are available.
 
 # Question ? Contact us !
 
