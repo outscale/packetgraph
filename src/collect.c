@@ -126,7 +126,6 @@ static int collect_reset(struct pg_brick *brick, struct pg_error **errp)
 			continue;
 
 		pg_packets_free(state->pkts[i], state->pkts_mask[i]);
-		pg_packets_forget(state->pkts[i], state->pkts_mask[i]);
 		state->pkts_mask[i] = 0;
 	}
 	return 0;

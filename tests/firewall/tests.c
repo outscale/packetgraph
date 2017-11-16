@@ -127,15 +127,13 @@ static struct rte_mbuf *build_packet(const unsigned char *data, size_t len)
 {
 	struct rte_mempool *mp = pg_get_mempool();
 	struct rte_mbuf *pkt = rte_pktmbuf_alloc(mp);
-	void *packet;
+	char *packet;
 
-	pkt->pkt_len = len;
-	pkt->data_len = len;
+	g_assert(pkt);
 	pkt->l2_len = sizeof(struct ether_hdr);
-	pkt->nb_segs = 1;
-	pkt->next = NULL;
 
-	packet = rte_pktmbuf_mtod(pkt, void*);
+	packet = rte_pktmbuf_append(pkt, len);
+	g_assert(packet);
 	memcpy(packet, data, len);
 	return pkt;
 }
@@ -816,8 +814,22 @@ static void test_firewall_empty_burst(void)
 	g_free(pkts);
 }
 
+static void test_firewall_lifecyle(void)
+{
+	struct pg_error *error = NULL;
+	struct pg_brick *fw = pg_firewall_new("fw", PG_NONE, &error);
+
+	g_assert(!error);
+	pg_brick_destroy(fw);
+	fw = pg_firewall_new("fw", PG_NONE, &error);
+
+	g_assert(!error);
+	pg_brick_destroy(fw);
+}
+
 static void test_firewall(void)
 {
+	pg_test_add_func("/firewall/lifecycle", test_firewall_lifecyle);
 	pg_test_add_func("/firewall/filter", test_firewall_filter);
 	pg_test_add_func("/firewall/tcp", test_firewall_tcp);
 	pg_test_add_func("/firewall/icmp", test_firewall_icmp);

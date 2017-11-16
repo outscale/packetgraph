@@ -997,6 +997,13 @@ prop_object_retain(prop_object_t obj)
 	_PROP_ASSERT(ncnt != 0);
 }
 
+int
+prop_object_refcount(prop_object_t obj)
+{
+	struct _prop_object *po = obj;
+	return (po->po_refcnt);
+}
+
 /*
  * prop_object_release_emergency
  *	A direct free with prop_object_release failed.

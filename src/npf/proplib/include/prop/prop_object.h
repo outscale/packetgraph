@@ -57,6 +57,8 @@ void		prop_object_release(prop_object_t);
 
 prop_type_t	prop_object_type(prop_object_t);
 
+int		prop_object_refcount(prop_object_t);
+
 bool		prop_object_equals(prop_object_t, prop_object_t);
 bool		prop_object_equals_with_error(prop_object_t, prop_object_t, bool *);
 

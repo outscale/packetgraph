@@ -78,8 +78,13 @@ mempool_create(const mempool_ops_t *ops, size_t objsize, unsigned ncache)
 void
 mempool_destroy(mempool_t *mp)
 {
+	mempool_tls_t *tp;
 	if (!mp)
 		return;
+	tp = tls_get(mp->tls_key);
+	if (tp)
+		free(tp->objptr);
+	free(tp);
 	tls_destroy(mp->tls_key);
 	free(mp);
 }

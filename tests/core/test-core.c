@@ -894,9 +894,9 @@ static void test_big_endian(void)
 	TEST_BE_16(ETHER_TYPE_IPv4);
 	TEST_BE_16(ETHER_TYPE_IPv6);
 	TEST_BE_16(IPV4_HDR_DF_FLAG);
-	TEST_BE_32(0xff0000ff);
-	TEST_BE_32(0xf0f0ff0f);
-	TEST_BE_32(0xdeadbeef);
+	TEST_BE_32(0xff0000ffU);
+	TEST_BE_32(0xf0f0ff0fU);
+	TEST_BE_32(0xdeadbeefU);
 	TEST_BE_32(PG_VTEP_I_FLAG);
 #undef TEST_BE_32
 #undef TEST_BE_16

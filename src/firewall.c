@@ -156,8 +156,8 @@ static int firewall_reload_internal(struct pg_firewall_state *state,
 	}
 
 	config_build = npf_config_build(config);
-	npf_ret = npf_load(state->npf, config_build, &errinfo);
 	npf_config_destroy(config);
+	npf_ret = npf_load(state->npf, config_build, &errinfo);
 	if (npf_ret != 0) {
 		*errp = pg_error_new_errno(npf_ret,
 					   "NPF failed to load configuration");
@@ -283,9 +283,9 @@ static void firewall_destroy(struct pg_brick *brick,
 	struct pg_firewall_state *state;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
+	pg_firewall_rule_flush(brick);
 	npf_dpdk_ifdetach(state->npf, state->ifp);
 	npf_destroy(state->npf);
-	pg_firewall_rule_flush(brick);
 	--nb_firewall;
 	if (!nb_firewall)
 		npf_sysfini();
