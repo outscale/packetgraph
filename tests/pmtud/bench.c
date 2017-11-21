@@ -72,6 +72,7 @@ static void test_benchmark_pmtud(int argc, char **argv)
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(pmtud);
+	g_free(bench.pkts);
 }
 
 int main(int argc, char **argv)

@@ -81,4 +81,5 @@ void test_benchmark_antispoof(int argc, char **argv)
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(antispoof);
+	g_free(bench.pkts);
 }

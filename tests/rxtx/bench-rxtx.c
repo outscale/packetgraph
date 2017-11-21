@@ -127,5 +127,6 @@ void test_benchmark_rxtx(int argc, char **argv)
 	pg_brick_destroy(rxtx_enter);
 	pg_brick_destroy(rxtx_exit);
 	g_free(pd);
+	g_free(bench.pkts);
 }
 

@@ -163,6 +163,7 @@ static void inside_to_vxlan(int argc, char **argv, int type)
 	pg_brick_destroy(vtep);
 	pg_brick_destroy(inside_nop);
 	pg_brick_destroy(bench.count_brick);
+	g_free(bench.pkts);
 }
 
 char vxlan_hdr[sizeof(struct headers6) + 1];
@@ -287,6 +288,7 @@ static void vxlan_to_inside(int flags, const char *title,
 	pg_brick_destroy(vtep);
 	pg_brick_destroy(outside_nop);
 	pg_brick_destroy(bench.count_brick);
+	g_free(bench.pkts);
 }
 
 void test_benchmark_vtep(int argc, char **argv)

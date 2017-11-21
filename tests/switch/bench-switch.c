@@ -79,6 +79,7 @@ static void test_switch_benchmarks(int argc, char **argv, int west_max,
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(sw);
+	g_free(bench.pkts);
 }
 void test_benchmark_switch(int argc, char **argv)
 {

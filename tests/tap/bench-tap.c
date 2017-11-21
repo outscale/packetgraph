@@ -102,6 +102,7 @@ void test_benchmark_tap(int argc, char **argv)
 	pg_brick_destroy(tap_enter);
 	pg_brick_destroy(tap_exit);
 	run("ip netns del bench");
+	g_free(bench.pkts);
 }
 #undef run_ok
 #undef run_ko

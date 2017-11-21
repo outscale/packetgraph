@@ -128,5 +128,6 @@ void test_benchmark_vhost(char *vm_image_path,
 	pg_brick_destroy(vhost_enter);
 	pg_brick_destroy(vhost_exit);
 	pg_vhost_stop();
+	g_free(bench.pkts);
 }
 

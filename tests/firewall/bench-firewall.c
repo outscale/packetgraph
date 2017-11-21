@@ -94,5 +94,6 @@ void test_benchmark_firewall(int argc, char **argv)
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(fw);
+	g_free(bench.pkts);
 }
 

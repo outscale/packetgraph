@@ -95,5 +95,6 @@ void test_benchmark_queue(int argc, char **argv)
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(queue_enter);
 	pg_brick_destroy(queue_exit);
+	g_free(bench.pkts);
 }
 

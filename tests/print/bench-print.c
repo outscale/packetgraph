@@ -80,5 +80,6 @@ void test_benchmark_print(int argc, char **argv)
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(print);
+	g_free(bench.pkts);
 }
 

@@ -51,6 +51,7 @@ void test_benchmark_nic(int argc, char **argv)
 	nic_enter = pg_nic_new_by_id("nic-enter", 0, &error);
 	if (error) {
 		/* Create a loop nic instead of using a real interface. */
+		pg_error_free(error);
 		error = NULL;
 		nic_enter = pg_nic_new("nic-enter", "eth_ring0", &error);
 		if (error) {
@@ -98,7 +99,9 @@ void test_benchmark_nic(int argc, char **argv)
 	pg_bench_print(&stats);
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
+	if (nic_exit != nic_enter)
+		pg_brick_destroy(nic_exit);
 	pg_brick_destroy(nic_enter);
-	pg_brick_destroy(nic_exit);
+	g_free(bench.pkts);
 }
 

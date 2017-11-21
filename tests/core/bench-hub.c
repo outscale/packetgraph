@@ -79,5 +79,6 @@ void test_benchmark_hub(int argc, char **argv)
 
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(sw);
+	g_free(bench.pkts);
 }
 
