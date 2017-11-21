@@ -208,10 +208,12 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	branch->firewall = pg_firewall_new(tmp->str, PG_NO_CONN_WORKER, &error);
 	CHECK_ERROR(error);
 
-	g_string_printf(tmp, "antispoof-%d", id);
-	branch->antispoof = pg_antispoof_new(tmp->str, PG_EAST_SIDE,
-					     &mac, &error);
-	CHECK_ERROR(error);
+	if (antispoof) {
+		g_string_printf(tmp, "antispoof-%d", id);
+		branch->antispoof = pg_antispoof_new(tmp->str, PG_EAST_SIDE,
+						     &mac, &error);
+		CHECK_ERROR(error);
+	}
 
 	g_string_printf(tmp, "vhost-%d", id);
 	branch->vhost = pg_vhost_new(tmp->str, 0, &error);
@@ -225,11 +227,13 @@ static int add_graph_branch(struct branch *branch, uint32_t id,
 	branch->collect = pg_collect_new(tmp->str, &error);
 	CHECK_ERROR(error);
 
-	g_string_printf(tmp, "print-%d", id);
-	branch->print = pg_print_new(tmp->str, NULL,
-				     PG_PRINT_FLAG_MAX,
-				     NULL, &error);
-	CHECK_ERROR(error);
+	if (print) {
+		g_string_printf(tmp, "print-%d", id);
+		branch->print = pg_print_new(tmp->str, NULL,
+					     PG_PRINT_FLAG_MAX,
+					     NULL, &error);
+		CHECK_ERROR(error);
+	}
 
 	if (print && antispoof) {
 		pg_brick_chained_links(&error, branch->firewall,
@@ -274,6 +278,7 @@ static void test_graph_type1(void)
 	const char mac_reader_1[18] = "52:54:00:12:34:12";
 	const char mac_reader_2[18] = "52:54:00:12:34:22";
 	struct pg_graph *graph = NULL, *graph1 = NULL, *graph2 = NULL;
+	struct pg_graph *graph3 = NULL;
 	struct branch branch1, branch2;
 	int qemu1_pid = 0;
 	int qemu2_pid = 0;
@@ -323,6 +328,8 @@ static void test_graph_type1(void)
 	graph = pg_graph_new("graph_1", nic, &error);
 	CHECK_ERROR(error);
 	graph1 = pg_graph_new("graph_2", branch1.vhost_reader, &error);
+	CHECK_ERROR(error);
+	graph3 = pg_graph_new("graph_3", branch2.vhost_reader, &error);
 	CHECK_ERROR(error);
 
 	g_assert(g_file_test(sock_path_graph(&branch1),
@@ -431,6 +438,7 @@ exit:
 	}
 	pg_graph_destroy(graph1);
 	pg_graph_destroy(graph);
+	pg_graph_destroy(graph3);
 	pg_vhost_stop();
 	g_assert(!ret);
 }
