@@ -49,7 +49,7 @@ struct pg_brick *pg_nic_new(const char *name,
  */
 PG_WARN_UNUSED
 struct pg_brick *pg_nic_new_by_id(const char *name,
-				  uint8_t portid,
+				  uint16_t portid,
 				  struct pg_error **errp);
 
 /**

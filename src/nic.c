@@ -39,14 +39,14 @@
 
 struct pg_nic_config {
 	char ifname[NIC_ARGS_MAX_SIZE];
-	uint8_t portid;
+	uint16_t portid;
 };
 
 struct pg_nic_state {
 	struct pg_brick brick;
 	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *exit_pkts[PG_MAX_PKTS_BURST];
-	uint8_t portid;
+	uint16_t portid;
 	/* side of the physical NIC/PMD */
 	enum pg_side output;
 };
@@ -83,7 +83,7 @@ void pg_nic_capabilities(struct pg_brick *nic, uint32_t *rx, uint32_t *tx)
 
 static struct pg_brick_config *nic_config_new(const char *name,
 					      const char *ifname,
-					      uint8_t portid)
+					      uint16_t portid)
 {
 	struct pg_brick_config *config = g_new0(struct pg_brick_config, 1);
 	struct pg_nic_config *nic_config = g_new0(struct pg_nic_config, 1);
@@ -422,7 +422,7 @@ int pg_nic_get_mtu(struct pg_brick *brick, uint16_t *mtu,
 }
 
 struct pg_brick *pg_nic_new_by_id(const char *name,
-				  uint8_t portid,
+				  uint16_t portid,
 				  struct pg_error **errp)
 {
 	struct pg_brick_config *config = nic_config_new(name,
