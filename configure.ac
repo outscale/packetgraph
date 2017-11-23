@@ -20,6 +20,11 @@ AC_ARG_WITH(benchmarks, AS_HELP_STRING([--with-benchmarks], [Build benchmarks]))
 AM_CONDITIONAL([PG_BENCHMARKS], [test "x$with_benchmarks" = "xyes"])
 AS_IF([test "x$with_benchmarks" = "xyes"], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no])])
 
+AC_MSG_CHECKING([packetgraph asan])
+AC_ARG_WITH(asan, AS_HELP_STRING([--with-asan], [Build asan]))
+AM_CONDITIONAL([PG_ASAN], [test "x$with_asan" = "xyes"])
+AS_IF([test "x$with_asan" = "xyes"], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no])])
+
 AC_MSG_CHECKING([packetgraph build npf])
 AC_ARG_WITH(build-npf, AS_HELP_STRING([--without-build-npf], [Avoid building npf and sub-libraries]))
 AM_CONDITIONAL([PG_BUILD_NPF], [test "x$with_build_npf" != "xno"])
