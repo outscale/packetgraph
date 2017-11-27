@@ -440,7 +440,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 		if (setjmp(state->exeption_env)) {
 			port->dead_tables = IS_KNOWN_MAC_DEAD | HAS_BEEN_BROKEN;
 			pg_mac_table_free(&port->known_mac);
-			if (!state->flags & PG_VTEP_NO_COPY)
+			if (!(state->flags & PG_VTEP_NO_COPY))
 				pg_packets_free(state->pkts,
 						state->out_pkts_mask);
 			*errp = pg_error_new_errno(ENOMEM,
