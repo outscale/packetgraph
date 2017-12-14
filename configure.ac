@@ -115,6 +115,9 @@ AC_CHECK_FUNCS([gettimeofday memset realpath])
 
 AC_CONFIG_FILES([Makefile])
 
+AC_CONFIG_COMMANDS_PRE([rm -rv src/npf/npf/src/kern/stand/net/npfkern.h])
+AC_CONFIG_COMMANDS_PRE([cp -v src/npf/npf/src/kern/npfkern.h src/npf/npf/src/kern/stand/net/npfkern.h])
+
 # libtoolize recommanded this
 AC_CONFIG_MACRO_DIR([m4])
 
