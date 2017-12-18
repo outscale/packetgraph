@@ -1,3 +1,6 @@
 [submodule "src/npf/npf"]
 	path = src/npf/npf
 	url = https://github.com/outscale-mgo/npf.git
+[submodule "src/npf/libqsbr"]
+	path = src/npf/libqsbr
+	url = https://github.com/outscale-mgo/libqsbr.git

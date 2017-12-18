@@ -34,7 +34,7 @@ libqsbr_la_SOURCES = \
 	src/npf/libqsbr/src/ebr.c\
 	src/npf/libqsbr/src/gc.c\
 	src/npf/libqsbr/src/qsbr.c
-libqsbr_la_includes = -I$(srcdir)/src/npf/libqsbr
+libqsbr_la_includes = -I$(srcdir)/src/npf/libqsbr -I$(builddir)/src/npf/libqsbr
 libqsbr_la_CFLAGS = $(libqsbr_la_includes) -D__RCSID\(x\)= -fPIC -std=gnu11
 
 libsljit_la_SOURCES = \

@@ -110,6 +110,7 @@ $ export RTE_SDK=$(pwd)
 ```
 $ git clone https://github.com/outscale/packetgraph.git
 $ cd packetgraph
+$ git submodule update --init
 $ ./autogen.sh
 $ ./configure
 $ make
