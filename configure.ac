@@ -115,10 +115,10 @@ AC_CHECK_FUNCS([gettimeofday memset realpath])
 
 AC_CONFIG_FILES([Makefile])
 
-AC_CONFIG_COMMANDS_PRE([rm -rv src/npf/npf/src/kern/stand/net/npfkern.h])
-AC_CONFIG_COMMANDS_PRE([cp -v src/npf/npf/src/kern/npfkern.h src/npf/npf/src/kern/stand/net/npfkern.h])
-AC_CONFIG_COMMANDS_PRE([rm -vf src/npf/libqsbr/qsbr])
-AC_CONFIG_COMMANDS_PRE([ln -s  $PWD/src/npf/libqsbr/src  $PWD/src/npf/libqsbr/qsbr ])
+AC_PROG_LN_S
+
+AC_CONFIG_LINKS([src/npf/npf/src/kern/stand/net/npfkern.h:src/npf/npf/src/kern/npfkern.h
+src/npf/libqsbr/qsbr/qsbr.h:src/npf/libqsbr/src/qsbr.h])
 
 # libtoolize recommanded this
 AC_CONFIG_MACRO_DIR([m4])
