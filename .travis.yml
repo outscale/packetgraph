@@ -32,8 +32,6 @@ script:
  - git config user.name "${GH_USER_NAME}"
  - git config user.email "${USER_MAIL}"
  - ./autogen.sh
- - mkdir build
- - cd build
  - export LD="llvm-link"
- - ./../configure_clang --with-benchmarks --with-examples
- - ./../.travis.sh
+ - ./configure_clang --with-benchmarks --with-examples
+ - ./.travis.sh
