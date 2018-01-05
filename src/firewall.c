@@ -109,7 +109,7 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 	options |= firewall_side_to_npf_rule(side);
 	if (stateful)
 		options |= NPF_RULE_STATEFUL;
-	rule = npf_rule_create(NULL, NPF_RULE_PASS | options, NULL);
+	rule = npf_rule_create(NULL, NPF_RULE_PASS | options, "firewall");
 	g_assert(rule);
 	npf_rule_setprio(rule, NPF_PRI_LAST);
 	if (filter && firewall_build_pcap_filter(rule, filter)) {
