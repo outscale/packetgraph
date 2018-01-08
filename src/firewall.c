@@ -277,6 +277,11 @@ static int firewall_init(struct pg_brick *brick,
 	}
 	npf_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
+	if (!state->ifp) {
+		npf_destroy(state->npf);
+		*errp = pg_error_new("npf_dpdk_ifattach fail");
+		return -1;
+	}
 	state->npf = npf;
 	state->rules = NULL;
 	++nb_firewall;
