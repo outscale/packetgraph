@@ -25,6 +25,7 @@
 #include "brick-int.h"
 #include "packets.h"
 #include "utils/network.h"
+#include "utils/mempool.h"
 #include "src/npf/npf/dpdk/npf_dpdk.h"
 
 #define FIREWALL_SIDE_TO_NPF(side) \
@@ -249,6 +250,7 @@ static int firewall_init(struct pg_brick *brick,
 	npf_t *npf;
 	struct pg_firewall_state *state;
 	struct pg_firewall_config *fw_config;
+	static int is_dpdk_init;
 
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
 
@@ -262,6 +264,10 @@ static int firewall_init(struct pg_brick *brick,
 		if (unlikely(npf_sysinit(pg_npf_nworkers) < 0)) {
 			*errp = pg_error_new("fail during npf initialisation");
 			return -1;
+		}
+		if (!is_dpdk_init) {
+			npf_dpdk_init(pg_get_mempool());
+			is_dpdk_init = 1;
 		}
 	}
 	npf = npf_dpdk_create(fw_config->flags);
