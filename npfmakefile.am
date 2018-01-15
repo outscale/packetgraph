@@ -75,9 +75,7 @@ libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/stand/bpf_filter.c\
 	src/npf/npf/src/kern/stand/rb.c\
 	src/npf/npf/src/kern/stand/murmurhash.c\
-	src/npf/npf/src/kern/stand/subr_hash.c\
-	src/npf/npf/src/kern/stand/mempool.c\
-	src/npf/npf/src/kern/stand/tls_pth.c
+	src/npf/npf/src/kern/stand/subr_hash.c
 libnpfkern_la_includes = -I$(srcdir)/src/npf/npf/src/kern/stand -I$(builddir)/src/npf/npf/src/kern/stand
 libnpfkern_la_CFLAGS = $(liblpm_la_includes) $(libcdb_la_includes) $(libprop_la_includes) $(libqsbr_la_includes) $(libnpf_la_includes) $(libnpfkern_la_includes) $(libbpfjit_includes) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
 # Trick to avoid symbol conflicts
