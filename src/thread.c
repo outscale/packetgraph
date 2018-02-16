@@ -226,7 +226,7 @@ again:
 				if (started[i] != PG_THREAD_RUNNING)
 					continue;
 				if (unlikely(pg_graph_poll(graphs[i],
-							   &error)) < 0) {
+							   &error) < 0)) {
 					state = PG_THREAD_BROKEN;
 					started[i] = PG_THREAD_BROKEN;
 					stack_push(errors, error);
