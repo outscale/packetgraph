@@ -117,7 +117,7 @@ static void test_threads_errors(void)
 	g_assert(gid == 0);
 	g_assert(pg_thread_state(tid) == PG_THREAD_STOPPED);
 
-	pg_thread_run(tid);
+	g_assert(!pg_thread_run(tid));
 	usleep(1);
 	g_assert(pg_thread_state(tid) == PG_THREAD_BROKEN);
 	g_assert(pg_brick_tx_bytes(rxtx) == 100);
