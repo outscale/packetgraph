@@ -22,6 +22,43 @@ struct pg_hub_state {
 	struct pg_brick brick;
 };
 
+static int hub_burst_one_side(struct pg_brick *brick, enum pg_side from,
+			      uint16_t edge_index, struct rte_mbuf **pkts,
+			      uint64_t pkts_mask,
+			      struct pg_error **errp)
+
+{	int ret;
+	enum pg_side i = PG_WEST_SIDE;
+	enum pg_side flip_i = PG_WEST_SIDE;
+	uint16_t j;
+	struct pg_brick_side *s;
+	struct pg_brick_edge *edges;
+
+	if (from == i)
+		flip_i = pg_flip_side(i);
+	else
+		i = pg_flip_side(i);
+
+	flip_i = pg_flip_side(flip_i);
+	i = pg_flip_side(i);
+	s = &brick->sides[i];
+	edges = s->edges;
+
+	for (j = 0; j < s->max; ++j) {
+		if (!edges[j].link)
+			continue;
+		ret = pg_brick_burst(edges[j].link,
+				     flip_i,
+				     edges[j].pair_index,
+				     pkts, pkts_mask, errp);
+		if (unlikely(ret < 0))
+			return -1;
+	}
+	return 0;
+
+}
+
+
 static int hub_burst(struct pg_brick *brick, enum pg_side from,
 		     uint16_t edge_index, struct rte_mbuf **pkts,
 		     uint64_t pkts_mask,
@@ -69,6 +106,14 @@ static int hub_burst(struct pg_brick *brick, enum pg_side from,
 			return -1;
 	}
 	return 0;
+}
+
+void pg_hub_set_no_backward(struct pg_brick *brick, int val)
+{
+	if (val)
+		brick->burst = hub_burst_one_side;
+	else
+		brick->burst = hub_burst;
 }
 
 static int hub_init(struct pg_brick *brick,
