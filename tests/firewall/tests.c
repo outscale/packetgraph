@@ -539,13 +539,15 @@ static void firewall_filter_rules(enum pg_side dir)
 }
 
 static void firewall_replay(const unsigned char *pkts[],
-			    int pkts_nb, int *pkts_size)
+			    int pkts_nb, int *pkts_size, int nb_firewalls)
 {
 	struct pg_brick *gen_west, *gen_east;
-	struct pg_brick *fw;
+	/* Well most compiller handle VLA */
+	struct pg_brick *fw[nb_firewalls];
+	struct pg_brick *hub_east, *hub_west;
 	struct pg_brick *col_west, *col_east;
 	struct pg_error *error = NULL;
-	uint16_t i, packet_count;
+	uint16_t packet_count;
 	struct rte_mbuf *packet;
 	struct ether_hdr *eth;
 	uint64_t filtered_pkts_mask;
@@ -563,32 +565,45 @@ static void firewall_replay(const unsigned char *pkts[],
 	gen_east = pg_packetsgen_new("gen_east", 1, 1, PG_WEST_SIDE, &packet, 1,
 				  &error);
 	g_assert(!error);
-	fw = pg_firewall_new("fw", PG_NONE, &error);
+	hub_west = pg_hub_new("west_hub", 1, nb_firewalls, &error);
 	g_assert(!error);
+	pg_hub_set_no_backward(hub_west, 1);
+	for (int i = 0; i < nb_firewalls; ++i) {
+		fw[i] = pg_firewall_new("fw", PG_NONE, &error);
+		g_assert(!error);
+	}
+	hub_east = pg_hub_new("east_hub", nb_firewalls, 1, &error);
+	g_assert(!error);
+	pg_hub_set_no_backward(hub_east, 1);
 	col_west = pg_collect_new("col_west", &error);
 	g_assert(!error);
 	col_east = pg_collect_new("col_east", &error);
 	g_assert(!error);
-	pg_brick_link(col_west, gen_west, &error);
+	pg_brick_chained_links(&error, col_west, gen_west, hub_west);
 	g_assert(!error);
-	pg_brick_link(gen_west, fw, &error);
-	g_assert(!error);
-	pg_brick_link(fw, gen_east, &error);
-	g_assert(!error);
-	pg_brick_link(gen_east, col_east, &error);
+	for (int i = 0; i < nb_firewalls; ++i) {
+		pg_brick_chained_links(&error, hub_west, fw[i], hub_east);
+		g_assert(!error);
+	}
+	pg_brick_chained_links(&error, hub_east, gen_east, col_east);
 	g_assert(!error);
 
 	/* open all traffic of 10.0.2.15 from the west side of the firewall
 	 * returning traffic should be allowed due to STATEFUL option
 	 */
-	g_assert(!pg_firewall_rule_add(fw, "src host 10.0.2.15",
-				       PG_WEST_SIDE, 1, &error));
-	g_assert(!error);
-	g_assert(!pg_firewall_reload(fw, &error));
-	g_assert(!error);
+	for (int i = 0; i < nb_firewalls; ++i) {
+		g_assert(!pg_firewall_rule_add(fw[i], "src host 10.0.2.15",
+					       PG_WEST_SIDE, 1, &error));
+		g_assert(!error);
+		g_assert(!pg_firewall_reload(fw[i], &error));
+		g_assert(!error);
+	}
 
 	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
+	uint64_t west_burst = 0;
+	uint64_t east_burst = 0;
+
+	for (int i = 0; i < pkts_nb; i++) {
 		struct ip *ip;
 		uint32_t tmp1;
 		uint32_t tmp2;
@@ -602,6 +617,7 @@ static void firewall_replay(const unsigned char *pkts[],
 		if (ip->ip_src.s_addr == tmp1) {
 			uint32_t tmp;
 
+			++east_burst;
 			pg_brick_poll(gen_west, &packet_count, &error);
 			g_assert(!error);
 			g_assert(packet_count == 1);
@@ -609,6 +625,9 @@ static void firewall_replay(const unsigned char *pkts[],
 				&filtered_pkts_mask, &error);
 			g_assert(!error);
 			g_assert(pg_mask_count(filtered_pkts_mask) == 1);
+			g_assert(pg_brick_pkts_count_get(col_east,
+							 PG_EAST_SIDE) ==
+				 east_burst * nb_firewalls);
 			/* check eth source address */
 			eth = rte_pktmbuf_mtod(filtered_pkts[0],
 					       struct ether_hdr*);
@@ -621,12 +640,17 @@ static void firewall_replay(const unsigned char *pkts[],
 		} else if (ip->ip_src.s_addr == tmp2) {
 			uint32_t tmp;
 
+			++west_burst;
 			pg_brick_poll(gen_east, &packet_count, &error);
 			g_assert(!error);
 			g_assert(packet_count == 1);
 			filtered_pkts = pg_brick_east_burst_get(col_west,
 				&filtered_pkts_mask, &error);
 			g_assert(!error);
+			g_assert(pg_brick_pkts_count_get(col_west,
+							 PG_WEST_SIDE) ==
+				 west_burst * nb_firewalls);
+
 			g_assert(pg_mask_count(filtered_pkts_mask) == 1);
 			/* check eth source address */
 			eth = rte_pktmbuf_mtod(filtered_pkts[0],
@@ -642,11 +666,15 @@ static void firewall_replay(const unsigned char *pkts[],
 
 		rte_pktmbuf_free(packet);
 		/* ensure that connexion is tracked even when reloading */
-		g_assert(!pg_firewall_rule_add(fw, "src host 6.6.6.6",
-					       PG_WEST_SIDE, 0, &error));
-		g_assert(!error);
-		g_assert(!pg_firewall_reload(fw, &error));
-		g_assert(!error);
+		for (int j = 0; j < nb_firewalls; ++j) {
+			g_assert(!pg_firewall_rule_add(fw[j],
+						       "src host 6.6.6.6",
+						       PG_WEST_SIDE, 0,
+						       &error));
+			g_assert(!error);
+			g_assert(!pg_firewall_reload(fw[j], &error));
+			g_assert(!error);
+		}
 	}
 
 	/* clean */
@@ -654,7 +682,10 @@ static void firewall_replay(const unsigned char *pkts[],
 	pg_brick_destroy(gen_east);
 	pg_brick_destroy(col_west);
 	pg_brick_destroy(col_east);
-	pg_brick_destroy(fw);
+	pg_brick_destroy(hub_west);
+	pg_brick_destroy(hub_east);
+	for (int i = 0; i < nb_firewalls; ++i)
+		pg_brick_destroy(fw[i]);
 }
 
 static void test_firewall_noip(void)
@@ -688,7 +719,7 @@ static void test_firewall_tcp(void)
 		pkt6, pkt7, pkt8, pkt9, pkt10};
 	int pkts_size[] = {74, 60, 54, 58, 60, 575, 54, 60, 54, 60};
 
-	firewall_replay(pkts, 10, pkts_size);
+	firewall_replay(pkts, 10, pkts_size, 10);
 }
 
 static void test_firewall_tcp6(void)
@@ -737,7 +768,7 @@ static void test_firewall_icmp(void)
 		pkt6, pkt7, pkt8, pkt9, pkt10};
 	int pkts_size[] = {98, 98, 98, 98, 98, 98, 98, 98, 98, 98};
 
-	firewall_replay(pkts, 10, pkts_size);
+	firewall_replay(pkts, 10, pkts_size, 1);
 }
 
 static void test_firewall_rules(void)
@@ -820,6 +851,7 @@ static void test_firewall_lifecyle(void)
 	pg_brick_destroy(fw);
 	fw = pg_firewall_new("fw", PG_NONE, &error);
 
+	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
 	pg_brick_destroy(fw);
 }
