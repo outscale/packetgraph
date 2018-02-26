@@ -35,4 +35,15 @@ struct pg_brick *pg_hub_new(const char *name,
 			    uint32_t east_max,
 			    struct pg_error **errp);
 
+/**
+ * Set no backward capability to hub brick
+ *
+ * When no backward is set, the hub brick can only forward packets
+ * in the direction oposite to where they came from
+ *
+ * @param	brick the brick
+ * @param	val 0 or 1 (for true or false)
+ */
+void pg_hub_set_no_backward(struct pg_brick *brick, int val);
+
 #endif  /* _PG_HUB_H */
