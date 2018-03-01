@@ -73,7 +73,7 @@ pkginclude_HEADERS = \
 libpacketgraph_la_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 # FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
 libpacketgraph_la_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined
-libpacketgraph_la_CFLAGS = -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -I$(srcdir)/include -I$(srcdir)/src -Wno-implicite-fallthrough -Wno-unknown-warning-option
+libpacketgraph_la_CFLAGS = -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -I$(srcdir)/include -I$(srcdir)/src -Wno-implicite-fallthrough -Wno-unknown-warning-option $(PG_ASAN_CFLAGS)
 
 noinst_LTLIBRARIES =
 
@@ -87,7 +87,7 @@ noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
 libpacketgraph_dev_la_LIBADD = $(libpacketgraph_la_LIBADD)
 libpacketgraph_dev_la_LDFLAGS = -no-undefined --export-all-symbols
-libpacketgraph_dev_la_CFLAGS = $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG $(PG_ASAN_CFLAGS)
+libpacketgraph_dev_la_CFLAGS = $(libpacketgraph_la_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
 
 tests_antispoof_SOURCES = \
 	tests/antispoof/test-arp-gratuitous.c\
