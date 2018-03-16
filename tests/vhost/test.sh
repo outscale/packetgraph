@@ -70,9 +70,9 @@ echo -----------
 echo nb free huge page $NB_HUGE
 echo -----------
 
-if [  $NB_HUGE -lt 50 ]; then
+if [  $NB_HUGE -lt 1 ]; then
    tput setaf 1
-   echo not enouth free hugepage, should have more than 50
+   echo not enouth free hugepage, should have more than 1
    tput setaf 7
    exit 1
 fi
