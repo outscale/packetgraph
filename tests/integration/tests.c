@@ -426,10 +426,10 @@ static void test_graph_type1(void)
 exit:
 	/*kill qemu's*/
 	if (qemu1_pid)
-		pg_util_stop_qemu(qemu1_pid, SIGKILL);
+		pg_util_stop_qemu(qemu1_pid, SIGQUIT);
 
 	if (qemu2_pid)
-		pg_util_stop_qemu(qemu2_pid, SIGKILL);
+		pg_util_stop_qemu(qemu2_pid, SIGQUIT);
 
 	/*Free all*/
 	if (pkts) {

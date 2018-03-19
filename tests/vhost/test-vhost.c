@@ -182,8 +182,8 @@ static void test_vhost_flow_(int qemu_exit_signal)
 
 static void test_vhost_flow(void)
 {
-	printf("------- %s SIGKILL ---------\n", __func__);
-	test_vhost_flow_(SIGKILL);
+	printf("------- %s SIGQUIT ---------\n", __func__);
+	test_vhost_flow_(SIGQUIT);
 	printf("------- %s SIGINT  ---------\n", __func__);
 	test_vhost_flow_(SIGINT);
 }
@@ -423,7 +423,7 @@ static void test_vhost_fd_loop(void)
 static void test_vhost_multivm(void)
 {
 	printf("------- %s SIGKILL ---------\n", __func__);
-	test_vhost_multivm_(SIGKILL);
+	test_vhost_multivm_(SIGQUIT);
 	printf("------- %s SIGINT ---------\n", __func__);
 	test_vhost_multivm_(SIGINT);
 }
@@ -572,7 +572,7 @@ static void test_vhost_reco(void)
 				params.killsig = SIGINT;
 				qemu_test(&params);
 			} else {
-				params.killsig = SIGKILL;
+				params.killsig = SIGQUIT;
 				qemu_test(&params);
 			}
 		}
@@ -643,7 +643,7 @@ static void test_vhost_destroy(void)
 	g_assert(!error);
 
 	/* kill QEMU */
-	pg_util_stop_qemu(qemu_pid, SIGKILL);
+	pg_util_stop_qemu(qemu_pid, SIGQUIT);
 
 	/* stop vhost */
 	pg_vhost_stop();
@@ -733,7 +733,7 @@ static void qemu_duo_destroy(struct qemu_duo_test_params *p)
 	p->stop = 1;
 	pthread_join(p->graph_thread, &ret);
 	for (int i = 0; i < 2; i++) {
-		kill(p->qemu_pid[i], SIGKILL);
+		kill(p->qemu_pid[i], SIGQUIT);
 		waitpid(p->qemu_pid[i], &exit_status, 0);
 		g_spawn_close_pid(p->qemu_pid[i]);
 		g_free(p->ip[i]);
