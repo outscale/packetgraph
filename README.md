@@ -73,7 +73,7 @@ You will need to build DPDK before building Packetgraph.
 
 You may adapt this depending on your Linux distribution:
 ```
-$ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev
+$ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev libnuma-dev
 ```
 
 ## Build DPDK
