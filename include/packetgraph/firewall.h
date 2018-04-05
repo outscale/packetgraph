@@ -84,6 +84,16 @@ void pg_firewall_gc(struct pg_brick *brick);
 void pg_firewall_rule_flush(struct pg_brick *brick);
 
 /**
+ * Flush all rules that filter a side of the firewall.
+ * Note that the flush won't be effective until you call
+ * firewall_reload() before.
+ *
+ * @param   brick pointer to the firewall brick
+ * @param   side the side on which rules will be remove
+ */
+void pg_firewall_rule_flush_side(struct pg_brick *brick, enum pg_side side);
+
+/**
  * Reload firewall rules.
  * All rules added in the firewall will be loaded.
  * Old rules won't be effective anymore.

@@ -122,6 +122,29 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 	return 0;
 }
 
+void pg_firewall_rule_flush_side(struct pg_brick *brick, enum pg_side side)
+{
+	struct pg_firewall_state *state;
+	GList *it;
+	int pf_side = firewall_side_to_npf_rule(side);
+	int32_t side_attr;
+
+	state = pg_brick_get_state(brick, struct pg_firewall_state);
+	/* clean all rules */
+	it = state->rules;
+	while (it) {
+		side_attr = npf_rule_getattr(it->data) & (NPF_RULE_OUT |
+							  NPF_RULE_IN);
+		if (side_attr & pf_side) {
+			npf_rule_destroy(it->data);
+			state->rules = g_list_delete_link(state->rules, it);
+			it = state->rules;
+			continue;
+		}
+		it = g_list_next(it);
+	}
+}
+
 void pg_firewall_rule_flush(struct pg_brick *brick)
 {
 	struct pg_firewall_state *state;

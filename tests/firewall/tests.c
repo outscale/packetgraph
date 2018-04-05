@@ -397,45 +397,41 @@ static void firewall_filter_rules(enum pg_side dir)
 	g_assert(!error);
 
 	/* let it goooo */
-	pg_brick_poll(gen, &packet_count, &error);
-	g_assert(!error);
-	g_assert(packet_count == nb);
+	test_filtre(gen, col, 0, nb, dir, &filtered_pkts_mask);
 
-	/* check collect brick */
-	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col,
-							&filtered_pkts_mask,
-							&error);
-	else
-		filtered_pkts = pg_brick_east_burst_get(col,
-							&filtered_pkts_mask,
-							&error);
-	g_assert(!error);
-	g_assert(pg_mask_count(filtered_pkts_mask) == 0);
-
-	/* flush and allow packets from both sides */
 	pg_firewall_rule_flush(fw);
+	g_assert(!pg_firewall_rule_add(fw, "src host (10.0.0.1)",
+				       dir, 0, &error));
+	g_assert(!error);
+	g_assert(!pg_firewall_reload(fw, &error));
+	g_assert(!error);
+
+	/* check that flushing other side don't remove the rule */
+	pg_firewall_rule_flush_side(fw, pg_flip_side(dir));
+	g_assert(!pg_firewall_reload(fw, &error));
+	g_assert(!error);
+	g_assert(pg_brick_reset(col, &error) >= 0);
+	g_assert(!error);
+	filtered_pkts = test_filtre(gen, col, nb / 3, nb,
+				    dir, &filtered_pkts_mask);
+
+	printf("check that flushing side remove the rule\n");
+	/* check that flushing side remove the rule */
+	pg_firewall_rule_flush_side(fw, dir);
+	g_assert(!pg_firewall_reload(fw, &error));
+	g_assert(!error);
+	g_assert(pg_brick_reset(col, &error) >= 0);
+	g_assert(!error);
+	test_filtre(gen, col, 0, nb, dir, &filtered_pkts_mask);
+
+	/* allow packets from both sides */
 	g_assert(!pg_firewall_rule_add(fw, "src host (10.0.0.1)",
 				       PG_MAX_SIDE, 0, &error));
 	g_assert(!error);
 	g_assert(!pg_firewall_reload(fw, &error));
 	g_assert(!error);
-
-	/* let it goooo */
-	pg_brick_poll(gen, &packet_count, &error);
-	g_assert(!error);
-	g_assert(packet_count == nb);
-
-	if (dir == PG_WEST_SIDE)
-		filtered_pkts = pg_brick_west_burst_get(col,
-							&filtered_pkts_mask,
-							&error);
-	else
-		filtered_pkts = pg_brick_east_burst_get(col,
-							&filtered_pkts_mask,
-							&error);
-	g_assert(!error);
-	g_assert(pg_mask_count(filtered_pkts_mask) == nb / 3);
+	filtered_pkts = test_filtre(gen, col, nb / 3, nb,
+				    dir, &filtered_pkts_mask);
 	for (; filtered_pkts_mask;) {
 		uint32_t tmp;
 
