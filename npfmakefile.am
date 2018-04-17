@@ -73,6 +73,7 @@ libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/npf_sendpkt.c\
 	src/npf/npf/src/kern/npf_worker.c\
 	src/npf/npf/src/kern/stand/bpf_filter.c\
+	src/npf/npf/src/kern/stand/misc.c\
 	src/npf/npf/src/kern/stand/rb.c\
 	src/npf/npf/src/kern/stand/murmurhash.c\
 	src/npf/npf/src/kern/stand/misc.c\
