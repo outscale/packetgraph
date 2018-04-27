@@ -45,6 +45,8 @@ A lot of other bricks can be created, check our [wall](https://github.com/outsca
 
 # How should I use Packetgraph ?
 
+Code Documentation: [doxygen link](https://outscale.github.io/packetgraph/doc/master)
+
 ![Packetgraph usage flow](https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/packetgraph_flow.png "packetgraph usage flow")
 
 # Examples
