@@ -67,8 +67,8 @@ int pg_firewall_rule_add(struct pg_brick *brick, const char *filter,
 /**
  * Manually call the firewall garbage collector.
  * NPF firewall tracks all connexions when stateful.
- * To clean old connexions, we must manually call the connexion garbage
- * collection when PG_NO_CONN_WORKER flag shas not been set at brick creation.
+ * if PG_NO_CONN_WORKER flag has not been set, we must manually call the garbage
+ * collector.
  *
  * @param   brick pointer to the firewall brick
  */
@@ -76,8 +76,8 @@ void pg_firewall_gc(struct pg_brick *brick);
 
 /**
  * Flush all rules of the firewall.
- * Note that the flush won't be effective, you will need to call
- * firewall_reload() before.
+ * Note that the flush won't be effective until you call
+ * firewall_reload().
  *
  * @param   brick pointer to the firewall brick
  */
@@ -86,7 +86,7 @@ void pg_firewall_rule_flush(struct pg_brick *brick);
 /**
  * Flush all rules that filter a side of the firewall.
  * Note that the flush won't be effective until you call
- * firewall_reload() before.
+ * firewall_reload().
  *
  * @param   brick pointer to the firewall brick
  * @param   side the side on which rules will be remove
