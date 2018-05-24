@@ -383,12 +383,12 @@ EXTRA_example_firewall_DEPENDENCIES = libpacketgraph.la
 
 example_switch_SOURCES = examples/switch/switch.c
 example_switch_CFLAGS = $(libpacketgraph_la_CFLAGS)
-example_switch_LDFLAGS = libpacketgraph.la
+example_switch_LDFLAGS = libpacketgraph.la $(GLIB_LIBS)
 EXTRA_example_switch_DEPENDENCIES = libpacketgraph.la
 
 example_rxtx_SOURCES = examples/rxtx/rxtx.c
 example_rxtx_CFLAGS = $(libpacketgraph_la_CFLAGS)
-example_rxtx_LDFLAGS = libpacketgraph.la
+example_rxtx_LDFLAGS = libpacketgraph.la $(GLIB_LIBS)
 EXTRA_example_rxtx_DEPENDENCIES = libpacketgraph.la
 
 example_nic_SOURCES = examples/nic/nic.c
@@ -398,7 +398,7 @@ EXTRA_example_nic_DEPENDENCIES = libpacketgraph.la
 
 example_dperf_SOURCES = examples/dperf/dperf.c
 example_dperf_CFLAGS = $(libpacketgraph_la_CFLAGS) -Wno-address-of-packed-member
-example_dperf_LDFLAGS = libpacketgraph.la
+example_dperf_LDFLAGS = libpacketgraph.la $(GLIB_LIBS)
 EXTRA_example_dperf_DEPENDENCIES = libpacketgraph.la
 endif
 
