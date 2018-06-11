@@ -338,7 +338,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 		g_free(tmp);
 		if (pg_error_is_set(errp))
 			return -1;
-	} else if (nic_config->portid < rte_eth_dev_count()) {
+	} else if (nic_config->portid < rte_eth_dev_count_avail()) {
 		state->portid = nic_config->portid;
 	} else {
 		*errp = pg_error_new("Invalid port id %i",
@@ -437,7 +437,7 @@ struct pg_brick *pg_nic_new_by_id(const char *name,
 
 int pg_nic_port_count(void)
 {
-	return rte_eth_dev_count();
+	return rte_eth_dev_count_avail();
 }
 
 static void nic_link(struct pg_brick *brick, enum pg_side side, int edge)
