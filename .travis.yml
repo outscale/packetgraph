@@ -21,7 +21,7 @@ before_install:
  - cd ~
  - git clone http://dpdk.org/git/dpdk
  - cd dpdk
- - git checkout -b v18.05 v18.05
+ - git checkout -b v18.08 v18.08
  - export RTE_SDK=~/dpdk
  - make config T=x86_64-native-linuxapp-clang
  - sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" build/.config

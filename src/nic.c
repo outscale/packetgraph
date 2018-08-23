@@ -257,32 +257,28 @@ static int nic_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	*pkts_cnt = nb_pkts;
 	return nic_poll_forward(state, brick, nb_pkts, errp);
 }
+#define DEV_TX_OFFLOAD_CHECK (DEV_TX_OFFLOAD_UDP_CKSUM | \
+			      DEV_TX_OFFLOAD_TCP_CKSUM)
 
 static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 {
 	int ret;
+	struct rte_eth_dev_info dev_info;
+	static struct rte_eth_txconf tx_conf;
 	struct rte_mempool *mp = pg_get_mempool();
-	static const struct rte_eth_conf port_conf = {
+	static struct rte_eth_conf port_conf = {
 		.rxmode = {
 			.split_hdr_size = 0,
-			/**< Header Split disabled */
-			.header_split   = 0,
-			/**< IP checksum offload disabled */
-			.hw_ip_checksum = 0,
-			/**< VLAN filtering disabled */
-			.hw_vlan_filter = 0,
-			/**< Jumbo Frame Support disabled */
-			.jumbo_frame    = 0,
-			/**< CRC stripped by hardware */
-			.hw_strip_crc   = 0,
+			.max_rx_pkt_len = ETHER_MAX_LEN,
 		},
 		.txmode = {
 			.mq_mode = ETH_MQ_TX_NONE,
 		},
 	};
-	static const struct rte_eth_txconf tx_conf = {
-		.txq_flags = 0,
-	};
+
+	rte_eth_dev_info_get(state->portid, &dev_info);
+	if (dev_info.tx_offload_capa & DEV_TX_OFFLOAD_CHECK)
+		port_conf.txmode.offloads |= DEV_TX_OFFLOAD_CHECK;
 
 	ret = rte_eth_dev_configure(state->portid, 1, 1, &port_conf);
 	if (ret < 0) {
@@ -304,6 +300,8 @@ static int nic_init_ports(struct pg_nic_state *state, struct pg_error **errp)
 		return -1;
 	}
 
+	tx_conf = dev_info.default_txconf;
+	tx_conf.offloads = port_conf.txmode.offloads;
 	ret = rte_eth_tx_queue_setup(state->portid, 0, 128,
 				     rte_eth_dev_socket_id(state->portid),
 				     &tx_conf);
@@ -359,8 +357,8 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	/* check if nic supports offloading */
 	if (rte_eth_tx_queue_info_get(state->portid, 0, &qinfo) == 0 &&
-	    ((qinfo.conf.txq_flags & ETH_TXQ_FLAGS_NOXSUMUDP) == 0 ||
-	     (qinfo.conf.txq_flags & ETH_TXQ_FLAGS_NOXSUMTCP) == 0)) {
+	    ((qinfo.conf.offloads & DEV_TX_OFFLOAD_TCP_CKSUM) &&
+	     (qinfo.conf.offloads & DEV_TX_OFFLOAD_UDP_CKSUM))) {
 		brick->burst = nic_burst;
 	} else {
 		brick->burst = nic_burst_no_offload;
@@ -369,6 +367,8 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	return 0;
 }
+
+#undef DEV_TX_OFFLOAD_CHECK
 
 static void nic_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
