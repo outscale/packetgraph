@@ -48,6 +48,18 @@
 	BUILD_ASSERT(offsetof(type, brick) == 0);	\
 	(type *) ptr; })
 
+#ifdef PG_BRICK_NO_ATOMIC_COUNT
+#define PG_PKTS_COUNT_GET(X) (X)
+#define PG_PKTS_COUNT_TYPE uint64_t
+#define PG_PKTS_COUNT_ADD(X, Y) (X += Y)
+#define PG_PKTS_COUNT_SET(X, Y) (X = Y)
+#else
+#define PG_PKTS_COUNT_TYPE rte_atomic64_t
+#define PG_PKTS_COUNT_GET(X) rte_atomic64_read(&X)
+#define PG_PKTS_COUNT_ADD(X, Y) rte_atomic64_add(&X, Y)
+#define PG_PKTS_COUNT_SET(X, Y) rte_atomic64_set(&X, Y)
+#endif
+
 struct pg_brick_ops;
 
 /* The end of an edge linking two struct pg_brick */
@@ -58,7 +70,7 @@ struct pg_brick_edge {
 };
 
 struct pg_brick_side {
-	rte_atomic64_t packet_count;	/* incoming pkts count */
+	PG_PKTS_COUNT_TYPE packet_count;	/* incoming pkts count */
 	/* Optional callback to set to get the number of packets which has been
 	 * bursted/enqueue. Default: NULL.
 	 */
