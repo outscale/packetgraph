@@ -94,7 +94,7 @@ static void zero_brick_counters(struct pg_brick *brick)
 	enum pg_side i;
 
 	for (i = 0; i < PG_MAX_SIDE; ++i)
-		rte_atomic64_set(&brick->sides[i].packet_count, 0);
+		PG_PKTS_COUNT_SET(brick->sides[i].packet_count, 0);
 }
 
 /* Convenient macro to get a pointer to brick ops */
@@ -623,7 +623,7 @@ inline int pg_brick_burst(struct pg_brick *brick, enum pg_side from,
 	 * @from is the opposite side of the direction on which
 	 * we send the packets, so we flip it
 	 */
-	rte_atomic64_add(&brick->sides[pg_flip_side(from)].packet_count,
+	PG_PKTS_COUNT_ADD(brick->sides[pg_flip_side(from)].packet_count,
 			 pg_mask_count(pkts_mask));
 	return brick->burst(brick, from, edge_index, pkts, pkts_mask, errp);
 }
@@ -724,7 +724,7 @@ uint64_t pg_brick_pkts_count_get(struct pg_brick *brick,
 {
 	if (!brick)
 		return 0;
-	return rte_atomic64_read(&brick->sides[side].packet_count);
+	return PG_PKTS_COUNT_GET(brick->sides[side].packet_count);
 }
 
 uint64_t pg_brick_rx_bytes(struct pg_brick *brick)
