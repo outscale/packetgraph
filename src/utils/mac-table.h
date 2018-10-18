@@ -229,39 +229,48 @@ static inline void pg_mac_table_iterator_next(struct pg_mac_table_iterator *it)
 	struct pg_mac_table *ma = it->table;
 	uint32_t part1 = pg_mac_table_part1(it->key);
 	uint32_t part2 = pg_mac_table_part2(it->key);
+
+	it->key.part2 = part2 + 1;
+	part2 = pg_mac_table_part2(it->key);
+	if (!part2) {
+		it->key.bytes32[0] = part1 + 1;
+		if (!pg_mac_table_part1(it->key)) {
+			it->is_end = 1;
+			return;
+		}
+		part1 = pg_mac_table_part1(it->key);
+	}
+
+	uint64_t unset = (~0LLU) << (pg_mac_table_mask_pos(part1));
+	uint64_t sub_unset= (~0LLU) << (pg_mac_table_mask_pos(part2));
 	int first_mask = pg_mac_table_mask_idx(part1);
 	int first_sub_mask = pg_mac_table_mask_idx(part2);
 	uint64_t *masks = ma->mask;
-	uint64_t unset;
-	uint64_t sub_unset;
 
-	unset = ~((ONE64 << (pg_mac_table_mask_pos(part1) + 1)) - ONE64);
-	sub_unset = ~((ONE64 << (pg_mac_table_mask_pos(part2) + 1)) - ONE64);
-
-	for (int i = first_mask; i < (PG_MAC_TABLE_MASK_SIZE); ++i) {
+	if (masks[first_mask] && ctz64(masks[first_mask]) > ctz64(unset))
+		sub_unset = (~0LLU);
+	for (int i = first_mask; i < PG_MAC_TABLE_MASK_SIZE; ++i) {
 		if (!masks[i])
 			continue;
-
-		PG_FOREACH_BIT(ma->mask[i] & unset, i2) {
+		PG_FOREACH_BIT(masks[i] & unset, i2) {
 			uint64_t *sub_masks = ma->ptrs[(i * 64) + i2]->mask;
 
 			for (int j = first_sub_mask;
-			     j < (PG_MAC_TABLE_MASK_SIZE); ++j) {
+			     j < PG_MAC_TABLE_MASK_SIZE; ++j) {
 
 				if (!sub_masks[j])
 					continue;
 
-				PG_FOREACH_BIT(sub_masks[j] & sub_unset,
-					       j2) {
+				PG_FOREACH_BIT(sub_masks[j] & sub_unset, j2) {
 					it->key.bytes32[0] = (i * 64) + i2;
 					it->key.part2 = (j * 64) + j2;
 					return;
 				}
-				sub_unset = 0;
+				sub_unset = ~0LLU;
 			}
 			first_sub_mask = 0;
 		}
-		unset = 0;
+		unset = ~0LLU;
 	}
 	it->is_end = 1;
 }
@@ -273,10 +282,19 @@ static inline void pg_mac_table_iterator_init(struct pg_mac_table_iterator *it,
 	it->is_end = 0;
 	it->table = tbl;
 
-	/* If 0 is set we don't need to increment it iterator */
+	/* If 0 is set we don't need to increment the iterator */
 	if (pg_mac_table_ptr_get(tbl, it->key))
 		return;
 	pg_mac_table_iterator_next(it);
+}
+
+static inline struct pg_mac_table_iterator
+pg_mac_table_iterator_create(struct pg_mac_table *tbl)
+{
+	struct pg_mac_table_iterator ret;
+
+	pg_mac_table_iterator_init(&ret, tbl);
+	return ret;
 }
 
 static inline int pg_mac_table_iterator_is_end(struct pg_mac_table_iterator *it)
@@ -296,10 +314,10 @@ static inline void *pg_mac_table_iterator_get(struct pg_mac_table_iterator *it)
 }
 
 #define PG_MAC_TABLE_FOREACH_PTR(ma, key, val_type, val)		\
-	struct pg_mac_table_iterator it;				\
 	union pg_mac key;						\
 	val_type *val = NULL;						\
-	for (pg_mac_table_iterator_init(&it, (ma));			\
+	for (struct pg_mac_table_iterator it =				\
+		     pg_mac_table_iterator_create((ma));		\
 	     !pg_mac_table_iterator_is_end(&it) &&			\
 		     ((key = pg_mac_table_iterator_get_key(&it)).mac || 1) && \
 		     ((val = pg_mac_table_iterator_get(&it)) || 1);	\
