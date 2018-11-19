@@ -1,7 +1,11 @@
 lib_LTLIBRARIES = libpacketgraph.la
 
 if PG_ASAN
-PG_ASAN_CFLAGS= -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment --param asan-globals=0
+PG_ASAN_CFLAGS= -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment
+
+	ifeq ($(CC),gcc)
+	PG_ASAN_CFLAGS+= --param asan-globals=0
+	endif
 endif
 
 # No wildcard
