@@ -24,6 +24,7 @@
 #include "tests.h"
 #include "packetgraph/queue.h"
 #include "utils/network.h"
+#include "utils/mac-table.h"
 
 static void test_brick_core_simple_lifecycle(void)
 {
@@ -902,6 +903,95 @@ static void test_big_endian(void)
 #undef TEST_BE_16
 }
 
+#define MULTIPLE_OPS(nb_check, f, args...) do {		\
+		for (int i = 0; i < nb_check; ++i)	\
+			f(args);			\
+	} while (0)
+
+#define MULTIPLE_CHECK_EQ(nb_check, f, eq_val, args...) do {		\
+		for (int i = 0; i < nb_check; ++i)			\
+			g_assert(f(args) == eq_val);			\
+	} while (0)
+
+static void test_mac_table(void)
+{
+	struct pg_mac_table ma;
+	union pg_mac m;
+	uint32_t val = 1337;
+	uintptr_t i = 0;
+
+	/*
+	 * let's check without exeption_env first
+	 * exeption_env are alerady check in switch and vtep tests anyway
+	 */
+	g_assert(!pg_mac_table_init(&ma, NULL));
+	m.mac = 0;
+	pg_mac_table_elem_set(&ma, m, &val, 4);
+	g_assert(*pg_mac_table_elem_get(&ma, m, uint32_t) == 1337);
+	m.mac = 4;
+	MULTIPLE_OPS(10000, pg_mac_table_elem_set, &ma, m, &val, 4);
+	MULTIPLE_CHECK_EQ(10000, *pg_mac_table_elem_get, 1337,
+			  &ma, m, uint32_t);
+	pg_mac_table_free(&ma);
+
+	/* check mac table containing pointers */
+	g_assert(!pg_mac_table_init(&ma, NULL));
+	m.mac = 0;
+	pg_mac_table_ptr_set(&ma, m, &val);
+	m.mac = 4;
+	pg_mac_table_ptr_set(&ma, m, &val);
+	PG_MAC_TABLE_FOREACH_PTR(&ma, k, uint32_t, val_check) {
+		g_assert(*val_check == 1337);
+		++i;
+		g_assert(i < 3);
+	}
+	g_assert(i == 2);
+	m.mac = 0;
+	pg_mac_table_ptr_unset(&ma, m);
+	m.mac = 50000004;
+	pg_mac_table_ptr_set(&ma, m, &val);
+	m.mac = 60000004;
+	pg_mac_table_ptr_set(&ma, m, &val);
+	m.mac = 4;
+	i = 0;
+	g_assert(*(uint32_t *)pg_mac_table_ptr_get(&ma, m) == 1337);
+	m.mac = 0;
+	g_assert(!pg_mac_table_ptr_get(&ma, m));
+	PG_MAC_TABLE_FOREACH_PTR(&ma, k2, uint32_t, val_check2) {
+		g_assert(*val_check == 1337);
+		++i;
+		g_assert(i < 4);
+	}
+	g_assert(i == 3);
+	m.mac = 50000004;
+	pg_mac_table_ptr_unset(&ma, m);
+	m.mac = 60000004;
+	pg_mac_table_ptr_unset(&ma, m);
+	m.mac = 4;
+	pg_mac_table_ptr_unset(&ma, m);
+	PG_MAC_TABLE_FOREACH_PTR(&ma, k3, uint32_t, val_check3) {
+		g_assert(1);
+	}
+
+	i = 0;
+	m.bytes32[0] = 1;
+	for (uintptr_t j = 0; j < 1000000; ++j) {
+		m.part2 = j;
+		pg_mac_table_ptr_set(&ma, m, (void *)j);
+	}
+
+	PG_MAC_TABLE_FOREACH_PTR(&ma, k4, uint32_t, val_check4) {
+		g_assert((uintptr_t)val_check4 == i);
+		++i;
+	}
+
+	g_assert(i == 1000000);
+	pg_mac_table_free(&ma);
+}
+
+#undef MULTIPLE_OPS
+#undef MULTIPLE_OPS_EQ
+
 void test_brick_core(void)
 {
 	/* tests in the same order as the header function declarations */
@@ -924,4 +1014,6 @@ void test_brick_core(void)
 	pg_test_add_func("/core/verify/re_link_monopole",
 			test_brick_verify_re_link_monopole);
 	pg_test_add_func("/core/verify/big_endian", test_big_endian);
+	pg_test_add_func("/core/verify/mac_table", test_mac_table);
 }
+
