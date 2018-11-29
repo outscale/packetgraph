@@ -105,10 +105,10 @@ static inline void *pg_utils_get_l3(struct rte_mbuf *pkt)
 static inline int pg_utils_get_ipv6_l4(struct rte_mbuf *pkt, uint8_t *ip_type,
 				       uint8_t **ip_payload)
 {
-	/* jump all ipv6 extension headers to ICMPv6 */
 	struct ipv6_hdr *h6 = (struct ipv6_hdr *) pg_utils_get_l3(pkt);
 	uint8_t next_header = h6->proto;
-	uint8_t *next_data = (uint8_t *)(h6 + 1);
+	uint8_t *starting_pos = (uint8_t *)(h6 + 1);
+	uint8_t *next_data = starting_pos;
 	uint8_t loop_cnt = 0;
 	bool loop = true;
 
@@ -137,9 +137,18 @@ static inline int pg_utils_get_ipv6_l4(struct rte_mbuf *pkt, uint8_t *ip_type,
 			loop = false;
 		}
 	}
-	*ip_type = next_header;
-	*ip_payload = next_data;
-	return 0;
+	if (ip_type != NULL) {
+		*ip_type = next_header;
+		*ip_payload = next_data;
+	}
+	return next_data - starting_pos;
+}
+
+static inline int pg_utils_get_ipv6_l3_len(struct rte_mbuf *pkt)
+{
+	/* get IPV6 size */
+	return pg_utils_get_ipv6_l4(pkt, NULL, NULL)
+		+ sizeof(struct ipv6_hdr);
 }
 
 static inline void pg_utils_guess_l2(struct rte_mbuf *pkt)

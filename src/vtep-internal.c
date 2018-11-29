@@ -594,7 +594,7 @@ static inline void restore_metadata(struct rte_mbuf **pkts,
 				    uint64_t vni_mask)
 {
 	PG_FOREACH_BIT(vni_mask, it) {
-		pkts[it]->l2_len = sizeof(struct ether_hdr);
+		pg_utils_guess_l2(pkts[it]);
 		uint16_t eth_type = pg_utils_get_ether_type(pkts[it]);
 
 		switch (eth_type) {
@@ -602,7 +602,7 @@ static inline void restore_metadata(struct rte_mbuf **pkts,
 			pkts[it]->l3_len = sizeof(struct ipv4_hdr);
 			break;
 		case PG_BE_ETHER_TYPE_IPv6:
-			pkts[it]->l3_len = sizeof(struct ipv6_hdr);
+			pkts[it]->l3_len = pg_utils_get_ipv6_l3_len(pkts[it]);
 			break;
 		}
 	}
