@@ -87,7 +87,8 @@ static inline uint16_t pg_ipv4_udp_cksum(uint32_t base_sum_ipv4,
 	union {
 		uint32_t ip;
 		uint16_t ipp[2];
-	} __attribute__((__packed__)) ip = { .ip = dts_ip };
+	} __attribute__((__packed__)) ip;
+	ip.ip = dts_ip;
 	uint16_t sum = __rte_raw_cksum_reduce(base_sum_ipv4 + pkt_len + id +
 					      ip.ipp[0] + ip.ipp[1]);
 
