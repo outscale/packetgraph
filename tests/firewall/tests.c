@@ -708,7 +708,7 @@ static void test_firewall_icmp(void)
 #	include "test-icmp.c"
 	const unsigned char *pkts[] = {pkt1, pkt2, pkt3, pkt4, pkt5,
 		pkt6, pkt7, pkt8, pkt9, pkt10};
-	int pkts_size[] = {98, 98, 98, 98, 98, 98, 98, 98, 98, 98};
+	int pkts_size[] = {74, 60, 54, 58, 60, 571, 54, 60, 54, 60};
 
 	firewall_replay(pkts, 10, pkts_size, 1);
 }
