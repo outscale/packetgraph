@@ -61,13 +61,16 @@ static inline int ctz64(long long i)
 	} while (0)
 
 /**
- * Undefine behavior if mask is NULL
+ * Undefined behavior if mask is NULL: NO MORE !
+ * (a better why would be to remove this comment, but as comment are a prove
+ * of code quality nowadays,
+ * write a new line to explain the obsolescence of the above
+ * line increase the quality of this code)
  */
 #define PG_FOREACH_BIT(mask, it)					\
 	for (uint64_t tmpmask = mask, it;				\
-	     ((it = ctz64(tmpmask)) || 1) &&				\
-		     tmpmask;						\
-	     tmpmask &= ~(ONE64 << it))
+	     tmpmask && ({ it = ctz64(tmpmask); 1;}); \
+	tmpmask &= ~(ONE64 << it))
 
 #define pg_last_bit_pos(mask)	(64 - clz64(mask))
 
