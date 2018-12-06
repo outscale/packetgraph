@@ -1,22 +1,5 @@
 if PG_BUILD_NPF
-noinst_LTLIBRARIES += libprop.la libcdb.la liblpm.la libqsbr.la libsljit.la libbpfjit.la libnpf.la libnpfkern.la
-
-libprop_la_SOURCES = \
-	src/npf/proplib/src/prop_array.c\
-	src/npf/proplib/src/prop_array_util.c\
-	src/npf/proplib/src/prop_bool.c\
-	src/npf/proplib/src/prop_data.c\
-	src/npf/proplib/src/prop_dictionary.c\
-	src/npf/proplib/src/prop_dictionary_util.c\
-	src/npf/proplib/src/prop_ingest.c\
-	src/npf/proplib/src/prop_number.c\
-	src/npf/proplib/src/prop_object.c\
-	src/npf/proplib/src/prop_stack.c\
-	src/npf/proplib/src/prop_string.c\
-	src/npf/proplib/src/prop_zlib.c\
-	src/npf/proplib/src/rb.c
-libprop_la_includes = -I$(srcdir)/src/npf/proplib/include
-libprop_la_CFLAGS = $(libprop_la_includes) -pipe -Werror -Wall -Wextra -Wvla -Wno-overlength-strings -Wundef -Wformat=2 -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -fstack-protector-all -std=gnu11 -fPIC $(PG_ASAN_CFLAGS)
+noinst_LTLIBRARIES += libcdb.la liblpm.la libqsbr.la libsljit.la libbpfjit.la libnpf.la libnpfkern.la libnvlist.la libthmap.la
 
 liblpm_la_SOURCES = \
 	src/npf/liblpm/src/lpm.c
@@ -29,6 +12,21 @@ libcdb_la_SOURCES = \
 	src/npf/libcdb/src/mi_vector_hash.c
 libcdb_la_includes = -I$(srcdir)/src/npf/libcdb/src
 libcdb_la_CFLAGS = $(libcdb_la_includes) -D__RCSID\(x\)= -std=gnu11 -O2 -W -Wextra -Werror -DNDEBUG -fPIC $(PG_ASAN_CFLAGS)
+
+libnvlist_la_SOURCES = \
+	src/npf/nvlist/src/dnvlist.c\
+	src/npf/nvlist/src/msgio.c\
+	src/npf/nvlist/src/nvlist.c\
+	src/npf/nvlist/src/nvpair.c
+libnvlist_la_includes = -I$(srcdir)/src/npf/nvlist/src
+libnvlist_la_CFLAGS = $(libnvlist_la_includes) -D__RCSID\(x\)= -std=gnu11 -O2 -W -Wextra -Werror -DNDEBUG -D_GNU_SOURCE -fPIC $(PG_ASAN_CFLAGS) -D__FBSDID\(x\)=
+
+libthmap_la_SOURCES = \
+	src/npf/thmap/src/murmurhash.c\
+	src/npf/thmap/src/thmap.c\
+	src/npf/thmap/src/t_stress.c
+libthmap_la_includes = -I$(srcdir)/src/npf/thmap/src
+libthmap_la_CFLAGS = $(libthmap_la_includes) -D__RCSID\(x\)= -std=gnu11 -O2 -W -Wextra -Werror -DNDEBUG -fPIC $(PG_ASAN_CFLAGS)
 
 libqsbr_la_SOURCES = \
 	src/npf/libqsbr/src/ebr.c\
@@ -49,8 +47,8 @@ libbpfjit_la_CFLAGS = $(libsljit_includes) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE
 libbpfjit_la_LIBADD = libsljit.la
 
 libnpf_la_SOURCES = src/npf/npf/src/libnpf/npf.c
-libnpf_la_includes = -I$(srcdir)/src/npf/npf/src/libnpf -I$(srcdir)/src/npf/npf/src/kern/stand
-libnpf_la_CFLAGS = $(libnpf_la_includes) $(libprop_la_includes) $(libqsbr_la_includes) $(libcdb_la_includes) $(liblpm_la_includes) -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -D__KERNEL_RCSID\(x,y\)= -D_NPF_STANDALONE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused  -Wno-unknown-warning-option -DNDEBUG -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -fPIC $(PG_ASAN_CFLAGS) -Wno-cast-function-type -Wno-stringop-truncation
+libnpf_la_includes = -I$(srcdir)/src/npf/npf/src/libnpf -I$(srcdir)/src/npf/npf/src/kern/stand -I$(srcdir)/src/npf/nvlist/src -I$(srcdir)/src/npf/libqsbr/src
+libnpf_la_CFLAGS = $(libnpf_la_includes) $(libqsbr_la_includes) $(libcdb_la_includes) $(liblpm_la_includes) $(libthmap_la_includes) -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -D__KERNEL_RCSID\(x,y\)= -D_NPF_STANDALONE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -DNDEBUG -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -fPIC $(PG_ASAN_CFLAGS)
 
 libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/npf.c\
@@ -66,6 +64,7 @@ libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/npf_inet.c\
 	src/npf/npf/src/kern/npf_conn.c\
 	src/npf/npf/src/kern/npf_conndb.c\
+	src/npf/npf/src/kern/npf_connkey.c\
 	src/npf/npf/src/kern/npf_state.c\
 	src/npf/npf/src/kern/npf_state_tcp.c\
 	src/npf/npf/src/kern/npf_nat.c\
@@ -73,18 +72,16 @@ libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/npf_sendpkt.c\
 	src/npf/npf/src/kern/npf_worker.c\
 	src/npf/npf/src/kern/stand/bpf_filter.c\
-	src/npf/npf/src/kern/stand/rb.c\
 	src/npf/npf/src/kern/stand/murmurhash.c\
-	src/npf/npf/src/kern/stand/misc.c\
-	src/npf/npf/src/kern/stand/subr_hash.c
+	src/npf/npf/src/kern/stand/misc.c
 libnpfkern_la_includes = -I$(srcdir)/src/npf/npf/src/kern/stand -I$(builddir)/src/npf/npf/src/kern/stand
-libnpfkern_la_CFLAGS = $(liblpm_la_includes) $(libcdb_la_includes) $(libprop_la_includes) $(libqsbr_la_includes) $(libnpf_la_includes) $(libnpfkern_la_includes) $(libbpfjit_includes) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -Wno-cast-function-type -Wno-stringop-truncation -Wno-unknown-warning-option -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
+libnpfkern_la_CFLAGS = $(liblpm_la_includes) $(libcdb_la_includes) $(libqsbr_la_includes) $(libnpf_la_includes) $(libnpfkern_la_includes) $(libbpfjit_includes) $(libnvlist_la_includes) $(libthmap_la_includes) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
 # Trick to avoid symbol conflicts
 libnpfkern_la_CFLAGS += -Dnpf_ruleset_add=_npf_ruleset_add -Dnpf_ruleset_remove=_npf_ruleset_remove -Dnpf_ruleset_remkey=_npf_ruleset_remkey -Dnpf_ruleset_flush=_npf_ruleset_flush -Dnpf_rule_setcode=_npf_rule_setcode -Dnpf_rule_getid=_npf_rule_getid -Dnpf_ext_construct=_npf_ext_construct -Dnpf_rproc_create=_npf_rproc_create -Dnpf_table_create=_npf_table_create -Dnpf_table_destroy=_npf_table_destroy -Dnpf_table_insert=_npf_table_insert -Drb_tree_init=_rb_tree_init -Drb_tree_find_node=_rb_tree_find_node -Drb_tree_find_node_geq=_rb_tree_find_node_geq -Drb_tree_find_node_leq=_rb_tree_find_node_leq -Drb_tree_insert_node=_rb_tree_insert_node -Drb_tree_iterate=_rb_tree_iterate -Drb_tree_remove_node=_rb_tree_remove_node $(PG_ASAN_CFLAGS)
-libnpfkern_la_LIBADD = libqsbr.la liblpm.la libcdb.la libprop.la libbpfjit.la -ljemalloc -lpthread -lpcap
+libnpfkern_la_LIBADD = libqsbr.la liblpm.la libcdb.la libbpfjit.la libnvlist.la libthmap.la -ljemalloc -lpthread -lpcap
 
 libpacketgraph_la_LIBADD += libnpf.la libnpfkern.la
-libpacketgraph_la_CFLAGS += $(libnpf_la_includes) $(libnpfkern_la_includes) $(libprop_la_includes)
+libpacketgraph_la_CFLAGS += $(libnpf_la_includes) $(libnpfkern_la_includes)
 else
 libpacketgraph_la_LIBADD += -lnpf -lnpfkern
 endif
