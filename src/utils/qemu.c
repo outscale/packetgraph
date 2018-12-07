@@ -26,7 +26,7 @@
 int pg_util_cmdloop(const char *cmd, int timeout_s)
 {
 	struct timeval start, end;
-	gint status;
+	int status;
 
 	gettimeofday(&start, 0);
 	gettimeofday(&end, 0);
@@ -44,8 +44,8 @@ int pg_util_ssh(const char *host,
 		const char *key_path,
 		const char *cmd, ...)
 {
-	gchar *ssh_cmd;
-	gint status;
+	char *ssh_cmd;
+	int status;
 	va_list args;
 	char *c;
 
@@ -76,11 +76,11 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 {
 	int child_pid = 0;
 	static uint16_t vm_id;
-	gchar **argv = NULL;
-	gchar *argv_qemu = NULL;
-	gchar *argv_sock_0 = NULL;
-	gchar *argv_sock_1 = NULL;
-	gchar *ssh_cmd = NULL;
+	char **argv = NULL;
+	char *argv_qemu = NULL;
+	char *argv_sock_0 = NULL;
+	char *argv_sock_1 = NULL;
+	char *ssh_cmd = NULL;
 	GError *error = NULL;
 
 	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));

@@ -58,7 +58,7 @@ static void test_nic_simple_flow(void)
 	 */
 
 	/* write rx pcap file (required bu pcap driver) */
-	const gchar pcap_in_file[] = {
+	const char pcap_in_file[] = {
 		212, 195, 178, 161, 2, 0, 4, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 255, 255, 0, 0, 1, 0, 0, 0};
 	g_assert(g_file_set_contents("in.pcap", pcap_in_file,

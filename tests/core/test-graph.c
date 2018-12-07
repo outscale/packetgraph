@@ -206,7 +206,7 @@ static void test_graph_explore(void)
 	struct pg_graph *g1, *g2;
 	struct pg_error *error = NULL;
 	struct pg_brick *nop[7], *queue[3], *sw[2];
-	gchar *tmp;
+	char *tmp;
 
 	for (int i = 0; i < 7; i++) {
 		tmp = g_strdup_printf("nop%i", i);
@@ -353,7 +353,7 @@ static void test_graph_sanity(void)
 	struct pg_graph *g;
 	struct pg_error *error = NULL;
 	struct pg_brick *nop[4];
-	gchar *tmp;
+	char *tmp;
 
 	for (int i = 0; i < 4; i++) {
 		tmp = g_strdup_printf("nop%i", i);
@@ -417,7 +417,7 @@ static void test_graph_poll(void)
 	struct pg_graph *g, *trash;
 	struct pg_error *error = NULL;
 	struct pg_brick *queue[6], *hub;
-	gchar *tmp;
+	char *tmp;
 	struct rte_mbuf *pkts[NB_PKTS];
 	uint64_t mask = pg_mask_firsts(NB_PKTS);
 	struct rte_mempool *mbuf_pool = pg_get_mempool();
@@ -537,7 +537,7 @@ static void test_graph_split_merge(void)
 	struct pg_graph *g, *east;
 	struct pg_error *error = NULL;
 	struct pg_brick *nop[4];
-	gchar *tmp;
+	char *tmp;
 
 	for (int i = 0; i < 4; i++) {
 		tmp = g_strdup_printf("nop%i", i);
