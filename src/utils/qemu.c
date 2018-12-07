@@ -106,10 +106,10 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 
 	argv_qemu = g_strdup_printf(
 		"%s%s%u%s%s%s%s%s%s%s%s%u%s%s%s%s",
-		"qemu-system-x86_64 -m 512M -enable-kvm",
+		"qemu-system-x86_64 -m 1G -enable-kvm",
 		" -vnc :", vm_id,
-		" -nographic -snapshot -object",
-		" memory-backend-file,id=mem,size=512M,mem-path=",
+		" -display none -snapshot -object",
+		" memory-backend-file,id=mem,size=1G,mem-path=",
 		hugepages_path, ",share=on",
 		" -numa node,memdev=mem -mem-prealloc",
 		" -drive file=", vm_image_path,
