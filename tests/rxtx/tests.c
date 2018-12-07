@@ -37,7 +37,7 @@
 static void test_rxtx_lifecycle(void)
 {
 	struct pg_brick *brick;
-	gchar *pd = g_strdup_printf("ho hai !");
+	char *pd = g_strdup_printf("ho hai !");
 
 	brick = pg_rxtx_new("rxtx", NULL, NULL, NULL);
 	g_assert(brick);

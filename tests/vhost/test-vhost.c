@@ -394,7 +394,7 @@ static void test_vhost_fd(void)
 
 	for (int j = 0; j < 10; j++) {
 		for (int i = 0; i < VHOST_CNT; i++) {
-			gchar *name = g_strdup_printf("vhost-%i", i);
+			char *name = g_strdup_printf("vhost-%i", i);
 
 			vhost[i] =
 				pg_vhost_new(name,

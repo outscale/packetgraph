@@ -72,7 +72,7 @@ static int queue_burst(struct pg_brick *brick, enum pg_side from,
 	struct pg_queue_burst *burst = NULL;
 
 	/* the oldest burst is throw away */
-	if (g_async_queue_length(state->rx) >= (gint) state->rx_max_size) {
+	if (g_async_queue_length(state->rx) >= (int) state->rx_max_size) {
 		burst = g_async_queue_try_pop(state->rx);
 		if (likely(burst != NULL)) {
 			pg_packets_free(burst->pkts, burst->mask);

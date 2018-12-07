@@ -327,7 +327,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	/* Setup port id */
 	if (nic_config->ifname[0]) {
-		gchar *tmp = g_strdup_printf("%s", nic_config->ifname);
+		char *tmp = g_strdup_printf("%s", nic_config->ifname);
 
 		if (rte_eth_dev_attach(tmp, &state->portid) < 0) {
 			*errp = pg_error_new("Invalid parameter %s",
