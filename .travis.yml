@@ -15,10 +15,6 @@ before_install:
  - sudo apt-get update
 
  - cd ~
- - git clone https://github.com/terryyin/lizard.git
- - cd lizard
- - sudo python setup.py install
- - cd ~
  - git clone http://dpdk.org/git/dpdk
  - cd dpdk
  - git checkout -b v18.08 v18.08
