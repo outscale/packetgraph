@@ -3,7 +3,6 @@ set -x
 set -e
 
 make
-
 make style
 
 make tests-antispoof
@@ -23,12 +22,13 @@ make tests-tap
 make tests-ip-fragment
 make tests-thread
 
-if [ ! -e "/usr/bin/doxygen" ]; then
-    sudo curl https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/doxygen.sh -o /usr/bin/doxygen
-    sudo chmod +x /usr/bin/doxygen
+if [ "$(whoami)" == "travis" ]; then
+    if [ ! -e "/usr/bin/doxygen" ]; then
+	sudo curl https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/doxygen.sh -o /usr/bin/doxygen
+	sudo chmod +x /usr/bin/doxygen
+    fi
+    make doc
 fi
-
-make doc
 
 ./tests/antispoof/test.sh
 ./tests/core/test.sh
@@ -58,3 +58,8 @@ make doc
 ./tests/pmtud/bench.sh
 ./tests/tap/bench.sh
 ./tests/ip-fragment/bench.sh
+
+if [ "$(whoami)" != "travis" ]; then
+    ./tests/integration/test.sh
+    ./tests/vhost/test.sh
+fi
