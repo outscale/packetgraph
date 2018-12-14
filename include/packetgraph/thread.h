@@ -118,7 +118,6 @@ struct pg_graph *pg_thread_pop_graph(int16_t tid, int32_t graph_id);
  * @param   tid the thread id to be destroy
  * @return  0 on success, -1 on failure
  */
-
 int pg_thread_destroy(int16_t tid);
 
 #endif
