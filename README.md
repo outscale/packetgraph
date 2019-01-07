@@ -128,7 +128,7 @@ Note 2: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.6 
 -DPG_BRICK_NO_ATOMIC_COUNT: do not use atomic variable to count packets, if you do so, you must call `pg_brick_pkts_count_get` in the same thread you use to poll packets
 
 # Licence
-
+jskcn
 Packetgraph project is published under [GNU GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.en.html).
 For more information, check LICENSE file.
 
