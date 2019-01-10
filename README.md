@@ -75,7 +75,14 @@ You will need to build DPDK before building Packetgraph.
 
 You may adapt this depending on your Linux distribution:
 ```
-$ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev libnuma-dev
+$ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev libnuma-dev openssl
+```
+CentOS
+```
+$ sudo yum install -y automake glibc-devel glib2-devel libtool libpcap-devel git wget numactl numactl-devel openssl-devel clang
+$ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_64/jemalloc-devel-3.6.0-8.el7.centos.x86_64.rpm
+$ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_64/jemalloc-3.6.0-8.el7.centos.x86_64.rpm
+$ sudo rpm -i jemalloc-devel-3.6.0-8.el7.centos.x86_64.rpm jemalloc-3.6.0-8.el7.centos.x86_64.rpm
 ```
 
 ## Build DPDK
@@ -121,8 +128,34 @@ $ make install
 
 Note: to build with clang, you can use `./configure_clang` wrapper instead of `./configure`.
 
-Note 2: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.6 or superior).
+Note 2: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.4 or superior).
 
+## Configure Huge Pages
+
+Butterfly needs some [huge pages](https://en.wikipedia.org/wiki/Page_%28computer_memory%29#Huge_pages)
+(adjust to your needs):
+
+- Edit your `/etc/sysctl.conf` and add some huge pages:
+```
+vm.nr_hugepages=2000
+```
+- Reload your sysctl configuration:
+```
+$ sudo sysctl -p /etc/sysctl.conf
+```
+- Check that your huge pages are available:
+```
+$ cat /proc/meminfo | grep Huge
+```
+- Mount your huge pages:
+```
+$ sudo mkdir -p /mnt/huge
+$ sudo mount -t hugetlbfs nodev /mnt/huge
+```
+- (optional) Add this mount in your `/etc/fstab`:
+```
+hugetlbfs       /mnt/huge  hugetlbfs       rw,mode=0777        0 0
+```
 # Compille Time Optimisation:
 
 -DPG_BRICK_NO_ATOMIC_COUNT: do not use atomic variable to count packets, if you do so, you must call `pg_brick_pkts_count_get` in the same thread you use to poll packets
