@@ -327,15 +327,27 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	/* Setup port id */
 	if (nic_config->ifname[0]) {
-		char *tmp = g_strdup_printf("%s", nic_config->ifname);
+		struct rte_devargs pg_cleanup(rte_devargs_remove) devargs;
 
-		if (rte_eth_dev_attach(tmp, &state->portid) < 0) {
+		/* parse devargs */
+		if (rte_devargs_parse(&devargs, nic_config->ifname)) {
 			*errp = pg_error_new("Invalid parameter %s",
 					     nic_config->ifname);
-		}
-		g_free(tmp);
-		if (pg_error_is_set(errp))
 			return -1;
+		}
+
+		if (rte_eal_hotplug_add(devargs.bus->name, devargs.name,
+					 devargs.args) < 0) {
+			*errp = pg_error_new("Unable to hot plugging %s",
+					     devargs.args);
+			return -1;
+		}
+		if (rte_eth_dev_get_port_by_name(devargs.name,
+						 &state->portid) < 0) {
+			*errp = pg_error_new("Unable to get device %s",
+					     devargs.name);
+			return -1;
+		}
 	} else if (nic_config->portid < rte_eth_dev_count_avail()) {
 		state->portid = nic_config->portid;
 	} else {
