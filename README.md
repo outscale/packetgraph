@@ -122,13 +122,12 @@ $ export RTE_SDK=$(pwd)
 $ git clone https://github.com/outscale/packetgraph.git
 $ cd packetgraph
 $ git submodule update --init
-$ ./autogen.sh
 $ ./configure
 $ make
 $ make install
 ```
 
-Note: to build with clang, you can use `./configure_clang` wrapper instead of `./configure`.
+Note: to build with clang, you can use `./configure CC=clang` wrapper instead of `./configure`.
 
 Note 2: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.4 or superior).
 

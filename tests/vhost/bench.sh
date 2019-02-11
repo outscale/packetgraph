@@ -1,5 +1,4 @@
-#!/bin/sh
-
+#!/bin/bash
 #!/bin/bash
 
 # Copyright 2015 Outscale SAS

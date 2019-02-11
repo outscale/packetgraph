@@ -1,0 +1,212 @@
+#!/bin/bash
+
+function checkCompiler {
+	echo -e  "#include <stdio.h>\nint main() {\nprintf(\"hello world\\\n\");\n}" > hw.c
+	$1 -Wall hw.c -o cccheck.out 2> /dev/null
+	retcomp=$?
+	rm hw.c 2> /dev/null
+	retstr=$(./cccheck.out 2> /dev/null)
+	./cccheck.out > /dev/null 2>/dev/null
+	retexec=$?
+	rm ./cccheck.out 2> /dev/null
+	if [ $retcomp -ne 0 ] || [ "$retstr" != "hello world" ] || [ $retexec -ne 0 ]; then
+		echo ">>> Compiler failed"
+		exit
+	fi
+}
+
+function printHelp {
+		echo " --- HELP --- "
+		echo "Usage   : ./configure [options] [variable]"
+		echo "Options :"
+		echo -e "  -h --help\t\t\tPrint this help and exit"
+		echo -e "  -v --verbose\t\t\tAugment compilation verbose"
+		echo -e "  -n --no-verbose\t\tReduce compilation verbose"
+		echo -e "  -p --print\t\t\tPrint variables values"
+		echo -e "  -P --modifiers\t\tPrint available variables"
+		echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
+		echo -e "  -e --with-examples\t\tCompile examples"
+		echo -e "  -a --asan\t\t\tCompile examples"
+		echo
+		printModifiers
+}
+
+function printModifiers {
+		echo " --- MODIFIERS --- "
+		echo "Variables : R = replace  /  A = add"
+		echo -e "Syntax    : ./configure [options] CC=gcc EXTRA_CFLAGS=\"-g -O2 -j4 ...\""
+		echo -e "  CC\t\tR\tCompiler"
+		echo -e "  EXTRA_CFLAGS\tA\tCompiler option, adds to PG_CFLAGS normal compilation"
+		echo -e "  EXTRA_dev_CFLAGS\tA\tCompiler option, adds to PG_dev_CFLAGS dev options compilation"
+		echo -e "  RTE_SDK\tR\tRoot directory of DPDK"
+		echo -e "  PG_NAME\tR\tName of the compiled library ({NAME}.a / {NAME}.so.x.y.z)"
+		echo -e "  PG_dev_NAME\tR\tName of the compiled library ({NAME}-dev.a / {NAME}-dev.so.x.y.z)"
+}
+
+function printVar {
+		echo " --- VARIABLES --- "
+		echo "srcdir=$srcdir"
+		echo "OS=$OS"
+		echo "CC=$CC"
+		echo "PG_NAME=$PG_NAME"
+		echo "PG_dev_NAME=$PG_dev_NAME"
+		echo "GLIB_HEADERS=$GLIB_HEADERS"
+		echo "GLIB_LIBS=$GLIB_LIBS"
+		echo "RTE_SDK=$RTE_SDK"
+		echo "RTE_SDK_HEADERS=$RTE_SDK_HEADERS"
+		echo "RTE_SDK_LIBS=$RTE_SDK_LIBS"
+		echo -en "$newExport"
+}
+
+function checkOption {
+	if [ "$1"  == "--help" ]; then
+		printHelp
+		exit
+	elif [ "$1"  == "--verbose" ]; then
+		echo add verbose
+	elif [ "$1"  == "--no-verbose" ]; then
+		echo remove verbose
+	elif [ "$1"  == "--print" ]; then
+		pv=printVar
+	elif [ "$1"  == "--modifiers" ]; then
+		printModifiers
+		exit
+	elif [ "$1"  == "--with-benchmarks" ]; then
+		addBenchmark=true
+	elif [ "$1"  == "--with-examples" ]; then
+		addExample=true
+	elif [ "$1"  == "--asan" ]; then
+		addAsan=true
+	fi
+}
+
+function checkOptionSingle {
+	if [[ "$1"  == *"h"* ]]; then
+		printHelp
+		exit
+	fi
+	if [[ "$1"  == *"v"* ]]; then
+		echo add verbose
+	fi
+	if [[ "$1"  == *"n"* ]]; then
+		echo remove verbose
+	fi
+	if [[ "$1"  == *"p"* ]]; then
+		pv=printVar
+	fi
+	if [[ "$1"  == *"P"* ]]; then
+		printModifiers
+		exit
+	fi
+	if [[ "$1"  == *"b"* ]]; then
+		addBenchmark=true
+	fi
+	if [[ "$1"  == *"e"* ]]; then
+		addExample=true
+	fi
+	if [[ "$1"  == *"a"* ]]; then
+		addAsan=true
+	fi
+}
+
+source configure-helper.sh
+
+./dpdk_symbols.sh
+mkdir -p "$(pwd)"/src/npf/libqsbr/qsbr
+ln --symbolic -t ./src/npf/libqsbr/qsbr/ "$(pwd)"/src/npf/libqsbr/src/qsbr.h
+mkdir -p "$(pwd)"/src/npf/npf/src/kern/stand/net
+ln --symbolic -t ./src/npf/npf/src/kern/stand/net/ "$(pwd)"/src/npf/npf/src/kern/npfkern.h
+
+modifiers=("CC" "EXTRA_CFLAGS" "EXTRA_dev_CFLAGS" "RTE_SDK" "PG_NAME" "PG_dev_NAME")
+addBenchmark=false
+addExample=false
+addAsan=false
+newExport=""
+
+echo "#####################################" > config.mk
+echo "### Configuration for packetgraph ###" >> config.mk
+echo "#####################################" >> config.mk
+
+for var in "$@"; do
+	if [[ ${var:0:2} == "--" ]]; then
+		checkOption "$var"
+	elif [[ ${var:0:1} == "-" && ${var:1:2} != "-" ]]; then
+		checkOptionSingle "$var"
+	else
+		validMod=false
+		for i in "${modifiers[@]}"; do
+			if [ "$(sed 's,=.*,,' <<< $var)"  == "$i" ]; then
+				validMod=true
+			fi
+		done
+		if $validMod; then
+			export "$var"
+			ret=$?
+			if (( ! ret ));then
+				newExport+="$var\n"
+				var_add "$(sed 's,=.*,,' <<< $var)"
+			else
+				echo ">>> $var failed"
+				printModifiers
+			fi
+		else
+			echo ">>> $var failed"
+			printModifiers
+		fi
+	fi
+done
+
+if $addBenchmark;then
+	echo "include benchmark.mk" >> config.mk
+fi
+if $addExample;then
+	echo "include example.mk" >> config.mk
+fi
+
+var_add srcdir "./"
+var_add OS "$(uname)"
+if [[ $CC == "" ]];then
+	case $OS in
+		Linux) CC=gcc;;
+		Darwin) CC=clang;;
+		*) CC=cc
+	esac
+fi
+hash "$CC"
+ret=$?
+while (( "$ret" )) || [ ! "$CC" ]; do
+	echo "[ Compiler = $CC ]"
+	echo ">>> Compiler not found"
+	echo -n "Compiler name : "
+	read CC
+	CC=$CC
+	hash "$CC"
+	ret=$?
+done
+checkCompiler "$CC"
+export CC="$CC"
+var_add CC
+if $addAsan;then
+	if [[ "$CC" == "gcc" ]]; then
+		var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment --param asan-globals=0"
+	else
+		var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment"
+	fi
+fi
+var_add PG_NAME "libpacketgraph"
+var_add PG_dev_NAME "$PG_NAME"-dev
+var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
+var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
+
+if [ ! "$RTE_SDK" ]; then
+	echo
+	echo ">>> RTE_SDK not set: exit"
+	echo "Set RTE_SDK :"
+	echo "	cd {DPDK root directory}"
+	echo "	export RTE_SDK=$(pwd)"
+	exit;
+fi
+var_add RTE_SDK_HEADERS "-I$RTE_SDK/build/include/"
+var_add RTE_SDK_LIBS "-lm -lpthread -ldl -lpcap -lnuma -L$RTE_SDK/build/lib/ -ldpdk"
+
+$pv

@@ -6,7 +6,6 @@ build
 compile
 config.guess
 config.sub
-configure
 depcomp
 install-sh
 ltmain.sh
@@ -14,7 +13,6 @@ m4
 missing
 test-driver
 .deps
-Makefile
 *.log
 *.status
 libtool
