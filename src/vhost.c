@@ -399,9 +399,6 @@ static void destroy_vm(int dev)
 
 }
 
-#undef CONCAT_VOLATILE
-#undef VOLATILE
-
 /**
  * Check that the socket path exists and has the right perm and store it
  *
