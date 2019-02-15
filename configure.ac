@@ -118,7 +118,7 @@ AC_CONFIG_FILES([Makefile])
 AC_PROG_LN_S
 
 AC_CONFIG_LINKS([src/npf/npf/src/kern/stand/net/npfkern.h:src/npf/npf/src/kern/npfkern.h
-src/npf/libqsbr/qsbr/qsbr.h:src/npf/libqsbr/src/qsbr.h])
+src/npf/libqsbr/qsbr/ebr.h:src/npf/libqsbr/src/ebr.h])
 
 # libtoolize recommanded this
 AC_CONFIG_MACRO_DIR([m4])
