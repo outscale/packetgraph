@@ -97,7 +97,7 @@ you will have to set the following parameters to 'n':
 - CONFIG_RTE_EAL_IGB_UIO
 - CONFIG_RTE_KNI_KMOD
 
-Once your .config file is read, you can now build dpdk as follows:
+Once your .config file is ready, you can now build dpdk as follows:
 
 ```
 $ make EXTRA_CFLAGS='-fPIC'
