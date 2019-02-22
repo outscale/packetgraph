@@ -150,7 +150,7 @@ again:
 			case PG_THREAD_RM_GRAPH:
 				cur = get_thread_op(client);
 				ret = cur->arg.i16;
-				stack_push(free_graph, ret);
+				stack_push(free_graph, (int8_t)ret);
 				cur->arg.ptr = graphs[ret];
 				started[ret] = PG_THREAD_STOPPED;
 				cur->op = PG_THREAD_ANSWER;
@@ -222,14 +222,14 @@ again:
 			continue;
 		}
 		for (int j = 0; j < 32; ++j) {
-			for (int i = 0; i < last_graph; ++i) {
+			for (int16_t i = 0; i < last_graph; ++i) {
 				if (started[i] != PG_THREAD_RUNNING)
 					continue;
 				if (unlikely(pg_graph_poll(graphs[i],
 							   &error) < 0)) {
 					state = PG_THREAD_BROKEN;
 					started[i] = PG_THREAD_BROKEN;
-					stack_push(errors, error);
+					stack_push(errors, (void *)error);
 					stack_push(errors_gid, i);
 				}
 			}
