@@ -6,6 +6,7 @@ build
 compile
 config.guess
 config.sub
+config.mk
 depcomp
 install-sh
 ltmain.sh
