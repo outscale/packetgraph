@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function checkCompiler {
+function check_compiler {
 	echo -e  "#include <stdio.h>\nint main() {\nprintf(\"hello world\\\n\");\n}" > hw.c
 	$1 -Wall hw.c -o cccheck.out 2> /dev/null
 	retcomp=$?
@@ -15,7 +15,7 @@ function checkCompiler {
 	fi
 }
 
-function printHelp {
+function print_help {
 		echo " --- HELP --- "
 		echo "Usage   : ./configure [options] [variable]"
 		echo "Options :"
@@ -26,12 +26,12 @@ function printHelp {
 		echo -e "  -P --modifiers\t\tPrint available variables"
 		echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
 		echo -e "  -e --with-examples\t\tCompile examples"
-		echo -e "  -a --asan\t\t\tCompile examples"
+		echo -e "  -a --asan\t\t\tCompile with address sanitizers"
 		echo
 		printModifiers
 }
 
-function printModifiers {
+function print_modifiers {
 		echo " --- MODIFIERS --- "
 		echo "Variables : R = replace  /  A = add"
 		echo -e "Syntax    : ./configure [options] CC=gcc EXTRA_CFLAGS=\"-g -O2 -j4 ...\""
@@ -43,7 +43,7 @@ function printModifiers {
 		echo -e "  PG_dev_NAME\tR\tName of the compiled library ({NAME}-dev.a / {NAME}-dev.so.x.y.z)"
 }
 
-function printVar {
+function print_var {
 		echo " --- VARIABLES --- "
 		echo "srcdir=$srcdir"
 		echo "OS=$OS"
@@ -58,7 +58,7 @@ function printVar {
 		echo -en "$newExport"
 }
 
-function checkOption {
+function check_option {
 	if [ "$1"  == "--help" ]; then
 		printHelp
 		exit
@@ -80,7 +80,7 @@ function checkOption {
 	fi
 }
 
-function checkOptionSingle {
+function check_option_single {
 	if [[ "$1"  == *"h"* ]]; then
 		printHelp
 		exit
@@ -92,10 +92,10 @@ function checkOptionSingle {
 		echo remove verbose
 	fi
 	if [[ "$1"  == *"p"* ]]; then
-		pv=printVar
+		pv=print_var
 	fi
 	if [[ "$1"  == *"P"* ]]; then
-		printModifiers
+		print_modifiers
 		exit
 	fi
 	if [[ "$1"  == *"b"* ]]; then
@@ -129,9 +129,9 @@ echo "#####################################" >> config.mk
 
 for var in "$@"; do
 	if [[ ${var:0:2} == "--" ]]; then
-		checkOption "$var"
+		check_option "$var"
 	elif [[ ${var:0:1} == "-" && ${var:1:2} != "-" ]]; then
-		checkOptionSingle "$var"
+		check_option_single "$var"
 	else
 		validMod=false
 		for i in "${modifiers[@]}"; do
@@ -147,11 +147,11 @@ for var in "$@"; do
 				var_add "$(sed 's,=.*,,' <<< $var)"
 			else
 				echo ">>> $var failed"
-				printModifiers
+				print_modifiers
 			fi
 		else
 			echo ">>> $var failed"
-			printModifiers
+			print_modifiers
 		fi
 	fi
 done
@@ -183,7 +183,7 @@ while (( "$ret" )) || [ ! "$CC" ]; do
 	hash "$CC"
 	ret=$?
 done
-checkCompiler "$CC"
+check_compiler "$CC"
 export CC="$CC"
 var_add CC
 if $addAsan;then
@@ -203,7 +203,7 @@ if [ ! "$RTE_SDK" ]; then
 	echo ">>> RTE_SDK not set: exit"
 	echo "Set RTE_SDK :"
 	echo "	cd {DPDK root directory}"
-	echo "	export RTE_SDK=$(pwd)"
+	echo "	export RTE_SDK=\$(pwd)"
 	exit;
 fi
 var_add RTE_SDK_HEADERS "-I$RTE_SDK/build/include/"
