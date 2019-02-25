@@ -39,7 +39,9 @@ PG_OBJECTS = $(PG_SOURCES:.c=.o)
 PG_HEADERS = \
 	-I$(srcdir)/include/packetgraph/\
 	-I$(srcdir)/src/npf/npf/src/libnpf/\
-	-I$(srcdir)/src/npf/proplib/include/\
+	-I$(srcdir)/src/npf/libqsbr/\
+	-I$(srcdir)/src/npf/nvlist/src/\
+	-I$(srcdir)/src/npf/thmap/src\
 	-I$(srcdir)/src/npf/npf/src/kern/stand/\
 	-I$(srcdir)/include\
 	-I$(srcdir)/src\

@@ -1,11 +1,5 @@
 include npfvar.mk
 
-prop : $(prop_OBJECTS)
-	ar rcv libprop.a $(prop_OBJECTS)
-
-$(prop_OBJECTS) : %.o : %.c
-	$(CC) -c $(prop_CFLAGS) $(prop_HEADERS) $< -o $@
-
 lpm : $(lpm_OBJECTS)
 	ar rcv liblpm.a $(lpm_OBJECTS)
 
@@ -17,6 +11,18 @@ cdb : $(cdb_OBJECTS)
 
 $(cdb_OBJECTS) : %.o : %.c
 	$(CC) -c $(cdb_CFLAGS) $(cdb_HEADERS) $< -o $@
+
+nvlist : $(nvlist_OBJECTS)
+	ar rcv libnvlist.a $(nvlist_OBJECTS)
+
+$(nvlist_OBJECTS) : %.o : %.c
+	$(CC) -c $(nvlist_CFLAGS) $(nvlist_HEADERS) $< -o $@
+
+thmap : $(thmap_OBJECTS)
+	ar rcv libthmap.a $(thmap_OBJECTS)
+
+$(thmap_OBJECTS) : %.o : %.c
+	$(CC) -c $(thmap_CFLAGS) $(thmap_HEADERS) $< -o $@
 
 qsbr : $(qsbr_OBJECTS)
 	ar rcv libqsbr.a $(qsbr_OBJECTS)
@@ -49,7 +55,7 @@ $(npfkern_OBJECTS) : %.o : %.c
 	$(CC) -c $(npfkern_CFLAGS) $(npfkern_HEADERS) $< -o $@
 
 fclean_npf: clean_npf
-	rm -fv libprop.a libcdb.a liblpm.a libqsbr.a libsljit.a libbpfjit.a libnpf.a libnpfkern.a
+	rm -fv libcdb.a libnvlist.a libthmap.a liblpm.a libqsbr.a libsljit.a libbpfjit.a libnpf.a libnpfkern.a
 
 clean_npf:
-	rm -fv $(prop_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) 
+	rm -fv $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) 

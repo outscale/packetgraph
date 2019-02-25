@@ -7,9 +7,9 @@ include tests.mk
 
 .PHONY: doc style check clean fclean help
 
-all: prop lpm cdb qsbr sljit bpfjit npf npfkern $(PG_OBJECTS)
-	ar rcv $(PG_NAME).a $(PG_OBJECTS) $(prop_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
-	gcc -shared -Wl,-soname,$(PG_NAME).so.17 -o $(PG_NAME).so.17.5.0 $(PG_OBJECTS) $(prop_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
+all: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_OBJECTS)
+	ar rcv $(PG_NAME).a $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
+	gcc -shared -Wl,-soname,$(PG_NAME).so.17 -o $(PG_NAME).so.17.5.0 $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
 	echo "PacketGraph compiled"
 
 $(PG_OBJECTS) : src/%.o : src/%.c
@@ -30,9 +30,9 @@ style:
 check:
 	$(srcdir)/run_tests.sh
 
-dev: prop lpm cdb qsbr sljit bpfjit npf npfkern $(PG_dev_OBJECTS)
-	ar rcv $(PG_dev_NAME).a $(PG_dev_OBJECTS) $(prop_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
-	gcc -shared -Wl,-soname,$(PG_dev_NAME).so.17 -o $(PG_dev_NAME).so.17.5.0 $(PG_dev_OBJECTS) $(prop_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
+dev: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_dev_OBJECTS)
+	ar rcv $(PG_dev_NAME).a $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
+	gcc -shared -Wl,-soname,$(PG_dev_NAME).so.17 -o $(PG_dev_NAME).so.17.5.0 $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
 	echo "PacketGraph-dev compiled"
 
 $(PG_dev_OBJECTS): dev/%.o : src/%.c

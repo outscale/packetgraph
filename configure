@@ -112,8 +112,10 @@ function check_option_single {
 source configure-helper.sh
 
 ./dpdk_symbols.sh
+rm -f "$(pwd)"/src/npf/libqsbr/qsbr/ebr.h
 mkdir -p "$(pwd)"/src/npf/libqsbr/qsbr
-ln --symbolic -t ./src/npf/libqsbr/qsbr/ "$(pwd)"/src/npf/libqsbr/src/qsbr.h
+ln --symbolic -t ./src/npf/libqsbr/qsbr/ "$(pwd)"/src/npf/libqsbr/src/ebr.h
+rm -f "$(pwd)"/src/npf/npf/src/kern/stand/net/npfkern.h
 mkdir -p "$(pwd)"/src/npf/npf/src/kern/stand/net
 ln --symbolic -t ./src/npf/npf/src/kern/stand/net/ "$(pwd)"/src/npf/npf/src/kern/npfkern.h
 
