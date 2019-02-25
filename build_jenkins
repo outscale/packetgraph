@@ -1,21 +1,20 @@
 #!/bin/bash
+set -e
 
 #Butterfly root directory
 cd "$(dirname "$0")"
 
-make clean | true
-
-rm -fr src/npf/npf src/npf/libqsbr src/npf/nvlist src/npf/thmap | true
+make clean || true
 export RTE_SDK=/home/jenkins/dpdk
-git submodule sync
-git submodule update --init
-./autogen.sh
-./configure_clang --with-examples --with-benchmarks
-#For new configuration
-#./configure CC=clang --with-examples --with-benchmarks
-./run_tests.sh
-pkill -15 -f qemu | true
-pkill -15 -f vhost | true
+git submodule update --init || exit 1
+./autogen.sh  && ./configure_clang --with-examples --with-benchmarks && ./run_tests.sh
 
-echo "Build and tests succeded"
+if [ "$?" -ne 0 ]; then
+    echo "Build result is FAILURE"
+    exit 1
+fi
+sudo pkill -15 -f qemu || true
+sudo pkill -15 -f vhost || true
+
+echo "Build result is OK"
 exit 0
