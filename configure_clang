@@ -1,7 +1,0 @@
-#!/bin/bash
-export CC="clang"
-export AR="llvm-ar"
-export NM="llvm-nm"
-export RANLIB="llvm-ranlib"
-root=$(cd "$(dirname $0)" && pwd)
-$root/configure ${@:1}
