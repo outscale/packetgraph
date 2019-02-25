@@ -10,9 +10,9 @@ export RTE_SDK=/home/jenkins/dpdk
 git submodule sync
 git submodule update --init
 ./autogen.sh
-./configure_clang --with-examples --with-benchmarks
+#./configure_clang --with-examples --with-benchmarks
 #For new configuration
-#./configure CC=clang --with-examples --with-benchmarks
+./configure CC=clang --with-examples --with-benchmarks
 ./run_tests.sh
 pkill -15 -f qemu | true
 pkill -15 -f vhost | true
