@@ -1,6 +1,6 @@
-BENCHMARK_INCLUDED=true
+BENCHMARK=true
 
-.PHONY: $(bench_antispoof_OBJECTS) $(bench_core_OBJECTS) $(bench_diode_OBJECTS) $(bench_rxtx_OBJECTS) $(bench_pmtud_OBJECTS) $(bench_ip-fragment_OBJECTS) $(bench_firewall_OBJECTS) $(bench_nic_OBJECTS) $(bench_print_OBJECTS) $(bench_queue_OBJECTS) $(bench_switch_OBJECTS) $(bench_vtep_OBJECTS) $(bench_tap_OBJECTS) $(bench_thread_OBJECTS) $(bench_integration_OBJECTS) $(bench_vhost_OBJECTS)
+.PHONY: benchclean benchfclean
 
 ################################################################################
 ##                                    Benchmark                               ##

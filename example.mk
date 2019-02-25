@@ -1,6 +1,6 @@
-EXAMPLE_INCLUDED=true
+EXAMPLE=true
 
-.PHONY: 
+.PHONY: exampleclean examplefclean
 
 ################################################################################
 ##                                    Examples                                ##

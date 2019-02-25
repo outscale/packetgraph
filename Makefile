@@ -1,14 +1,3 @@
-#if PG_ASAN
-#PG_ASAN_CFLAGS= -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment
-#
-#	ifeq ($(CC),gcc)
-#	PG_ASAN_CFLAGS+= --param asan-globals=0
-#	endif
-#endif
-
-# No wildcard
-# https://www.gnu.org/software/automake/manual/html_node/Wildcards.html
-
 .DEFAULT_GOAL := all
 
 include config.mk
@@ -16,7 +5,7 @@ include var.mk
 include npf.mk
 include tests.mk
 
-.PHONY: doc
+.PHONY: doc style check clean fclean help
 
 all: prop lpm cdb qsbr sljit bpfjit npf npfkern $(PG_OBJECTS)
 	ar rcv $(PG_NAME).a $(PG_OBJECTS) $(prop_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
@@ -66,23 +55,19 @@ fclean: clean fclean_npf testclean
 	rm -fv $(PG_dev_NAME).a
 	rm -fv $(PG_NAME).so.17.5.0
 	rm -fv $(PG_dev_NAME).so.17.5.0
-ifdef BENCHMARK_INCLUDED
+ifdef BENCHMARK
 	$(MAKE) benchfclean
 endif
-ifdef EXAMPLE_INCLUDED
+ifdef EXAMPLE
 	$(MAKE) examplefclean
 endif
-
-re: clean all
 
 help:
 	@echo "make               : build packetgraph"
 	@echo "make doc           : generate public documentation using doxygen"
 	@echo "make style         : run style tests"
 	@echo "make check         : run tests"
-#	@echo "make install       : install packetgraph library"
-#	@echo "make uninstall     : uninstall packetgraph library"
-ifdef BENCHMARK_INCLUDED
+ifdef BENCHMARK
 	@echo "make bench         : run benchmarks"
 	@echo "make benchmark.csv : output results to benchmark.csv"
 endif
