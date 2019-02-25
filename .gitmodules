@@ -1,12 +1,12 @@
 [submodule "src/npf/npf"]
 	path = src/npf/npf
 	url = https://github.com/outscale/npf.git
-[submodule "src/npf/libqsbr"]
-	path = src/npf/libqsbr
-	url = https://github.com/outscale/libqsbr.git
 [submodule "src/npf/nvlist"]
 	path = src/npf/nvlist
 	url = https://github.com/rmind/nvlist.git
 [submodule "src/npf/thmap"]
 	path = src/npf/thmap
 	url = https://github.com/rmind/thmap.git
+[submodule "src/npf/libqsbr"]
+	path = src/npf/libqsbr
+	url = https://github.com/rmind/libqsbr.git

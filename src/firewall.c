@@ -321,6 +321,7 @@ static void firewall_destroy(struct pg_brick *brick,
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	pg_firewall_rule_flush(brick);
 	npf_dpdk_ifdetach(state->npf, state->ifp);
+	npf_thread_unregister(state->npf);
 	npf_destroy(state->npf);
 	--nb_firewall;
 	if (!nb_firewall)
