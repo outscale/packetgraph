@@ -3,8 +3,8 @@
 set -x
 set -e
 
-shellcheck -s bash configure
-shellcheck -s bash run_tests.sh
+#shellcheck -s bash configure
+#shellcheck -s bash run_tests.sh
 ./configure -p --asan --with-benchmarks --with-examples
 make fclean
 make style

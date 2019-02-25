@@ -95,10 +95,10 @@ tests_firewall_SOURCES = \
 	$(tests_firewall_DIR)/test-tcp.c
 tests_firewall_OBJECTS = $(tests_firewall_SOURCES:.c=.o)
 
-tests_CFLAGS = $(PG_dev_CFLAGS) $(PG_dev_HEADERS)
-tests_firewall_CFLAGS = $(PG_dev_CFLAGS) $(PG_dev_HEADERS) -Wno-address-of-packed-member
-tests_LIBS = -lpacketgraph-dev $(PG_dev_LIBADD) -L$(srcdir)/ -ldl -lm -lnuma -lpthread -lpcap -lz
-EXTRA_tests_DEPENDENCIES = libpacketgraph-dev.a
+tests_CFLAGS = $(PG_CFLAGS) $(PG_HEADERS)
+tests_firewall_CFLAGS = $(PG_CFLAGS) $(PG_HEADERS) -Wno-address-of-packed-member
+tests_LIBS = -lpacketgraph $(PG_LIBADD) -L$(srcdir)/ -ldl -lm -lnuma -lpthread -lpcap -lz
+EXTRA_tests_DEPENDENCIES = libpacketgraph.a
 
 TESTS = \
 	tests/antispoof/test.sh\
@@ -122,10 +122,10 @@ TESTS = \
 ##                           Tests compilation rules                          ##
 ################################################################################
 
-test: dev antispoof core diode rxtx pmtud ip-fragment firewall nic print queue switch vtep tap thread integration vhost
+test: all antispoof core diode rxtx pmtud ip-fragment firewall nic print queue switch vtep tap thread integration vhost
 	@echo "tests ended"
 
-compile: dev tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-ip-fragment tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall
+compile: all tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-ip-fragment tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall
 	@echo "Compilation done"
 
 tests-antispoof: $(tests_antispoof_OBJECTS)

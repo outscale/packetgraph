@@ -37,10 +37,8 @@ function print_modifiers {
 		echo -e "Syntax    : ./configure [options] CC=gcc EXTRA_CFLAGS=\"-g -O2 -j4 ...\""
 		echo -e "  CC\t\tR\tCompiler"
 		echo -e "  EXTRA_CFLAGS\tA\tCompiler option, adds to PG_CFLAGS normal compilation"
-		echo -e "  EXTRA_dev_CFLAGS\tA\tCompiler option, adds to PG_dev_CFLAGS dev options compilation"
 		echo -e "  RTE_SDK\tR\tRoot directory of DPDK"
 		echo -e "  PG_NAME\tR\tName of the compiled library ({NAME}.a / {NAME}.so.x.y.z)"
-		echo -e "  PG_dev_NAME\tR\tName of the compiled library ({NAME}-dev.a / {NAME}-dev.so.x.y.z)"
 }
 
 function print_var {
@@ -49,7 +47,6 @@ function print_var {
 		echo "OS=$OS"
 		echo "CC=$CC"
 		echo "PG_NAME=$PG_NAME"
-		echo "PG_dev_NAME=$PG_dev_NAME"
 		echo "GLIB_HEADERS=$GLIB_HEADERS"
 		echo "GLIB_LIBS=$GLIB_LIBS"
 		echo "RTE_SDK=$RTE_SDK"
@@ -119,7 +116,7 @@ rm -f "$(pwd)"/src/npf/npf/src/kern/stand/net/npfkern.h
 mkdir -p "$(pwd)"/src/npf/npf/src/kern/stand/net
 ln --symbolic -t ./src/npf/npf/src/kern/stand/net/ "$(pwd)"/src/npf/npf/src/kern/npfkern.h
 
-modifiers=("CC" "EXTRA_CFLAGS" "EXTRA_dev_CFLAGS" "RTE_SDK" "PG_NAME" "PG_dev_NAME")
+modifiers=("CC" "EXTRA_CFLAGS" "RTE_SDK" "PG_NAME")
 addBenchmark=false
 addExample=false
 addAsan=false
@@ -196,7 +193,6 @@ if $addAsan;then
 	fi
 fi
 var_add PG_NAME "libpacketgraph"
-var_add PG_dev_NAME "$PG_NAME"-dev
 var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
 var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
 

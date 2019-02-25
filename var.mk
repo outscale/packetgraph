@@ -48,25 +48,13 @@ PG_HEADERS = \
 	-I$(srcdir)\
 	$(RTE_SDK_HEADERS)\
 	$(GLIB_HEADERS)
-PG_LIBADD = \
-	$(RTE_SDK_LIBS)\
-	$(GLIB_LIBS)
+PG_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 #FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
-PG_LDFLAGS = \
-	-version-info 17:5:0\
-	-export-symbols-regex 'pg_[^_]'\
-	-no-undefined
-PG_CFLAGS = $(EXTRA_CFLAGS) -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -Wno-implicite-fallthrough -Wno-deprecated-declarations -Wno-unknown-warning-option $(PG_ASAN_CFLAGS)
+PG_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols
+PG_CFLAGS = $(EXTRA_CFLAGS) -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -Wno-implicite-fallthrough -Wno-deprecated-declarations -Wno-unknown-warning-option $(PG_ASAN_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
 
 dist_doc_DATA = README.md
 
 check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-ip-fragment tests-thread
-
-PG_dev_SOURCES = $(PG_SOURCES)
-PG_dev_OBJECTS = $(shell echo $(PG_dev_SOURCES:.c=.o) | sed -e "s/src/dev/g")
-PG_dev_HEADERS = $(PG_HEADERS)
-PG_dev_LIBADD = $(PG_LIBADD)
-PG_dev_LDFLAGS = -no-undefined --export-all-symbols
-PG_dev_CFLAGS = $(PG_CFLAGS) $(EXTRA_dev_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
 
 ACLOCAL_AMFLAGS = -I m4
