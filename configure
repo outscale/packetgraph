@@ -10,7 +10,7 @@ function check_compiler {
 	retexec=$?
 	rm ./cccheck.out 2> /dev/null
 	if [ $retcomp -ne 0 ] || [ "$retstr" != "hello world" ] || [ $retexec -ne 0 ]; then
-		echo ">>> Compiler failed"
+		(>&2 echo "ERROR: $CC cannot compile hello world")
 		exit
 	fi
 }
@@ -146,11 +146,11 @@ for var in "$@"; do
 				newExport+="$var\n"
 				var_add "$(sed 's,=.*,,' <<< $var)"
 			else
-				echo ">>> $var failed"
+				(>&2 echo "ERROR: $var failed")
 				print_modifiers
 			fi
 		else
-			echo ">>> $var failed"
+			(>&2 echo "ERROR: $var failed")
 			print_modifiers
 		fi
 	fi
@@ -176,7 +176,7 @@ hash "$CC"
 ret=$?
 while (( "$ret" )) || [ ! "$CC" ]; do
 	echo "[ Compiler = $CC ]"
-	echo ">>> Compiler not found"
+	(>&2 echo "ERROR: Compiler not found")
 	echo -n "Compiler name : "
 	read CC
 	CC=$CC
@@ -200,7 +200,7 @@ var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
 
 if [ ! "$RTE_SDK" ]; then
 	echo
-	echo ">>> RTE_SDK not set: exit"
+	(>&2 echo "ERROR: RTE_SDK not set")
 	echo "Set RTE_SDK :"
 	echo "	cd {DPDK root directory}"
 	echo "	export RTE_SDK=\$(pwd)"
