@@ -730,11 +730,13 @@ static void qemu_duo_destroy(struct qemu_duo_test_params *p)
 	int exit_status;
 	void *ret;
 
-	p->stop = 1;
-	pthread_join(p->graph_thread, &ret);
 	for (int i = 0; i < 2; i++) {
 		kill(p->qemu_pid[i], SIGQUIT);
 		waitpid(p->qemu_pid[i], &exit_status, 0);
+	}
+	p->stop = 1;
+	pthread_join(p->graph_thread, &ret);
+	for (int i = 0; i < 2; i++) {
 		g_spawn_close_pid(p->qemu_pid[i]);
 		g_free(p->ip[i]);
 		pg_brick_destroy(p->vhost[i]);
