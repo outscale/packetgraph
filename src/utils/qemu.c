@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "utils/qemu.h"
+#include "utils/common.h"
 
 int pg_util_cmdloop(const char *cmd, int timeout_s)
 {

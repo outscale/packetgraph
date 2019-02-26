@@ -27,6 +27,7 @@
 #include <packetgraph/errors.h>
 #include <packetgraph/brick.h>
 #include "utils/config.h"
+#include "utils/common.h"
 #include "utils/ccan/build_assert/build_assert.h"
 
 /**
@@ -47,9 +48,6 @@
 #define pg_brick_get_state(ptr, type) ({		\
 	BUILD_ASSERT(offsetof(type, brick) == 0);	\
 	(type *) ptr; })
-
-#define pg_cleanup(func)				\
-	__attribute__((__cleanup__(func)))
 
 #ifdef PG_BRICK_NO_ATOMIC_COUNT
 #define PG_PKTS_COUNT_GET(X) (X)
