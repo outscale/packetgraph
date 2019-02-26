@@ -45,24 +45,20 @@ int pg_util_ssh(const char *host,
 		const char *key_path,
 		const char *cmd, ...)
 {
-	char *ssh_cmd;
-	int status;
+	pg_autofree char *c = NULL;
+	pg_autofree char *ssh_cmd = NULL;
 	va_list args;
-	char *c;
+	int status;
 
 	va_start(args, cmd);
 	c = g_strdup_vprintf(cmd, args);
+	ssh_cmd = g_strdup_printf(
+		PG_STRCAT("ssh %s -l root -q -i %s -p %u",
+			  " -oConnectTimeout=1",
+			  " -oStrictHostKeyChecking=no %s"),
+		host, key_path, port, c);
 	va_end(args);
-
-	ssh_cmd = g_strdup_printf("%s%s%s%s%s%s%u%s%s%s",
-				  "ssh ", host, " -l root -q",
-				  " -i ", key_path,
-				  " -p ", port,
-				  " -oConnectTimeout=1",
-				  " -oStrictHostKeyChecking=no ", c);
 	g_spawn_command_line_sync(ssh_cmd, NULL, NULL, &status, NULL);
-	g_free(ssh_cmd);
-	g_free(c);
 	return g_spawn_check_exit_status(status, NULL) ? 0 : -1;
 }
 
@@ -78,10 +74,12 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	int child_pid = 0;
 	static uint16_t vm_id;
 	char **argv = NULL;
-	char *argv_qemu = NULL;
-	char *argv_sock_0 = NULL;
-	char *argv_sock_1 = NULL;
-	char *ssh_cmd = NULL;
+	pg_autofree char *argv_qemu = NULL;
+	const char *argv_sock_0 = "";
+	const char *argv_sock_1 = "";
+	pg_autofree char *argv_sock_0_t = NULL;
+	pg_autofree char *argv_sock_1_t = NULL;
+	pg_autofree char *ssh_cmd = NULL;
 	GError *error = NULL;
 
 	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
@@ -92,31 +90,38 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	g_assert(g_file_test(hugepages_path, G_FILE_TEST_EXISTS));
 
 	if (socket_path_0) {
-		argv_sock_0 = g_strdup_printf("%s%s%s%s%s%s",
-		" -chardev socket,id=char0,path=", socket_path_0,
-		" -netdev type=vhost-user,id=mynet0,chardev=char0,vhostforce",
-		" -device virtio-net-pci,mac=", mac_0, ",netdev=mynet0");
+		argv_sock_0_t = g_strdup_printf(
+			PG_STRCAT(" -chardev socket,id=char0,path=%s",
+				  " -netdev type=vhost-user,id=mynet0,",
+				  "chardev=char0,vhostforce",
+				  " -device virtio-net-pci,mac=%s",
+				  ",netdev=mynet0"), socket_path_0, mac_0);
+		argv_sock_0 = argv_sock_0_t;
 	}
 
 	if (socket_path_1) {
-		argv_sock_1 = g_strdup_printf("%s%s%s%s%s%s",
-		" -chardev socket,id=char1,path=", socket_path_1,
-		" -netdev type=vhost-user,id=mynet1,chardev=char1,vhostforce",
-		" -device virtio-net-pci,mac=", mac_1, ",netdev=mynet1");
+		argv_sock_1_t = g_strdup_printf(
+			PG_STRCAT(" -chardev socket,id=char1,path=%s",
+				  " -netdev type=vhost-user,id=mynet1,",
+				  "chardev=char1,vhostforce",
+				  " -device virtio-net-pci,mac=%s",
+				  ",netdev=mynet1"), socket_path_1, mac_1);
+		argv_sock_1 = argv_sock_1_t;
 	}
 
 	argv_qemu = g_strdup_printf(
-		"%s%s%u%s%s%s%s%s%s%s%s%u%s%s%s%s",
-		"qemu-system-x86_64 -m 1G -enable-kvm",
-		" -vnc :", vm_id,
-		" -display none -snapshot -object",
-		" memory-backend-file,id=mem,size=1G,mem-path=",
-		hugepages_path, ",share=on",
-		" -numa node,memdev=mem -mem-prealloc",
-		" -drive file=", vm_image_path,
-		" -netdev user,id=net0,hostfwd=tcp::", vm_id + 65000, "-:22",
-		" -device e1000,netdev=net0",
-		argv_sock_0, argv_sock_1 ? argv_sock_1 : "");
+		PG_STRCAT(
+			"qemu-system-x86_64 -m 1G -enable-kvm",
+			" -vnc :%u -display none -snapshot -object",
+			" memory-backend-file,id=mem,size=1G,",
+			"mem-path=%s,share=on -numa node,memdev=mem",
+			" -mem-prealloc -drive file=%s",
+			" -netdev user,id=net0,hostfwd=tcp::%u-:22",
+			" -device e1000,netdev=net0%s%s",
+			),
+		vm_id, hugepages_path, vm_image_path,
+		vm_id + 65000, argv_sock_0, argv_sock_1);
+
 
 	argv = g_strsplit(argv_qemu, " ", 0);
 
@@ -127,20 +132,15 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 			       NULL, &child_pid, &error));
 	g_assert(!error);
 
-	ssh_cmd = g_strdup_printf("%s%s%s%u%s%s%s",
-				  "ssh root@localhost -q -i ", vm_key_path,
-				  " -p ", vm_id + 65000,
-				  " -oConnectTimeout=1 ",
-				  "-oStrictHostKeyChecking=no ",
-				  "ls");
+	ssh_cmd = g_strdup_printf(
+		PG_STRCAT("ssh root@localhost -q -i %s",
+			  " -p %d -oConnectTimeout=1 ",
+			  "-oStrictHostKeyChecking=no ",
+			  "ls"), vm_key_path, vm_id + 65000);
 	if (pg_util_cmdloop(ssh_cmd, 10 * 60) < 0)
 		*errp = pg_error_new("qemu spawn failed");
 
 	vm_id++;
-	g_free(argv_qemu);
-	g_free(argv_sock_0);
-	g_free(argv_sock_1);
-	g_free(ssh_cmd);
 	g_strfreev(argv);
 	return child_pid;
 }
