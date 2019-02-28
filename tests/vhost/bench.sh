@@ -1,5 +1,3 @@
-#!/bin/sh
-
 #!/bin/bash
 
 # Copyright 2015 Outscale SAS
@@ -25,15 +23,15 @@ function download {
     md5=$2
     path=$3
 
-    if [ ! -f $path ]; then
+    if [ ! -f "$path" ]; then
         echo "$path, let's download it..."
-        wget $url -O $path
+        wget "$url" -O "$path"
     fi
 
-    if [ ! "$(md5sum $path | cut -f 1 -d ' ')" == "$md5" ]; then
+    if [ ! "$(md5sum "$path" | cut -f 1 -d ' ')" == "$md5" ]; then
         echo "Bad md5 for $path, let's download it ..."
-        wget $url -O $path
-        if [ ! "$(md5sum $path | cut -f 1 -d ' ')" == "$md5" ]; then
+        wget "$url" -O "$path"
+        if [ ! "$(md5sum "$path" | cut -f 1 -d ' ')" == "$md5" ]; then
             echo "Still bad md5 for $path ... abort."
             exit 1
         fi
@@ -65,13 +63,13 @@ chmod og-r vm.rsa
 sudo rm /tmp/qemu-vhost-* | true
 
 # Check hugepages
-NB_HUGE=`grep HugePages_Free /proc/meminfo | awk -F':' '{ print $2 }'`
+NB_HUGE=$(grep HugePages_Free /proc/meminfo | awk -F':' '{ print $2 }')
 
 echo -----------
-echo nb free huge page $NB_HUGE
+echo "nb free huge page $NB_HUGE"
 echo -----------
 
-if [  $NB_HUGE -lt 1 ]; then
+if [  "$NB_HUGE" -lt 1 ]; then
    tput setaf 1
    echo not enouth free hugepage, should have more than 1
    tput setaf 7
@@ -79,4 +77,4 @@ if [  $NB_HUGE -lt 1 ]; then
 fi
 
 # Launch test
-sudo ./bench-vhost -c1 -n1 --socket-mem 64 -- -vm vm.qcow -vm-key vm.rsa -hugepages /mnt/huge $@
+sudo ./bench-vhost -c1 -n1 --socket-mem 64 -- -vm vm.qcow -vm-key vm.rsa -hugepages /mnt/huge "$@"
