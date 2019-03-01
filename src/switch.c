@@ -67,7 +67,7 @@ static inline void flood(struct pg_switch_state *state,
 		return;
 
 	for (i = 0; i < PG_MAX_SIDE; i++) {
-		struct pg_switch_side *switch_side = &state->sides[i];
+		struct pg_switch_side *restrict switch_side = &state->sides[i];
 
 		for (j = 0; j < state->brick.sides[i].nb; j++)
 			switch_side->masks[j] |= mask;
@@ -136,7 +136,7 @@ static int forward_bursts(struct pg_switch_state *state,
 	return 0;
 }
 
-static inline bool is_filtered(struct ether_addr *eth_addr)
+static inline bool is_filtered(struct ether_addr *restrict eth_addr)
 {
 	return eth_addr->addr_bytes[0] == 0x01 &&
 		eth_addr->addr_bytes[1] == 0x80 &&
