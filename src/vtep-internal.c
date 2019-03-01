@@ -133,7 +133,8 @@ static inline int are_mac_tables_dead(struct vtep_port *port)
 	return port->dead_tables & (IS_MAC_TO_DST_DEAD | IS_KNOWN_MAC_DEAD);
 }
 
-static inline void ip6_build(struct vtep_state *state, struct ipv6_hdr *ip_hdr,
+static inline void ip6_build(struct vtep_state *state,
+			     struct ipv6_hdr *restrict ip_hdr,
 			     union pg_ipv6_addr src_ip,
 			     union pg_ipv6_addr dst_ip,
 			     uint16_t pkt_len)
@@ -148,7 +149,8 @@ static inline void ip6_build(struct vtep_state *state, struct ipv6_hdr *ip_hdr,
 	pg_ip_copy(dst_ip, ip_hdr->dst_addr);
 }
 
-static inline void ip4_build(struct vtep_state *state, struct ipv4_hdr *ip_hdr,
+static inline void ip4_build(struct vtep_state *state,
+			     struct ipv4_hdr *restrict ip_hdr,
 			     uint32_t src_ip, uint32_t dst_ip,
 			     uint16_t datagram_len)
 {
@@ -179,7 +181,7 @@ static inline void ip4_build(struct vtep_state *state, struct ipv4_hdr *ip_hdr,
  * @param	header pointer to the VTEP header
  * @param	vni 24 bit Virtual Network Identifier
  */
-static inline void vxlan_build(struct vxlan_hdr *header, uint32_t vni)
+static inline void vxlan_build(struct vxlan_hdr *restrict header, uint32_t vni)
 {
 	/* mark the VNI as valid */
 	header->vx_flags = PG_VTEP_BE_I_FLAG;
@@ -215,8 +217,8 @@ static inline uint16_t src_port_compute(uint16_t seed)
  * @param	datagram_len length of the UDP datagram
  * @param	seed seed for udp src port building
  */
-static inline void udp_build_cksum(struct ip_hdr *ip,
-				   struct udp_hdr *udp_hdr,
+static inline void udp_build_cksum(struct ip_hdr *restrict ip,
+				   struct udp_hdr *restrict udp_hdr,
 				   uint16_t udp_dst_port,
 				   uint16_t datagram_len,
 				   uint16_t seed)
@@ -231,7 +233,7 @@ static inline void udp_build_cksum(struct ip_hdr *ip,
 #endif
 }
 
-static inline void udp_build(struct udp_hdr *udp_hdr,
+static inline void udp_build(struct udp_hdr *restrict udp_hdr,
 			     uint16_t udp_dst_port,
 			     uint16_t datagram_len,
 			     uint16_t seed)
@@ -250,9 +252,9 @@ static inline void udp_build(struct udp_hdr *udp_hdr,
  * @param	src_mac source MAC address
  * @param	dst_mac destination MAC address
  */
-static inline void ethernet_build(struct ether_hdr *eth_hdr,
-				  struct ether_addr *src_mac,
-				  struct ether_addr *dst_mac)
+static inline void ethernet_build(struct ether_hdr *restrict eth_hdr,
+				  struct ether_addr *restrict src_mac,
+				  struct ether_addr *restrict dst_mac)
 {
 	/* copy mac addresses */
 	ether_addr_copy(src_mac, &eth_hdr->s_addr);
