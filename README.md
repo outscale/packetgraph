@@ -128,7 +128,7 @@ $ make
 $ make install
 ```
 
-Note: to build with clang, you can use `./configure_clang` wrapper instead of `./configure`.
+Note: to build with clang, you can use `./configure CC=clang`
 
 Note 2: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.4 or superior).
 
