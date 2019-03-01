@@ -122,8 +122,14 @@ void test_benchmark_vhost(char *vm_image_path,
 	}
 
 	pg_bench_print(&stats);
-	pg_util_stop_qemu(qemu_pid, SIGKILL);
-
+	pg_util_stop_qemu(qemu_pid, SIGQUIT);
+	/* for PG_VHOST_FASTER_YET_BROKEN_POLL */
+	pg_vhost_request_remove(vhost_enter);
+	pg_vhost_request_remove(vhost_exit);
+	for (int i = 0; i < 10; ++i) {
+		pg_brick_poll(vhost_enter, (uint16_t *)&ret, &error);
+		pg_brick_poll(vhost_exit,  (uint16_t *)&ret, &error);
+	}
 	pg_packets_free(bench.pkts, bench.pkts_mask);
 	pg_brick_destroy(vhost_enter);
 	pg_brick_destroy(vhost_exit);
