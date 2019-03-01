@@ -27,7 +27,6 @@ script:
  - cd $TRAVIS_BUILD_DIR
  - git config user.name "${GH_USER_NAME}"
  - git config user.email "${USER_MAIL}"
- - ./autogen.sh
  - export LD="llvm-link"
- - ./configure_clang --with-benchmarks --with-examples
+ - ./configure -p --with-benchmarks --with-examples CC=clang
  - ./run_tests.sh

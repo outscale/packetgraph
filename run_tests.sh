@@ -1,26 +1,13 @@
 #!/bin/bash
+
 set -x
 set -e
 
-make
+make fclean
 make style
-
-make tests-antispoof
-make tests-core
-make tests-diode
-make tests-firewall
-make tests-integration
-make tests-nic
-make tests-print
-make tests-queue
-make tests-switch
-make tests-vhost
-make tests-vtep
-make tests-rxtx
-make tests-pmtud
-make tests-tap
-make tests-ip-fragment
-make tests-thread
+make
+make tests_compile
+make bench_compile
 
 if [ "$(whoami)" == "travis" ]; then
     if [ ! -e "/usr/bin/doxygen" ]; then
