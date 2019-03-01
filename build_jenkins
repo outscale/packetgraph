@@ -6,15 +6,12 @@ cd "$(dirname "$0")"
 
 make clean || true
 export RTE_SDK=/home/jenkins/dpdk
-git submodule update --init || exit 1
-./autogen.sh  && ./configure_clang --with-examples --with-benchmarks && ./run_tests.sh
-
-if [ "$?" -ne 0 ]; then
-    echo "Build result is FAILURE"
-    exit 1
-fi
-sudo pkill -15 -f qemu || true
-sudo pkill -15 -f vhost || true
+git submodule sync
+git submodule update --init
+./configure CC=clang --with-examples --with-benchmarks
+./run_tests.sh
+pkill -15 -f qemu | true
+pkill -15 -f vhost | true
 
 echo "Build result is OK"
 exit 0
