@@ -21,6 +21,7 @@ libtool
 .libs
 .dirstamp
 *.o
+*.a
 *.lo
 *.la
 bench-*
