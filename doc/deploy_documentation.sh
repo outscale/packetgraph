@@ -1,6 +1,6 @@
 #! /bin/bash
 
-dir=$(cd "$(dirname "$0")" && pwd)
+dir=$(cd "$(dirname $0)" && pwd)
 
 if [ "${TRAVIS_PULL_REQUEST}" != "false" -o "${TRAVIS_BRANCH}" != "master" ]; then
     exit 0;
@@ -17,7 +17,7 @@ echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="1; URL=http
 echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="1; URL=https://outscale.github.io/packetgraph/doc/master/"/></head><body></body></html>' > packetgraph/doc/index.html
 
 if [ -d "$dir/html" ] && [ -s "$dir/html/index.html" ]; then
-    cp -r "$dir"/html/* packetgraph/doc/master/
+    cp -r $dir/html/* packetgraph/doc/master/
     echo 'Uploading documentation to the master branch...'
     # Add everything in this directory (the Doxygen code documentation)
     git add -A .
