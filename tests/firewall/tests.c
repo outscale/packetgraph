@@ -415,7 +415,6 @@ static void firewall_filter_rules(enum pg_side dir)
 	filtered_pkts = test_filtre(gen, col, nb / 3, nb,
 				    dir, &filtered_pkts_mask);
 
-	printf("check that flushing side remove the rule\n");
 	/* check that flushing side remove the rule */
 	pg_firewall_rule_flush_side(fw, dir);
 	g_assert(!pg_firewall_reload(fw, &error));
