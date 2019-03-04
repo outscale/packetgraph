@@ -56,6 +56,7 @@ libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/npf_ctl.c\
 	src/npf/npf/src/kern/npf_handler.c\
 	src/npf/npf/src/kern/npf_mbuf.c\
+	src/npf/npf/src/kern/npf_params.c \
 	src/npf/npf/src/kern/npf_bpf.c\
 	src/npf/npf/src/kern/npf_ruleset.c\
 	src/npf/npf/src/kern/npf_rproc.c\
@@ -73,9 +74,10 @@ libnpfkern_la_SOURCES = \
 	src/npf/npf/src/kern/npf_worker.c\
 	src/npf/npf/src/kern/stand/bpf_filter.c\
 	src/npf/npf/src/kern/stand/murmurhash.c\
+	src/npf/npf/src/kern/stand/tls_pth.c\
 	src/npf/npf/src/kern/stand/misc.c
 libnpfkern_la_includes = -I$(srcdir)/src/npf/npf/src/kern/stand -I$(builddir)/src/npf/npf/src/kern/stand
-libnpfkern_la_CFLAGS = $(liblpm_la_includes) $(libcdb_la_includes) $(libqsbr_la_includes) $(libnpf_la_includes) $(libnpfkern_la_includes) $(libbpfjit_includes) $(libnvlist_la_includes) $(libthmap_la_includes) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
+libnpfkern_la_CFLAGS = $(liblpm_la_includes) $(libcdb_la_includes) $(libqsbr_la_includes) $(libnpf_la_includes) $(libnpfkern_la_includes) $(libbpfjit_includes) $(libnvlist_la_includes) $(libthmap_la_includes) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-stringop-truncation -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -fvisibility=hidden -Wno-unknown-warning-option -DNDEBUG -fPIC -D__RCSID\(x\)=
 # Trick to avoid symbol conflicts
 libnpfkern_la_CFLAGS += -Dnpf_ruleset_add=_npf_ruleset_add -Dnpf_ruleset_remove=_npf_ruleset_remove -Dnpf_ruleset_remkey=_npf_ruleset_remkey -Dnpf_ruleset_flush=_npf_ruleset_flush -Dnpf_rule_setcode=_npf_rule_setcode -Dnpf_rule_getid=_npf_rule_getid -Dnpf_ext_construct=_npf_ext_construct -Dnpf_rproc_create=_npf_rproc_create -Dnpf_table_create=_npf_table_create -Dnpf_table_destroy=_npf_table_destroy -Dnpf_table_insert=_npf_table_insert -Drb_tree_init=_rb_tree_init -Drb_tree_find_node=_rb_tree_find_node -Drb_tree_find_node_geq=_rb_tree_find_node_geq -Drb_tree_find_node_leq=_rb_tree_find_node_leq -Drb_tree_insert_node=_rb_tree_insert_node -Drb_tree_iterate=_rb_tree_iterate -Drb_tree_remove_node=_rb_tree_remove_node $(PG_ASAN_CFLAGS)
 libnpfkern_la_LIBADD = libqsbr.la liblpm.la libcdb.la libbpfjit.la libnvlist.la libthmap.la -ljemalloc -lpthread -lpcap
