@@ -21,6 +21,7 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
+#include <rte_version.h>
 
 #include <rte_cycles.h>
 #include <net/if.h>
@@ -36,6 +37,19 @@
 #define NIC_ARGS_MAX_SIZE 1024
 #define TCP_PROTOCOL_NUMBER 6
 #define UDP_PROTOCOL_NUMBER 17
+
+static inline int pg_rte_devargs_remove(struct rte_devargs *devargs)
+{
+
+#if (RTE_VERSION_NUM(18, 5, 0, 0) > RTE_VERSION)
+#error"DPDK is too old"
+#elif (RTE_VERSION_NUM(18, 11, 0, 0) > RTE_VERSION)
+	return rte_devargs_remove(devargs->bus->name, devargs->name);
+#else
+	return rte_devargs_remove(devargs);
+#endif
+	return -1;
+}
 
 struct pg_nic_config {
 	char ifname[NIC_ARGS_MAX_SIZE];
@@ -327,7 +341,7 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	/* Setup port id */
 	if (nic_config->ifname[0]) {
-		struct rte_devargs pg_cleanup(rte_devargs_remove) devargs;
+		struct rte_devargs pg_cleanup(pg_rte_devargs_remove) devargs;
 
 		/* parse devargs */
 		if (rte_devargs_parse(&devargs, nic_config->ifname)) {
