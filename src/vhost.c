@@ -140,10 +140,22 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 
 	virtio_net = state->vid;
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
-	bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
-					       VIRTIO_RXQ,
-					       state->out,
-					       pkts_count);
+	if (pkts_count > 32) {
+		bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
+						       VIRTIO_RXQ,
+						       state->out,
+						       32);
+		bursted_pkts += rte_vhost_enqueue_burst(virtio_net,
+							VIRTIO_RXQ,
+							state->out + 32,
+							pkts_count - 32);
+	} else {
+		bursted_pkts = rte_vhost_enqueue_burst(virtio_net,
+						       VIRTIO_RXQ,
+						       state->out,
+						       pkts_count);
+
+	}
 	if (check_atomic)
 		rte_atomic32_clear(&state->allow_queuing);
 
@@ -204,6 +216,11 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 
 	count = rte_vhost_dequeue_burst(virtio_net, VIRTIO_TXQ, mp, in,
 					MAX_BURST);
+	if (count == MAX_BURST) {
+		count += rte_vhost_dequeue_burst(virtio_net, VIRTIO_TXQ,
+						 mp, &in[MAX_BURST],
+						 MAX_BURST);
+	}
 	*pkts_cnt = count;
 
 #ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
