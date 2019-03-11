@@ -46,7 +46,9 @@ libpacketgraph_la_SOURCES = \
 	src/switch.c\
 	src/pmtud.c\
 	src/thread.c\
-	src/ip-fragment.c
+	src/ip-fragment.c\
+	src/iprange.c\
+	src/dhcp.c
 
 pkginclude_HEADERS = \
 	include/packetgraph/common.h\
@@ -72,7 +74,8 @@ pkginclude_HEADERS = \
 	include/packetgraph/queue.h\
 	include/packetgraph/pmtud.h\
 	include/packetgraph/ip-fragment.h\
-	include/packetgraph/errors.h
+	include/packetgraph/errors.h\
+	include/packetgraph/dhcp.h
 
 libpacketgraph_la_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 # FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
@@ -85,7 +88,7 @@ include npfmakefile.am
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-ip-fragment tests-thread
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-ip-fragment tests-thread tests-dhcp
 
 noinst_LTLIBRARIES += libpacketgraph-dev.la
 libpacketgraph_dev_la_SOURCES = $(libpacketgraph_la_SOURCES)
@@ -204,6 +207,12 @@ tests_thread_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
 tests_thread_LDFLAGS = libpacketgraph-dev.la
 EXTRA_tests_thread_DEPENDENCIES = libpacketgraph-dev.la
 
+tests_dhcp_SOURCES = \
+	tests/dhcp/tests.c
+tests_dhcp_CFLAGS = $(libpacketgraph_dev_la_CFLAGS)
+tests_dhcp_LDFLAGS = libpacketgraph-dev.la
+EXTRA_tests_thread_DEPENDENCIES = libpacketgraph-dev.la
+
 TESTS = \
 	tests/antispoof/test.sh\
 	tests/core/test.sh\
@@ -220,7 +229,8 @@ TESTS = \
 	tests/tap/test.sh\
 	tests/thread/test.sh\
 	tests/integration/test.sh\
-	tests/vhost/test.sh
+	tests/vhost/test.sh\
+	tests/dhcp/test.sh
 
 noinst_PROGRAMS = 
 
@@ -417,4 +427,4 @@ doc: doxygen.conf
 	$(srcdir)/doc/deploy_documentation.sh
 
 # libtoolize recommanded this
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I 

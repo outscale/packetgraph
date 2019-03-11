@@ -142,6 +142,7 @@ struct rte_mbuf **pg_packets_prepend_str(struct rte_mbuf **pkts,
 		if (!tmp)						\
 			return NULL;					\
 		rte_memcpy(tmp, &ip_hdr, sizeof(ip_hdr));		\
+		pkts[j]->packet_type += 16;				\
 		pkts[j]->l3_len = sizeof(struct ipv4_hdr);		\
 	}								\
 
@@ -214,6 +215,8 @@ struct rte_mbuf **pg_packets_append_ipv6(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(udp_hdr));	\
 		if (!tmp)						\
 			return NULL;					\
+		pkts[j]->l4_len = sizeof(struct udp_hdr);		\
+		pkts[j]->packet_type += 512;				\
 		memcpy(tmp, &udp_hdr, sizeof(udp_hdr));			\
 	}								\
 
@@ -286,6 +289,7 @@ struct rte_mbuf **pg_packets_prepend_vxlan(struct rte_mbuf **pkts,
 		if (!tmp)						\
 			return NULL;					\
 		rte_memcpy(tmp, &eth_hdr, sizeof(eth_hdr));		\
+		pkts[j]->packet_type += 1;				\
 		pkts[j]->l2_len = sizeof(struct ether_hdr);		\
 	}								\
 
