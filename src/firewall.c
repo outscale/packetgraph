@@ -31,7 +31,7 @@
 #define FIREWALL_SIDE_TO_NPF(side) \
 	((side) == PG_WEST_SIDE ? PFIL_OUT : PFIL_IN)
 
-uint32_t pg_npf_nworkers = 1;
+uint32_t pg_npf_nworkers;
 
 struct ifnet;
 
