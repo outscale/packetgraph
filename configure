@@ -28,6 +28,7 @@ function print_help {
 		echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
 		echo -e "  -e --with-examples\t\tCompile examples"
 		echo -e "  --asan\t\t\tCompile with address sanitizers"
+		echo -e "  --extra-cflags\t\tspecify compiler flags [-Wall -g -O2]"
 		echo -e "  --no-check-compiler\t\tDo not check compiler"
 }
 
@@ -65,6 +66,9 @@ function check_option {
 		echo remove verbose
 	elif [ "$1"  == "--print" ]; then
 		pv=print_var
+	elif [ "$1"  == "--extra-cflags" ]; then
+	    var_add "EXTRA_CFLAGS" "$2"
+	    return 2
 	elif [ "$1"  == "--modifiers" ]; then
 		print_modifiers
 		exit
@@ -126,33 +130,43 @@ echo "#####################################" > config.mk
 echo "### Configuration for packetgraph ###" >> config.mk
 echo "#####################################" >> config.mk
 
-for var in "$@"; do
-	if [[ ${var:0:2} == "--" ]]; then
-		check_option "$var"
-	elif [[ ${var:0:1} == "-" && ${var:1:2} != "-" ]]; then
-		check_option_single "$var"
-	else
-		validMod=false
-		for i in "${modifiers[@]}"; do
-			if [ "$(sed 's,=.*,,' <<< $var)"  == "$i" ]; then
-				validMod=true
-			fi
-		done
-		if $validMod; then
-			export "$var"
-			ret=$?
-			if (( ! ret ));then
-				newExport+="$var\n"
-				var_add "$(sed 's,=.*,,' <<< $var)"
-			else
-				(>&2 echo "ERROR: $var failed")
-				print_modifiers
-			fi
-		else
-			(>&2 echo "ERROR: $var failed")
-			print_modifiers
-		fi
+while true ; do
+    var=$1
+    shift_nb="1"
+    if [[ ${var:0:2} == "--" ]]; then
+	check_option "$var" "$2"
+	ret=$?
+	if [ "$ret" -gt "1" ]; then
+	    shift_nb=$ret
 	fi
+    elif [[ ${var:0:1} == "-" && ${var:1:2} != "-" ]]; then
+	check_option_single "$var"
+    else
+	validMod=false
+	for i in "${modifiers[@]}"; do
+	    if [ "$(sed 's,=.*,,' <<< $var)"  == "$i" ]; then
+		validMod=true
+	    fi
+	done
+	if $validMod; then
+	    export "$var"
+	    ret=$?
+	    if (( ! ret ));then
+		newExport+="$var\n"
+		var_add "$(sed 's,=.*,,' <<< $var)"
+	    else
+		(>&2 echo "ERROR: $var failed")
+		print_modifiers
+	    fi
+	else
+	    (>&2 echo "ERROR: $var failed")
+	    print_modifiers
+	fi
+    fi
+    shift $shift_nb
+    if [ $# -eq 0 ]; then
+	break
+    fi
 done
 
 if $addBenchmark;then

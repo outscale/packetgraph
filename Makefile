@@ -40,22 +40,29 @@ PG_SOURCES = \
 			 src/thread.c\
 			 src/ip-fragment.c
 PG_OBJECTS = $(PG_SOURCES:.c=.o)
-	PG_HEADERS = \
-				 -I$(srcdir)/include/packetgraph/\
-				 -I$(srcdir)/src/npf/npf/src/libnpf/\
-				 -I$(srcdir)/src/npf/libqsbr/\
-				 -I$(srcdir)/src/npf/nvlist/src/\
-				 -I$(srcdir)/src/npf/thmap/src\
-				 -I$(srcdir)/src/npf/npf/src/kern/stand/\
-				 -I$(srcdir)/include\
-				 -I$(srcdir)/src\
-				 -I$(srcdir)\
-				 $(RTE_SDK_HEADERS)\
-				 $(GLIB_HEADERS)
-	PG_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
+PG_dev_OBJECTS = $(PG_SOURCES:.c=-dev.o)
+
+PG_HEADERS = \
+		 -I$(srcdir)/include/packetgraph/\
+		 -I$(srcdir)/src/npf/npf/src/libnpf/\
+		 -I$(srcdir)/src/npf/libqsbr/\
+		 -I$(srcdir)/src/npf/nvlist/src/\
+		 -I$(srcdir)/src/npf/thmap/src\
+		 -I$(srcdir)/src/npf/npf/src/kern/stand/\
+		 -I$(srcdir)/include\
+		 -I$(srcdir)/src\
+		 -I$(srcdir)\
+		 $(RTE_SDK_HEADERS)\
+		 $(GLIB_HEADERS)
+
+PG_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 	#FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
-	PG_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols
-	PG_CFLAGS = $(EXTRA_CFLAGS) -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) -Wno-implicite-fallthrough -Wno-deprecated-declarations -Wno-unknown-warning-option $(PG_ASAN_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
+
+PG_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols
+
+PG_CFLAGS = $(EXTRA_CFLAGS) -march=core-avx-i -mtune=core-avx-i -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) $(PG_ASAN_CFLAGS) -Wno-implicite-fallthrough -Wno-unknown-warning-option -Wno-deprecated-declarations
+
+PG_dev_CFLAGS = $(PG_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
 
 dist_doc_DATA = README.md
 
@@ -70,10 +77,13 @@ ACLOCAL_AMFLAGS = -I m4
 all: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_OBJECTS)
 	ar rcv $(PG_NAME).a $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
 	gcc -shared -Wl,-soname,$(PG_NAME).so.17 -o $(PG_NAME).so.17.5.0 $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
-	echo "PacketGraph compiled"
+	echo $(PG_NAME)" compiled"
 
 $(PG_OBJECTS) : src/%.o : src/%.c
 	$(CC) -c $(PG_CFLAGS) $(PG_HEADERS) $< -o $@
+
+$(PG_dev_OBJECTS): src/%-dev.o : src/%.c
+	$(CC) -c $(PG_dev_CFLAGS) $(PG_HEADERS) $< -o $@
 
 doxygen.conf: $(srcdir)/doc/doxygen.conf.template
 	$(shell sed "s|PG_SRC_PATH|$(srcdir)|g" $< > $@)
@@ -91,13 +101,9 @@ check:
 	$(srcdir)/run_tests.sh
 
 dev: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_dev_OBJECTS)
-	ar rcv $(PG_dev_NAME).a $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
-	gcc -shared -Wl,-soname,$(PG_dev_NAME).so.17 -o $(PG_dev_NAME).so.17.5.0 $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
-	echo "PacketGraph-dev compiled"
-
-$(PG_dev_OBJECTS): dev/%.o : src/%.c
-	mkdir -pv `dirname $@`
-	$(CC) -c $(PG_dev_CFLAGS) $(PG_dev_HEADERS) $< -o $@
+	ar rcv $(PG_NAME)-dev.a $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
+	gcc -shared -Wl,-soname,$(PG_NAME)-dev.so.17 -o $(PG_NAME)-dev.so.17.5.0 $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
+	echo "$(PG_CFLAGS)-dev compiled"
 
 clean: clean_npf testcleanobj
 	rm -fv $(PG_OBJECTS)

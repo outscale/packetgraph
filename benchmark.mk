@@ -62,9 +62,9 @@ bench_tap_SOURCES = \
   tests/tap/bench.c
 bench_tap_OBJECTS = $(bench_tap_SOURCES:.c=.o)
 
-bench_CFLAGS = $(PG_CFLAGS)
+bench_CFLAGS = $(PG_dev_CFLAGS)
 bench_HEADERS = $(PG_HEADERS)
-bench_LDFLAGS = -lpacketgraph $(PG_LIBADD) -L$(srcdir) -ldl -lm -lnuma -lpthread -lpcap -lz
+bench_LDFLAGS = $(PG_NAME)-dev.a $(PG_LIBADD) -L$(srcdir) -ldl -lm -lnuma -lpthread -lpcap -lz
 
 ################################################################################
 ##                                Benchmark compile                           ##
@@ -154,7 +154,7 @@ bench-ip-fragment: $(bench_ip_fragment_OBJECTS)
 $(bench_ip_fragment_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench_compile: all bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx bench-ip-fragment
+bench_compile: dev bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx bench-ip-fragment
 
 ################################################################################
 #                                  Benchmark tests                             #

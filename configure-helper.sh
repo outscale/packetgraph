@@ -13,44 +13,6 @@ function usage {
     done
 }
 
-function parse_args {
-    echo "" > config.mk
-    echo 'c_to_o_dir = $(join $(addsuffix  $(1)/, $(dir $(2))), $(notdir $(2:.c=.o)))' >> config.mk
-
-    if [ ! -z ${CFLAGS+x} ]; then
-	echo CFLAGS: $CFLAGS
-	echo CFLAGS=$CFLAGS >> config.mk
-    fi
-
-    if [ ! -z ${COMMON_CFLAGS+x} ]; then
-	echo COMMON_CFLAGS: $COMMON_CFLAGS
-	echo COMMON_CFLAGS=$COMMON_CFLAGS >> config.mk
-    fi
-
-    while true ; do
-	case "$1" in
-	    -t|--toolchain)
-		echo use toolchain: $2
-		eval $2
-		shift 2 ;;
-	    -h|--help)
-		usage
-		exit 0;;
-	    *"+="*)
-		echo $1
-		echo $1 >> config.mk
-		shift 1 ;;
-	    *"="*)
-		echo $1
-		export $1
-		echo $1 >> config.mk
-		shift 1 ;;
-	    *)
-		break ;;
-	esac
-    done
-}
-
 function add_toolchain {
     if [ ! $NB_TOOLCHAIN ]; then
 	export TOOLCHAINS[$NB_TOOLCHAIN]="$1"
