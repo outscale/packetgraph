@@ -2,7 +2,6 @@
 
 function check_compiler {
 	echo -e  "#include <stdio.h>\nint main() {\nprintf(\"hello world\\\n\");\n}" > hw.c
-	cat hw.c
 	$1 -Wall hw.c -o cccheck.out 2> /dev/null
 	retcomp=$?
 	rm hw.c 2> /dev/null
