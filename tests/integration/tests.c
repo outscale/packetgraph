@@ -176,9 +176,13 @@ static inline int start_qemu_graph(struct branch *branch,
 					  glob_hugepages_path, errp);
 
 
-#	define SSH(c) \
-	g_assert(pg_util_ssh("localhost", ssh_port_id, \
-				glob_vm_key_path, c) == 0)
+#	define SSH(c) do {						\
+		if (pg_util_ssh("localhost", ssh_port_id,		\
+				glob_vm_key_path, c) < 0) {		\
+			*errp =	pg_error_new("ssh failed: %s\n",c);	\
+			return qemu_pid;				\
+		}							\
+	} while (0)
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");

@@ -44,6 +44,14 @@
 
 static uint16_t ssh_port_id = 65000;
 
+#define SSH(c, p, k) do {						\
+		if (pg_util_ssh("localhost", ssh_port_id,		\
+				glob_vm_key_path, c) < 0) {		\
+			error = pg_error_new("ssh failed: %s\n", c);	\
+			pg_util_stop_qemu(p, k);			\
+		}							\
+	} while (0)
+
 /* this test harness a Linux guest to check that packet are send and received
  * by the vhost brick. An ethernet bridge inside the guest will forward packets
  * between the two vhost-user virtio interfaces.
@@ -103,18 +111,14 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	g_assert(qemu_pid);
 
 	/* Prepare VM's bridge. */
-#	define SSH(c) \
-		g_assert(pg_util_ssh("localhost", ssh_port_id, \
-		glob_vm_key_path, c) == 0)
-	SSH("brctl addbr br0");
-	SSH("ifconfig br0 up");
-	SSH("ifconfig ens4 up");
-	SSH("ifconfig ens5 up");
-	SSH("brctl addif br0 ens4");
-	SSH("brctl addif br0 ens5");
-	SSH("brctl setfd br0 0");
-	SSH("brctl stp br0 off");
-#	undef SSH
+	SSH("brctl addbr br0", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig br0 up", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig ens4 up", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig ens5 up", qemu_pid, qemu_exit_signal);
+	SSH("brctl addif br0 ens4", qemu_pid, qemu_exit_signal);
+	SSH("brctl addif br0 ens5", qemu_pid, qemu_exit_signal);
+	SSH("brctl setfd br0 0", qemu_pid, qemu_exit_signal);
+	SSH("brctl stp br0 off", qemu_pid, qemu_exit_signal);
 	ssh_port_id++;
 
 	/* prepare packet to send */
@@ -269,18 +273,15 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(qemu_pid0);
 	g_assert(!error);
 
-#	define SSH(c) \
-		g_assert(pg_util_ssh("localhost", ssh_port_id, \
-		glob_vm_key_path, c) == 0)
-	SSH("brctl addbr br0");
-	SSH("ifconfig br0 up");
-	SSH("ifconfig ens4 up");
-	SSH("ifconfig ens5 up");
-	SSH("brctl addif br0 ens4");
-	SSH("brctl addif br0 ens5");
-	SSH("brctl setfd br0 0");
-	SSH("brctl stp br0 off");
-#	undef SSH
+	/* Prepare VM's bridge. */
+	SSH("brctl addbr br0", qemu_pid0, qemu_exit_signal);
+	SSH("ifconfig br0 up", qemu_pid0, qemu_exit_signal);
+	SSH("ifconfig ens4 up", qemu_pid0, qemu_exit_signal);
+	SSH("ifconfig ens5 up", qemu_pid0, qemu_exit_signal);
+	SSH("brctl addif br0 ens4", qemu_pid0, qemu_exit_signal);
+	SSH("brctl addif br0 ens5", qemu_pid0, qemu_exit_signal);
+	SSH("brctl setfd br0 0", qemu_pid0, qemu_exit_signal);
+	SSH("brctl stp br0 off", qemu_pid0, qemu_exit_signal);
 	ssh_port_id++;
 
 	qemu_pid1 = pg_util_spawn_qemu(socket_path_10, socket_path_11,
@@ -291,18 +292,14 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 
 	/* Prepare VM's bridge. */
-#	define SSH(c) \
-		g_assert(pg_util_ssh("localhost", ssh_port_id, \
-		glob_vm_key_path, c) == 0)
-	SSH("brctl addbr br0");
-	SSH("ifconfig br0 up");
-	SSH("ifconfig ens4 up");
-	SSH("ifconfig ens5 up");
-	SSH("brctl addif br0 ens4");
-	SSH("brctl addif br0 ens5");
-	SSH("brctl setfd br0 0");
-	SSH("brctl stp br0 off");
-#	undef SSH
+	SSH("brctl addbr br0", qemu_pid1, qemu_exit_signal);
+	SSH("ifconfig br0 up", qemu_pid1, qemu_exit_signal);
+	SSH("ifconfig ens4 up", qemu_pid1, qemu_exit_signal);
+	SSH("ifconfig ens5 up", qemu_pid1, qemu_exit_signal);
+	SSH("brctl addif br0 ens4", qemu_pid1, qemu_exit_signal);
+	SSH("brctl addif br0 ens5", qemu_pid1, qemu_exit_signal);
+	SSH("brctl setfd br0 0", qemu_pid1, qemu_exit_signal);
+	SSH("brctl stp br0 off", qemu_pid1, qemu_exit_signal);
 	ssh_port_id++;
 
 	/* prepare packet to send */
@@ -444,7 +441,6 @@ static void qemu_test(struct qemu_test_params *p)
 	int qemu_pid;
 	struct rte_mempool *mbuf_pool = pg_get_mempool();
 	struct rte_mbuf **result_pkts;
-	int exit_status;
 	uint64_t pkts_mask;
 
 	qemu_pid = pg_util_spawn_qemu(p->socket_path[0], p->socket_path[1],
@@ -456,18 +452,14 @@ static void qemu_test(struct qemu_test_params *p)
 	g_assert(qemu_pid);
 
 	/* Prepare VM's bridge. */
-#	define SSH(c) \
-	g_assert(!pg_util_ssh("localhost", ssh_port_id, \
-			      glob_vm_key_path, c))
-	SSH("brctl addbr br0");
-	SSH("ifconfig br0 up");
-	SSH("ifconfig ens4 up");
-	SSH("ifconfig ens5 up");
-	SSH("brctl addif br0 ens4");
-	SSH("brctl addif br0 ens5");
-	SSH("brctl setfd br0 0");
-	SSH("brctl stp br0 off");
-#	undef SSH
+	SSH("brctl addbr br0", qemu_pid, p->killsig);
+	SSH("ifconfig br0 up", qemu_pid, p->killsig);
+	SSH("ifconfig ens4 up", qemu_pid, p->killsig);
+	SSH("ifconfig ens5 up", qemu_pid, p->killsig);
+	SSH("brctl addif br0 ens4", qemu_pid, p->killsig);
+	SSH("brctl addif br0 ens5", qemu_pid, p->killsig);
+	SSH("brctl setfd br0 0", qemu_pid, p->killsig);
+	SSH("brctl stp br0 off", qemu_pid, p->killsig);
 	ssh_port_id++;
 
 	/* prepare packet to send */
@@ -508,9 +500,7 @@ static void qemu_test(struct qemu_test_params *p)
 	g_assert(result_pkts);
 
 	/* kill QEMU */
-	kill(qemu_pid, p->killsig);
-	waitpid(qemu_pid, &exit_status, 0);
-	g_spawn_close_pid(qemu_pid);
+	pg_util_stop_qemu(qemu_pid, p->killsig);
 
 	/* free sent packet */
 	for (int i = 0; i < NB_PKTS; i++)
@@ -776,3 +766,5 @@ void test_vhost(void)
 		pg_test_add_func("/vhost/reco", test_vhost_reco);
 	pg_test_add_func("/vhost/destroy", test_vhost_destroy);
 }
+
+#undef SSH
