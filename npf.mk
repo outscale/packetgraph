@@ -2,7 +2,7 @@ lpm_SOURCES = \
 	src/npf/liblpm/src/lpm.c
 lpm_OBJECTS = $(lpm_SOURCES:.c=.o)
 lpm_HEADERS = -I$(srcdir)/src/npf/liblpm/src
-lpm_CFLAGS = $(EXTRA_CFLAGS) -std=gnu11 -O2 -W  -Wcast-qual -Wwrite-strings -Wextra -Werror -fPIC $(PG_ASAN_CFLAGS)
+lpm_CFLAGS = $(EXTRA_CFLAGS)  -march=$(PG_MARCH) -std=gnu11 -W  -Wcast-qual -Wwrite-strings -Wextra -Werror -fPIC $(PG_ASAN_CFLAGS)
 
 cdb_SOURCES = \
 	src/npf/libcdb/src/cdbr.c\
@@ -10,7 +10,7 @@ cdb_SOURCES = \
 	src/npf/libcdb/src/mi_vector_hash.c
 cdb_OBJECTS = $(cdb_SOURCES:.c=.o)
 cdb_HEADERS = -I$(srcdir)/src/npf/libcdb/src
-cdb_CFLAGS = $(EXTRA_CFLAGS) -D__RCSID\(x\)= -std=gnu11 -O2 -W -Wextra -Werror -DNDEBUG -fPIC $(PG_ASAN_CFLAGS)
+cdb_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -D__RCSID\(x\)= -std=gnu11 -W -Wextra -Werror -DNDEBUG -fPIC $(PG_ASAN_CFLAGS)
 
 nvlist_SOURCES = \
 	src/npf/nvlist/src/dnvlist.c\
@@ -19,7 +19,7 @@ nvlist_SOURCES = \
 	src/npf/nvlist/src/nvpair.c
 nvlist_OBJECTS = $(nvlist_SOURCES:.c=.o)
 nvlist_HEADERS = -I$(srcdir)/src/npf/nvlist/src
-nvlist_CFLAGS = $(EXTRA_CFLAGS) -D__RCSID\(x\)= -std=gnu11 -O2 -W -Wextra -Werror -DNDEBUG -D_GNU_SOURCE -fPIC $(PG_ASAN_CFLAGS) -D__FBSDID\(x\)=
+nvlist_CFLAGS = $(EXTRA_CFLAGS)  -march=$(PG_MARCH) -D__RCSID\(x\)= -std=gnu11 -W -Wextra -Werror -DNDEBUG -D_GNU_SOURCE -fPIC $(PG_ASAN_CFLAGS) -D__FBSDID\(x\)=
 
 thmap_SOURCES = \
 	src/npf/thmap/src/murmurhash.c\
@@ -27,7 +27,7 @@ thmap_SOURCES = \
 	src/npf/thmap/src/t_stress.c
 thmap_OBJECTS = $(thmap_SOURCES:.c=.o)
 thmap_HEADERS = -I$(srcdir)/src/npf/thmap/src
-thmap_CFLAGS = $(EXTRA_CFLAGS) -D__RCSID\(x\)= -std=gnu11 -O2 -W -Wextra -Werror -DNDEBUG -fPIC $(PG_ASAN_CFLAGS)
+thmap_CFLAGS = $(EXTRA_CFLAGS)  -march=$(PG_MARCH) -D__RCSID\(x\)= -std=gnu11 -W -Wextra -Werror -DNDEBUG -fPIC $(PG_ASAN_CFLAGS)
 
 qsbr_SOURCES = \
 	src/npf/libqsbr/src/ebr.c\
@@ -35,27 +35,27 @@ qsbr_SOURCES = \
 	src/npf/libqsbr/src/qsbr.c
 qsbr_OBJECTS = $(qsbr_SOURCES:.c=.o)
 qsbr_HEADERS = -I$(srcdir)/src/npf/libqsbr
-qsbr_CFLAGS = $(EXTRA_CFLAGS) -D__RCSID\(x\)= -fPIC -std=gnu11 $(PG_ASAN_CFLAGS)
+qsbr_CFLAGS = $(EXTRA_CFLAGS)  -march=$(PG_MARCH) -D__RCSID\(x\)= -fPIC -std=gnu11 $(PG_ASAN_CFLAGS)
 
 sljit_SOURCES = \
 	src/npf/sljit/regexJIT.c\
 	src/npf/sljit/sljitLir.c
 sljit_OBJECTS = $(sljit_SOURCES:.c=.o)
 sljit_HEADERS = -I$(srcdir)/src/npf/sljit
-sljit_CFLAGS = $(EXTRA_CFLAGS) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -fPIC $(PG_ASAN_CFLAGS)
+sljit_CFLAGS = $(EXTRA_CFLAGS)  -march=$(PG_MARCH) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -fPIC $(PG_ASAN_CFLAGS)
 
 bpfjit_SOURCES = \
 	src/npf/bpfjit/bpfjit.c
 bpfjit_OBJECTS = $(bpfjit_SOURCES:.c=.o)
 bpfjit_HEADERS = -I$(srcdir)/src/npf/bpfjit $(sljit_HEADERS)
-bpfjit_CFLAGS = $(EXTRA_CFLAGS) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -fPIC $(PG_ASAN_CFLAGS)
+bpfjit_CFLAGS = $(EXTRA_CFLAGS)  -march=$(PG_MARCH) -DSLJIT_CONFIG_AUTO=1 -DSLJIT_VERBOSE=0 -DSLJIT_DEBUG=0 -fPIC $(PG_ASAN_CFLAGS)
 bpfjit_LIBADD = libsljit.a
 
 npf_SOURCES = \
 	src/npf/npf/src/libnpf/npf.c
 npf_OBJECTS = $(npf_SOURCES:.c=.o)
 npf_HEADERS = -I$(srcdir)/src/npf/npf/src/libnpf -I$(srcdir)/src/npf/npf/src/kern/stand -I$(srcdir)/src/npf/nvlist/src $(thmap_HEADERS) $(qsbr_HEADERS) $(cdb_HEADERS) $(lpm_HEADERS)
-npf_CFLAGS = $(EXTRA_CFLAGS) -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -D__KERNEL_RCSID\(x,y\)= -D_NPF_STANDALONE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused  -Wno-unknown-warning-option -DNDEBUG -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -fPIC -Wno-cast-function-type -Wno-stringop-truncation $(PG_ASAN_CFLAGS)
+npf_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -std=gnu11 -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -D__KERNEL_RCSID\(x,y\)= -D_NPF_STANDALONE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused  -Wno-unknown-warning-option -DNDEBUG -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -fPIC -Wno-cast-function-type -Wno-stringop-truncation $(PG_ASAN_CFLAGS)
 
 npfkern_SOURCES = \
 	src/npf/npf/src/kern/npf.c\
@@ -86,7 +86,7 @@ npfkern_SOURCES = \
 npfkern_OBJECTS = $(npfkern_SOURCES:.c=.o)
 npfkern_HEADERS = $(lpm_HEADERS) $(cdb_HEADERS) $(nvlist_HEADERS) $(thmap_HEADERS) $(qsbr_HEADERS) $(npf_HEADERS) -I$(srcdir)/src/npf/npf/src/kern/stand $(bpfjit_HEADERS)
 
-npfkern_CFLAGS = $(EXTRA_CFLAGS)  -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -Wno-cast-function-type -Wno-stringop-truncation -Wno-unknown-warning-option -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
+npfkern_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -Wno-cast-function-type -Wno-stringop-truncation -Wno-unknown-warning-option -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
 #Trick to avoid symbol conflicts
 npfkern_CFLAGS += -Dnpf_ruleset_add=_npf_ruleset_add -Dnpf_ruleset_remove=_npf_ruleset_remove -Dnpf_ruleset_remkey=_npf_ruleset_remkey -Dnpf_ruleset_flush=_npf_ruleset_flush -Dnpf_rule_setcode=_npf_rule_setcode -Dnpf_rule_getid=_npf_rule_getid -Dnpf_ext_construct=_npf_ext_construct -Dnpf_rproc_create=_npf_rproc_create -Dnpf_table_create=_npf_table_create -Dnpf_table_destroy=_npf_table_destroy -Dnpf_table_insert=_npf_table_insert -Drb_tree_init=_rb_tree_init -Drb_tree_find_node=_rb_tree_find_node -Drb_tree_find_node_geq=_rb_tree_find_node_geq -Drb_tree_find_node_leq=_rb_tree_find_node_leq -Drb_tree_insert_node=_rb_tree_insert_node -Drb_tree_iterate=_rb_tree_iterate -Drb_tree_remove_node=_rb_tree_remove_node $(PG_ASAN_CFLAGS)
 npfkern_LIBADD = libqsbr.la liblpm.la libcdb.la libnvlist.a libthmap.a libbpfjit.la -ljemalloc -lpthread -lpcap
