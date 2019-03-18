@@ -28,6 +28,7 @@ function print_help {
 		echo -e "  -e --with-examples\t\tCompile examples"
 		echo -e "  --asan\t\t\tCompile with address sanitizers"
 		echo -e "  --extra-cflags\t\tspecify compiler flags [-Wall -g -O2]"
+		echo -e "  --march\t\ttarget architecture [core-avx-i]"
 		echo -e "  --no-check-compiler\t\tDo not check compiler"
 }
 
@@ -68,6 +69,11 @@ function check_option {
 	elif [ "$1"  == "--extra-cflags" ]; then
 	    var_add "EXTRA_CFLAGS" "$2"
 	    return 2
+	elif [ "$1"  == "--march" ]; then
+	    var_add "PG_MARCH" "$2"
+	    return 2
+	elif [ "$1"  == "--hell-march" ]; then
+	    var_add "PG_MARCH" "native"
 	elif [ "$1"  == "--modifiers" ]; then
 		print_modifiers
 		exit
@@ -118,7 +124,7 @@ rm -f "$(pwd)"/src/npf/npf/src/kern/stand/net/npfkern.h
 mkdir -p "$(pwd)"/src/npf/npf/src/kern/stand/net
 ln --symbolic -t ./src/npf/npf/src/kern/stand/net/ "$(pwd)"/src/npf/npf/src/kern/npfkern.h
 
-modifiers=("CC" "EXTRA_CFLAGS" "RTE_SDK" "PG_NAME")
+modifiers=("CC" "EXTRA_CFLAGS" "RTE_SDK" "PG_NAME", "PG_MARCH")
 addBenchmark=false
 addExample=false
 addAsan=false
@@ -211,6 +217,7 @@ fi
 var_add PG_NAME "libpacketgraph"
 var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
 var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
+var_add PG_MARCH "core-avx-i"
 
 if [ ! "$RTE_SDK" ]; then
 	echo
