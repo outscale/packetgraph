@@ -15,6 +15,10 @@
  * along with Packetgraph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if defined PG_BRICK_NO_ATOMIC_COUNT && PG_BRICK_NO_ATOMIC_COUNT < 2
+#undef PG_BRICK_NO_ATOMIC_COUNT
+#endif
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -82,8 +86,8 @@ struct pg_vhost_state {
 	int vid;
 	struct rte_mbuf *in[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
-	rte_atomic64_t tx_bytes; /* TX: [vhost] --> VM */
-	rte_atomic64_t rx_bytes; /* RX: [vhost] <-- VM */
+	PG_PKTS_COUNT_TYPE tx_bytes; /* TX: [vhost] --> VM */
+	PG_PKTS_COUNT_TYPE rx_bytes; /* RX: [vhost] <-- VM */
 #ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
 	int check_atomic;
 	int check_counter;
@@ -162,7 +166,7 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	/* count tx bytes: burst is packed so we can directly iterate */
 	for (int i = 0; i < bursted_pkts; i++)
 		tx_bytes += rte_pktmbuf_pkt_len(pkts[i]);
-	rte_atomic64_add(&state->tx_bytes, tx_bytes);
+	PG_PKTS_COUNT_ADD(state->tx_bytes, tx_bytes);
 
 #ifdef PG_VHOST_BENCH
 	struct pg_brick_side *side = &brick->side;
@@ -248,7 +252,7 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		pg_utils_guess_metadata(in[i]);
 	}
 
-	rte_atomic64_add(&state->rx_bytes, rx_bytes);
+	PG_PKTS_COUNT_ADD(state->rx_bytes, rx_bytes);
 
 	pkts_mask = pg_mask_firsts(count);
 	ret = pg_brick_burst(s->edge.link, state->output, s->edge.pair_index,
@@ -346,8 +350,8 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	vhost_config = (struct pg_vhost_config *) config->brick_config;
 	state->output = vhost_config->output;
 	state->vid = -1;
-	rte_atomic64_set(&state->rx_bytes, 0);
-	rte_atomic64_set(&state->tx_bytes, 0);
+	PG_PKTS_COUNT_SET(state->rx_bytes, 0);
+	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
 	pg_vhost_enable(brick, enable_freacture_mask);
 	pg_vhost_disable(brick, disable_freacture_mask);
 
@@ -417,14 +421,14 @@ const char *pg_vhost_socket_path(struct pg_brick *brick)
 
 static uint64_t rx_bytes(struct pg_brick *brick)
 {
-	return rte_atomic64_read(
-		&pg_brick_get_state(brick, struct pg_vhost_state)->rx_bytes);
+	return PG_PKTS_COUNT_GET(
+		pg_brick_get_state(brick, struct pg_vhost_state)->rx_bytes);
 }
 
 static uint64_t tx_bytes(struct pg_brick *brick)
 {
-	return rte_atomic64_read(
-		&pg_brick_get_state(brick, struct pg_vhost_state)->tx_bytes);
+	return PG_PKTS_COUNT_GET(
+		pg_brick_get_state(brick, struct pg_vhost_state)->tx_bytes);
 }
 
 static int new_vm(int dev)
