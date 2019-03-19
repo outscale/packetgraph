@@ -72,9 +72,11 @@ ACLOCAL_AMFLAGS = -I m4
 
 .DEFAULT_GOAL := all
 
-.PHONY: doc style check clean fclean help
+.PHONY: doc style check clean fclean help all install uninstall
 
-all: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_OBJECTS)
+all: dev $(PG_NAME)
+
+$(PG_NAME): lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_OBJECTS)
 	ar rcv $(PG_NAME).a $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
 	$(CC) -shared -Wl,-soname,$(PG_NAME).so.17 -o $(PG_NAME).so.17.5.0 $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
 	echo $(PG_NAME)" compiled"
@@ -106,9 +108,9 @@ dev: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_dev_OBJECTS)
 	echo "$(PG_CFLAGS)-dev compiled"
 
 clean: clean_npf testcleanobj
-	rm -fv $(PG_OBJECTS)
-	rm -fv $(PG_dev_OBJECTS)
-	rm -Rfv dev
+	@rm -fv $(PG_OBJECTS)
+	@rm -fv $(PG_dev_OBJECTS)
+	@rm -Rfv dev
 ifdef BENCHMARK_INCLUDED
 	$(MAKE) benchclean
 endif
@@ -117,16 +119,44 @@ ifdef EXAMPLE_INCLUDED
 endif
 
 fclean: clean fclean_npf testclean
-	rm -fv $(PG_NAME).a
-	rm -fv $(PG_dev_NAME).a
-	rm -fv $(PG_NAME).so.17.5.0
-	rm -fv $(PG_dev_NAME).so.17.5.0
+	@rm -fv $(PG_NAME).a
+	@rm -fv $(PG_dev_NAME).a
+	@rm -fv $(PG_NAME).so.17.5.0
+	@rm -fv $(PG_dev_NAME).so.17.5.0
 ifdef BENCHMARK
 	$(MAKE) benchfclean
 endif
 ifdef EXAMPLE
 	$(MAKE) examplefclean
 endif
+
+install: $(PG_NAME)
+	mkdir -p $(PREFIX)/lib/
+	@cp -v $(PG_NAME).a $(PREFIX)/lib/
+	@cp -v $(PG_NAME).so* $(PREFIX)/lib/
+	@cp -v $(PG_NAME)-dev.a* $(PREFIX)/lib/
+	@cp -v $(PG_NAME)-dev.so* $(PREFIX)/lib/
+	@cp -v libbpfjit.a $(PREFIX)/lib/
+	@cp -v libcdb.a $(PREFIX)/lib/
+	@cp -v liblpm.a $(PREFIX)/lib/
+	@cp -v libnpf.a $(PREFIX)/lib/
+	@cp -v libnpfkern.a $(PREFIX)/lib/
+	@cp -v libnvlist.a $(PREFIX)/lib/
+	@cp -v libqsbr.a $(PREFIX)/lib/
+	@cp -v libsljit.a $(PREFIX)/lib/
+	@cp -v libthmap.a $(PREFIX)/lib/
+
+uninstall:
+	@rm -fv $(PREFIX)/lib/$(PG_NAME)* # what could posibly go wrong ?
+	@rm -fv $(PREFIX)/lib/libbpfjit.a
+	@rm -fv $(PREFIX)/lib/libcdb.a
+	@rm -fv $(PREFIX)/lib/liblpm.a
+	@rm -fv $(PREFIX)/lib/libnpf.a
+	@rm -fv	$(PREFIX)/lib/libnpfkern.a
+	@rm -fv	$(PREFIX)/lib/libnvlist.a
+	@rm -fv	$(PREFIX)/lib/libqsbr.a
+	@rm -fv	$(PREFIX)/lib/libsljit.a
+	@rm -fv	$(PREFIX)/lib/libthmap.a
 
 help:
 	@echo "make               : build packetgraph"

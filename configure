@@ -37,7 +37,7 @@ function print_modifiers {
 		echo "Variables : R = replace  /  A = add"
 		echo -e "Syntax    : ./configure [options] CC=gcc EXTRA_CFLAGS=\"-g -O2 -j4 ...\""
 		echo -e "  CC\t\tR\tCompiler"
-		echo -e "  EXTRA_CFLAGS\tA\tCompiler option, adds to PG_CFLAGS normal compilation"
+		echo -e "  EXTRA_CFLAGS\tA\tCompiler option, adds to CFLAGS"
 		echo -e "  RTE_SDK\tR\tRoot directory of DPDK"
 		echo -e "  PG_NAME\tR\tName of the compiled library ({NAME}.a / {NAME}.so.x.y.z)"
 }
@@ -62,6 +62,9 @@ function check_option {
 		exit
 	elif [ "$1"  == "--verbose" ]; then
 		echo add verbose
+	elif [ "$1"  == "--prefix" ]; then
+	    export "PREFIX"="$2"
+	    return 2
 	elif [ "$1"  == "--no-verbose" ]; then
 		echo remove verbose
 	elif [ "$1"  == "--print" ]; then
@@ -114,15 +117,20 @@ function check_option_single {
 	fi
 }
 
-source configure-helper.sh
+DIR=$( dirname "$0" )
+DIR=$( readlink -f -- "$DIR" )
 
-./dpdk_symbols.sh
-rm -f "$(pwd)"/src/npf/libqsbr/qsbr/ebr.h
-mkdir -p "$(pwd)"/src/npf/libqsbr/qsbr
-ln --symbolic -t ./src/npf/libqsbr/qsbr/ "$(pwd)"/src/npf/libqsbr/src/ebr.h
-rm -f "$(pwd)"/src/npf/npf/src/kern/stand/net/npfkern.h
-mkdir -p "$(pwd)"/src/npf/npf/src/kern/stand/net
-ln --symbolic -t ./src/npf/npf/src/kern/stand/net/ "$(pwd)"/src/npf/npf/src/kern/npfkern.h
+cd $DIR
+
+source "$DIR"/configure-helper.sh
+
+"$DIR"/dpdk_symbols.sh
+rm -f "$DIR"/src/npf/libqsbr/qsbr/ebr.h
+mkdir -p "$DIR"/src/npf/libqsbr/qsbr
+ln --symbolic -t "$DIR"/src/npf/libqsbr/qsbr/ "$DIR"/src/npf/libqsbr/src/ebr.h
+rm -f "$DIR"/src/npf/npf/src/kern/stand/net/npfkern.h
+mkdir -p "$DIR"/src/npf/npf/src/kern/stand/net
+ln --symbolic -t "$DIR"/src/npf/npf/src/kern/stand/net/ "$DIR"/src/npf/npf/src/kern/npfkern.h
 
 modifiers=("CC" "EXTRA_CFLAGS" "RTE_SDK" "PG_NAME", "PG_MARCH")
 addBenchmark=false
@@ -218,6 +226,7 @@ var_add PG_NAME "libpacketgraph"
 var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
 var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
 var_add PG_MARCH "core-avx-i"
+var_add PREFIX "/usr/local/"
 
 if [ ! "$RTE_SDK" ]; then
 	echo
