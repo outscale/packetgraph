@@ -38,6 +38,7 @@ PG_SOURCES = \
 			 src/switch.c\
 			 src/pmtud.c\
 			 src/thread.c\
+			 src/seccomp.c\
 			 src/ip-fragment.c
 PG_OBJECTS = $(PG_SOURCES:.c=.o)
 PG_dev_OBJECTS = $(PG_SOURCES:.c=-dev.o)

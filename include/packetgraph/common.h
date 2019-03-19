@@ -18,6 +18,9 @@
 #ifndef _PG_COMMON_H
 #define _PG_COMMON_H
 
+#include <sys/prctl.h>
+#include <linux/seccomp.h>
+
 enum pg_side {
 	PG_WEST_SIDE = 0,
 	PG_EAST_SIDE = 1,
@@ -55,5 +58,12 @@ static inline enum pg_side pg_flip_side(enum pg_side side)
 
 /* Be sure to have result used. */
 #define PG_WARN_UNUSED __attribute__((warn_unused_result))
+
+/**
+ * Initialize syscall filter
+ *
+ * @return 0 if the filter has been correctly build, -1 on the contrary.
+ */
+int pg_init_seccomp(void);
 
 #endif /* _PG_COMMON_H */
