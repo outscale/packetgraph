@@ -44,7 +44,7 @@ function print_modifiers {
 
 function print_var {
 		echo " --- VARIABLES --- "
-		echo "srcdir=$srcdir"
+		echo "srcdir=${srcdir:?}"
 		echo "OS=$OS"
 		echo "CC=$CC"
 		echo "PG_NAME=$PG_NAME"
@@ -124,6 +124,7 @@ rm -f "$(pwd)"/src/npf/npf/src/kern/stand/net/npfkern.h
 mkdir -p "$(pwd)"/src/npf/npf/src/kern/stand/net
 ln --symbolic -t ./src/npf/npf/src/kern/stand/net/ "$(pwd)"/src/npf/npf/src/kern/npfkern.h
 
+PG_NAME="libpacketgraph"
 modifiers=("CC" "EXTRA_CFLAGS" "RTE_SDK" "PG_NAME", "PG_MARCH")
 addBenchmark=false
 addExample=false
@@ -135,43 +136,39 @@ echo "#####################################" > config.mk
 echo "### Configuration for packetgraph ###" >> config.mk
 echo "#####################################" >> config.mk
 
-while true ; do
-    var=$1
+while [ $# -gt 0 ] ; do
     shift_nb="1"
-    if [[ ${var:0:2} == "--" ]]; then
-	check_option "$var" "$2"
-	ret=$?
-	if [ "$ret" -gt "1" ]; then
-	    shift_nb=$ret
-	fi
-    elif [[ ${var:0:1} == "-" && ${var:1:2} != "-" ]]; then
-	check_option_single "$var"
+    if [[ ${1:0:2} == "--" ]]; then
+        check_option "$1" "$2"
+        ret=$?
+        if [ "$ret" -gt "1" ]; then
+            shift_nb=$ret
+        fi
+    elif [[ ${1:0:1} == "-" && ${1:1:2} != "-" ]]; then
+        check_option_single "$1"
     else
 	validMod=false
 	for i in "${modifiers[@]}"; do
-	    if [ "$(sed 's,=.*,,' <<< $var)"  == "$i" ]; then
+	    if [ "$(sed 's,=.*,,' <<< $1)"  == "$i" ]; then
 		validMod=true
 	    fi
 	done
 	if $validMod; then
-	    export "$var"
+	    export "$1"
 	    ret=$?
 	    if (( ! ret ));then
-		newExport+="$var\n"
-		var_add "$(sed 's,=.*,,' <<< $var)"
+		newExport+="$1\n"
+		var_add "$(sed 's,=.*,,' <<< $1)"
 	    else
-		(>&2 echo "ERROR: $var failed")
+		(>&2 echo "ERROR: $1 failed")
 		print_modifiers
 	    fi
-	else
-	    (>&2 echo "ERROR: $var failed")
-	    print_modifiers
-	fi
+        else
+            (>&2 echo "ERROR: $1 failed")
+            print_modifiers
+        fi
     fi
     shift $shift_nb
-    if [ $# -eq 0 ]; then
-	break
-    fi
 done
 
 if $addBenchmark;then
@@ -184,11 +181,7 @@ fi
 var_add srcdir "./"
 var_add OS "$(uname)"
 if [[ $CC == "" ]];then
-	case $OS in
-		Linux) CC=gcc;;
-		Darwin) CC=clang;;
-		*) CC=cc
-	esac
+    CC=clang
 fi
 hash "$CC"
 ret=$?
@@ -214,7 +207,7 @@ if $addAsan;then
 	fi
 	newExport+="PG_ASAN_CFLAGS=$PG_ASAN_CFLAGS\n"
 fi
-var_add PG_NAME "libpacketgraph"
+var_add PG_NAME $PG_NAME
 var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
 var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
 var_add PG_MARCH "core-avx-i"
@@ -229,5 +222,35 @@ if [ ! "$RTE_SDK" ]; then
 fi
 var_add RTE_SDK_HEADERS "-I$RTE_SDK/build/include/"
 var_add RTE_SDK_LIBS "-lm -lpthread -ldl -lpcap -lnuma -L$RTE_SDK/build/lib/ -ldpdk"
+
+echo -en "\nclean_options:" >> config.mk
+if $addBenchmark; then
+	echo -n " benchclean" >> config.mk
+fi
+if $addExample; then
+	echo -n " exampleclean" >> config.mk
+fi
+
+echo -en "\nfclean_options:" >> config.mk
+if $addBenchmark; then
+	echo -n " benchfclean" >> config.mk
+fi
+if $addExample; then
+	echo -n " examplefclean" >> config.mk
+fi
+
+echo -e "
+help:
+	@echo \"make               : build packetgraph\"
+	@echo \"make doc           : generate public documentation using doxygen\"
+	@echo \"make style         : run style tests\"
+	@echo \"make check         : run tests\"" >> config.mk
+if $addBenchmark; then
+	echo -e "	@echo \"make bench         : run benchmarks\"
+	@echo \"make benchmark.csv : output results to benchmark.csv\"" >> config.mk
+fi
+echo -e "	@echo \"\"
+	@echo \"if you need to run a specific test, i.e. vtep:\"
+	@echo \"./tests/vtep/test.sh\"" >> config.mk
 
 $pv

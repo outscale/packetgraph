@@ -102,41 +102,16 @@ check:
 
 dev: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_dev_OBJECTS)
 	ar rcv $(PG_NAME)-dev.a $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
-	$(CC) -shared -Wl,-soname,$(PG_NAME)-dev.so.17 -o $(PG_NAME)-dev.so.17.5.0 $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
-	echo "$(PG_CFLAGS)-dev compiled"
+	gcc -shared -Wl,-soname,$(PG_NAME)-dev.so.17 -o $(PG_NAME)-dev.so.17.5.0 $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
+	echo "$(PG_NAME)-dev compiled"
 
-clean: clean_npf testcleanobj
-	rm -fv $(PG_OBJECTS)
-	rm -fv $(PG_dev_OBJECTS)
-	rm -Rfv dev
-ifdef BENCHMARK_INCLUDED
-	$(MAKE) benchclean
-endif
-ifdef EXAMPLE_INCLUDED
-	$(MAKE) exampleclean
-endif
+clean: clean_options clean_npf testcleanobjects
+	@rm -fv $(PG_OBJECTS)
+	@rm -fv $(PG_dev_OBJECTS)
+	@rm -Rfv dev
 
-fclean: clean fclean_npf testclean
+fclean: fclean_options fclean_npf testclean
 	rm -fv $(PG_NAME).a
-	rm -fv $(PG_dev_NAME).a
+	rm -fv $(PG_NAME)-dev.a
 	rm -fv $(PG_NAME).so.17.5.0
-	rm -fv $(PG_dev_NAME).so.17.5.0
-ifdef BENCHMARK
-	$(MAKE) benchfclean
-endif
-ifdef EXAMPLE
-	$(MAKE) examplefclean
-endif
-
-help:
-	@echo "make               : build packetgraph"
-	@echo "make doc           : generate public documentation using doxygen"
-	@echo "make style         : run style tests"
-	@echo "make check         : run tests"
-ifdef BENCHMARK
-	@echo "make bench         : run benchmarks"
-	@echo "make benchmark.csv : output results to benchmark.csv"
-endif
-	@echo ""
-	@echo "if you need to run a specific test, i.e. vtep:"
-	@echo "./tests/vtep/test.sh"
+	rm -fv $(PG_NAME)-dev.so.17.5.0
