@@ -40,14 +40,14 @@ function download {
 
 # Test that qemu is installed
 if [ "$(whereis qemu-system-x86_64 | wc -w)" == "1" ]; then
-	echo "need qemu-system-x86_64 to be installed";
-	exit 1
+    echo "need qemu-system-x86_64 to be installed";
+    exit 1
 fi
 
 # Check that huge pages mount exists
 if [ ! -d /mnt/huge ]; then
-	echo "Is your /mnt/huge is mounted with hugepages ?"
-	exit 1
+    echo "Is your /mnt/huge is mounted with hugepages ?"
+    exit 1
 fi
 
 # Get VM image & key

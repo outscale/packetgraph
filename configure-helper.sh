@@ -9,15 +9,15 @@ function usage {
     echo "-t --toolchain <TOOLCHAIN>"
     for i in "${TOOLCHAINS[@]}"
     do
-	echo "		$i"
+    echo "		$i"
     done
 }
 
 function add_toolchain {
     if [ ! $NB_TOOLCHAIN ]; then
-	export TOOLCHAINS[$NB_TOOLCHAIN]="$1"
+    export TOOLCHAINS[$NB_TOOLCHAIN]="$1"
     else
-	TOOLCHAINS[$NB_TOOLCHAIN]="$1"
+    TOOLCHAINS[$NB_TOOLCHAIN]="$1"
     fi
     echo add toolchain ${TOOLCHAINS[$NB_TOOLCHAIN]}
     NB_TOOLCHAIN=$(($NB_TOOLCHAIN + 1))
@@ -27,10 +27,10 @@ function var_add {
     eval "[ ! -z \${$1+x} ]"
     IS_LIB_HERE=$?
     if [ $IS_LIB_HERE -eq 0 ]; then
-	TOADD="\$$1"
+    TOADD="\$$1"
     else
-	TOADD="$2"
-	eval "export $1='$2'"
+    TOADD="$2"
+    eval "export $1='$2'"
     fi
     echo -n "$1 = "
     eval "echo $TOADD"

@@ -1,45 +1,45 @@
 #!/bin/bash
 
 function check_compiler {
-	echo -e  "#include <stdio.h>\nint main() {\nprintf(\"hello world\\\n\");\n}" > hw.c
-	$1 -Wall hw.c -o cccheck.out 2> /dev/null
-	retcomp=$?
-	rm hw.c 2> /dev/null
-	retstr=$(./cccheck.out 2> /dev/null)
-	./cccheck.out > /dev/null 2>/dev/null
-	retexec=$?
-	rm ./cccheck.out 2> /dev/null
-	if [ $retcomp -ne 0 ] || [ "$retstr" != "hello world" ] || [ $retexec -ne 0 ]; then
-		(>&2 echo "ERROR: $CC cannot compile hello world")
-		exit
-	fi
+    echo -e  "#include <stdio.h>\nint main() {\nprintf(\"hello world\\\n\");\n}" > hw.c
+    $1 -Wall hw.c -o cccheck.out 2> /dev/null
+    retcomp=$?
+    rm hw.c 2> /dev/null
+    retstr=$(./cccheck.out 2> /dev/null)
+    ./cccheck.out > /dev/null 2>/dev/null
+    retexec=$?
+    rm ./cccheck.out 2> /dev/null
+    if [ $retcomp -ne 0 ] || [ "$retstr" != "hello world" ] || [ $retexec -ne 0 ]; then
+        (>&2 echo "ERROR: $CC cannot compile hello world")
+        exit
+    fi
 }
 
 function print_help {
-		echo " --- HELP --- "
-		echo "Usage   : ./configure [options] [variable]"
-		echo "Options :"
-		echo -e "  -h --help\t\t\tPrint this help and exit"
-		echo -e "  -v --verbose\t\t\tAugment compilation verbose"
-		echo -e "  -n --no-verbose\t\tReduce compilation verbose"
-		echo -e "  -p --print\t\t\tPrint variables values"
-		echo -e "  -P --modifiers\t\tPrint available variables"
-		echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
-		echo -e "  -e --with-examples\t\tCompile examples"
-		echo -e "  --asan\t\t\tCompile with address sanitizers"
-		echo -e "  --extra-cflags\t\tspecify compiler flags [-Wall -g -O2]"
-		echo -e "  --march\t\ttarget architecture [core-avx-i]"
-		echo -e "  --no-check-compiler\t\tDo not check compiler"
+    echo " --- HELP --- "
+    echo "Usage   : ./configure [options] [variable]"
+    echo "Options :"
+    echo -e "  -h --help\t\t\tPrint this help and exit"
+    echo -e "  -v --verbose\t\t\tAugment compilation verbose"
+    echo -e "  -n --no-verbose\t\tReduce compilation verbose"
+    echo -e "  -p --print\t\t\tPrint variables values"
+    echo -e "  -P --modifiers\t\tPrint available variables"
+    echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
+    echo -e "  -e --with-examples\t\tCompile examples"
+    echo -e "  --asan\t\t\tCompile with address sanitizers"
+    echo -e "  --extra-cflags\t\tspecify compiler flags [-Wall -g -O2]"
+    echo -e "  --no-check-compiler\t\tDo not check compiler"
 }
 
 function print_modifiers {
-		echo " --- MODIFIERS --- "
-		echo "Variables : R = replace  /  A = add"
-		echo -e "Syntax    : ./configure [options] CC=gcc EXTRA_CFLAGS=\"-g -O2 -j4 ...\""
-		echo -e "  CC\t\tR\tCompiler"
-		echo -e "  EXTRA_CFLAGS\tA\tCompiler option, adds to PG_CFLAGS normal compilation"
-		echo -e "  RTE_SDK\tR\tRoot directory of DPDK"
-		echo -e "  PG_NAME\tR\tName of the compiled library ({NAME}.a / {NAME}.so.x.y.z)"
+    echo " --- MODIFIERS --- "
+    echo "Variables : R = replace  /  A = add"
+    echo -e "Syntax    : ./configure [options] CC=gcc EXTRA_CFLAGS=\"-g -O2 -j4 ...\""
+    echo -e "  CC\t\tR\tCompiler"
+    echo -e "  EXTRA_CFLAGS\tA\tCompiler option, adds to PG_CFLAGS normal compilation"
+    echo -e "  RTE_SDK\tR\tRoot directory of DPDK"
+    echo -e "  PG_NAME\tR\tName of the compiled library ({NAME}.a / {NAME}.so.x.y.z)"
+    echo -e "  PG_dev_NAME\tR\tName of the developer compiled library ({NAME}.a / {NAME}.so.x.y.z)"
 }
 
 function print_var {
@@ -57,61 +57,56 @@ function print_var {
 }
 
 function check_option {
-	if [ "$1"  == "--help" ]; then
-		print_help
-		exit
-	elif [ "$1"  == "--verbose" ]; then
-		echo add verbose
-	elif [ "$1"  == "--no-verbose" ]; then
-		echo remove verbose
-	elif [ "$1"  == "--print" ]; then
-		pv=print_var
-	elif [ "$1"  == "--extra-cflags" ]; then
-	    var_add "EXTRA_CFLAGS" "$2"
-	    return 2
-	elif [ "$1"  == "--march" ]; then
-	    var_add "PG_MARCH" "$2"
-	    return 2
-	elif [ "$1"  == "--hell-march" ]; then
-	    var_add "PG_MARCH" "native"
-	elif [ "$1"  == "--modifiers" ]; then
-		print_modifiers
-		exit
-	elif [ "$1"  == "--with-benchmarks" ]; then
-		addBenchmark=true
-	elif [ "$1"  == "--with-examples" ]; then
-		addExample=true
-	elif [ "$1"  == "--no-check-compiler" ]; then
-		doCheckCompiler=false
-	elif [ "$1"  == "--asan" ]; then
-		addAsan=true
-	fi
+    if [ "$1"  == "--help" ]; then
+        print_help
+        exit
+    elif [ "$1"  == "--verbose" ]; then
+        echo add verbose
+    elif [ "$1"  == "--no-verbose" ]; then
+        echo remove verbose
+    elif [ "$1"  == "--print" ]; then
+        pv=print_var
+    elif [ "$1"  == "--extra-cflags" ]; then
+        var_add "EXTRA_CFLAGS" "$2"
+        return 2
+    elif [ "$1"  == "--modifiers" ]; then
+        print_modifiers
+        exit
+    elif [ "$1"  == "--with-benchmarks" ]; then
+        addBenchmark=true
+    elif [ "$1"  == "--with-examples" ]; then
+        addExample=true
+    elif [ "$1"  == "--no-check-compiler" ]; then
+        doCheckCompiler=false
+    elif [ "$1"  == "--asan" ]; then
+        addAsan=true
+    fi
 }
 
 function check_option_single {
-	if [[ "$1"  == *"h"* ]]; then
-		print_help
-		exit
-	fi
-	if [[ "$1"  == *"v"* ]]; then
-		echo add verbose
-	fi
-	if [[ "$1"  == *"n"* ]]; then
-		echo remove verbose
-	fi
-	if [[ "$1"  == *"p"* ]]; then
-		pv=print_var
-	fi
-	if [[ "$1"  == *"P"* ]]; then
-		print_modifiers
-		exit
-	fi
-	if [[ "$1"  == *"b"* ]]; then
-		addBenchmark=true
-	fi
-	if [[ "$1"  == *"e"* ]]; then
-		addExample=true
-	fi
+    if [[ "$1"  == *"h"* ]]; then
+        print_help
+        exit
+    fi
+    if [[ "$1"  == *"v"* ]]; then
+        echo add verbose
+    fi
+    if [[ "$1"  == *"n"* ]]; then
+        echo remove verbose
+    fi
+    if [[ "$1"  == *"p"* ]]; then
+        pv=print_var
+    fi
+    if [[ "$1"  == *"P"* ]]; then
+        print_modifiers
+        exit
+    fi
+    if [[ "$1"  == *"b"* ]]; then
+        addBenchmark=true
+    fi
+    if [[ "$1"  == *"e"* ]]; then
+        addExample=true
+    fi
 }
 
 source configure-helper.sh
@@ -147,22 +142,22 @@ while [ $# -gt 0 ] ; do
     elif [[ ${1:0:1} == "-" && ${1:1:2} != "-" ]]; then
         check_option_single "$1"
     else
-	validMod=false
-	for i in "${modifiers[@]}"; do
-	    if [ "$(sed 's,=.*,,' <<< $1)"  == "$i" ]; then
-		validMod=true
-	    fi
-	done
-	if $validMod; then
-	    export "$1"
-	    ret=$?
-	    if (( ! ret ));then
-		newExport+="$1\n"
-		var_add "$(sed 's,=.*,,' <<< $1)"
-	    else
-		(>&2 echo "ERROR: $1 failed")
-		print_modifiers
-	    fi
+        validMod=false
+        for i in "${modifiers[@]}"; do
+            if [ "$(sed 's,=.*,,' <<< $1)"  == "$i" ]; then
+                validMod=true
+            fi
+        done
+        if $validMod; then
+            export "$1"
+            ret=$?
+            if (( ! ret ));then
+                newExport+="$1\n"
+                var_add "$(sed 's,=.*,,' <<< $1)"
+            else
+                (>&2 echo "ERROR: $1 failed")
+                print_modifiers
+            fi
         else
             (>&2 echo "ERROR: $1 failed")
             print_modifiers
@@ -172,10 +167,10 @@ while [ $# -gt 0 ] ; do
 done
 
 if $addBenchmark;then
-	echo "include benchmark.mk" >> config.mk
+    echo "include benchmark.mk" >> config.mk
 fi
 if $addExample;then
-	echo "include example.mk" >> config.mk
+    echo "include example.mk" >> config.mk
 fi
 
 var_add srcdir "./"
@@ -186,26 +181,26 @@ fi
 hash "$CC"
 ret=$?
 while (( "$ret" )) || [ ! "$CC" ]; do
-	echo "[ Compiler = $CC ]"
-	(>&2 echo "ERROR: Compiler not found")
-	echo -n "Compiler name : "
-	read CC
-	CC=$CC
-	hash "$CC"
-	ret=$?
+    echo "[ Compiler = $CC ]"
+    (>&2 echo "ERROR: Compiler not found")
+    echo -n "Compiler name : "
+    read CC
+    CC=$CC
+    hash "$CC"
+    ret=$?
 done
 if $doCheckCompiler; then
-	check_compiler "$CC"
+    check_compiler "$CC"
 fi
 export CC="$CC"
 var_add CC
 if $addAsan;then
-	if [[ "$CC" == "gcc" ]]; then
-		var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment --param asan-globals=0"
-	else
-		var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment"
-	fi
-	newExport+="PG_ASAN_CFLAGS=$PG_ASAN_CFLAGS\n"
+    if [[ "$CC" == "gcc" ]]; then
+        var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment --param asan-globals=0"
+    else
+        var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment"
+    fi
+    newExport+="PG_ASAN_CFLAGS=$PG_ASAN_CFLAGS\n"
 fi
 var_add PG_NAME $PG_NAME
 var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
@@ -213,30 +208,30 @@ var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
 var_add PG_MARCH "core-avx-i"
 
 if [ ! "$RTE_SDK" ]; then
-	echo
-	(>&2 echo "ERROR: RTE_SDK not set")
-	echo "Set RTE_SDK :"
-	echo "	cd {DPDK root directory}"
-	echo "	export RTE_SDK=\$(pwd)"
-	exit;
+    echo
+    (>&2 echo "ERROR: RTE_SDK not set")
+    echo "Set RTE_SDK :"
+    echo "    cd {DPDK root directory}"
+    echo "    export RTE_SDK=\$(pwd)"
+    exit;
 fi
 var_add RTE_SDK_HEADERS "-I$RTE_SDK/build/include/"
 var_add RTE_SDK_LIBS "-lm -lpthread -ldl -lpcap -lnuma -L$RTE_SDK/build/lib/ -ldpdk"
 
 echo -en "\nclean_options:" >> config.mk
 if $addBenchmark; then
-	echo -n " benchclean" >> config.mk
+    echo -n " benchclean" >> config.mk
 fi
 if $addExample; then
-	echo -n " exampleclean" >> config.mk
+    echo -n " exampleclean" >> config.mk
 fi
 
 echo -en "\nfclean_options:" >> config.mk
 if $addBenchmark; then
-	echo -n " benchfclean" >> config.mk
+    echo -n " benchfclean" >> config.mk
 fi
 if $addExample; then
-	echo -n " examplefclean" >> config.mk
+    echo -n " examplefclean" >> config.mk
 fi
 
 echo -e "
@@ -246,7 +241,7 @@ help:
 	@echo \"make style         : run style tests\"
 	@echo \"make check         : run tests\"" >> config.mk
 if $addBenchmark; then
-	echo -e "	@echo \"make bench         : run benchmarks\"
+    echo -e "	@echo \"make bench         : run benchmarks\"
 	@echo \"make benchmark.csv : output results to benchmark.csv\"" >> config.mk
 fi
 echo -e "	@echo \"\"

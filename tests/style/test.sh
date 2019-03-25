@@ -21,8 +21,8 @@ usage="test.sh PACKETGRAPH_ROOT"
 # test number of arguments
 
 if [ "$#" -ne 1 ]; then
-	echo "$usage"
-	exit 1
+    echo "$usage"
+    exit 1
 fi
 
 # check packetgraph root
@@ -30,7 +30,7 @@ fi
 PACKETGRAPH_ROOT=$(readlink -m "$1")
 
 if [ ! -d "$PACKETGRAPH_ROOT" ]; then
-	echo "$PACKETGRAPH_ROOT path seems to not exists"
+    echo "$PACKETGRAPH_ROOT path seems to not exists"
 fi
 
 # directories and files to scan
@@ -57,8 +57,8 @@ if [ $? != 0 ]; then
 else
     lizard -C 10 -w "$directories"
     if [ $? != 0 ]; then
-	echo "lizard tests failed"
-	exit 1
+    echo "lizard tests failed"
+    exit 1
     else
         echo "lizard tests OK"
     fi
@@ -76,10 +76,10 @@ else
     if [[ $major -lt 1 || $minor -lt 71 ]]; then
         echo "cppcheck version >= 1.71 required (currently have ${major}.${minor}), skip test"
     else
-		# shellcheck disable=SC2086
+        # shellcheck disable=SC2086
         cppcheck -q  -f -I "$PACKETGRAPH_ROOT"/src -I "$PACKETGRAPH_ROOT"/include --error-exitcode=43  --enable=performance --enable=portability --enable=information --enable=missingInclude --enable=warning -U TYPE_NAME $filelist
         if [ $? != 0 ]; then
-	    echo "cppcheck tests failed"
+        echo "cppcheck tests failed"
             exit 1
         else
             echo "cppcheck tests OK"
@@ -93,11 +93,11 @@ rats &> /dev/null
 if [ $? != 0 ]; then
     echo "rats is not installed, some tests will be skipped"
 else
-	# shellcheck disable=SC2086
+    # shellcheck disable=SC2086
     rats $filelist
     if [ $? != 0 ]; then
-	echo "rats tests failed"
-	exit 1
+    echo "rats tests failed"
+    exit 1
     else
         echo "rats tests OK"
     fi
@@ -109,11 +109,11 @@ flawfinder &> /dev/null
 if [ $? != 0 ]; then
     echo "flawfinder is not installed, some tests will be skipped"
 else
-	# shellcheck disable=SC2086
+    # shellcheck disable=SC2086
     flawfinder --quiet $filelist
     if [ $? != 0 ]; then
-	echo "flawfinder tests failed"
-	exit 1
+    echo "flawfinder tests failed"
+    exit 1
     else
         echo "flawfinder tests OK"
     fi
