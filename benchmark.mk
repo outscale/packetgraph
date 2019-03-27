@@ -70,85 +70,85 @@ bench_LDFLAGS = $(PG_NAME)-dev.a $(PG_LIBADD) -L$(srcdir) -ldl -lm -lnuma -lpthr
 ##                                Benchmark compile                           ##
 ################################################################################
 
-bench-antispoof: $(bench_antispoof_OBJECTS)
+bench-antispoof: dev $(bench_antispoof_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_antispoof_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_antispoof_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-core: $(bench_core_OBJECTS)
+bench-core: dev $(bench_core_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_core_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_core_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-diode: $(bench_diode_OBJECTS)
+bench-diode: dev $(bench_diode_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_diode_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_diode_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-firewall: $(bench_firewall_OBJECTS)
+bench-firewall: dev $(bench_firewall_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_firewall_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_firewall_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-nic: $(bench_nic_OBJECTS)
+bench-nic: dev $(bench_nic_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_nic_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_nic_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-print: $(bench_print_OBJECTS)
+bench-print: dev $(bench_print_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_print_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_print_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-queue: $(bench_queue_OBJECTS)
+bench-queue: dev $(bench_queue_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_queue_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_queue_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-switch: $(bench_switch_OBJECTS)
+bench-switch: dev $(bench_switch_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_switch_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_switch_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-vhost: $(bench_vhost_OBJECTS)
+bench-vhost: dev $(bench_vhost_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_vhost_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_vhost_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-pmtud: $(bench_pmtud_OBJECTS)
+bench-pmtud: dev $(bench_pmtud_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_pmtud_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_pmtud_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-vtep: $(bench_vtep_OBJECTS)
+bench-vtep: dev $(bench_vtep_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_vtep_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_vtep_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-tap: $(bench_tap_OBJECTS)
+bench-tap: dev $(bench_tap_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_tap_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_tap_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-rxtx: $(bench_rxtx_OBJECTS)
+bench-rxtx: dev $(bench_rxtx_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_rxtx_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_rxtx_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench-ip-fragment: $(bench_ip_fragment_OBJECTS)
+bench-ip-fragment: dev $(bench_ip_fragment_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_ip_fragment_OBJECTS) $(bench_LDFLAGS) -o $@
 
 $(bench_ip_fragment_OBJECTS): %.o : %.c
