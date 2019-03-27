@@ -125,97 +125,97 @@ test: dev tests-all-build antispoof core diode rxtx pmtud ip-fragment firewall n
 tests_compile: dev tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-ip-fragment tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall
 	@echo "Compilation done"
 
-tests-antispoof: $(tests_antispoof_OBJECTS)
+tests-antispoof: dev $(tests_antispoof_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_antispoof_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_antispoof_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-core: $(tests_core_OBJECTS)
+tests-core: dev $(tests_core_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_core_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_core_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-diode: $(tests_diode_OBJECTS)
+tests-diode: dev $(tests_diode_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_diode_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_diode_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-rxtx: $(tests_rxtx_OBJECTS)
+tests-rxtx: dev $(tests_rxtx_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_rxtx_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_rxtx_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-pmtud: $(tests_pmtud_OBJECTS)
+tests-pmtud: dev $(tests_pmtud_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_pmtud_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_pmtud_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-ip-fragment: $(tests_ip-fragment_OBJECTS)
+tests-ip-fragment: dev $(tests_ip-fragment_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_ip-fragment_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_ip-fragment_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-integration: $(tests_integration_OBJECTS)
+tests-integration: dev $(tests_integration_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_integration_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_integration_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-nic: $(tests_nic_OBJECTS)
+tests-nic: dev $(tests_nic_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_nic_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_nic_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-print: $(tests_print_OBJECTS)
+tests-print: dev $(tests_print_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_print_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_print_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-queue: $(tests_queue_OBJECTS)
+tests-queue: dev $(tests_queue_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_queue_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_queue_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-switch: $(tests_switch_OBJECTS)
+tests-switch: dev $(tests_switch_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_switch_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_switch_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-vhost: $(tests_vhost_OBJECTS)
+tests-vhost: dev $(tests_vhost_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_vhost_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_vhost_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-vtep: $(tests_vtep_OBJECTS)
+tests-vtep: dev $(tests_vtep_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_vtep_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_vtep_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-tap: $(tests_tap_OBJECTS)
+tests-tap: dev $(tests_tap_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_tap_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_tap_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-thread: $(tests_thread_OBJECTS)
+tests-thread: dev $(tests_thread_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_thread_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_thread_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
-tests-firewall: $(tests_firewall_OBJECTS)
+tests-firewall: dev $(tests_firewall_OBJECTS)
 	$(CC) $(tests_firewall_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_firewall_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_firewall_OBJECTS): %.o : %.c
