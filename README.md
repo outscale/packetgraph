@@ -87,36 +87,6 @@ $ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_
 $ sudo rpm -i jemalloc-devel-3.6.0-8.el7.centos.x86_64.rpm jemalloc-3.6.0-8.el7.centos.x86_64.rpm
 ```
 
-## Build DPDK
-
-```
-$ git clone http://dpdk.org/git/dpdk
-$ cd dpdk
-$ git checkout -b v19.02 v19.02
-$ make config T=x86_64-native-linuxapp-gcc
-```
-
-Note: use `T=x86_64-native-linuxapp-clang` to build with clang
-
-Edit build/.config and be sure to set the following parameters to 'y':
-- CONFIG_RTE_LIBRTE_PMD_PCAP
-
-If you don't want to use some special PMD in DPDK requiring kernel headers,
-you will have to set the following parameters to 'n':
-- CONFIG_RTE_EAL_IGB_UIO
-- CONFIG_RTE_KNI_KMOD
-
-Once your .config file is ready, you can now build dpdk as follows:
-
-```
-$ make EXTRA_CFLAGS='-fPIC'
-```
-
-Finally, set `RTE_SDK` environment variable:
-```
-$ export RTE_SDK=$(pwd)
-```
-
 ## Build packetgraph
 ```
 $ git clone https://github.com/outscale/packetgraph.git
@@ -127,9 +97,11 @@ $ make
 $ make install
 ```
 
-Note: to build with clang, you can use `./configure CC=clang`
+Note 1: use `./configure --dpdk-conf "x86_64-native-linuxapp-clang"` to build DPDK with clang
 
-Note 2: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.4 or superior).
+Note 2: to build with clang, you can use `./configure CC=clang`
+
+Note 3: You need a compiler that support C11 (gcc 4.9 or superior, or clang 3.4 or superior).
 
 ## Configure Huge Pages
 
