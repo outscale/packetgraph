@@ -1,5 +1,29 @@
 #!/bin/bash
 
+function build_dpdk {
+    git submodule update --init --recursive $dpdk_path
+    if [ -d "$dpdk_path" ]; then
+	cd $dpdk_path
+	if [ $? != 0 ]; then
+	    fail "can't go to dpdk submodule"
+	fi
+	export RTE_SDK=`pwd`
+	make config T=$dpdk_target
+	sed -i "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" ./build/.config
+	sed -i "s/CONFIG_RTE_EAL_IGB_UIO=y/CONFIG_RTE_EAL_IGB_UIO=n/" ./build/.config
+	sed -i "s/CONFIG_RTE_KNI_KMOD=y/CONFIG_RTE_KNI_KMOD=n/" ./build/.config
+	echo "Building DPDK"
+	make EXTRA_CFLAGS='-fPIC'
+	if [ $? != 0 ]; then
+	    fail "DPDK build fail\nYou are on your own\nGood Luck !"
+	fi
+	echo "DPDK set up done"
+	cd -
+    else
+	fail "something seems wrong with dpdk directory"
+    fi
+}
+
 function check_compiler {
 	echo -e  "#include <stdio.h>\nint main() {\nprintf(\"hello world\\\n\");\n}" > hw.c
 	$1 -Wall hw.c -o cccheck.out 2> /dev/null
@@ -27,6 +51,7 @@ function print_help {
 		echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
 		echo -e "  -e --with-examples\t\tCompile examples"
 		echo -e "  --asan\t\t\tCompile with address sanitizers"
+		echo -e "  --dpdk-autobuild\t\tAutomatically checkout dpdk and build it"
 		echo -e "  --extra-cflags\t\tspecify compiler flags [-Wall -g -O2]"
 		echo -e "  --march\t\ttarget architecture [core-avx-i]"
 		echo -e "  --no-check-compiler\t\tDo not check compiler"
@@ -80,6 +105,8 @@ function check_option {
 	elif [ "$1"  == "--modifiers" ]; then
 		print_modifiers
 		exit
+	elif [ "$1"  == "--dpdk-autobuild" ]; then
+	    build_dpdk
 	elif [ "$1"  == "--with-benchmarks" ]; then
 		addBenchmark=true
 	elif [ "$1"  == "--with-examples" ]; then
@@ -123,6 +150,7 @@ DIR=$( readlink -f -- "$DIR" )
 cd $DIR
 
 source "$DIR"/configure-helper.sh
+source "$DIR"/error_print.sh
 
 "$DIR"/dpdk_symbols.sh
 rm -f "$DIR"/src/npf/libqsbr/qsbr/ebr.h
@@ -138,6 +166,9 @@ addExample=false
 addAsan=false
 doCheckCompiler=true
 newExport=""
+
+dpdk_target=x86_64-native-linuxapp-gcc
+dpdk_path="$DIR"/3rdparty/dpdk/
 
 echo "#####################################" > config.mk
 echo "### Configuration for packetgraph ###" >> config.mk
