@@ -5,10 +5,9 @@ set -e
 cd "$(dirname "$0")"
 
 make clean || true
-export RTE_SDK=/home/jenkins/dpdk
 git submodule sync
 git submodule update --init
-./configure CC=clang --with-examples --with-benchmarks
+./configure CC=clang --with-examples --with-benchmarks --dpdk-conf x86_64-native-linuxapp-clang
 ./run_tests.sh
 pkill -15 -f qemu | true
 pkill -15 -f vhost | true
