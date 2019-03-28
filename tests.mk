@@ -24,6 +24,11 @@ tests_diode_SOURCES = \
 	$(tests_diode_DIR)/tests.c
 tests_diode_OBJECTS = $(tests_diode_SOURCES:.c=.o)
 
+tests_accumulator_DIR = tests/accumulator
+tests_accumulator_SOURCES = \
+	$(tests_accumulator_DIR)/tests.c
+tests_accumulator_OBJECTS = $(tests_accumulator_SOURCES:.c=.o)
+
 tests_rxtx_DIR = tests/rxtx
 tests_rxtx_SOURCES = \
 	$(tests_rxtx_DIR)/tests.c
@@ -101,6 +106,7 @@ TESTS = \
 	tests/antispoof/test.sh\
 	tests/core/test.sh\
 	tests/diode/test.sh\
+	tests/accumulator/test.sh\
 	tests/rxtx/test.sh\
 	tests/pmtud/test.sh\
 	tests/ip-fragment/test.sh\
@@ -119,10 +125,10 @@ TESTS = \
 ##                           Tests compilation rules                          ##
 ################################################################################
 
-test: dev tests-all-build antispoof core diode rxtx pmtud ip-fragment firewall nic print queue switch vtep tap thread integration vhost
+test: dev tests-all-build antispoof core diode accumulator rxtx pmtud ip-fragment firewall nic print queue switch vtep tap thread integration vhost
 	@echo "tests ended"
 
-tests_compile: dev tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-ip-fragment tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall
+tests_compile: dev tests-antispoof tests-core tests-diode tests-accumulator tests-rxtx tests-pmtud tests-ip-fragment tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall
 	@echo "Compilation done"
 
 tests-antispoof: dev $(tests_antispoof_OBJECTS)
@@ -141,6 +147,12 @@ tests-diode: dev $(tests_diode_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_diode_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_diode_OBJECTS): %.o : %.c
+	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
+
+tests-accumulator: dev $(tests_accumulator_OBJECTS)
+	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_accumulator_OBJECTS) $(tests_LIBS) -o $@
+
+$(tests_accumulator_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
 tests-rxtx: dev $(tests_rxtx_OBJECTS)
@@ -239,6 +251,9 @@ core : tests-core
 diode : tests-diode
 	tests/diode/test.sh
 
+accumulator : tests-accumulator
+	tests/accumulator/test.sh
+
 rxtx : tests-rxtx
 	tests/rxtx/test.sh
 
@@ -279,7 +294,7 @@ vhost : tests-vhost
 	tests/vhost/test.sh
 
 testclean: testcleanobj
-	rm -fv tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-ip-fragment tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep tests-tap tests-thread tests-integration tests-vhost
+	rm -fv tests-antispoof tests-core tests-diode tests-accumulator tests-rxtx tests-pmtud tests-ip-fragment tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep tests-tap tests-thread tests-integration tests-vhost
 
 testcleanobj:
-	rm -fv $(tests_antispoof_OBJECTS) $(tests_core_OBJECTS) $(tests_diode_OBJECTS) $(tests_rxtx_OBJECTS) $(tests_pmtud_OBJECTS) $(tests_ip-fragment_OBJECTS) $(tests_firewall_OBJECTS) $(tests_nic_OBJECTS) $(tests_print_OBJECTS) $(tests_queue_OBJECTS) $(tests_switch_OBJECTS) $(tests_vtep_OBJECTS) $(tests_tap_OBJECTS) $(tests_thread_OBJECTS) $(tests_integration_OBJECTS) $(tests_vhost_OBJECTS)
+	rm -fv $(tests_antispoof_OBJECTS) $(tests_core_OBJECTS) $(tests_diode_OBJECTS) $(tests_accumulator_OBJECTS) $(tests_rxtx_OBJECTS) $(tests_pmtud_OBJECTS) $(tests_ip-fragment_OBJECTS) $(tests_firewall_OBJECTS) $(tests_nic_OBJECTS) $(tests_print_OBJECTS) $(tests_queue_OBJECTS) $(tests_switch_OBJECTS) $(tests_vtep_OBJECTS) $(tests_tap_OBJECTS) $(tests_thread_OBJECTS) $(tests_integration_OBJECTS) $(tests_vhost_OBJECTS)

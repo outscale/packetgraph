@@ -19,6 +19,9 @@ bench_diode_SOURCES = \
   tests/diode/bench.c\
   tests/diode/bench-diode.c
 bench_diode_OBJECTS = $(bench_diode_SOURCES:.c=.o)
+bench_accumulator_SOURCES = \
+  tests/accumulator/bench.c
+bench_accumulator_OBJECTS = $(bench_accumulator_SOURCES:.c=.o)
 bench_rxtx_SOURCES = \
   tests/rxtx/bench.c\
   tests/rxtx/bench-rxtx.c
@@ -88,6 +91,12 @@ bench-diode: dev $(bench_diode_OBJECTS)
 $(bench_diode_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
+bench-accumulator: dev $(bench_accumulator_OBJECTS)
+	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_accumulator_OBJECTS)  $(bench_LDFLAGS) -o $@
+
+$(bench_accumulator_OBJECTS): %.o : %.c
+	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
+
 bench-firewall: dev $(bench_firewall_OBJECTS)
 	$(CC) $(bench_CFLAGS) $(bench_HEADERS) $(bench_firewall_OBJECTS) $(bench_LDFLAGS) -o $@
 
@@ -154,7 +163,7 @@ bench-ip-fragment: dev $(bench_ip_fragment_OBJECTS)
 $(bench_ip_fragment_OBJECTS): %.o : %.c
 	$(CC) -c $(bench_CFLAGS) $(bench_HEADERS) $< -o $@
 
-bench_compile: dev bench-antispoof bench-core bench-diode bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx bench-ip-fragment
+bench_compile: dev bench-antispoof bench-core bench-diode bench-accumulator bench-firewall bench-nic bench-print bench-queue bench-switch bench-vhost bench-pmtud bench-vtep bench-tap bench-rxtx bench-ip-fragment
 
 ################################################################################
 #                                  Benchmark tests                             #
@@ -164,6 +173,7 @@ bench: bench_compile
 	$(srcdir)/tests/antispoof/bench.sh
 	$(srcdir)/tests/core/bench.sh
 	$(srcdir)/tests/diode/bench.sh
+	$(srcdir)/tests/accumulator/bench.sh
 	$(srcdir)/tests/firewall/bench.sh
 	$(srcdir)/tests/nic/bench.sh
 	$(srcdir)/tests/print/bench.sh
@@ -181,6 +191,7 @@ benchmark.%: $(bench_compile)
 	$(srcdir)/tests/antispoof/bench.sh -f $* -o $@
 	$(srcdir)/tests/core/bench.sh -f $* -o $@
 	$(srcdir)/tests/diode/bench.sh -f $* -o $@
+	$(srcdir)/tests/accumulator/bench.sh -f $* -o $@
 	$(srcdir)/tests/firewall/bench.sh -f $* -o $@
 	$(srcdir)/tests/nic/bench.sh -f $* -o $@
 	$(srcdir)/tests/print/bench.sh -f $* -o $@
@@ -194,7 +205,7 @@ benchmark.%: $(bench_compile)
 	$(srcdir)/tests/ip-fragment/bench.sh -f $* -o $@
 
 benchfclean: benchclean
-	rm -fv bench-antispoof bench-core bench-diode bench-rxtx bench-pmtud bench-ip-fragment bench-firewall bench-nic bench-print bench-queue bench-switch bench-vtep bench-tap bench-thread bench-integration bench-vhost
+	rm -fv bench-antispoof bench-core bench-diode bench-accumulator bench-rxtx bench-pmtud bench-ip-fragment bench-firewall bench-nic bench-print bench-queue bench-switch bench-vtep bench-tap bench-thread bench-integration bench-vhost
 
 benchclean:
-	rm -fv $(bench_antispoof_OBJECTS) $(bench_core_OBJECTS) $(bench_diode_OBJECTS) $(bench_rxtx_OBJECTS) $(bench_pmtud_OBJECTS) $(bench_ip_fragment_OBJECTS) $(bench_firewall_OBJECTS) $(bench_nic_OBJECTS) $(bench_print_OBJECTS) $(bench_queue_OBJECTS) $(bench_switch_OBJECTS) $(bench_vtep_OBJECTS) $(bench_tap_OBJECTS) $(bench_thread_OBJECTS) $(bench_integration_OBJECTS) $(bench_vhost_OBJECTS)
+	rm -fv $(bench_antispoof_OBJECTS) $(bench_core_OBJECTS) $(bench_diode_OBJECTS) $(bench_accumulator_OBJECTS) $(bench_rxtx_OBJECTS) $(bench_pmtud_OBJECTS) $(bench_ip_fragment_OBJECTS) $(bench_firewall_OBJECTS) $(bench_nic_OBJECTS) $(bench_print_OBJECTS) $(bench_queue_OBJECTS) $(bench_switch_OBJECTS) $(bench_vtep_OBJECTS) $(bench_tap_OBJECTS) $(bench_thread_OBJECTS) $(bench_integration_OBJECTS) $(bench_vhost_OBJECTS)

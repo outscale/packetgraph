@@ -17,6 +17,7 @@ if [ "$(whoami)" == "travis" ]; then
     make doc
 fi
 
+./tests/accumulator/test.sh
 ./tests/antispoof/test.sh
 ./tests/core/test.sh
 ./tests/diode/test.sh
@@ -32,6 +33,7 @@ fi
 ./tests/ip-fragment/test.sh
 ./tests/thread/test.sh
 
+./tests/accumulator/bench.sh
 ./tests/antispoof/bench.sh
 ./tests/core/bench.sh
 ./tests/diode/bench.sh
