@@ -35,6 +35,7 @@ PG_SOURCES = \
 			 src/tap.c\
 			 src/graph.c\
 			 src/diode.c\
+			 src/accumulator.c\
 			 src/switch.c\
 			 src/pmtud.c\
 			 src/thread.c\
@@ -66,7 +67,7 @@ PG_dev_CFLAGS = $(PG_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-thread
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-thread tests-accumulator
 
 ACLOCAL_AMFLAGS = -I m4
 
