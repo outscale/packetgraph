@@ -1,5 +1,50 @@
 #!/bin/bash
 
+dpdk_version=19.02
+dpdk_config=x86_64-native-linuxapp-gcc
+dpdk_path=./src/dpdk/
+
+function dpdk_help {
+	echo "--dpdk-conf takes a DPDK configuration parameter :"
+	make -C $dpdk_path showconfigs | sed "/make:/d" | sed "s/^/\t/"
+	echo
+	echo " --- Useful informations ---"
+	echo -e "\t$ arch\n\t  $(arch)"
+	echo -e "\t$ uname -s\n\t  $(uname -o)"
+	echo
+	echo "More informations on https://doc.dpdk.org/"
+	exit
+}
+
+function build_dpdk {
+	if [ ! -d "$dpdk_path" ]; then
+		git submodule add http://dpdk.org/git/dpdk $dpdk_path
+		if [ $? != 0 ]; then
+			git submodule init
+			git submodule update
+		fi
+	fi
+	if [ -d "$dpdk_path" ]; then
+		echo "Goind into DPDK ..."
+		export OLDPWD=$(pwd)
+		cd $dpdk_path ||
+		echo "Setting up DPDK version ..."
+		git checkout v$dpdk_version
+		if [ $? != 0 ]; then
+			git checkout -b v$dpdk_version v$dpdk_version
+		fi
+		echo "Setting up DPDK configuration ..."
+		make config T=$dpdk_config
+		sed -i "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" ./build/.config
+		sed -i "s/CONFIG_RTE_EAL_IGB_UIO=y/CONFIG_RTE_EAL_IGB_UIO=n/" ./build/.config
+		sed -i "s/CONFIG_RTE_KNI_KMOD=y/CONFIG_RTE_KNI_KMOD=n/" ./build/.config
+		echo "Building DPDK"
+		make EXTRA_CFLAGS='-fPIC'
+		echo "DPDK set up done"
+		cd -
+	fi
+}
+
 function check_compiler {
 	echo -e  "#include <stdio.h>\nint main() {\nprintf(\"hello world\\\n\");\n}" > hw.c
 	$1 -Wall hw.c -o cccheck.out 2> /dev/null
@@ -27,6 +72,7 @@ function print_help {
 		echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
 		echo -e "  -e --with-examples\t\tCompile examples"
 		echo -e "  --asan\t\t\tCompile with address sanitizers"
+		echo -e "  --dpdk-conf\t\tspecify DPDK configuration (--dpdk-conf "help" for more details)"
 		echo -e "  --extra-cflags\t\tspecify compiler flags [-Wall -g -O2]"
 		echo -e "  --march\t\ttarget architecture [core-avx-i]"
 		echo -e "  --no-check-compiler\t\tDo not check compiler"
@@ -77,6 +123,13 @@ function check_option {
 	elif [ "$1"  == "--modifiers" ]; then
 		print_modifiers
 		exit
+	elif [ "$1"  == "--dpdk-conf" ]; then
+		if [ "$2" == "help" ]; then
+			dpdk_help
+			exit
+		fi
+		export dpdk_config=$2
+		return 2
 	elif [ "$1"  == "--with-benchmarks" ]; then
 		addBenchmark=true
 	elif [ "$1"  == "--with-examples" ]; then
