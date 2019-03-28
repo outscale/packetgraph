@@ -178,43 +178,39 @@ echo "#####################################" > config.mk
 echo "### Configuration for packetgraph ###" >> config.mk
 echo "#####################################" >> config.mk
 
-while true ; do
-    var=$1
+while [ $# -ne 0 ] ; do
     shift_nb="1"
-    if [[ ${var:0:2} == "--" ]]; then
-	check_option "$var" "$2"
+    if [[ ${1:0:2} == "--" ]]; then
+	check_option "$1" "$2"
 	ret=$?
 	if [ "$ret" -gt "1" ]; then
 	    shift_nb=$ret
 	fi
-    elif [[ ${var:0:1} == "-" && ${var:1:2} != "-" ]]; then
-	check_option_single "$var"
+    elif [[ ${1:0:1} == "-" && ${1:1:2} != "-" ]]; then
+	check_option_single "$1"
     else
 	validMod=false
 	for i in "${modifiers[@]}"; do
-	    if [ "$(sed 's,=.*,,' <<< $var)"  == "$i" ]; then
+	    if [ "$(sed 's,=.*,,' <<< $1)"  == "$i" ]; then
 		validMod=true
 	    fi
 	done
 	if $validMod; then
-	    export "$var"
+	    export "$1"
 	    ret=$?
 	    if (( ! ret ));then
-		newExport+="$var\n"
-		var_add "$(sed 's,=.*,,' <<< $var)"
+		newExport+="$1\n"
+		var_add "$(sed 's,=.*,,' <<< $1)"
 	    else
-		(>&2 echo "ERROR: $var failed")
+		(>&2 echo "ERROR: $1 failed")
 		print_modifiers
 	    fi
 	else
-	    (>&2 echo "ERROR: $var failed")
+	    (>&2 echo "ERROR: $1 failed")
 	    print_modifiers
 	fi
     fi
     shift $shift_nb
-    if [ $# -eq 0 ]; then
-	break
-    fi
 done
 
 build_dpdk
