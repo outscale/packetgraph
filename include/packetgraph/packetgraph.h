@@ -26,6 +26,7 @@
 #include <packetgraph/thread.h>
 #include <packetgraph/antispoof.h>
 #include <packetgraph/diode.h>
+#include <packetgraph/accumulator.h>
 #include <packetgraph/firewall.h>
 #include <packetgraph/hub.h>
 #include <packetgraph/nic.h>
