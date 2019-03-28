@@ -31,6 +31,7 @@ If you want a graphical representation of a graph, you can generate a [dot](http
 - vhost: allow to connect a vhost NIC to a virtual machine (virtio based)
 - firewall: allow traffic filtering passing through it (based on [NPF](https://github.com/rmind/npf))
 - diode: only let packets pass in one direction
+- accumulator: batch bursted packets to increase poll and burst speed
 - hub: act as a hub device, passing packets to all connected bricks
 - nic: allow passing packets to a NIC of the system (accelerated by DPDK)
 - print: a basic print brick to show packets flowing through it
