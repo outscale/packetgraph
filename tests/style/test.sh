@@ -36,7 +36,8 @@ fi
 # directories and files to scan
 # Note: using -path ./folder_to_exclude -prune
 directories="$PACKETGRAPH_ROOT"
-filelist=$(find "$PACKETGRAPH_ROOT"/src/ -path "$PACKETGRAPH_ROOT"/src/npf -prune -o -type f -name "*.c" -printf %p\  -o -type f -name "*.h" -printf %p\ )
+filelist=$(find "$PACKETGRAPH_ROOT"/src/ -path "$PACKETGRAPH_ROOT"/src/npf -prune -o -path "$PACKETGRAPH_ROOT"/src/dpdk -prune -o -type f -name "*.c" -printf %p\  -o -type f -name "*.h" -printf %p\ )
+echo $filelist
 filelist_tests=$(find "$PACKETGRAPH_ROOT"/tests/ -type f -name "*.c" -printf %p\  -o -type f -name "*.h" -printf %p\ )
 filelist_examples=$(find "$PACKETGRAPH_ROOT"/examples/ -type f -name "*.c" -printf %p\  -o -type f -name "*.h" -printf %p\ )
 
