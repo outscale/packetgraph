@@ -77,11 +77,11 @@ You may adapt this depending on your Linux distribution:
 
 Ubuntu
 ```
-$ sudo apt-get install automake libtool libpcap-dev libglib2.0-dev libjemalloc-dev libnuma-dev openssl
+$ sudo apt-get install libpcap-dev libglib2.0-dev libjemalloc-dev libnuma-dev openssl
 ```
 CentOS
 ```
-$ sudo yum install -y automake glibc-devel glib2-devel libtool libpcap-devel git wget numactl numactl-devel openssl-devel clang
+$ sudo yum install -y glibc-devel glib2-devel libpcap-devel git wget numactl numactl-devel openssl-devel clang
 $ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_64/jemalloc-devel-3.6.0-8.el7.centos.x86_64.rpm
 $ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_64/jemalloc-3.6.0-8.el7.centos.x86_64.rpm
 $ sudo rpm -i jemalloc-devel-3.6.0-8.el7.centos.x86_64.rpm jemalloc-3.6.0-8.el7.centos.x86_64.rpm
