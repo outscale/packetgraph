@@ -84,7 +84,6 @@ function print_modifiers {
 		echo -e "Syntax    : ./configure [options] CC=gcc EXTRA_CFLAGS=\"-g -O2 -j4 ...\""
 		echo -e "  CC\t\tR\tCompiler"
 		echo -e "  EXTRA_CFLAGS\tA\tCompiler option, adds to PG_CFLAGS normal compilation"
-		echo -e "  RTE_SDK\tR\tRoot directory of DPDK"
 		echo -e "  PG_NAME\tR\tName of the compiled library ({NAME}.a / {NAME}.so.x.y.z)"
 }
 
@@ -96,7 +95,6 @@ function print_var {
 		echo "PG_NAME=$PG_NAME"
 		echo "GLIB_HEADERS=$GLIB_HEADERS"
 		echo "GLIB_LIBS=$GLIB_LIBS"
-		echo "RTE_SDK=$RTE_SDK"
 		echo "RTE_SDK_HEADERS=$RTE_SDK_HEADERS"
 		echo "RTE_SDK_LIBS=$RTE_SDK_LIBS"
 		echo -en "$newExport"
@@ -177,7 +175,7 @@ rm -f "$(pwd)"/src/npf/npf/src/kern/stand/net/npfkern.h
 mkdir -p "$(pwd)"/src/npf/npf/src/kern/stand/net
 ln --symbolic -t ./src/npf/npf/src/kern/stand/net/ "$(pwd)"/src/npf/npf/src/kern/npfkern.h
 
-modifiers=("CC" "EXTRA_CFLAGS" "RTE_SDK" "PG_NAME", "PG_MARCH")
+modifiers=("CC" "EXTRA_CFLAGS" "PG_NAME" "PG_MARCH")
 addBenchmark=false
 addExample=false
 addAsan=false
@@ -272,15 +270,12 @@ var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
 var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
 var_add PG_MARCH "core-avx-i"
 
-if [ ! "$RTE_SDK" ]; then
+if [ ! -d "$dpdk_path" ]; then
 	echo
-	(>&2 echo "ERROR: RTE_SDK not set")
-	echo "Set RTE_SDK :"
-	echo "	cd {DPDK root directory}"
-	echo "	export RTE_SDK=\$(pwd)"
+	(>&2 echo "ERROR: DPDK not found, should be [packetgraph_root]/src/dpdk")
 	exit;
 fi
-var_add RTE_SDK_HEADERS "-I$RTE_SDK/build/include/"
-var_add RTE_SDK_LIBS "-lm -lpthread -ldl -lpcap -lnuma -L$RTE_SDK/build/lib/ -ldpdk"
+var_add RTE_SDK_HEADERS "-I$(pwd)/$dpdk_path/build/include/"
+var_add RTE_SDK_LIBS "-lm -lpthread -ldl -lpcap -lnuma -L$(pwd)/$dpdk_path/build/lib/ -ldpdk"
 
 $pv
