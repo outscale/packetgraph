@@ -10,3 +10,6 @@
 [submodule "src/npf/libqsbr"]
 	path = src/npf/libqsbr
 	url = https://github.com/rmind/libqsbr.git
+[submodule "src/dpdk"]
+	path = src/dpdk
+	url = http://dpdk.org/git/dpdk
