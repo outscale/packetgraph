@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 
 make clean || true
 export RTE_SDK=/home/jenkins/dpdk
-#git submodule sync
+git submodule sync
 git submodule update --init
 ./configure CC=clang --with-examples --with-benchmarks
 ./run_tests.sh
