@@ -10,8 +10,8 @@ git submodule sync
 git submodule update --init
 ./configure CC=clang --with-examples --with-benchmarks
 ./run_tests.sh
-pkill -15 -f qemu | true
-pkill -15 -f vhost | true
+pkill -15 -f qemu || true
+pkill -15 -f vhost || true
 
 echo "Build result is OK"
 exit 0
