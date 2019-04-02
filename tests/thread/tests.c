@@ -158,6 +158,7 @@ int main(int argc, char **argv)
 	/* initialize packetgraph */
 	ret = pg_start(argc, argv);
 	g_assert(ret >= 0);
+	g_assert(!pg_init_seccomp());
 
 	pg_test_add_func("/threads/lifecycle", test_threads_lifecycle);
 	pg_test_add_func("/threads/run", test_threads_run);

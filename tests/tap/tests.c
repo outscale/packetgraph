@@ -62,6 +62,7 @@ static void test_tap_lifecycle(void)
 	char *ifname_dup;
 
 	/* create tap */
+	g_assert(!pg_init_seccomp());
 	g_assert(!iface_exists("YAY"));
 	tap = pg_tap_new("tap", "YAY", &error);
 	g_assert(tap);
@@ -246,9 +247,9 @@ int main(int argc, char **argv)
 	/* initialize packetgraph */
 	g_assert(pg_start(argc, argv) >= 0);
 
-	pg_test_add_func("/tap/lifecycle", test_tap_lifecycle);
 	pg_test_add_func("/tap/com", test_tap_com);
 	pg_test_add_func("/tap/mac", test_tap_mac);
+	pg_test_add_func("/tap/lifecycle", test_tap_lifecycle);
 	int r = g_test_run();
 
 	pg_stop();

@@ -515,6 +515,7 @@ int main(int argc, char **argv)
 
 	/* initialize packetgraph */
 	pg_start(argc, argv);
+	g_assert(!pg_init_seccomp());
 
 	pg_test_add_func("/queue/lifecycle", test_queue_lifecycle);
 	pg_test_add_func("/queue/friend", test_queue_friend);

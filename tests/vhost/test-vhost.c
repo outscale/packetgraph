@@ -756,6 +756,48 @@ static void test_vhost_net_classics(void)
 	qemu_duo_destroy(&p);
 }
 
+static void test_vhost_seccomp(void)
+{
+	struct pg_brick *vhost_0, *vhost_1;
+	struct pg_error *error = NULL;
+	int ret;
+	uint16_t count;
+
+	/* initialize seccomp*/
+	g_assert(!pg_init_seccomp());
+
+	/* start vhost */
+	ret = pg_vhost_start("/tmp", &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	/* instanciate brick */
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
+	g_assert(!error);
+	g_assert(vhost_0);
+
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+			       &error);
+	g_assert(!error);
+	g_assert(vhost_1);
+
+	/* try functions for filter */
+	pg_vhost_socket_path(vhost_0);
+	pg_brick_poll(vhost_1, &count, &error);
+	pg_vhost_request_remove(vhost_0);
+
+
+	/* destroy vhost brick */
+	pg_brick_destroy(vhost_0);
+	g_assert(!error);
+	pg_brick_destroy(vhost_1);
+	g_assert(!error);
+
+	/* stop vhost */
+	pg_vhost_stop();
+}
+
 void test_vhost(void)
 {
 	pg_test_add_func("/vhost/net_classics", test_vhost_net_classics);
@@ -765,6 +807,7 @@ void test_vhost(void)
 	if (glob_long_tests)
 		pg_test_add_func("/vhost/reco", test_vhost_reco);
 	pg_test_add_func("/vhost/destroy", test_vhost_destroy);
+	pg_test_add_func("/vhost/seccomp", test_vhost_seccomp);
 }
 
 #undef SSH
