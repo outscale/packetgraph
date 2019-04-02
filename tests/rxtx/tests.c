@@ -228,6 +228,7 @@ int main(int argc, char **argv)
 
 	/* initialize packetgraph */
 	g_assert(pg_start(argc, argv) >= 0);
+	g_assert(!pg_init_seccomp());
 
 	pg_test_add_func("/rxtx/lifecycle", test_rxtx_lifecycle);
 	pg_test_add_func("/rxtx/rx_to_tx", test_rxtx_rx_to_tx);

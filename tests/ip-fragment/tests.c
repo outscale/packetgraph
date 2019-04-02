@@ -109,6 +109,7 @@ int main(int argc, char **argv)
 
 	/* initialize packetgraph */
 	g_assert(pg_start(argc, argv) >= 0);
+	g_assert(!pg_init_seccomp());
 
 	pg_test_add_func("/ip_fragment/fragment", test_fragment);
 	int r = g_test_run();

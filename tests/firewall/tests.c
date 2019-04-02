@@ -818,6 +818,7 @@ int main(int argc, char **argv)
 
 	/* initialize packetgraph */
 	g_assert(pg_start(argc, argv) >= 0);
+	g_assert(!pg_init_seccomp());
 
 	test_firewall();
 	int r = g_test_run();

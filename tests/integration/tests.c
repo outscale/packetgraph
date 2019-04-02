@@ -458,6 +458,7 @@ static void test_graph_firewall_intense(void)
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
+	g_assert(!pg_init_seccomp());
 
 	for (int i = 0; i < 100; ++i) {
 		nic = pg_nic_new_by_id("nic", ring_port(), &error);
@@ -507,6 +508,7 @@ static void test_graph_firewall_intense_multiple(void)
 
 	pg_vhost_start("/tmp", &error);
 	CHECK_ERROR(error);
+	g_assert(!pg_init_seccomp());
 
 	for (int i = 0; i < 100; ++i) {
 		for (int j = 0; j < PG_BRANCHES_NB; j++) {

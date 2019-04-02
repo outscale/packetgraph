@@ -95,6 +95,7 @@ static void test_print_simple(void)
 	struct rte_mbuf **pkts;
 	uint64_t pkts_mask;
 
+	g_assert(!pg_init_seccomp());
 	build_packets(packets);
 	gen = pg_packetsgen_new("gen", 1, 1, PG_EAST_SIDE, packets, NB_PKTS,
 				&error);
@@ -191,8 +192,8 @@ int main(int argc, char **argv)
 	/* initialize packetgraph */
 	g_assert(pg_start(argc, argv) >= 0);
 
-	pg_test_add_func("/print/simple", test_print_simple);
 	pg_test_add_func("/print/pcap", test_print_pcap);
+	pg_test_add_func("/print/simple", test_print_simple);
 
 	int r = g_test_run();
 

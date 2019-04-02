@@ -62,6 +62,7 @@ int main(int argc, char **argv)
 	/* initialize packetgraph */
 	ret = pg_start(argc, argv);
 	g_assert(ret >= 0);
+	g_assert(!pg_init_seccomp());
 
 	/* accounting program name */
 	ret += + 1;
