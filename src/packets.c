@@ -214,7 +214,7 @@ struct rte_mbuf **pg_packets_append_ipv6(struct rte_mbuf **pkts,
 		tmp = rte_pktmbuf_##ops(pkts[j], sizeof(udp_hdr));	\
 		if (!tmp)						\
 			return NULL;					\
-		memcpy(tmp, &udp_hdr, sizeof(udp_hdr));			\
+		rte_memcpy(tmp, &udp_hdr, sizeof(udp_hdr));		\
 	}								\
 
 struct rte_mbuf **pg_packets_append_udp(struct rte_mbuf **pkts,
