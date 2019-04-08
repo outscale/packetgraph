@@ -38,15 +38,26 @@
 #define TCP_PROTOCOL_NUMBER 6
 #define UDP_PROTOCOL_NUMBER 17
 
-static inline int pg_rte_devargs_remove(struct rte_devargs *devargs)
+static inline int pg_nic_port(char *ifname)
 {
+	uint16_t portid;
 
-#if (RTE_VERSION_NUM(18, 5, 0, 0) > RTE_VERSION)
+#if  (RTE_VERSION_NUM(18, 02, 0, 0) > RTE_VERSION)
 #error"DPDK is too old"
-#elif (RTE_VERSION_NUM(18, 11, 0, 0) > RTE_VERSION)
-	return rte_devargs_remove(devargs->bus->name, devargs->name);
+#elif (RTE_VERSION_NUM(19, 02, 0, 0) > RTE_VERSION)
+	if (rte_eth_dev_attach(ifname, &portid) < 0)
+		return -1;
+
+	return portid;
 #else
-	return rte_devargs_remove(devargs);
+	struct rte_dev_iterator it;
+
+	if (rte_dev_probe(ifname) != 0)
+		return -1;
+
+	RTE_ETH_FOREACH_MATCHING_DEV(portid, ifname, &it) {
+		return portid;
+	}
 #endif
 	return -1;
 }
@@ -341,28 +352,14 @@ static int nic_init(struct pg_brick *brick, struct pg_brick_config *config,
 
 	/* Setup port id */
 	if (nic_config->ifname[0]) {
-		struct rte_devargs pg_cleanup(pg_rte_devargs_remove) devargs;
-
-		/* parse devargs */
-		if (rte_devargs_parse(&devargs, nic_config->ifname)) {
-			*errp = pg_error_new("Invalid parameter %s",
+		ret = pg_nic_port(nic_config->ifname);
+		if (ret < 0) {
+			*errp = pg_error_new("Failed to attach port %s\n",
 					     nic_config->ifname);
 			return -1;
 		}
-
-		if (rte_eal_hotplug_add(devargs.bus->name, devargs.name,
-					 devargs.args) < 0) {
-			*errp = pg_error_new("Unable to hot plugging %s",
-					     devargs.args);
-			return -1;
-		}
-		if (rte_eth_dev_get_port_by_name(devargs.name,
-						 &state->portid) < 0) {
-			*errp = pg_error_new("Unable to get device %s",
-					     devargs.name);
-			return -1;
-		}
-	} else if (nic_config->portid < rte_eth_dev_count_avail()) {
+		state->portid = ret;
+	} else if (nic_config->portid < pg_nic_port_count()) {
 		state->portid = nic_config->portid;
 	} else {
 		*errp = pg_error_new("Invalid port id %i",
@@ -463,7 +460,10 @@ struct pg_brick *pg_nic_new_by_id(const char *name,
 
 int pg_nic_port_count(void)
 {
+#if (RTE_VERSION_NUM(18, 05, 0, 0) < RTE_VERSION)
 	return rte_eth_dev_count_avail();
+#endif
+	return rte_eth_dev_count();
 }
 
 static void nic_link(struct pg_brick *brick, enum pg_side side, int edge)
