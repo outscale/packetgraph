@@ -9,13 +9,18 @@ error_print()
     has_ponysay=$?
 
     if [ $has_ponysay -eq 0 ]; then
-	ponysay --pony derpysad "$1"
+	echo -e "$1" | ponysay --pony derpysad
     elif [ $has_cowsay -eq 255 ]; then
-	echo "$1" | cowsay -d
+	echo -e "$1" | cowsay -d
     else
 	tput setaf 1
-	echo "$1"
+	echo -e "$1"
 	tput sgr0
     fi
 }
 
+fail()
+{
+    error_print "$@"
+    exit 1
+}
