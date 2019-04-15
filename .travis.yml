@@ -31,7 +31,6 @@ before_install:
 
 env:
  - TEST_SCRIPT=tests_travis/test_all.sh
- - TEST_SCRIPT=tests_travis/bench_all.sh
  - TEST_SCRIPT=tests_travis/doc_style.sh
 
 script: "bash $TRAVIS_BUILD_DIR/$TEST_SCRIPT"
