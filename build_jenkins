@@ -5,13 +5,14 @@ set -e
 cd "$(dirname "$0")"
 
 make clean || true
+make fclean || true
 export RTE_SDK=/home/jenkins/dpdk
 git submodule sync
 git submodule update --init
 ./configure CC=clang --with-examples --with-benchmarks
 ./run_tests.sh
-pkill -15 -f qemu | true
-pkill -15 -f vhost | true
+pkill -15 -f qemu || true
+pkill -15 -f vhost || true
 
 echo "Build result is OK"
 exit 0

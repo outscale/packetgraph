@@ -3,7 +3,6 @@
 set -x
 set -e
 
-make fclean
 make style
 make
 make tests_compile
