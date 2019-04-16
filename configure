@@ -13,7 +13,7 @@ function build_dpdk {
 	sed -i "s/CONFIG_RTE_EAL_IGB_UIO=y/CONFIG_RTE_EAL_IGB_UIO=n/" ./build/.config
 	sed -i "s/CONFIG_RTE_KNI_KMOD=y/CONFIG_RTE_KNI_KMOD=n/" ./build/.config
 	echo "Building DPDK"
-	make EXTRA_CFLAGS='-fPIC'
+	make EXTRA_CFLAGS='-fPIC -O2 -g'
 	if [ $? != 0 ]; then
 	    fail "DPDK build fail\nYou are on your own\nGood Luck !"
 	fi
@@ -152,7 +152,6 @@ cd $DIR
 source "$DIR"/configure-helper.sh
 source "$DIR"/error_print.sh
 
-"$DIR"/dpdk_symbols.sh
 rm -f "$DIR"/src/npf/libqsbr/qsbr/ebr.h
 mkdir -p "$DIR"/src/npf/libqsbr/qsbr
 ln --symbolic -t "$DIR"/src/npf/libqsbr/qsbr/ "$DIR"/src/npf/libqsbr/src/ebr.h
@@ -250,6 +249,9 @@ if $addAsan;then
 	fi
 	newExport+="PG_ASAN_CFLAGS=$PG_ASAN_CFLAGS\n"
 fi
+
+"$DIR"/dpdk_symbols.sh
+
 var_add PG_NAME "libpacketgraph"
 var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
 var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
