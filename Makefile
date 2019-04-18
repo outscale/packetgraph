@@ -133,6 +133,7 @@ endif
 
 install: $(PG_NAME)
 	mkdir -p $(PREFIX)/lib/
+	mkdir -p $(PREFIX)/include/
 	@cp -v $(PG_NAME).a $(PREFIX)/lib/
 	@cp -v $(PG_NAME).so* $(PREFIX)/lib/
 	@cp -v $(PG_NAME)-dev.a* $(PREFIX)/lib/
@@ -146,6 +147,7 @@ install: $(PG_NAME)
 	@cp -v libqsbr.a $(PREFIX)/lib/
 	@cp -v libsljit.a $(PREFIX)/lib/
 	@cp -v libthmap.a $(PREFIX)/lib/
+	@cp -vr include/ $(PREFIX)/
 
 uninstall:
 	@rm -fv $(PREFIX)/lib/$(PG_NAME)* # what could posibly go wrong ?
@@ -158,6 +160,7 @@ uninstall:
 	@rm -fv	$(PREFIX)/lib/libqsbr.a
 	@rm -fv	$(PREFIX)/lib/libsljit.a
 	@rm -fv	$(PREFIX)/lib/libthmap.a
+	@rm -rvf $(PREFIX)/include/packetgraph/
 
 help:
 	@echo "make               : build packetgraph"
