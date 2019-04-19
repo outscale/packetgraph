@@ -237,6 +237,15 @@ int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
 		return pg_vtep6_add_mac(brick, vni, mac, errp);
 }
 
+int pg_vtep_unset_mac(struct pg_brick *brick, uint32_t vni,
+		      struct ether_addr *mac, struct pg_error **errp)
+{
+	if (!strcmp(pg_brick_type(brick), "vtep4"))
+		return pg_vtep4_unset_mac(brick, vni, mac, errp);
+	return pg_vtep6_unset_mac(brick, vni, mac, errp);
+
+}
+
 static struct pg_brick_ops vtep_ops = {
 	.name		= "vtep4",
 	.state_size	= sizeof(struct vtep_state),
