@@ -65,6 +65,7 @@ struct full_header {
 struct dest_addresses {
 	struct ether_addr mac;
 	IP_TYPE ip;
+	uint64_t lifetime;
 };
 
 struct vtep_config {
@@ -74,7 +75,10 @@ struct vtep_config {
 	uint16_t udp_dst_port;
 	int flags;
 };
-			/* 0000 1000 0000 ... */
+
+#define DEFAULT_MAX_LIFETIME 1000
+
+/* 0000 1000 0000 ... */
 #define VTEP_I_FLAG	0x08000000
 
 #define UDP_MIN_PORT 49152
@@ -124,8 +128,9 @@ struct vtep_state {
 	int flags;
 	struct rte_mbuf *pkts[64];
 	IP_TYPE ip; /* IP of the VTEP */
+	int64_t max_lifetime;
+	int64_t vtep_tick;
 	jmp_buf exeption_env;
-	uint64_t out_pkts_mask;
 };
 
 static inline int are_mac_tables_dead(struct vtep_port *port)
@@ -305,6 +310,7 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 	/* select destination IP and MAC address */
 	if (likely(unicast)) {
+		entry->lifetime = state->vtep_tick;
 		ethernet_build(ethernet, &state->mac, &entry->mac);
 		ip_build(state, &headers->ip, state->ip, entry->ip,
 			 packet_len + ip_overhead());
@@ -443,8 +449,7 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 			port->dead_tables = IS_KNOWN_MAC_DEAD | HAS_BEEN_BROKEN;
 			pg_mac_table_free(&port->known_mac);
 			if (!(state->flags & PG_VTEP_NO_COPY))
-				pg_packets_free(state->pkts,
-						state->out_pkts_mask);
+				pg_packets_free(state->pkts, pkts_mask);
 			*errp = pg_error_new_errno(ENOMEM,
 						   "not enouth space to add mac");
 			return -1;
@@ -472,7 +477,7 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 				     struct rte_mbuf **pkts,
 				     struct ether_addr **eths,
 				     struct headers **hdrs,
-				     uint64_t pkts_mask,
+				     uint64_t vni_mask,
 				     uint64_t multicast_mask)
 {
 	uint64_t mask;
@@ -481,8 +486,7 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 
 	tmp.mac = 0;
 
-	if (unlikely(port->dead_tables))
-		multicast_mask = pkts_mask;
+	multicast_mask = vni_mask;
 
 	for (mask = multicast_mask; mask;) {
 		int i;
@@ -499,6 +503,7 @@ static inline void add_dst_iner_macs(struct vtep_state *state,
 		pg_ip_copy(hdrs[i]->ip.src_addr, &dst.ip);
 #endif
 		rte_memcpy(tmp.bytes, &pkt_addr->s_addr.addr_bytes, 6);
+		dst.lifetime = state->vtep_tick;
 		pg_mac_table_elem_set(&port->mac_to_dst, tmp, &dst,
 				      sizeof(struct dest_addresses));
 	}
@@ -642,6 +647,7 @@ static inline int decapsulate(struct pg_brick *brick, enum pg_side from,
 		if (!vni_mask)
 			continue;
 
+		/* BROKEN see simple */
 		pkts_mask ^= vni_mask;
 		if (state->flags & PG_VTEP_NO_INNERMAC_CHECK) {
 			hitted_mask = vni_mask;
@@ -732,7 +738,6 @@ static inline int decapsulate_simple(struct pg_brick *brick, enum pg_side from,
 					  hdrs, port);
 		if (!vni_mask)
 			continue;
-
 		pkts_mask ^= vni_mask;
 		add_dst_iner_macs(state, port, pkts, eths, hdrs,
 				  vni_mask, multicast_mask);
@@ -907,6 +912,7 @@ static int vtep_burst(struct pg_brick *brick, enum pg_side from,
 {
 	struct vtep_state *state = pg_brick_get_state(brick, struct vtep_state);
 
+	++state->vtep_tick;
 	/*
 	 * if pkts come from the outside,
 	 * so the pkts are entering in the vtep
@@ -933,6 +939,7 @@ static int vtep_init(struct pg_brick *brick,
 	ether_addr_copy(&vtep_config->mac, &state->mac);
 	state->flags = vtep_config->flags;
 	state->udp_dst_port_be = rte_cpu_to_be_16(vtep_config->udp_dst_port);
+	state->max_lifetime = DEFAULT_MAX_LIFETIME;
 	#if IP_VERSION == 4
 	state->sum = pg_ipv4_init_cksum(state->ip);
 	state->packet_id = 0;
@@ -1071,34 +1078,75 @@ int pg_vtep_add_vni_(struct pg_brick *brick,
 	return 0;
 }
 
-#undef VTEP_I_FLAG
-#undef UDP_MIN_PORT
-#undef UDP_PORT_RANGE
-#undef CATCAT
-#undef CAT
-#undef ip_udptcp_cksum
-#undef header_
-#undef header
-#undef fullhdr_
-#undef fullhdr
-#undef HEADER_LENGTH
-#undef ETHER_TYPE_IP_
-#undef ETHER_TYPE_IP
-#undef PG_BE_ETHER_TYPE_IP_
-#undef PG_BE_ETHER_TYPE_IP
-#undef multicast_subscribe_
-#undef multicast_subscribe
-#undef multicast_unsubscribe_
-#undef multicast_unsubscribe
-#undef ip_build
-#undef BRICK_NAME_4
-#undef BRICK_NAME_6
-#undef BRICK_NAME_
-#undef IP_TYPE_4
-#undef IP_TYPE_6
-#undef IP_TYPE_
-#undef IP_TYPE
-#undef IP_IN_TYPE_4
-#undef IP_IN_TYPE_6
-#undef IP_IN_TYPE_
-#undef IP_IN_TYPE
+#define pg_vtep_clean_all_mac__(version)		\
+	CATCAT(pg_vtep, version, _clean_all_mac)
+#define pg_vtep_clean_all_mac_ pg_vtep_clean_all_mac__(IP_VERSION)
+
+void pg_vtep_clean_all_mac_(struct pg_brick *brick, int port_id)
+{
+	struct vtep_state *s = pg_brick_get_state(brick, struct vtep_state);
+	int nb_ports = brick->sides[pg_flip_side(s->output)].nb;
+	struct vtep_port *p = &s->ports[port_id % nb_ports];
+	struct pg_mac_table *ma = &p->mac_to_dst;
+
+	if (unlikely(port_id >= nb_ports))
+		return;
+	pg_mac_table_clear(ma);
+}
+
+
+#define pg_vtep_cleanup_mac__(version) CATCAT(pg_vtep, version, _cleanup_mac)
+#define pg_vtep_cleanup_mac_ pg_vtep_cleanup_mac__(IP_VERSION)
+
+void pg_vtep_cleanup_mac_(struct pg_brick *brick, int port_id)
+{
+	struct vtep_state *s = pg_brick_get_state(brick, struct vtep_state);
+	int nb_ports = brick->sides[pg_flip_side(s->output)].nb;
+	struct vtep_port *p = &s->ports[port_id % nb_ports];
+	uint64_t tick = s->vtep_tick;
+	uint64_t max_life = s->max_lifetime;
+	struct pg_mac_table *ma = &p->mac_to_dst;
+
+	if (unlikely(port_id >= nb_ports))
+		return;
+	PG_MAC_TABLE_FOREACH_ELEM(ma, mac,
+				 struct dest_addresses, da) {
+
+		if (unlikely((tick - da->lifetime) > max_life))
+			pg_mac_table_elem_unset(ma, mac);
+	}
+
+}
+
+#define pg_vtep_mac_to_dst__(v) CATCAT(pg_vtep, v, _mac_to_dst)
+#define pg_vtep_mac_to_dst_ pg_vtep_mac_to_dst__(IP_VERSION)
+
+struct pg_mac_table *pg_vtep_mac_to_dst_(struct pg_brick *brick,
+					 int port_id)
+{
+	struct vtep_state *s = pg_brick_get_state(brick, struct vtep_state);
+	int nb_ports = brick->sides[pg_flip_side(s->output)].nb;
+	struct vtep_port *p = &s->ports[port_id % nb_ports];
+
+	return &p->mac_to_dst;
+}
+
+#define pg_vtep_unset_mac__(v) CATCAT(pg_vtep, v, _unset_mac)
+#define pg_vtep_unset_mac_ pg_vtep_unset_mac__(IP_VERSION)
+int pg_vtep_unset_mac_(struct pg_brick *brick, uint32_t vni,
+		       struct ether_addr *mac, struct pg_error **errp)
+{
+	struct vtep_state *s = pg_brick_get_state(brick, struct vtep_state);
+	int nb_ports = brick->sides[pg_flip_side(s->output)].nb;
+
+	for (int i = 0; i < nb_ports; ++i) {
+		struct vtep_port *p = &s->ports[vni];
+		struct pg_mac_table *ma = &p->mac_to_dst;
+
+		if (p->vni == vni) {
+			return pg_mac_table_elem_unset(ma, (union pg_mac)
+						       {.rte_addr = *mac});
+		}
+	}
+	return -1;
+}

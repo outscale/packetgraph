@@ -47,6 +47,16 @@ struct ether_addr;
 struct ether_addr *pg_vtep_get_mac(const struct pg_brick *brick);
 
 /**
+ * Cleanup mac that have timeout
+ * This operation iterate over every mac
+ * It's slow, even with an empty mac table
+ * @param brick a pointer to a vtep brick
+ * @port_id the port id (so the index of the connected brick)
+ */
+void pg_vtep4_cleanup_mac(struct pg_brick *brick, int port_id);
+void pg_vtep6_cleanup_mac(struct pg_brick *brick, int port_id);
+
+/**
  * Add a VNI to the VTEP
  *
  * @param   brick the brick we are working on
@@ -129,6 +139,17 @@ inline int pg_vtep_add_vni(struct pg_brick *brick,
  */
 int pg_vtep_add_mac(struct pg_brick *brick, uint32_t vni,
 		    struct ether_addr *mac, struct pg_error **errp);
+
+/**
+ * Like what the function name say
+ * @param   brick the brick we are working on
+ * @param   vni the vni on which you want to add mac
+ * @param   mac the mac
+ * @param   errp an error pointer
+ * @return  0 on success, -1 on error
+ */
+int pg_vtep_unset_mac(struct pg_brick *brick, uint32_t vni,
+		      struct ether_addr *mac, struct pg_error **errp);
 
 /**
  * Create a new vtep

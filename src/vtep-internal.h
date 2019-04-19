@@ -34,9 +34,46 @@ enum operation {
 	IGMP_UNSUBSCRIBE = 0x17,
 };
 
+
+void pg_vtep4_clean_all_mac(struct pg_brick *v, int port_id);
+void pg_vtep6_clean_all_mac(struct pg_brick *v, int port_id);
+
 int pg_vtep4_add_mac(struct pg_brick *brick, uint32_t vni,
 		     struct ether_addr *mac, struct pg_error **errp);
 int pg_vtep6_add_mac(struct pg_brick *brick, uint32_t vni,
 		     struct ether_addr *mac, struct pg_error **errp);
+
+struct pg_mac_table *pg_vtep4_mac_to_dst(struct pg_brick *brick,
+					 int port_id);
+struct pg_mac_table *pg_vtep6_mac_to_dst(struct pg_brick *brick,
+					 int port_id);
+
+int pg_vtep4_unset_mac(struct pg_brick *brick, uint32_t vni,
+		       struct ether_addr *mac, struct pg_error **errp);
+int pg_vtep6_unset_mac(struct pg_brick *brick, uint32_t vni,
+		       struct ether_addr *mac, struct pg_error **errp);
+
+/*
+ * headers_v4/6 and dest_addresses_v4 are not use in any vtep implementations
+ * but are here for tests
+ */
+struct headers_v4 {
+	struct ipv4_hdr	 ip; /* define in rte_ip.h */
+	struct udp_hdr	 udp; /* define in rte_udp.h */
+	struct vxlan_hdr vxlan; /* define in rte_ether.h */
+} __attribute__((__packed__));
+
+struct headers_v6 {
+	struct ipv6_hdr	 ip; /* define in rte_ip.h */
+	struct udp_hdr	 udp; /* define in rte_udp.h */
+	struct vxlan_hdr vxlan; /* define in rte_ether.h */
+} __attribute__((__packed__));
+
+struct dest_addresses_v4 {
+	struct ether_addr mac;
+	uint32_t ip;
+	uint64_t lifetime;
+};
+
 
 #endif /* VTEP_INTERNAL_H_ */
