@@ -87,6 +87,7 @@ $ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_
 $ sudo rpm -i jemalloc-devel-3.6.0-8.el7.centos.x86_64.rpm jemalloc-3.6.0-8.el7.centos.x86_64.rpm
 ```
 
+If you want to test benchmarks install `brctl` and QEMU >= 2.5
 ## Build DPDK
 
 ```
