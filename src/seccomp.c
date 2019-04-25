@@ -76,6 +76,11 @@ int pg_init_seccomp(void)
 		ALLOW_SYSCALL(prctl),
 		ALLOW_SYSCALL(move_pages),
 
+		ALLOW_SYSCALL(flock),
+		ALLOW_SYSCALL(gettimeofday),
+		ALLOW_SYSCALL(stat),
+		ALLOW_SYSCALL(clock_gettime),
+
 		KILL_PROCESS,
 	};
 	struct sock_fprog prog = {
