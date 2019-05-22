@@ -9,7 +9,7 @@ make fclean || true
 export RTE_SDK=/home/jenkins/dpdk
 git submodule sync
 git submodule update --init --recursive
-./configure CC=clang --with-examples --with-benchmarks
+./configure --with-examples --with-benchmarks --with-coverage
 ./run_tests.sh
 pkill -15 -f qemu || true
 pkill -15 -f vhost || true
