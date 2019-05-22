@@ -50,10 +50,11 @@ function print_help {
 		echo -e "  -P --modifiers\t\tPrint available variables"
 		echo -e "  -b --with-benchmarks\t\tCompile benchmarks"
 		echo -e "  -e --with-examples\t\tCompile examples"
+		echo -e "  -c --with-coverage\t\t\tCoverage tests"
 		echo -e "  --asan\t\t\tCompile with address sanitizers"
 		echo -e "  --dpdk-autobuild\t\tAutomatically checkout dpdk and build it"
 		echo -e "  --extra-cflags\t\tspecify compiler flags [-Wall -g -O2]"
-		echo -e "  --march\t\ttarget architecture [core-avx-i]"
+		echo -e "  --march\t\t\ttarget architecture [core-avx-i]"
 		echo -e "  --no-check-compiler\t\tDo not check compiler"
 }
 
@@ -115,6 +116,8 @@ function check_option {
 		doCheckCompiler=false
 	elif [ "$1"  == "--asan" ]; then
 		addAsan=true
+	elif [ "$1" == "--with-coverage" ]; then
+		addCoverage=true
 	fi
 }
 
@@ -142,6 +145,10 @@ function check_option_single {
 	if [[ "$1"  == *"e"* ]]; then
 		addExample=true
 	fi
+	if [[ "$1"  == *"c"* ]]; then
+		addCoverage=true
+	fi
+
 }
 
 DIR=$( dirname "$0" )
@@ -163,6 +170,7 @@ modifiers=("CC" "EXTRA_CFLAGS" "RTE_SDK" "PG_NAME", "PG_MARCH")
 addBenchmark=false
 addExample=false
 addAsan=false
+addCoverage=false
 doCheckCompiler=true
 newExport=""
 
@@ -248,6 +256,11 @@ if $addAsan;then
 		var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment"
 	fi
 	newExport+="PG_ASAN_CFLAGS=$PG_ASAN_CFLAGS\n"
+fi
+
+if $addCoverage; then
+	var_add PG_COV_CFLAGS "-g -O0 -fprofile-arcs -ftest-coverage"
+	var_add PG_COV_LFLAGS "-lgcov"
 fi
 
 "$DIR"/dpdk_symbols.sh

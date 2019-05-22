@@ -59,9 +59,9 @@ PG_HEADERS = \
 PG_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 	#FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
 
-PG_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols
+PG_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols $(PG_COV_LFLAGS)
 
-PG_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) $(PG_ASAN_CFLAGS) -Wno-implicite-fallthrough -Wno-unknown-warning-option -Wno-deprecated-declarations -Wno-address-of-packed-member
+PG_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) $(PG_ASAN_CFLAGS) -Wno-implicite-fallthrough -Wno-unknown-warning-option -Wno-deprecated-declarations -Wno-address-of-packed-member $(PG_COV_CFLAGS)
 
 PG_dev_CFLAGS = $(PG_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
 
@@ -73,7 +73,10 @@ ACLOCAL_AMFLAGS = -I m4
 
 .DEFAULT_GOAL := all
 
-.PHONY: doc style check clean fclean help all install uninstall
+.PHONY: doc style check clean fclean help all install uninstall cov
+
+cov:
+	$(srcdir)tests_coverage.sh
 
 all: dev $(PG_NAME)
 
@@ -118,6 +121,12 @@ endif
 ifdef EXAMPLE_INCLUDED
 	$(MAKE) exampleclean
 endif
+ifdef PG_COV_CFLAGS
+	@rm -fv $(srcdir)src/*.gcno
+	@rm -fv $(srcdir)src/*.gcda
+	@rm -fv $(srcdir)tests/*/*.gcda
+	@rm -fv $(srcdir)tests/*/*.gcno
+endif
 
 fclean: clean fclean_npf testclean
 	@rm -fv $(PG_NAME).a
@@ -130,6 +139,13 @@ endif
 ifdef EXAMPLE
 	$(MAKE) examplefclean
 endif
+ifdef PG_COV_CFLAGS
+	@rm -fv $(srcdir)/src/*.gcno
+	@rm -fv $(srcdir)/src/*.gcda
+	@rm -fv $(srcdir)tests/*/*.gcda
+	@rm -fv $(srcdir)tests/*/*.gcno
+endif
+
 
 install: $(PG_NAME)
 	mkdir -p $(PREFIX)/lib/

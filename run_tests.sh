@@ -49,3 +49,5 @@ if [ "$(whoami)" != "travis" ]; then
     ./tests/integration/test.sh
     ./tests/vhost/test.sh
 fi
+
+make cov
