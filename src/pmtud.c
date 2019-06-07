@@ -26,8 +26,6 @@
 #include "packets.h"
 #include "brick-int.h"
 
-#define ICMP_PROTOCOL_NUMBER 0x01
-
 struct pg_pmtud_config {
 	enum pg_side output;
 	uint32_t mtu_size;
@@ -174,7 +172,7 @@ static int pmtud_init(struct pg_brick *brick,
 	pg_packets_append_ipv4(&state->icmp, 1, 1, 2,
 			       sizeof(struct icmp_hdr) +
 			       sizeof(struct ipv4_hdr),
-			       ICMP_PROTOCOL_NUMBER);
+			       PG_ICMP_PROTOCOL);
 	state->icmp->l2_len = sizeof(struct ether_hdr);
 	state->icmp->l2_type = PG_BE_ETHER_TYPE_IPv4;
 	icmp = (struct icmp_hdr *)rte_pktmbuf_append(state->icmp,

@@ -19,11 +19,18 @@
 #define _PG_PACKETGRAPH_H
 
 #include <stdarg.h>
+
+/* Utils */
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 #include <packetgraph/packet.h>
+#include <packetgraph/network.h>
+
+/* Other */
 #include <packetgraph/graph.h>
 #include <packetgraph/thread.h>
+
+/* Bricks */
 #include <packetgraph/antispoof.h>
 #include <packetgraph/diode.h>
 #include <packetgraph/firewall.h>

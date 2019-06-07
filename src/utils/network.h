@@ -18,6 +18,7 @@
 #ifndef _PG_UTILS_NETWORK_H
 #define _PG_UTILS_NETWORK_H
 
+#include <packetgraph/network.h>
 #include <rte_config.h>
 #include <rte_ether.h>
 #include <rte_ip.h>
@@ -28,12 +29,6 @@
 
 #include "utils/bitmask.h"
 
-#define PG_BE_ETHER_TYPE_ARP PG_CPU_TO_BE_16(ETHER_TYPE_ARP)
-#define PG_BE_ETHER_TYPE_RARP PG_CPU_TO_BE_16(ETHER_TYPE_RARP)
-#define PG_BE_ETHER_TYPE_IPv4 PG_CPU_TO_BE_16(ETHER_TYPE_IPv4)
-#define PG_BE_ETHER_TYPE_IPv6 PG_CPU_TO_BE_16(ETHER_TYPE_IPv6)
-#define PG_BE_ETHER_TYPE_VLAN PG_CPU_TO_BE_16(ETHER_TYPE_VLAN)
-#define PG_BE_IPV4_HDR_DF_FLAG PG_CPU_TO_BE_16(IPV4_HDR_DF_FLAG)
 /* 0000 1000 0000 ... */
 #define PG_VTEP_I_FLAG 0x08000000
 #define PG_VTEP_BE_I_FLAG PG_CPU_TO_BE_32(PG_VTEP_I_FLAG)
