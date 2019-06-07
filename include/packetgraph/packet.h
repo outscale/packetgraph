@@ -52,6 +52,15 @@ PG_WARN_UNUSED
 unsigned int pg_packet_max_len(pg_packet_t *packet);
 
 /**
+ * Compute packet len base on packet layers len + l5_len
+ * @param   packet packet's pointer
+ * @param   l5_len length to adition to other l*_len, see pg_packet_set_l*_len
+ * @return  -1 of len exceeds packet's max size, 0 otherwise
+ */
+PG_WARN_UNUSED
+int pg_packet_compute_len(pg_packet_t *packet, unsigned int l5_len);
+
+/**
  * Set packet's len
  *
  * @param   packet packet's pointer
