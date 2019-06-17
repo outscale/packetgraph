@@ -34,6 +34,12 @@ PG_WARN_UNUSED
 uint8_t *pg_packet_data(pg_packet_t *packet);
 
 /**
+ * @return a pointer to packet's data cast into a pointer of type
+ */
+#define pg_packet_cast_data(pkt, type)		\
+	((type *)pg_packet_data(pkt))
+
+/**
  * Get packet's length
  *
  * @param   packet the packet
