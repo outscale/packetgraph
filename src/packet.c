@@ -56,6 +56,11 @@ uint16_t pg_packet_ipv4_checksum(uint8_t *ip_hdr)
 	return rte_ipv4_cksum((struct ipv4_hdr *) ip_hdr);
 }
 
+uint16_t pg_packet_sum(uint8_t *ip_hdr, size_t len)
+{
+	return rte_raw_cksum(ip_hdr, len);
+}
+
 void pg_packet_set_l2_len(pg_packet_t *packet, unsigned int len)
 {
 	packet->l2_len = len;

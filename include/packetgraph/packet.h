@@ -18,6 +18,7 @@
 #ifndef _PG_PACKET_H
 #define _PG_PACKET_H
 
+#include <stddef.h>
 #include <packetgraph/common.h>
 
 IGNORE_NEW_TYPEDEFS typedef struct rte_mbuf pg_packet_t;
@@ -105,5 +106,7 @@ int pg_packet_get_l4_len(pg_packet_t *packet);
  * @return  checksum value
  */
 uint16_t pg_packet_ipv4_checksum(uint8_t *ip_hdr);
+
+uint16_t pg_packet_sum(uint8_t *ip_hdr, size_t len);
 
 #endif  /* _PG_PACKET_H */
