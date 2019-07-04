@@ -251,10 +251,8 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		 * rte_pktmbuf_adj because it's faster
 		 */
 		tmp->data_off += tmp->l2_len;
-		ret = npf_packet_handler(state->npf,
-					 (struct mbuf **) &tmp,
-					 state->ifp,
-					 pf_side);
+		ret = npf_packet_handler(state->npf, (struct mbuf **) &tmp,
+					 state->ifp, pf_side);
 		pkts[i]->data_off -= pkts[i]->l2_len;
 		if (ret)
 			pkts_mask &= ~bit;
