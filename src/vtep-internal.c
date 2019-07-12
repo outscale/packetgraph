@@ -392,7 +392,7 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 		}
 
 		if (unlikely(vtep_header_prepend(state, tmp, port,
-						  entry, unicast, errp)) < 0) {
+						  entry, unicast, errp) < 0)) {
 			if (!(state->flags & PG_VTEP_NO_COPY))
 				rte_pktmbuf_free(tmp);
 			return -1;
