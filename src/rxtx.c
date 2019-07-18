@@ -110,12 +110,17 @@ static int rxtx_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	struct pg_brick_side *s = &brick->side;
 	uint16_t count = 0;
 
+	tx_burst = state->tx_burst;
 	/* let user write in packets */
-	state->tx(brick, state->tx_burst, &count, state->private_data);
+	for (int i = 0; i < 64; ++i) {
+		struct rte_mbuf *pkt = tx_burst[i];
+
+		rte_pktmbuf_reset(pkt);
+	}
+	state->tx(brick, tx_burst, &count, state->private_data);
 	*pkts_cnt = count;
 	if (unlikely(count == 0))
 		return 0;
-	tx_burst = state->tx_burst;
 	for (int i = 0; i < count; ++i) {
 		pg_utils_guess_metadata(tx_burst[i]);
 		state->tx_bytes += tx_burst[i]->pkt_len;
