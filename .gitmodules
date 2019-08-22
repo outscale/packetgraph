@@ -1,6 +1,6 @@
 [submodule "src/npf/npf"]
 	path = src/npf/npf
-	url = https://github.com/outscale/npf.git
+	url = https://github.com/outscale-dev/npf.git
 [submodule "src/npf/nvlist"]
 	path = src/npf/nvlist
 	url = https://github.com/rmind/nvlist.git
