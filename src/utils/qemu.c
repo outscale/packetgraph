@@ -126,7 +126,7 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	argv = g_strsplit(argv_qemu, " ", 0);
 
 	g_assert(g_spawn_async(NULL, argv, NULL,
-			       (GSpawnFlags) G_SPAWN_SEARCH_PATH |
+			       (GSpawnFlags) G_SPAWN_SEARCH_PATH_FROM_ENVP |
 			       G_SPAWN_DO_NOT_REAP_CHILD,
 			       (GSpawnChildSetupFunc) NULL,
 			       NULL, &child_pid, &error));
