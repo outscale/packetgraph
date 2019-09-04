@@ -1,5 +1,7 @@
 language: c
 
+dist: bionic
+
 cache:
    directories:
     - $TRAVIS_BUILD_DIR/dpdk
