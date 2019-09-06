@@ -61,7 +61,7 @@ PG_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 
 PG_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols $(PG_COV_LFLAGS)
 
-PG_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -fmessage-length=0 -Werror -Wall -Wextra -Wwrite-strings -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) $(PG_ASAN_CFLAGS) -Wno-implicite-fallthrough -Wno-unknown-warning-option -Wno-deprecated-declarations -Wno-address-of-packed-member $(PG_COV_CFLAGS)
+PG_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -fmessage-length=0 -Werror -Wall -Wextra -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) $(PG_ASAN_CFLAGS) -Wno-implicite-fallthrough -Wno-unknown-warning-option -Wno-deprecated-declarations -Wno-address-of-packed-member $(PG_COV_CFLAGS)
 
 PG_dev_CFLAGS = $(PG_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D PG_VHOST_BENCH -D PG_RXTX_BENCH -D PG_TAP_BENCH -D PG_MALLOC_DEBUG
 
