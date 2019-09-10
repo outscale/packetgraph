@@ -177,10 +177,6 @@ newExport=""
 dpdk_target=x86_64-native-linuxapp-gcc
 dpdk_path="$DIR"/3rdparty/dpdk/
 
-echo "#####################################" > config.mk
-echo "### Configuration for packetgraph ###" >> config.mk
-echo "#####################################" >> config.mk
-
 while [ $# -ne 0 ] ; do
     var=$1
     shift_nb="1"
@@ -216,6 +212,10 @@ while [ $# -ne 0 ] ; do
     fi
     shift $shift_nb
 done
+
+echo "#####################################" > config.mk
+echo "### Configuration for packetgraph ###" >> config.mk
+echo "#####################################" >> config.mk
 
 if $addBenchmark;then
 	echo "include benchmark.mk" >> config.mk
