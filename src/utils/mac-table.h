@@ -53,9 +53,17 @@ struct pg_mac_table {
 };
 
 struct pg_mac_table_iterator {
-	struct pg_mac_table *table;
-	union pg_mac key;
-	int is_end;
+	uint32_t i;
+	uint32_t j;
+	uint64_t m0;
+	uint64_t m1;
+	uint32_t mj;
+	uint32_t mi;
+	union {
+		void *v_ptr;
+		int8_t *c_ptr;
+	};
+	struct pg_mac_table *tbl;
 };
 
 #define pg_mac_table_mask_idx(mac_p) ((mac_p) / 64)
@@ -86,9 +94,47 @@ static inline int pg_mac_table_init(struct pg_mac_table *ma,
 	return 0;
 }
 
+static inline size_t pg_mac_table_compute_length(struct pg_mac_table *ma)
+{
+	size_t r = 0;
+
+	for (uint64_t i = 0, m = ma->mask[i];
+	     i < PG_MAC_TABLE_MASK_SIZE; m = ma->mask[++i]) {
+		PG_FOREACH_BIT(m, it) {
+			struct pg_mac_table_elem *imt = ma->elems[i * 64 + it];
+
+			for (uint64_t j = 0;
+			     j < PG_MAC_TABLE_MASK_SIZE; ++j) {
+				uint64_t im = imt->mask[j];
+
+				r += pg_mask_count(im);
+			}
+		}
+	}
+
+	return r;
+}
+
+static inline void pg_mac_table_clear(struct pg_mac_table *ma)
+{
+	if (unlikely(!ma))
+		return;
+	for (int i = 0; i < (PG_MAC_TABLE_MASK_SIZE); ++i) {
+		if (likely(!ma->mask[i]))
+			continue;
+		PG_FOREACH_BIT(ma->mask[i], it) {
+			struct pg_mac_table_ptr *cur = ma->ptrs[i * 64 + it];
+
+			free(cur->entries);
+			free(cur);
+		}
+		ma->mask[i] = 0;
+	}
+}
+
 static inline void pg_mac_table_free(struct pg_mac_table *ma)
 {
-	if (!ma)
+	if (unlikely(!ma))
 		return;
 	for (int i = 0; i < (PG_MAC_TABLE_MASK_SIZE); ++i) {
 		if (!ma->mask[i])
@@ -137,9 +183,6 @@ static inline void pg_mac_table_elem_set(struct pg_mac_table *ma,
 			pg_mac_table_alloc_fail_exeption(ma);
 	}
 
-	if (pg_mac_table_is_set(*ma->elems[part1], part2))
-		return;
-
 	pg_mac_table_mask_set(*ma->elems[part1], part2);
 	rte_memcpy(ma->elems[part1]->entries + (part2 * elem_size),
 		   entry, elem_size);
@@ -165,30 +208,34 @@ static inline void pg_mac_table_ptr_set(struct pg_mac_table *ma,
 			pg_mac_table_alloc_fail_exeption(ma);
 	}
 
-	/*
-	 * Admiting Part 1 is set
-	 * Set part 2 regarless if it was set before
-	 */
 	pg_mac_table_mask_set(*ma->ptrs[part1], part2);
 	ma->ptrs[part1]->entries[part2] = entry;
 }
 
-static inline void pg_mac_table_ptr_unset(struct pg_mac_table *ma,
+static inline int pg_mac_table_ptr_unset(struct pg_mac_table *ma,
 					  union pg_mac mac)
 {
 	uint32_t part1 = pg_mac_table_part1(mac);
 	uint32_t part2 = pg_mac_table_part2(mac);
 
-	if (!pg_mac_table_is_set(*ma, part1))
-		return;
-	if (!pg_mac_table_is_set(*ma->ptrs[part1], part2))
-		return;
+	if (!pg_mac_table_is_set(*ma, part1) ||
+	    !pg_mac_table_is_set(*ma->ptrs[part1], part2))
+		return -1;
 	pg_mac_table_mask_unset(*ma->ptrs[part1], part2);
-	if (!ma->ptrs[part1]->mask[pg_mac_table_mask_idx(part2)]) {
-		free(ma->ptrs[part1]->entries);
-		free(ma->ptrs[part1]);
-		pg_mac_table_mask_unset(*ma, part1);
-	}
+	return 0;
+}
+
+static inline int pg_mac_table_elem_unset(struct pg_mac_table *ma,
+					   union pg_mac mac)
+{
+	uint32_t part1 = pg_mac_table_part1(mac);
+	uint32_t part2 = pg_mac_table_part2(mac);
+
+	if (!pg_mac_table_is_set(*ma, part1) ||
+	    !pg_mac_table_is_set(*ma->elems[part1], part2))
+		return -1;
+	pg_mac_table_mask_unset(*ma->elems[part1], part2);
+	return 0;
 }
 
 #define pg_mac_table_elem_get(ma, mac, elem_type)			\
@@ -224,102 +271,63 @@ static inline void *pg_mac_table_ptr_get(struct pg_mac_table *ma,
 	return ma->ptrs[part1]->entries[part2];
 }
 
-static inline void pg_mac_table_iterator_next(struct pg_mac_table_iterator *it)
-{
-	struct pg_mac_table *ma = it->table;
-	uint32_t part1 = pg_mac_table_part1(it->key);
-	uint32_t part2 = pg_mac_table_part2(it->key);
+#define MAC_TABLE_IT_NEXT pg_mac_table_iterator_e_next
+#define MAC_TABLE_TYPE elem
+#define MAC_TABLE_SETTER(inner_t, useless) (it->c_ptr = (inner_t)->entries);
 
-	it->key.part2 = part2 + 1;
-	part2 = pg_mac_table_part2(it->key);
-	if (!part2) {
-		it->key.bytes32[0] = part1 + 1;
-		if (!pg_mac_table_part1(it->key)) {
-			it->is_end = 1;
-			return;
-		}
-		part1 = pg_mac_table_part1(it->key);
-	}
+#include "mac-table-it-next.h"
 
-	uint64_t unset = (~0LLU) << (pg_mac_table_mask_pos(part1));
-	uint64_t sub_unset= (~0LLU) << (pg_mac_table_mask_pos(part2));
-	int first_mask = pg_mac_table_mask_idx(part1);
-	int first_sub_mask = pg_mac_table_mask_idx(part2);
-	uint64_t *masks = ma->mask;
+#define MAC_TABLE_SETTER(inner_t, idx) (it->v_ptr = (inner_t)->entries[idx]);
+#define MAC_TABLE_TYPE ptr
+#define MAC_TABLE_IT_NEXT pg_mac_table_iterator_next
 
-	if (masks[first_mask] && ctz64(masks[first_mask]) > ctz64(unset))
-		sub_unset = (~0LLU);
-	for (int i = first_mask; i < PG_MAC_TABLE_MASK_SIZE; ++i) {
-		if (!masks[i])
-			continue;
-		PG_FOREACH_BIT(masks[i] & unset, i2) {
-			uint64_t *sub_masks = ma->ptrs[(i * 64) + i2]->mask;
+#include "mac-table-it-next.h"
 
-			for (int j = first_sub_mask;
-			     j < PG_MAC_TABLE_MASK_SIZE; ++j) {
-
-				if (!sub_masks[j])
-					continue;
-
-				PG_FOREACH_BIT(sub_masks[j] & sub_unset, j2) {
-					it->key.bytes32[0] = (i * 64) + i2;
-					it->key.part2 = (j * 64) + j2;
-					return;
-				}
-				sub_unset = ~0LLU;
-			}
-			first_sub_mask = 0;
-		}
-		unset = ~0LLU;
-	}
-	it->is_end = 1;
-}
-
-static inline void pg_mac_table_iterator_init(struct pg_mac_table_iterator *it,
-					      struct pg_mac_table *tbl)
-{
-	it->key.mac = 0;
-	it->is_end = 0;
-	it->table = tbl;
-
-	/* If 0 is set we don't need to increment the iterator */
-	if (pg_mac_table_ptr_get(tbl, it->key))
-		return;
-	pg_mac_table_iterator_next(it);
-}
-
-static inline struct pg_mac_table_iterator
-pg_mac_table_iterator_create(struct pg_mac_table *tbl)
-{
-	struct pg_mac_table_iterator ret;
-
-	pg_mac_table_iterator_init(&ret, tbl);
-	return ret;
-}
 
 static inline int pg_mac_table_iterator_is_end(struct pg_mac_table_iterator *it)
 {
-	return it->is_end;
+	return it->i == UINT32_MAX;
 }
 
-static inline union pg_mac pg_mac_table_iterator_get_key(
-	struct pg_mac_table_iterator *it)
+static inline union pg_mac
+pg_mac_table_iterator_mk_key(struct pg_mac_table_iterator *it,
+			     union pg_mac *k)
 {
-	return it->key;
+	k->bytes32[0] = (it->i * 64) + it->mi;
+	k->part2 = (it->j * 64) + it->mj;
+	return *k;
 }
 
 static inline void *pg_mac_table_iterator_get(struct pg_mac_table_iterator *it)
 {
-	return pg_mac_table_ptr_get(it->table, it->key);
+	return it->v_ptr;
 }
 
-#define PG_MAC_TABLE_FOREACH_PTR(ma, key, val_type, val)		\
-	union pg_mac key;						\
+#define pg_mac_table_iterator_e_get(it, type)				\
+	((type *) ( (it).c_ptr + (((it.j * 64) + it.mj) * sizeof(type)) ) )
+
+#define PG_MAC_TABLE_FOREACH_ELEM(ma, key, val_type, val)		\
+	union pg_mac key = {.mac = 0};					\
 	val_type *val = NULL;						\
 	for (struct pg_mac_table_iterator it =				\
-		     pg_mac_table_iterator_create((ma));		\
+		     pg_mac_table_iterator_elem_create			\
+		     ((ma), pg_mac_table_iterator_e_next);		\
 	     !pg_mac_table_iterator_is_end(&it) &&			\
-		     ((key = pg_mac_table_iterator_get_key(&it)).mac || 1) && \
+		     ({							\
+			     key = pg_mac_table_iterator_mk_key(&it, &key) ; \
+			     val = pg_mac_table_iterator_e_get(it, val_type); \
+			     1;						\
+		     });						\
+	     pg_mac_table_iterator_e_next(&it))
+
+#define PG_MAC_TABLE_FOREACH_PTR(ma, key, val_type, val)		\
+	union pg_mac key = {.mac = 0};					\
+	val_type *val = NULL;						\
+	for (struct pg_mac_table_iterator it =				\
+		     pg_mac_table_iterator_ptr_create			\
+		     ((ma), pg_mac_table_iterator_next);		\
+	     !pg_mac_table_iterator_is_end(&it) &&			\
+		     ({key = pg_mac_table_iterator_mk_key(&it, &key); 1;}) && \
 		     ((val = pg_mac_table_iterator_get(&it)) || 1);	\
 	     pg_mac_table_iterator_next(&it))
 
