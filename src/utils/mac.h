@@ -25,6 +25,7 @@ union pg_mac {
 	uint8_t bytes[8];
 	uint16_t bytes16[4];
 	uint32_t bytes32[2];
+	struct ether_addr rte_addr;
 	struct {
 		uint16_t padding1;
 		uint8_t padding2;
@@ -41,6 +42,12 @@ void pg_set_ether_type(struct rte_mbuf *mb, uint16_t ether_type);
 void pg_get_ether_addrs(const struct rte_mbuf *mb, struct ether_hdr **dest);
 
 void pg_print_mac(const struct ether_addr *eth_addr);
+
+/**
+ * like pg_printable_mac but store ret in a static char[8][ETHER_ADDR_FMT_SIZE]
+ * that is returned
+ */
+const char *pg_s_printable_mac(const struct ether_addr *eth_addr);
 
 const char *pg_printable_mac(const struct ether_addr *eth_addr, char *buf);
 

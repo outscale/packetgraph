@@ -65,6 +65,17 @@ void pg_get_ether_addrs(const struct rte_mbuf *mb, struct ether_hdr **dest)
 	*dest = rte_pktmbuf_mtod(mb, struct ether_hdr *);
 }
 
+const char *pg_s_printable_mac(const struct ether_addr *eth_addr)
+{
+	static char bufs[8][ETHER_ADDR_FMT_SIZE];
+	static int buf_idx;
+	char *b = bufs[buf_idx];
+
+	ether_format_addr(b, ETHER_ADDR_FMT_SIZE, eth_addr);
+	buf_idx = (buf_idx + 1) % 8;
+	return b;
+}
+
 const char *pg_printable_mac(const struct ether_addr *eth_addr, char *buf)
 {
 	ether_format_addr(buf, ETHER_ADDR_FMT_SIZE, eth_addr);
