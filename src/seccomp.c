@@ -45,6 +45,7 @@ int pg_init_seccomp(void)
 		ALLOW_SYSCALL(access),
 		ALLOW_SYSCALL(pipe),
 		ALLOW_SYSCALL(sched_yield),
+		ALLOW_SYSCALL(dup),
 		ALLOW_SYSCALL(dup2),
 		ALLOW_SYSCALL(nanosleep),
 		ALLOW_SYSCALL(socket),
