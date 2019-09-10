@@ -18,6 +18,7 @@
 #ifndef PG_UTILS_COMMON_H_
 #define PG_UTILS_COMMON_H_
 
+#include <packetgraph/packetgraph.h>
 #include <stdlib.h>
 
 #define pg_cleanup(func)			\
@@ -33,6 +34,11 @@ static inline void pg_autofree_(void *p)
 #define pg_autofree				\
 	__attribute__((__cleanup__(pg_autofree_)))
 
+
+static inline void pg_brick_ptrptr_destroy(struct pg_brick **brick)
+{
+	pg_brick_destroy(*brick);
+}
 
 #define PG_STRCAT2(a, b) (a b)
 #define PG_STRCAT3(a, b, c) (a b c)
