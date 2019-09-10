@@ -13,6 +13,7 @@ tests_core_SOURCES = \
 	$(tests_core_DIR)/test-dot.c\
 	$(tests_core_DIR)/test-flow.c\
 	$(tests_core_DIR)/test-error.c\
+	$(tests_core_DIR)/test-mac.c\
 	$(tests_core_DIR)/test-pkts-count.c\
 	$(tests_core_DIR)/test-graph.c\
 	$(tests_core_DIR)/test-hub.c\

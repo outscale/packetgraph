@@ -75,6 +75,7 @@ int main(int argc, char **argv)
 
 	test_bitmask();
 	test_error();
+	test_mac();
 	test_brick_core();
 	test_brick_flow();
 	test_pkts_count();

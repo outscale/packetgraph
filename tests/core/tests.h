@@ -28,6 +28,7 @@ void test_brick_core(void);
 void test_brick_dot(void);
 void test_brick_flow(void);
 void test_error(void);
+void test_mac(void);
 void test_pkts_count(void);
 void test_benchmark_nop(void);
 void test_hub(void);
