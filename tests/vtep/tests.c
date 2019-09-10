@@ -42,9 +42,11 @@
 #include "utils/ip.h"
 #include "utils/network.h"
 #include "utils/malloc.h"
+#include "utils/mac-table.h"
 #include "packets.h"
 #include "packetsgen.h"
 #include "collect.h"
+#include "vtep-internal.h"
 
 /* redeclar here for testing purpose,
  * theres stucture should not be use by user
@@ -849,6 +851,7 @@ static void test_vtep_vnis(int flag)
 	pg_packets_prepend_ether(pkts, mask, &mac1, &mac1,
 				 ETHER_TYPE_IPv4);
 
+	pg_vtep4_clean_all_mac(vtep, 0);
 	pg_malloc_should_fail = 1;
 	g_assert(pg_brick_burst_to_east(vtep, 0, pkts, mask, &error) < 0);
 	g_assert(error && error->err_no == ENOMEM);
@@ -905,10 +908,6 @@ static void test_vtep_vnis_no_inner_check(void)
 {
 	test_vtep_vnis(PG_VTEP_NO_INNERMAC_CHECK);
 }
-
-
-#undef NB_ITERATION
-#undef NB_VNIS
 
 struct speed_test_headers {
 	struct ether_hdr ethernet; /* define in rte_ether.h */
@@ -1184,7 +1183,142 @@ static void test_vtep_fragment_encap_decap(void)
 	pg_brick_destroy(ip_fragment);
 }
 
-#undef NB_PKTS
+static void free_collectors(struct pg_brick *(*collects_ptr)[20])
+{
+	struct pg_brick **collectors = *collects_ptr;
+
+	for (int i = 0; i < NB_VNIS; ++i)
+		pg_brick_destroy(collectors[i]);
+}
+
+#define NB_MACS 32
+
+static void test_vtep_lifetime(void)
+{
+	struct ether_addr mac_src = {{0xb0, 0xb1, 0xb2,
+				       0xb3, 0xb4, 0xb5}};
+	struct pg_error *error = NULL;
+	struct ether_addr mac[NB_MACS] = {
+		{{0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc0}}
+	};
+	g_assert(sizeof(mac) / sizeof(struct ether_addr) > NB_VNIS);
+	pg_cleanup(pg_brick_ptrptr_destroy) struct pg_brick *vtep;
+	pg_cleanup(pg_brick_ptrptr_destroy) struct pg_brick *col_w;
+	pg_cleanup(free_collectors) struct pg_brick *collects[NB_VNIS];
+	struct rte_mbuf **pkts;
+	uint64_t mask = pg_mask_firsts(NB_MACS);
+	int pkt_len = 1400;
+
+	for (int i = 0; i < NB_MACS; ++i)
+		mac[i].addr_bytes[5] = 0xc0 + i;
+
+	vtep = pg_vtep_new_by_string("vtep", NB_VNIS, PG_WEST_SIDE,
+				     "1.0.0.0", mac_src,
+				     PG_VTEP_DST_PORT, PG_VTEP_ALL_OPTI,
+				     &error);
+	g_assert(!error);
+	col_w = pg_collect_new("collect-w", &error);
+	g_assert(!error);
+	for (int i = 0; i < NB_VNIS; ++i) {
+		uint32_t mip = inet_addr("224.0.0.0");
+
+		collects[i] = pg_collect_new("collect-X", &error);
+		g_assert(!error);
+		pg_brick_link(vtep, collects[i], &error);
+		g_assert(!error);
+		pg_vtep_add_vni(vtep, collects[i], 0,  mip | (i << 24),
+				&error);
+		g_assert(!error);
+	}
+	pg_brick_link(col_w, vtep, &error);
+
+	pkts = pg_packets_create(mask);
+
+	PG_FOREACH_BIT(mask, j) {
+		struct ether_hdr eth_hdr;
+
+		ether_addr_copy(&mac[j % NB_MACS], &eth_hdr.s_addr);
+		ether_addr_copy(&mac[(j + 1) % NB_MACS], &eth_hdr.d_addr);
+		eth_hdr.ether_type = rte_cpu_to_be_16(0xCAFE);
+		rte_memcpy(rte_pktmbuf_append(pkts[j], sizeof(eth_hdr)),
+			   &eth_hdr, sizeof(eth_hdr));
+		pkts[j]->l2_len = sizeof(struct ether_hdr);
+	}
+
+	g_assert(pg_packets_append_blank(pkts, mask, pkt_len));
+
+	pg_packets_prepend_vxlan(pkts, mask, 0);
+	pg_packets_prepend_udp(pkts, mask, 1000, PG_VTEP_DST_PORT,
+			       pkt_len);
+	pg_packets_prepend_ipv4(pkts, mask, 0x000000EE,
+				0x000000E1, pkt_len + sizeof(struct headers_v4),
+				17);
+	pg_packets_prepend_ether(pkts, mask, &mac_src, &mac_src,
+				 ETHER_TYPE_IPv4);
+
+	pg_brick_burst_to_east(vtep, 0, pkts, mask, &error);
+	g_assert(!error);
+	/* So useful to have an array I can't use in this case */
+	for (uint64_t i, bit, tmp_mask = mask; tmp_mask;) {
+		pg_low_bit_iterate_full(tmp_mask, bit, i);
+
+		struct pg_mac_table *mtd = pg_vtep4_mac_to_dst(vtep, 0);
+		union pg_mac pgm = {.rte_addr = mac[i % NB_MACS]};
+		struct dest_addresses_v4 *entry =
+			pg_mac_table_elem_get(mtd, pgm,
+					      struct dest_addresses_v4);
+		g_assert(entry);
+	}
+
+	/* burst only 8 first packet a lot */
+	for (uint64_t c = 10000; c; --c) {
+		for (uint64_t i = 0; i < 8; ++i) {
+			uint64_t bit = 1 << i;
+			struct dest_addresses_v4 *entry;
+
+			pg_packets_prepend_vxlan(pkts, bit, 0);
+			pg_packets_prepend_udp(pkts, bit, 1000,
+					       PG_VTEP_DST_PORT, pkt_len);
+			pg_packets_prepend_ipv4(
+				pkts, bit, 0x000000EE,
+				0x000000E1,
+				pkt_len + sizeof(struct headers_v4),
+				17);
+			pg_packets_prepend_ether(pkts, bit, &mac_src, &mac_src,
+						 ETHER_TYPE_IPv4);
+			pg_brick_burst_to_east(vtep, i, pkts, bit, &error);
+			g_assert(!error);
+
+			entry = pg_mac_table_elem_get(
+				pg_vtep4_mac_to_dst(vtep, 0),
+				(union pg_mac) {.rte_addr = mac[i]},
+				struct dest_addresses_v4);
+
+			g_assert(entry);
+		}
+	}
+
+	pg_vtep4_cleanup_mac(vtep, 0);
+	/* check mac_to_dst know only mac of 8 first packet */
+	for (uint64_t i, tmp_mask = mask; tmp_mask;) {
+		struct pg_mac_table *mtd = pg_vtep4_mac_to_dst(vtep, 0);
+
+		pg_low_bit_iterate(tmp_mask, i);
+
+		union pg_mac pgm = {.rte_addr = mac[i]};
+		struct dest_addresses_v4 *entry =
+			pg_mac_table_elem_get(mtd, pgm,
+					      struct dest_addresses_v4);
+
+		if ((i) < 8)
+			g_assert(entry);
+		else
+			g_assert(!entry);
+	}
+
+	pg_packets_free(pkts, pg_mask_firsts(32));
+	g_free(pkts);
+}
 
 int main(int argc, char **argv)
 {
@@ -1200,6 +1334,7 @@ int main(int argc, char **argv)
 			test_vtep_simple_no_inner_check);
 	pg_test_add_func("/vtep/simple/no-copy", test_vtep_simple_no_copy);
 	pg_test_add_func("/vtep/simple/all-opti", test_vtep_simple_all_opti);
+	pg_test_add_func("/vtep/simple/lifetime", test_vtep_lifetime);
 
 	pg_test_add_func("/vtep/vnis/all-opti", test_vtep_vnis_all_opti);
 	pg_test_add_func("/vtep/vnis/no-copy", test_vtep_vnis_no_copy);

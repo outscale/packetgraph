@@ -941,7 +941,7 @@ static void test_mac_table(void)
 	m.mac = 4;
 	pg_mac_table_ptr_set(&ma, m, &val);
 	PG_MAC_TABLE_FOREACH_PTR(&ma, k, uint32_t, val_check) {
-		g_assert(*val_check == 1337);
+		g_assert(val_check && *val_check == 1337);
 		++i;
 		g_assert(i < 3);
 	}
