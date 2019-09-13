@@ -65,7 +65,7 @@ void pg_firewall_gc(struct pg_brick *brick)
 
 	state = pg_brick_get_state(brick,
 				   struct pg_firewall_state);
-	npf_gc(state->npf);
+	npfk_gc(state->npf);
 }
 
 static int firewall_build_pcap_filter(nl_rule_t *rl, const char *filter)
@@ -180,8 +180,8 @@ static int firewall_reload_internal(struct pg_firewall_state *state,
 	}
 
 	config_build = npf_config_build(config);
-	npf_ret = npf_load(state->npf, config_build, &errinfo);
-	npf_ifmap_attach(state->npf, state->ifp);
+	npf_ret = npfk_load(state->npf, config_build, &errinfo);
+	npfk_ifmap_attach(state->npf, state->ifp);
 	free(config);
 
 	if (npf_ret != 0) {
@@ -251,7 +251,7 @@ static int firewall_burst(struct pg_brick *brick, enum pg_side from,
 		 * rte_pktmbuf_adj because it's faster
 		 */
 		tmp->data_off += tmp->l2_len;
-		ret = npf_packet_handler(state->npf, (struct mbuf **) &tmp,
+		ret = npfk_packet_handler(state->npf, (struct mbuf **) &tmp,
 					 state->ifp, pf_side);
 		pkts[i]->data_off -= pkts[i]->l2_len;
 		if (ret)
@@ -284,7 +284,7 @@ static int firewall_init(struct pg_brick *brick,
 	if (pg_npf_nworkers == 0 || fw_config->flags & PG_NO_CONN_WORKER)
 		fw_config->flags |= NPF_NO_GC;
 	if (!nb_firewall) {
-		if (unlikely(npf_sysinit(pg_npf_nworkers) < 0)) {
+		if (unlikely(npfk_sysinit(pg_npf_nworkers) < 0)) {
 			*errp = pg_error_new("fail during npf initialisation");
 			return -1;
 		}
@@ -298,10 +298,10 @@ static int firewall_init(struct pg_brick *brick,
 		*errp = pg_error_new("fail to create npf");
 		return -1;
 	}
-	npf_thread_register(npf);
+	npfk_thread_register(npf);
 	state->ifp = npf_dpdk_ifattach(npf, "firewall", firewall_iface_cnt++);
 	if (!state->ifp) {
-		npf_destroy(state->npf);
+		npfk_destroy(state->npf);
 		*errp = pg_error_new("npf_dpdk_ifattach fail");
 		return -1;
 	}
@@ -319,11 +319,11 @@ static void firewall_destroy(struct pg_brick *brick,
 	state = pg_brick_get_state(brick, struct pg_firewall_state);
 	pg_firewall_rule_flush(brick);
 	npf_dpdk_ifdetach(state->npf, state->ifp);
-	npf_thread_unregister(state->npf);
-	npf_destroy(state->npf);
+	npfk_thread_unregister(state->npf);
+	npfk_destroy(state->npf);
 	--nb_firewall;
 	if (!nb_firewall)
-		npf_sysfini();
+		npfk_sysfini();
 }
 
 static struct pg_brick_ops firewall_ops = {

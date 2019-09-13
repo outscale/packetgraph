@@ -82,9 +82,11 @@ npfkern_SOURCES = \
 	src/npf/npf/src/kern/stand/bpf_filter.c\
 	src/npf/npf/src/kern/stand/murmurhash.c\
 	src/npf/npf/src/kern/stand/tls_pth.c\
-	src/npf/npf/src/kern/stand/misc.c
+	src/npf/npf/src/kern/stand/ebr_wrappers.c\
+	src/npf/npf/src/kern/stand/misc.c\
+	src/npf/npf/src/kern/npf_portmap.c
 npfkern_OBJECTS = $(npfkern_SOURCES:.c=.o)
-npfkern_HEADERS = $(lpm_HEADERS) $(cdb_HEADERS) $(nvlist_HEADERS) $(thmap_HEADERS) $(qsbr_HEADERS) $(npf_HEADERS) -I$(srcdir)/src/npf/npf/src/kern/stand $(bpfjit_HEADERS)
+npfkern_HEADERS = $(lpm_HEADERS) $(cdb_HEADERS) $(nvlist_HEADERS) $(thmap_HEADERS) $(qsbr_HEADERS) $(npf_HEADERS) -I$(srcdir)/src/npf/npf/src/kern/ $(bpfjit_HEADERS)
 
 npfkern_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_NPF_STANDALONE -D__KERNEL_RCSID\(x,y\)= -std=gnu11 -Wall -Wextra -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused -Wno-cast-function-type -Wno-stringop-truncation -Wno-unknown-warning-option -fvisibility=hidden -DNDEBUG -fPIC -D__RCSID\(x\)=
 #Trick to avoid symbol conflicts
