@@ -22,7 +22,6 @@
 #include <rte_eth_ring.h>
 #include <rte_ip.h>
 #include <rte_udp.h>
-#include <rte_ip_frag.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/time.h>
@@ -31,7 +30,6 @@
 #include <packetgraph/vtep.h>
 #include <packetgraph/hub.h>
 #include <packetgraph/nop.h>
-#include <packetgraph/ip-fragment.h>
 
 #include "brick-int.h"
 #include "utils/tests.h"
@@ -1098,91 +1096,6 @@ static void test_vtep_flood_encapsulate(void)
 	pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));
 }
 
-static void test_vtep_fragment_encap_decap(void)
-{
-	struct pg_error *error = NULL;
-	struct pg_brick *ip_fragment;
-	struct pg_brick *vtep;
-	struct pg_brick *collect_west;
-	struct pg_brick *collect_east;
-	struct rte_mbuf **pkts;
-	uint64_t mask = pg_mask_firsts(64);
-	struct ether_addr mac = {{0x52, 0x54, 0x00, 0x12, 0x34, 0x11} };
-	struct rte_mbuf **tmp_pkts;
-	uint64_t tmp_mask;
-	int len, pkt_len = 1500;
-
-	collect_west = pg_collect_new("west col", &error);
-	collect_east = pg_collect_new("east col", &error);
-	ip_fragment = pg_ip_fragment_new("frag", PG_EAST_SIDE, 448, &error);
-	vtep = pg_vtep_new("vtep", 20, PG_EAST_SIDE, 1, mac, PG_VTEP_DST_PORT,
-			   PG_VTEP_ALL_OPTI, &error);
-
-	g_assert(ip_fragment);
-	g_assert(vtep);
-	g_assert(collect_west);
-	g_assert(collect_east);
-	pg_brick_chained_links(&error,
-			       collect_west, ip_fragment, vtep, collect_east);
-
-	pg_vtep_add_vni(vtep, ip_fragment, 0,
-		     inet_addr("225.0.0.43"), &error);
-
-	pkts = pg_packets_create(mask);
-	g_assert(pkts);
-	g_assert(pg_packets_append_ether(pkts, mask, &mac,
-					 &mac, ETHER_TYPE_IPv4));
-
-	/* post_burst_op = append_blank; */
-	len = sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) + pkt_len;
-	g_assert(pg_packets_append_ipv4(
-			 pkts,
-			 mask,
-			 0x000000EE, 0x000000CC, len, 17));
-	g_assert(pg_packets_append_blank(pkts, mask, pkt_len));
-	PG_FOREACH_BIT(mask, it) {
-		struct eth_ipv4_hdr *pkt_buf =
-			rte_pktmbuf_mtod(pkts[it], struct eth_ipv4_hdr *);
-		pkt_buf->ip.fragment_offset = 0;
-	}
-	g_assert(pg_brick_burst_to_east(ip_fragment, 0, pkts,
-					mask, &error) >= 0);
-
-	tmp_pkts = pg_brick_west_burst_get(collect_east, &tmp_mask, &error);
-	g_assert(tmp_mask == pg_mask_firsts(4));
-	PG_FOREACH_BIT(tmp_mask, it) {
-		struct headers *hdr = rte_pktmbuf_mtod(tmp_pkts[it],
-						       struct headers *);
-
-		g_assert(tmp_pkts[it]->l2_len == sizeof(struct ether_hdr));
-		g_assert(tmp_pkts[it]->l3_len == sizeof(struct ipv4_hdr));
-		g_assert(tmp_pkts[it]->ol_flags & PKT_TX_UDP_CKSUM);
-		hdr->ipv4.hdr_checksum = 0;
-		hdr->udp.dgram_cksum = 0;
-		hdr->udp.dgram_cksum =
-			rte_ipv4_udptcp_cksum(&hdr->ipv4, &hdr->udp);
-		hdr += 1;
-		g_assert(!memcmp(&hdr->ethernet.s_addr, &mac, 6));
-		g_assert(!memcmp(&hdr->ethernet.d_addr, &mac, 6));
-		g_assert(rte_ipv4_frag_pkt_is_fragmented(&hdr->ipv4));
-		tmp_pkts[it]->ol_flags = 0;
-	}
-
-	pg_brick_burst_to_west(vtep, 0, tmp_pkts, tmp_mask, &error);
-	tmp_pkts = pg_brick_east_burst_get(collect_west, &tmp_mask, &error);
-	g_assert(tmp_mask == 1);
-	g_assert(tmp_pkts[0]->l2_len == sizeof(struct ether_hdr));
-	g_assert(tmp_pkts[0]->l3_len == sizeof(struct ipv4_hdr));
-	g_assert(tmp_pkts[0]->ol_flags & PKT_TX_UDP_CKSUM);
-	g_assert(tmp_pkts[0]->ol_flags & PKT_TX_TCP_CKSUM);
-	pg_packets_free(pkts, pg_mask_firsts(64));
-	g_free(pkts);
-	pg_brick_destroy(vtep);
-	pg_brick_destroy(collect_west);
-	pg_brick_destroy(collect_east);
-	pg_brick_destroy(ip_fragment);
-}
-
 static void free_collectors(struct pg_brick *(*collects_ptr)[20])
 {
 	struct pg_brick **collectors = *collects_ptr;
@@ -1346,9 +1259,6 @@ int main(int argc, char **argv)
 			test_vtep_flood_encapsulate);
 	pg_test_add_func("/vtep/flood/encap-decap",
 			test_vtep_flood_encap_decap);
-
-	pg_test_add_func("/vtep/fragmented/encap-decap",
-			test_vtep_fragment_encap_decap);
 
 	r = g_test_run();
 

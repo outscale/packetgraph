@@ -38,8 +38,7 @@ PG_SOURCES = \
 			 src/switch.c\
 			 src/pmtud.c\
 			 src/thread.c\
-			 src/seccomp.c\
-			 src/ip-fragment.c
+			 src/seccomp.c
 PG_OBJECTS = $(PG_SOURCES:.c=.o)
 PG_dev_OBJECTS = $(PG_SOURCES:.c=-dev.o)
 
@@ -67,7 +66,7 @@ PG_dev_CFLAGS = $(PG_CFLAGS) -D PG_NIC_STUB -D PG_NIC_BENCH -D PG_QUEUE_BENCH -D
 
 dist_doc_DATA = README.md
 
-check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-ip-fragment tests-thread
+check_PROGRAMS = tests-antispoof tests-core tests-diode tests-rxtx tests-firewall tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep  tests-pmtud tests-tap tests-thread
 
 ACLOCAL_AMFLAGS = -I m4
 

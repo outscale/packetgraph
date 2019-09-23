@@ -25,7 +25,6 @@ make bench_compile
 ./tests/rxtx/test.sh
 ./tests/pmtud/test.sh
 ./tests/tap/test.sh
-./tests/ip-fragment/test.sh
 ./tests/thread/test.sh
 
 ./tests/antispoof/bench.sh
@@ -40,4 +39,3 @@ make bench_compile
 ./tests/rxtx/bench.sh
 ./tests/pmtud/bench.sh
 ./tests/tap/bench.sh
-./tests/ip-fragment/bench.sh
