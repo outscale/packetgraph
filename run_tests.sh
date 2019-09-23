@@ -28,7 +28,6 @@ fi
 ./tests/rxtx/test.sh
 ./tests/pmtud/test.sh
 ./tests/tap/test.sh
-./tests/ip-fragment/test.sh
 ./tests/thread/test.sh
 
 ./tests/antispoof/bench.sh
@@ -43,7 +42,6 @@ fi
 ./tests/rxtx/bench.sh
 ./tests/pmtud/bench.sh
 ./tests/tap/bench.sh
-./tests/ip-fragment/bench.sh
 
 if [ "$(whoami)" != "travis" ]; then
     ./tests/integration/test.sh

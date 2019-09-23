@@ -34,11 +34,6 @@ tests_pmtud_SOURCES = \
 	$(tests_pmtud_DIR)/tests.c
 tests_pmtud_OBJECTS = $(tests_pmtud_SOURCES:.c=.o)
 
-tests_ip-fragment_DIR = tests/ip-fragment
-tests_ip-fragment_SOURCES = \
-	$(tests_ip-fragment_DIR)/tests.c
-tests_ip-fragment_OBJECTS = $(tests_ip-fragment_SOURCES:.c=.o)
-
 tests_integration_DIR = tests/integration
 tests_integration_SOURCES = \
 	$(tests_integration_DIR)/tests.c
@@ -103,7 +98,6 @@ TESTS = \
 	tests/diode/test.sh\
 	tests/rxtx/test.sh\
 	tests/pmtud/test.sh\
-	tests/ip-fragment/test.sh\
 	tests/firewall/test.sh\
 	tests/nic/test.sh\
 	tests/print/test.sh\
@@ -119,10 +113,10 @@ TESTS = \
 ##                           Tests compilation rules                          ##
 ################################################################################
 
-test: dev tests-all-build antispoof core diode rxtx pmtud ip-fragment firewall nic print queue switch vtep tap thread integration vhost
+test: dev tests-all-build antispoof core diode rxtx pmtud firewall nic print queue switch vtep tap thread integration vhost
 	@echo "tests ended"
 
-tests_compile: dev tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-ip-fragment tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall
+tests_compile: dev tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall
 	@echo "Compilation done"
 
 tests-antispoof: dev $(tests_antispoof_OBJECTS)
@@ -153,12 +147,6 @@ tests-pmtud: dev $(tests_pmtud_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_pmtud_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_pmtud_OBJECTS): %.o : %.c
-	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
-
-tests-ip-fragment: dev $(tests_ip-fragment_OBJECTS)
-	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_ip-fragment_OBJECTS) $(tests_LIBS) -o $@
-
-$(tests_ip-fragment_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
 tests-integration: dev $(tests_integration_OBJECTS)
@@ -222,7 +210,7 @@ $(tests_firewall_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_firewall_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
 
-tests-all-build: tests-antispoof tests-core tests-rxtx tests-pmtud tests-ip-fragment \
+tests-all-build: tests-antispoof tests-core tests-rxtx tests-pmtud \
 	tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep \
 	tests-tap tests-thread tests-integration tests-vhost
 
@@ -244,9 +232,6 @@ rxtx : tests-rxtx
 
 pmtud : tests-pmtud
 	tests/pmtud/test.sh
-
-ip-fragment : tests-ip-fragment
-	tests/ip-fragment/test.sh
 
 firewall : tests-firewall
 	tests/firewall/test.sh
@@ -279,7 +264,7 @@ vhost : tests-vhost
 	tests/vhost/test.sh
 
 testclean: testcleanobj
-	rm -fv tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-ip-fragment tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep tests-tap tests-thread tests-integration tests-vhost
+	rm -fv tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep tests-tap tests-thread tests-integration tests-vhost
 
 testcleanobj:
-	rm -fv $(tests_antispoof_OBJECTS) $(tests_core_OBJECTS) $(tests_diode_OBJECTS) $(tests_rxtx_OBJECTS) $(tests_pmtud_OBJECTS) $(tests_ip-fragment_OBJECTS) $(tests_firewall_OBJECTS) $(tests_nic_OBJECTS) $(tests_print_OBJECTS) $(tests_queue_OBJECTS) $(tests_switch_OBJECTS) $(tests_vtep_OBJECTS) $(tests_tap_OBJECTS) $(tests_thread_OBJECTS) $(tests_integration_OBJECTS) $(tests_vhost_OBJECTS)
+	rm -fv $(tests_antispoof_OBJECTS) $(tests_core_OBJECTS) $(tests_diode_OBJECTS) $(tests_rxtx_OBJECTS) $(tests_pmtud_OBJECTS) $(tests_firewall_OBJECTS) $(tests_nic_OBJECTS) $(tests_print_OBJECTS) $(tests_queue_OBJECTS) $(tests_switch_OBJECTS) $(tests_vtep_OBJECTS) $(tests_tap_OBJECTS) $(tests_thread_OBJECTS) $(tests_integration_OBJECTS) $(tests_vhost_OBJECTS)
