@@ -7,13 +7,13 @@ cache:
     - $TRAVIS_BUILD_DIR/dpdk
 
 before_install:
- - sudo apt-get update
- - sudo apt-get install -y linux-headers-$(uname -r)
- - sudo apt-get install -y libpcap-dev libglib2.0-dev libjemalloc-dev
- - sudo apt-get install -y build-essential make git hugepages
- - sudo apt-get install -y cppcheck flawfinder python-setuptools
- - sudo apt-get install -y bridge-utils
- - sudo apt-get install -y libnuma-dev
+ - sudo apt update
+ - sudo apt install -y linux-headers-$(uname -r)
+ - sudo apt install -y libpcap-dev libglib2.0-dev libjemalloc-dev
+ - sudo apt install -y build-essential make git hugepages
+ - sudo apt install -y cppcheck flawfinder python-setuptools
+ - sudo apt install -y bridge-utils
+ - sudo apt install -y libnuma-dev
 
  - sudo bash -c "echo 1024 > /proc/sys/vm/nr_hugepages"
  - sudo bash -c "mkdir -p /mnt/huge"
