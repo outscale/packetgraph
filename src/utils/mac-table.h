@@ -41,7 +41,16 @@ struct pg_mac_table_elem {
 };
 
 /**
- * A mac array contening a ptr
+ * A mac array containing pointers or elements
+ * the idea of this mac table, is that a mac is an unique identifier,
+ * as sure, doesn't need hashing we could just
+ * allocate an array for each possible mac
+ * Problem is that doing so require ~280 TByte
+ * So I've cut the mac in 2 part, example 01.02.03.04.05.06
+ * will now have "01.02.03" that will serve as index of the mac table
+ * and "04.05.06" will serve as the index of the sub mac table
+ * if order to take advantage of Virtual Memory, we use bitmask, so we
+ * don't have to allocate 512 MB of physical ram for each unlucky mac.
  */
 struct pg_mac_table {
 	uint64_t mask[PG_MAC_TABLE_MASK_SIZE];
@@ -52,6 +61,14 @@ struct pg_mac_table {
 	jmp_buf *exeption_env;
 };
 
+/**
+ * iterate over a mac table, can't be done using a simple int
+ * as mac table aren't simple array.
+ * a mac table is composed by 1 container of sub container of elements/pointers
+ * i is the index of the main container j, of the current sub container
+ * m0 is current mask of main container and m1 of current sub container
+ * mi/mj are index of current mask
+ */
 struct pg_mac_table_iterator {
 	uint32_t i;
 	uint32_t j;
