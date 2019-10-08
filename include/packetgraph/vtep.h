@@ -54,6 +54,14 @@ struct ether_addr *pg_vtep_get_mac(const struct pg_brick *brick);
  * @port_id the port id (so the index of the connected brick)
  */
 void pg_vtep4_cleanup_mac(struct pg_brick *brick, int port_id);
+
+/**
+ * Cleanup mac that have timeout
+ * This operation iterate over every mac
+ * It's slow, even with an empty mac table
+ * @param brick a pointer to a vtep brick
+ * @port_id the port id (so the index of the connected brick)
+ */
 void pg_vtep6_cleanup_mac(struct pg_brick *brick, int port_id);
 
 /**
