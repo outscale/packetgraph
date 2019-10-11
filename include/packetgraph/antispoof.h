@@ -21,6 +21,9 @@
 #include <packetgraph/common.h>
 #include <packetgraph/errors.h>
 
+#define PG_ARP_MAX 100
+#define PG_NPD_MAX 100
+
 struct ether_addr;
 
 /**
