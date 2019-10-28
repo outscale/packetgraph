@@ -84,6 +84,7 @@ struct pg_vhost_state {
 	struct pg_vhost_socket *socket;
 	rte_atomic32_t allow_queuing;
 	int vid;
+	uint64_t flags;
 	struct rte_mbuf *in[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
 	PG_PKTS_COUNT_TYPE tx_bytes; /* TX: [vhost] --> VM */
@@ -180,6 +181,16 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 
 #define TCP_PROTOCOL_NUMBER 6
 #define UDP_PROTOCOL_NUMBER 17
+
+/* To know if a vhost brick is server or not. */
+static int pg_vhost_is_server(struct pg_brick *brick){
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick, struct pg_vhost_state);
+
+	if(state->flags & 1)
+		return 1;
+	return 0;
+}
 
 #ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
 
@@ -284,7 +295,9 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 	int ret;
 
 	path = g_strdup_printf("%s/qemu-%s", sockets_path, state->brick.name);
-	g_remove(path);
+	/* If the socket is CLIENT do NOT destroy the socket. */
+	if((flags & 1) == 0)
+		g_remove(path);
 
 	printf("New vhost-user socket: %s, zero-copy %s\n", path,
 	       (flags & RTE_VHOST_USER_DEQUEUE_ZERO_COPY) ?
@@ -350,6 +363,7 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	vhost_config = (struct pg_vhost_config *) config->brick_config;
 	state->output = vhost_config->output;
 	state->vid = -1;
+	state->flags = vhost_config->flags;
 	PG_PKTS_COUNT_SET(state->rx_bytes, 0);
 	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
 	pg_vhost_enable(brick, enable_freacture_mask);
@@ -392,20 +406,19 @@ struct pg_brick *pg_vhost_new(const char *name, uint64_t flags,
 	return ret;
 }
 
-
 static void vhost_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
-	struct pg_vhost_state *state;
-
-	state = pg_brick_get_state(brick, struct pg_vhost_state);
-	rte_vhost_driver_unregister(state->socket->path);
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick, struct pg_vhost_state);
 
 	pthread_mutex_lock(&mutex);
-	g_remove(state->socket->path);
-	LIST_REMOVE(state->socket, socket_list);
+	rte_vhost_driver_unregister(state->socket->path);
 	g_free(state->socket->path);
 	g_free(state->socket);
-
+	LIST_REMOVE(state->socket, socket_list);
+	/* If the socket is client, do NOT destroy the existing socket. */
+	if(pg_vhost_is_server(brick))
+		g_remove(state->socket->path);
 	pthread_mutex_unlock(&mutex);
 }
 
