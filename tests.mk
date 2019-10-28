@@ -67,6 +67,16 @@ tests_vhost_SOURCES = \
 	$(tests_vhost_DIR)/test-vhost.c
 tests_vhost_OBJECTS = $(tests_vhost_SOURCES:.c=.o)
 
+tests_srv_DIR = tests/vhost
+tests_srv_SOURCES = \
+	$(tests_srv_DIR)/vhost-srv.c
+tests_srv_OBJECTS = $(tests_srv_SOURCES:.c=.o)
+
+tests_cli_DIR = tests/vhost
+tests_cli_SOURCES = \
+	$(tests_cli_DIR)/vhost-cli.c
+tests_cli_OBJECTS = $(tests_cli_SOURCES:.c=.o)
+
 tests_vtep_DIR = tests/vtep
 tests_vtep_SOURCES = \
 	$(tests_vtep_DIR)/tests.c
@@ -180,6 +190,18 @@ tests-switch: dev $(tests_switch_OBJECTS)
 $(tests_switch_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
+tests-srv: dev $(tests_srv_OBJECTS)
+	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_srv_OBJECTS) $(tests_LIBS) -o $@
+
+$(tests_srv_OBJECTS): %.o : %.c
+	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
+
+tests-cli: dev $(tests_cli_OBJECTS)
+	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_cli_OBJECTS) $(tests_LIBS) -o $@
+
+$(tests_cli_OBJECTS): %.o : %.c
+	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
+
 tests-vhost: dev $(tests_vhost_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_vhost_OBJECTS) $(tests_LIBS) -o $@
 
@@ -213,7 +235,7 @@ $(tests_firewall_OBJECTS): %.o : %.c
 
 tests-all-build: tests-antispoof tests-core tests-rxtx tests-pmtud \
 	tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep \
-	tests-tap tests-thread tests-integration tests-vhost
+	tests-tap tests-thread tests-integration tests-vhost tests-srv
 
 ################################################################################
 ##                            Tests execution rules                           ##
@@ -264,8 +286,9 @@ integration : tests-integration
 vhost : tests-vhost
 	tests/vhost/test.sh
 
+
 testclean: testcleanobj
 	rm -fv tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep tests-tap tests-thread tests-integration tests-vhost
 
 testcleanobj:
-	rm -fv $(tests_antispoof_OBJECTS) $(tests_core_OBJECTS) $(tests_diode_OBJECTS) $(tests_rxtx_OBJECTS) $(tests_pmtud_OBJECTS) $(tests_firewall_OBJECTS) $(tests_nic_OBJECTS) $(tests_print_OBJECTS) $(tests_queue_OBJECTS) $(tests_switch_OBJECTS) $(tests_vtep_OBJECTS) $(tests_tap_OBJECTS) $(tests_thread_OBJECTS) $(tests_integration_OBJECTS) $(tests_vhost_OBJECTS)
+	rm -fv $(tests_antispoof_OBJECTS) $(tests_core_OBJECTS) $(tests_diode_OBJECTS) $(tests_rxtx_OBJECTS) $(tests_pmtud_OBJECTS) $(tests_firewall_OBJECTS) $(tests_nic_OBJECTS) $(tests_print_OBJECTS) $(tests_queue_OBJECTS) $(tests_switch_OBJECTS) $(tests_vtep_OBJECTS) $(tests_tap_OBJECTS) $(tests_thread_OBJECTS) $(tests_integration_OBJECTS) $(tests_vhost_OBJECTS) $(tests_srv_OBJECTS)
