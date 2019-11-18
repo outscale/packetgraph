@@ -66,7 +66,7 @@ static void multicast6_unsubscribe(struct vtep_state *state,
 				   struct pg_error **errp);
 
 #define IP_VERSION 6
-#include "vtep-internal.c"
+#include "vtep-impl.h"
 #undef IP_VERSION
 
 struct mld_hdr {

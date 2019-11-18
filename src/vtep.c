@@ -69,7 +69,7 @@ static void multicast4_unsubscribe(struct vtep_state *state,
 #define IGMP_PROTOCOL_NUMBER 0x02
 
 #define IP_VERSION 4
-#include "vtep-internal.c"
+#include "vtep-impl.h"
 #undef IP_VERSION
 
 struct igmp_hdr {
