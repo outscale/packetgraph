@@ -80,10 +80,9 @@ static void rx_callback(struct pg_brick *brick,
 		tot_byte_in_s += pg_packet_len(*rx_burst);
 	}
 }
-static void tx_callback(struct pg_brick *brick,
-			pg_packet_t **tx_burst,
-			uint16_t *tx_burst_len,
-			void *private_data)
+
+static void tx_callback(struct pg_brick *brick, pg_packet_t **tx_burst,
+			uint16_t *tx_burst_len, void *private_data)
 {
 	static bool copied;
 
