@@ -281,13 +281,13 @@ int16_t pg_thread_init(struct pg_error **errp)
 }
 
 #define TYPE_NAME ptr
-#include "thread-internal.c"
+#include "thread-impl.h"
 #undef TYPE_NAME
 #define TYPE_NAME i16
-#include "thread-internal.c"
+#include "thread-impl.h"
 #undef TYPE_NAME
 #define TYPE_NAME i32
-#include "thread-internal.c"
+#include "thread-impl.h"
 #undef TYPE_NAME
 
 #define enqueue(thread_id, op, arg)		\
