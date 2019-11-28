@@ -162,6 +162,9 @@ hugetlbfs       /mnt/huge  hugetlbfs       rw,mode=0777        0 0
 -DPG_BRICK_NO_ATOMIC_COUNT: do not use atomic variable to count packets, if you do so, you must call `pg_brick_pkts_count_get` in the same thread you use to poll packets
 -DPG_VHOST_FASTER_YET_BROKEN_POLL: change the way vhost lock the queue so it spend less time locking/unlocking the queue, but can easily deadlock if badly use.
 
+# Compille Time Option
+-DTAP_IGNORE_ERROR: when packetgrapg can't burst or poll a tap, it return 0 instead of returning an error
+
 # Licence
 
 Packetgraph project is published under [GNU GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.en.html).
