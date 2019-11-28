@@ -100,8 +100,12 @@ static int tap_burst(struct pg_brick *brick, enum pg_side from,
 
 		/* write data. */
 		if (unlikely(write(fd, data, len) < 0)) {
+#ifdef TAP_IGNORE_ERROR
+			return 0;
+#else
 			*errp = pg_error_new("%s", strerror(errno));
 			return -1;
+#endif
 		}
 	}
 
@@ -144,8 +148,13 @@ static int tap_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 		if (read_size < 0) {
 			if (likely(errno == EAGAIN))
 				break;
+
+#ifdef TAP_IGNORE_ERROR
+			return 0;
+#else
 			*errp = pg_error_new("%s", strerror(errno));
 			return -1;
+#endif
 		}
 		/* ignore potential truncated packets */
 		if (unlikely(read_size == PG_MBUF_SIZE)) {
