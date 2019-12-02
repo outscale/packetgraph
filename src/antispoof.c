@@ -25,9 +25,7 @@
 #include "utils/mac.h"
 #include "utils/ip.h"
 #include "utils/network.h"
-
-#define ARP_MAX 100
-#define NPD_MAX 100
+#include <packetgraph/antispoof.h>
 
 struct pg_antispoof_arp {
 	/* Format of hardware address.  */
@@ -88,11 +86,11 @@ struct pg_antispoof_state {
 	struct ether_addr mac;
 	bool arp_enabled;
 	uint16_t arps_size;
-	struct arp arps[ARP_MAX];
+	struct arp arps[PG_ARP_MAX];
 	/* icmpv6 / neighbor discovery */
 	bool ndp_enabled;
 	uint16_t ndps_size;
-	struct ndp ndps[NPD_MAX];
+	struct ndp ndps[PG_NPD_MAX];
 };
 
 struct pg_antispoof_config {
@@ -120,7 +118,7 @@ int pg_antispoof_arp_add(struct pg_brick *brick, uint32_t ip,
 	uint16_t n = state->arps_size;
 	struct arp *arp = &state->arps[n];
 
-	if (unlikely(n == ARP_MAX)) {
+	if (unlikely(n == PG_ARP_MAX)) {
 		*errp = pg_error_new("Maximal IP reached");
 		return -1;
 	}
@@ -229,7 +227,7 @@ int pg_antispoof_ndp_add(struct pg_brick *brick, uint8_t *ip,
 	uint16_t n = state->ndps_size;
 	struct ndp *ndp = &state->ndps[n];
 
-	if (unlikely(n == NPD_MAX)) {
+	if (unlikely(n == PG_NPD_MAX)) {
 		*errp = pg_error_new("Maximal IPV6 reached");
 		return -1;
 	}
@@ -284,8 +282,6 @@ static inline int antispoof_ndp(struct pg_antispoof_state *state,
 	uint8_t ipv6_type;
 	uint8_t *ipv6_payload;
 
-	if (pg_utils_get_ipv6_l4(pkt, &ipv6_type, &ipv6_payload) < 0)
-		return -1;
 	if (likely(ipv6_type != PG_IP_TYPE_ICMPV6))
 		return 0;
 
@@ -412,5 +408,3 @@ static struct pg_brick_ops antispoof_ops = {
 
 pg_brick_register(antispoof, &antispoof_ops);
 
-#undef NPD_MAX
-#undef ARP_MAX
