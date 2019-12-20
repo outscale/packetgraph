@@ -27,7 +27,7 @@ if [ -d "$dir/html" ] && [ -s "$dir/html/index.html" ]; then
     branch: ${TRAVIS_BRANCH}
     build: ${TRAVIS_BUILD_NUMBER}"
     # Force push to the remote master branch.
-    git push --force "https://${GH_PACKETGRAPH_TOKEN}@${GH_REPO_REF}" master:master
+    git push --force "https://$GH_REPO_TOKEN@$GH_REPO_REF" master:master
 else
     echo 'Warning: No documentation (html) files have been found!' >&2
     echo 'Warning: Not going to push the documentation to GitHub!' >&2

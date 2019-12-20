@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cd $TRAVIS_BUILD_DIR
-git config user.name "$(GH_USER_NAME)"
-git config user.email "$(USER_MAIL)"
+git config user.name "$GH_USER_NAME"
+git config user.email "$GH_USER_MAIL"
 export LD="llvm-link"
 ./configure -p --with-benchmarks --with-examples
 
