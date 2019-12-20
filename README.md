@@ -163,6 +163,7 @@ hugetlbfs       /mnt/huge  hugetlbfs       rw,mode=0777        0 0
 
 # Compille Time Option
 -DTAP_IGNORE_ERROR: when packetgrapg can't burst or poll a tap, it return 0 instead of returning an error
+-DPG_QEMU_MEM_SIZE=SIZE: allow to specify qemy ram size in test, parameter must be a string in qemu format, examples: -DPG_QEMU_MEM_SIZE="1G", -DPG_QEMU_MEM_SIZE="512M"
 
 # Licence
 

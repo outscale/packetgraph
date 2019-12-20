@@ -48,7 +48,10 @@ static inline void pg_brick_ptrptr_destroy(struct pg_brick **brick)
 #define PG_STRCAT7(a, b, c, d, e, f, g) (a b c d e f g)
 #define PG_STRCAT8(a, b, c, d, e, f, g, h) (a b c d e f g h)
 #define PG_STRCAT9(a, b, c, d, e, f, g, h, i) (a b c d e f g h i)
-#define PG_STRCAT10(a, b, c, d, e, f, g, h, i, j) (a b c d e f g h i j)
+#define PG_STRCAT10(a, b, c, d, e, f, g, h, i, j)	\
+	(a b c d e f g h i j)
+#define PG_STRCAT11(a, b, c, d, e, f, g, h, i, j, k)	\
+	(a b c d e f g h i j k)
 
 #define PG_CAT(a, b) a ## b
 
