@@ -24,6 +24,10 @@
 #include "utils/qemu.h"
 #include "utils/common.h"
 
+#ifndef PG_QEMU_MEM_SIZE
+#define PG_QEMU_MEM_SIZE "128G"
+#endif
+
 int pg_util_cmdloop(const char *cmd, int timeout_s)
 {
 	struct timeval start, end;
@@ -111,10 +115,13 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 
 	argv_qemu = g_strdup_printf(
 		PG_STRCAT(
-			"qemu-system-x86_64 -m 1G -enable-kvm",
+			"qemu-system-x86_64 -m ",
+			PG_QEMU_MEM_SIZE,
+			" -enable-kvm",
 			" -vnc :%u -display none -snapshot -object",
-			" memory-backend-file,id=mem,size=1G,",
-			"mem-path=%s,share=on -numa node,memdev=mem",
+			" memory-backend-file,id=mem,size=",
+			PG_QEMU_MEM_SIZE,
+			",mem-path=%s,share=on -numa node,memdev=mem",
 			" -mem-prealloc -drive file=%s",
 			" -netdev user,id=net0,hostfwd=tcp::%u-:22",
 			" -device e1000,netdev=net0%s%s",
