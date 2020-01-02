@@ -147,3 +147,17 @@ static const unsigned char pkt2[86] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x02, 0x01, /* ........ */
 0x52, 0x54, 0x00, 0x12, 0x34, 0x06              /* RT..4. */
 };
+
+/* pkt3 with Next header : UDP (17)
+ *
+ * */
+unsigned char pkt3[86];
+memcpy(pkt3, pkt2, 86);
+pkt3[20] = 0x11;
+
+/* Internet Control Message Protocol v6
+ * Type: Neighbor Advertisement (137)
+ * */
+unsigned char pkt4[86];
+memcpy(pkt4, pkt2, 86);
+pkt4[46] = 0x89;

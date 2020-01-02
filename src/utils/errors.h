@@ -57,5 +57,10 @@ pg_error_make_ctx_internal(const char *file, uint64_t line, const char *func);
 	pg_error_make_ctx_internal(__FILE__, (__LINE__ + line_decalage), \
 				   __func__);
 
+#define PG_ERROR_EXISTS(error) do {					\
+		g_assert(error);					\
+		pg_error_free(error);					\
+		error = NULL;						\
+	} while (0)
 
 #endif /* _PG_UTILS_ERRORS_H */

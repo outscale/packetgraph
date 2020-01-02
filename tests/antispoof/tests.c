@@ -32,6 +32,7 @@
 #include "fail.h"
 #include "utils/mac.h"
 #include "utils/ip.h"
+#include "utils/errors.h"
 
 static struct rte_mbuf *build_packet(const unsigned char *data, size_t len)
 {
@@ -253,9 +254,56 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	pg_error_free(error);
 	error = NULL;
 
+	/* re-add other IP and original IP, should pass */  
+	g_assert(!pg_antispoof_arp_del(antispoof, 42, &error));  
+	g_assert(!pg_antispoof_arp_del(antispoof, 51, &error));
+	g_assert(!pg_antispoof_arp_add(antispoof, 42, &error)); 
+	g_assert(!pg_antispoof_arp_add(antispoof, 51, &error)); 
+	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
+	g_assert(!error); 
+	REPLAY(1);
+
+	/* remove IP, should not pass */ 
+	pg_antispoof_arp_del_all(antispoof); 
+	REPLAY(0);
+
+	/* add ARP_MAX */
+	for (int i = 0; i <= 150; i++) {
+		if (i < PG_ARP_MAX) {
+			g_assert(!pg_antispoof_arp_add(antispoof, i, &error));
+			g_assert(!error);
+		} else {
+			g_assert(pg_antispoof_arp_add(antispoof, i, &error));
+			PG_ERROR_EXISTS(error);
+		}
+	}
+
+	/* remove IP, should not pass */
+	pg_antispoof_arp_del_all(antispoof);
+	REPLAY(0);
+
 	/* disable arp antispoof, should pass */
 	pg_antispoof_arp_disable(antispoof);
 	REPLAY(1);
+
+	/* add ARP_MAX */
+       for (int i = 0; i <= 150; i++) {
+	       if (i < PG_ARP_MAX) {
+		       g_assert(!pg_antispoof_arp_add(antispoof, i, &error));
+		       g_assert(!error);
+	       } else {
+		       g_assert(pg_antispoof_arp_add(antispoof, i, &error));
+		       PG_ERROR_EXISTS(error);
+	       }
+       }
+
+       /* remove IP, should pass */
+        pg_antispoof_arp_del_all(antispoof);
+        REPLAY(1);
+
+        /* disable arp antispoof, should pass */
+        pg_antispoof_arp_disable(antispoof);
+        REPLAY(1);
 
 	/* enable arp antispoof again, should re-block */
 	pg_antispoof_arp_enable(antispoof);
@@ -265,8 +313,7 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	pg_brick_unlink(antispoof, &error);
 	g_assert(!error);
 	pg_brick_destroy(antispoof);
-	antispoof = pg_antispoof_new("antispoof", PG_WEST_SIDE,
-				     &inside_mac, &error);
+	antispoof = pg_antispoof_new("antispoof", PG_WEST_SIDE, &inside_mac, &error);
 	pg_antispoof_arp_enable(antispoof);
 	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
 	g_assert(!error);
@@ -275,6 +322,7 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	pg_brick_link(antispoof, col_east, &error);
 	g_assert(!error);
 	REPLAY(1);
+	pg_brick_destroy(antispoof);
 #undef REPLAY
 
 	pg_brick_destroy(gen_west);
@@ -437,8 +485,8 @@ static void test_antispoof_empty_burst(void)
 	g_free(pkts);
 }
 
-static int test_antispoof_filter(struct pg_brick *antispoof,
-				 struct rte_mbuf *packet)
+static int test_antispoof_filter(struct pg_brick *antispoof, 
+		                 struct rte_mbuf *packet)
 {
 	struct pg_brick *gen_west;
 	struct pg_brick *col_east;
@@ -521,6 +569,30 @@ static void test_antispoof_ndp(void)
 	pg_antispoof_ndp_enable(antispoof);
 	pg_antispoof_ndp_del_all(antispoof);
 
+	/* add NDP_MAX adresses  */
+	for (int i = 0; i < 150; i++) {
+		pg_autofree char *c = g_strdup_printf("2001:db8:2000:aff0::%d",i);
+		pg_ip_from_str(ip, c);
+		if (i < PG_NPD_MAX) {
+		        pg_antispoof_ndp_add(antispoof, ip, &error);
+			g_assert(!error);
+		} else {
+			pg_antispoof_ndp_add(antispoof, ip, &error);
+			PG_ERROR_EXISTS(error);
+		}
+	}
+
+	/* remove all adresses */
+        pg_antispoof_ndp_del_all(antispoof);
+
+	/* add several bad addresses */
+	pg_ip_from_str(ip, "2001:db8:2000:aff0::42");
+	pg_antispoof_ndp_add(antispoof, ip, &error);
+	g_assert(!error);
+
+	/* remove all addresses */
+	pg_antispoof_ndp_del(antispoof,ip,&error);
+
 	/* legit packet */
 	packet = build_packet(pkt0, 86);
 	g_assert(test_antispoof_filter(antispoof, packet) == 0);
@@ -538,9 +610,23 @@ static void test_antispoof_ndp(void)
 	pg_ip_from_str(ip, "2001:db8:2000:aff0::42");
 	pg_antispoof_ndp_add(antispoof, ip, &error);
 	g_assert(!error);
-	pg_ip_from_str(ip, "2001:db8:2000:aff0::43");
+	pg_ip_from_str(ip, "0");
 	pg_antispoof_ndp_add(antispoof, ip, &error);
 	g_assert(!error);
+
+	/* remove adresse */
+	g_assert(pg_antispoof_ndp_del(antispoof,ip,&error) == 0);
+	g_assert(!error);
+
+	/* legit packet with next header :UDP */
+	packet = build_packet(pkt3, 86);
+	g_assert(test_antispoof_filter(antispoof, packet) != 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
+
+	/*  legit packet with type Redirect Message */
+	packet = build_packet(pkt4, 86); 
+	g_assert(test_antispoof_filter(antispoof, packet) == 0);
+	pg_packets_free(&packet, pg_mask_firsts(1));
 
 	/* legit packet */
 	packet = build_packet(pkt0, 86);

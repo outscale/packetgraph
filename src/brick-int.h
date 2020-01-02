@@ -208,8 +208,8 @@ int pg_brick_reset(struct pg_brick *brick, struct pg_error **errp);
 
 /* testing */
 uint32_t pg_brick_links_count_get(const struct pg_brick *brick,
-				  const struct pg_brick *target,
-				  struct pg_error **errp);
+				const struct pg_brick *target,
+				struct pg_error **errp);
 int64_t pg_brick_refcount(const struct pg_brick *brick);
 
 /* generic functions used to factorize code */
