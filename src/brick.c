@@ -325,13 +325,13 @@ uint32_t pg_brick_links_count_get(const struct pg_brick *brick,
 				  const struct pg_brick *target,
 				  struct pg_error **errp)
 {
-	uint32_t count = 0;
+	int count = 0;
 	enum pg_side i;
 	const struct pg_brick_side *side;
 
 	if (!brick) {
 		*errp = pg_error_new("brick is NULL");
-		return 0;
+		return -1;
 	}
 
 	if (brick->type == PG_MULTIPOLE) {
@@ -349,6 +349,7 @@ uint32_t pg_brick_links_count_get(const struct pg_brick *brick,
 		if (side->edge.link && side->edge.link == target)
 			++count;
 	} else {
+		*errp = pg_error_new("brick config type is unknown");
 		return -1;
 	}
 
