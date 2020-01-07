@@ -13,8 +13,7 @@ set -e
 
 if [ "$(whoami)" == "travis" ]; then
     if [ ! -e "/usr/bin/doxygen" ]; then
-	sudo curl https://osu.eu-west-2.outscale.com/jerome.jutteau/16d1bc0517de5c95aa076a0584b43af6/doxygen.sh -o /usr/bin/doxygen
-	sudo chmod +x /usr/bin/doxygen
+	sudo apt install -y doxygen
     fi
     make doc
 fi
