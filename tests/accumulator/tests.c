@@ -134,9 +134,10 @@ static void lanch_burst(struct pg_brick *acc,
 				       pg_mask_firsts(NB_PKTS), &error);
 		result_pkts = pg_brick_east_burst_get(col, &pkts_mask, &error);
 	}
-	for (i = 0; i < expected; i++) {
+
+	for (i = 0; i < expected; i++)
 		g_assert(result_pkts[i]->udata64 == (i + pg_res_id) % NB_PKTS);
-	}
+
 	if (expected)
 		pg_res_id += (PG_MAX_PKTS_BURST % NB_PKTS);
 }
