@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	ret = pg_vhost_start("/tmp", &error);
 	g_assert(ret == 0);
 	g_assert(!error);
-	vhost_00 = pg_vhost_new("vhost-X", 0, &error);
+	vhost_00 = pg_vhost_new("vhost-X", 1, &error);
 	const char* socket_path_0 = pg_vhost_socket_path(vhost_00);
 	printf("%s\n-------------00\n", socket_path_0);
 	g_assert(!error);

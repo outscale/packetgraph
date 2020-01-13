@@ -26,7 +26,7 @@ if [ ! -d /mnt/huge ]; then
 fi
 
 # Clean old sockets
-sudo rm /tmp/qemu-vhost-* | true
+#sudo rm /tmp/qemu-vhost-* | true
 
 # Check hugepages
 NB_HUGE=$(grep HugePages_Free /proc/meminfo | awk -F':' '{ print $2 }')
