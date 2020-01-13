@@ -139,8 +139,6 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	uint64_t tx_bytes = 0;
 	const int check_atomic = VHOST_GET_CHECK_ATOMIC(state);
 
-	printf("Trying lock...%d %d\n", !rte_atomic32_test_and_set(
-		&state->allow_queuing), check_atomic);
 	/* Try lock */
 	if (unlikely(check_atomic &&
 		     !rte_atomic32_test_and_set(&state->allow_queuing)))
