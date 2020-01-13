@@ -122,6 +122,7 @@ static struct pg_brick_config *vhost_config_new(const char *name,
 						      1);
 
 	config->brick_config = (void *) vhost_config;
+	printf("Here is 1 flag: %ld\n", flags);
 	vhost_config->flags = flags;
 	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
 }
@@ -303,10 +304,11 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 	{
 		g_remove(path);
 	}
-	else
+	/*else
 	{
 		flags = flags | 31;
 	}
+	*/
 	printf("New vhost-user socket: %s, zero-copy %s\n", path,
 	       (flags & RTE_VHOST_USER_DEQUEUE_ZERO_COPY) ?
 	       "enable" : "disable");
@@ -314,6 +316,7 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 	flags = flags & (RTE_VHOST_USER_CLIENT | RTE_VHOST_USER_NO_RECONNECT |
 			 RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
 
+	printf("flags #2 %ld\n", flags);
 	ret = rte_vhost_driver_register(path, flags);
 	if (ret) {
 		*errp = pg_error_new_errno(-ret,
@@ -375,7 +378,7 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
 	pg_vhost_enable(brick, enable_freacture_mask);
 	pg_vhost_disable(brick, disable_freacture_mask);
-
+	printf("flags #3 %ld\n", vhost_config->flags);
 	vhost_create_socket(state, vhost_config->flags, errp);
 	if (pg_error_is_set(errp))
 		return -1;
