@@ -43,6 +43,6 @@ if [  "$NB_HUGE" -lt 1 ]; then
 fi
 
 # Launch test
-sudo ./tests-cli -c1 -n1 --socket-mem 64 --no-shconf -- -hugepages /mnt/huge
+sudo ./tests-cli -c1 -n1 --no-huge --no-shconf -- -hugepages /mnt/huge
 
 

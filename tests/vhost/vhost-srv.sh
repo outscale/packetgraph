@@ -43,6 +43,11 @@ if [  "$NB_HUGE" -lt 1 ]; then
 fi
 
 # Launch test
-sudo ./tests-srv -c1 -n1 --socket-mem 64 --no-shconf -- -hugepages /mnt/huge
+#gdb --args tests-srv -c1 -n1 --socket-mem 64 --no-shconf -- -hugepages /mnt/huge
+
+
+sudo ./tests-srv -c1 -n1 --no-shconf --no-huge -- -hugepages /mnt/huge
+
+
 
 
