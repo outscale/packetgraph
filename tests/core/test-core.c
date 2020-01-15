@@ -25,38 +25,73 @@
 #include "packetgraph/queue.h"
 #include "utils/network.h"
 #include "utils/mac-table.h"
+#include "utils/errors.h"
+#include "utils/common.h"
 
 static void test_brick_core_simple_lifecycle(void)
 {
 	struct pg_error *error = NULL;
 	struct pg_brick *brick;
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 2, 2,
-							     PG_MULTIPOLE);
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 2, 2, PG_MULTIPOLE);
+	struct pg_brick_config *config1 = pg_brick_config_new("mybrick", 2, 2, PG_MONOPOLE);
+	struct pg_brick_config *config2 = pg_brick_config_new("mybrick", UINT16_MAX, UINT16_MAX, PG_MULTIPOLE);
+
+	brick = pg_brick_new("nop", config1, &error);
+	g_assert(!brick);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "A 'PG_MONOPOLE' cannot have more than one neibour per side");
+	PG_ERROR_EXISTS(error);
+
+	brick = pg_brick_new("nop", config2, &error);
+	g_assert(!brick);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "A 'PG_MULTIPOLE' cannot have more than 65535 edge on PG_WEST_SIDE");
+	PG_ERROR_EXISTS(error);
+
+	brick = pg_brick_new(NULL, NULL, &error);
+	g_assert(!brick);	
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "Brick config not set");
+	PG_ERROR_EXISTS(error);
+        
+	brick = pg_brick_new(NULL, config, &error);
+	g_assert(!brick);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "Brick name not set");
+	PG_ERROR_EXISTS(error);
+
+	pg_brick_decref(brick, &error);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "NULL brick");
+	PG_ERROR_EXISTS(error);
+
+	g_assert(pg_brick_reset(brick,&error) < 0);
+	PG_ERROR_EXISTS(error);
 
 	brick = pg_brick_new("foo", config, &error);
 	g_assert(!brick);
-	g_assert(error);
 	g_assert(error->message);
 	g_assert_cmpstr(error->message, ==, "Brick 'foo' not found");
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
 
 	brick = pg_brick_new("nop", config, &error);
 	g_assert(brick);
 	g_assert(!error);
+	g_assert(brick->refcount >= 0);
 
 	pg_brick_decref(brick, &error);
 	g_assert(!error);
+	g_assert(brick->refcount >= 0);
 
 	brick = pg_brick_decref(NULL, &error);
 	g_assert(!brick);
-	g_assert(error);
 	g_assert(error->message);
 	g_assert_cmpstr(error->message, ==, "NULL brick");
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
 
 	pg_brick_config_free(config);
+	pg_brick_config_free(config1);
+	pg_brick_config_free(config2);
 }
 
 static void test_brick_core_refcount(void)
@@ -90,14 +125,25 @@ static void test_brick_core_refcount(void)
 	pg_brick_config_free(config);
 }
 
+#define pg_autobrick pg_cleanup(pg_brick_ptrptr_destroy)
+
 static void test_brick_core_link(void)
 {
 	struct pg_error *error = NULL;
-	struct pg_brick *west_brick, *middle_brick, *east_brick;
-	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
-							     PG_MULTIPOLE);
+	struct rte_mbuf **result_pkts;
+	pg_autobrick struct pg_brick *west_brick, *middle_brick, *east_brick,
+					*west_brick1, *middle_brick1, *east_brick1,
+					*west_brick2, *west_brick3, *east_brick3;
+	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4, PG_MULTIPOLE);
+	struct pg_brick_config *config1 = pg_brick_config_new("mybrick", 1, 1,4);
+	struct pg_brick_config *config2 = pg_brick_config_new("mybrick", 1, 1,PG_MONOPOLE);
+	struct pg_brick_config *config3 = pg_brick_config_new("mybrick", 0, 0,PG_DIPOLE);
+
 	int64_t refcount;
+	uint64_t pkts_mask = 0;
 	int ret;
+	uint16_t count = 0;
+	FILE *fd;
 
 	west_brick = pg_brick_new("nop", config, &error);
 	g_assert(west_brick);
@@ -106,6 +152,9 @@ static void test_brick_core_link(void)
 	middle_brick = pg_brick_new("nop", config, &error);
 	g_assert(middle_brick);
 	g_assert(!error);
+
+	g_assert(pg_brick_reset(middle_brick,&error)!=0);
+	PG_ERROR_EXISTS(error);
 
 	east_brick = pg_brick_new("nop", config, &error);
 	g_assert(east_brick);
@@ -144,21 +193,95 @@ static void test_brick_core_link(void)
 	refcount = pg_brick_refcount(east_brick);
 	g_assert(refcount == 1);
 
-	/* destroy */
-	pg_brick_decref(west_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(middle_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(east_brick, &error);
+	g_assert(pg_brick_poll(NULL, &count, &error) == -1);
+	PG_ERROR_EXISTS(error);
+
+	result_pkts = pg_brick_west_burst_get(NULL, &pkts_mask,
+						&error);
+	g_assert(result_pkts == 0);
+	PG_ERROR_EXISTS(error);
+	result_pkts = pg_brick_east_burst_get(NULL, &pkts_mask,
+                                                &error);
+	g_assert(result_pkts == 0);
+	PG_ERROR_EXISTS(error);
+
+	g_assert(pg_brick_pkts_count_get(NULL, PG_WEST_SIDE) == 0);
+
+	g_assert(pg_brick_rx_bytes(NULL) == 0);
+	g_assert(pg_brick_tx_bytes(NULL) == 0);
+
+	west_brick1 = pg_brick_new("nop", config1, &error);
 	g_assert(!error);
 
+	middle_brick1 = pg_brick_new("nop", config1, &error);
+	g_assert(!error);
+
+	east_brick1 = pg_brick_new("nop", config1, &error);
+	g_assert(!error);
+
+	g_assert(pg_brick_poll(middle_brick1, &count, &error) == -1);
+	PG_ERROR_EXISTS(error);
+
+	g_assert(!pg_brick_pollable(middle_brick1));
+	g_assert(!error);
+
+	g_assert(pg_brick_rx_bytes(middle_brick1) == 0);
+	g_assert(pg_brick_tx_bytes(middle_brick1) == 0);
+
+	result_pkts = pg_brick_west_burst_get(middle_brick1, &pkts_mask,
+                                                &error);
+	g_assert(result_pkts == 0);
+	PG_ERROR_EXISTS(error);
+
+	result_pkts = pg_brick_east_burst_get(middle_brick1, &pkts_mask,
+                                                &error);
+	g_assert(result_pkts == 0);
+	PG_ERROR_EXISTS(error);
+
+	ret = pg_brick_chained_links_int(&error, middle_brick1, east_brick1,  west_brick1);
+	g_assert(ret == -1);
+	PG_ERROR_EXISTS(error);
+	ret = pg_brick_link(east_brick1, west_brick1, &error);
+	g_assert(ret == -1);
+	PG_ERROR_EXISTS(error);
+
+	ret = pg_brick_link(west_brick1, middle_brick1,  &error);
+	g_assert(ret == -1);
+	PG_ERROR_EXISTS(error);
+
+	pg_brick_generic_unlink(east_brick1, &error);
+	g_assert(!error);
+
+	west_brick2 = pg_brick_new("nop", config2, &error);
+	g_assert(!error);
+
+	g_assert(pg_brick_unlink_edge(west_brick2, east_brick, &error) == -1);
+	PG_ERROR_EXISTS(error);
+
+	fd = fopen ("graph","w");
+	pg_brick_dot_fd(west_brick2, fd);
+
+	west_brick3 = pg_brick_new("nop", config3, &error);
+	g_assert(!error);
+
+	east_brick3 = pg_brick_new("nop", config3, &error);
+	g_assert(!error);
+
+	g_assert(pg_brick_unlink_edge(west_brick3, east_brick3, &error) == -1);
+	PG_ERROR_EXISTS(error);
+
+	pg_brick_dot_fd(west_brick3, fd);
+
 	pg_brick_config_free(config);
+	pg_brick_config_free(config1);
+	pg_brick_config_free(config2);
+	pg_brick_config_free(config3);
 }
 
 static void test_brick_core_unlink_edge(void)
 {
 	struct pg_error *error = NULL;
-	struct pg_brick *west_brick, *middle_brick, *east_brick;
+	pg_autobrick struct pg_brick *west_brick, *middle_brick, *east_brick;
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
 	int64_t refcount;
@@ -180,6 +303,18 @@ static void test_brick_core_unlink_edge(void)
 	g_assert(ret == 0);
 	g_assert(!error);
 
+	ret = pg_brick_link(west_brick, west_brick,  &error);
+	g_assert(ret == -1);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "Can not link a brick to itself");
+	PG_ERROR_EXISTS(error);
+
+	ret = pg_brick_link(NULL, west_brick,  &error);
+	g_assert(ret == -1);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "Node is not valid");
+	PG_ERROR_EXISTS(error);
+
 	ret = pg_brick_link(middle_brick, east_brick, &error);
 	g_assert(ret == 0);
 	g_assert(!error);
@@ -192,13 +327,16 @@ static void test_brick_core_unlink_edge(void)
 	g_assert(refcount == 2);
 
 	g_assert(pg_brick_unlink_edge(west_brick, east_brick, &error) == -1);
-	g_assert(error);
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
+
 	g_assert(pg_brick_unlink_edge(east_brick, west_brick, &error) == -1);
-	g_assert(error);
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
+
+	g_assert(pg_brick_unlink_edge(east_brick, NULL, &error) == -1);
+	PG_ERROR_EXISTS(error);
+
+	g_assert(pg_brick_unlink_edge(NULL, west_brick, &error) == -1);
+	PG_ERROR_EXISTS(error);
 
 	g_assert(!pg_brick_unlink_edge(west_brick, middle_brick, &error));
 	refcount = pg_brick_refcount(west_brick);
@@ -250,20 +388,12 @@ static void test_brick_core_unlink_edge(void)
 	refcount = pg_brick_refcount(east_brick);
 	g_assert(refcount == 1);
 
-	/* destroy */
-	pg_brick_decref(west_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(middle_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(east_brick, &error);
-	g_assert(!error);
-
 	pg_brick_config_free(config);
 }
 
 static void test_brick_core_multiple_link(void)
 {
-	struct pg_brick *west_brick, *middle_brick, *east_brick;
+	pg_autobrick struct pg_brick *west_brick, *middle_brick, *east_brick;
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
 	struct pg_error *error = NULL;
@@ -324,14 +454,6 @@ static void test_brick_core_multiple_link(void)
 	refcount = pg_brick_refcount(east_brick);
 	g_assert(refcount == 1);
 
-	/* destroy */
-	pg_brick_decref(west_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(middle_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(east_brick, &error);
-	g_assert(!error);
-
 	pg_brick_config_free(config);
 }
 
@@ -355,13 +477,10 @@ static void test_brick_core_multiple_unlink_edge_(struct pg_brick *west[4],
 	}
 
 	g_assert(pg_brick_unlink_edge(west[0], east[0], &error) == -1);
-	g_assert(error);
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
+
 	g_assert(pg_brick_unlink_edge(east[0], west[0], &error) == -1);
-	g_assert(error);
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
 
 	g_assert(!pg_brick_unlink_edge(west[0], middle, &error));
 	g_assert(!error);
@@ -484,7 +603,8 @@ static void test_brick_core_multiple_unlink_edge(void)
 
 static void test_brick_core_multiple_unlink_edge_same(void)
 {
-	struct pg_brick *west_brick, *middle_brick, *east_brick;
+	pg_autobrick struct pg_brick *west_brick,
+						*middle_brick, *east_brick;
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
 	struct pg_error *error = NULL;
@@ -528,13 +648,10 @@ static void test_brick_core_multiple_unlink_edge_same(void)
 	g_assert(refcount == 4);
 
 	g_assert(pg_brick_unlink_edge(west_brick, east_brick, &error) == -1);
-	g_assert(error);
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
+
 	g_assert(pg_brick_unlink_edge(east_brick, west_brick, &error) == -1);
-	g_assert(error);
-	pg_error_free(error);
-	error = NULL;
+	PG_ERROR_EXISTS(error);
 
 	g_assert(!pg_brick_unlink_edge(west_brick, middle_brick, &error));
 	g_assert(!error);
@@ -581,14 +698,6 @@ static void test_brick_core_multiple_unlink_edge_same(void)
 	refcount = pg_brick_refcount(east_brick);
 	g_assert(refcount == 1);
 
-	/* destroy */
-	pg_brick_decref(west_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(middle_brick, &error);
-	g_assert(!error);
-	pg_brick_decref(east_brick, &error);
-	g_assert(!error);
-
 	pg_brick_config_free(config);
 }
 
@@ -628,9 +737,18 @@ static void test_brick_sanity_check_expected(struct pg_brick *brick,
 
 static void test_brick_core_verify_multiple_link(void)
 {
-	struct pg_brick *west_brick, *middle_brick, *east_brick;
+	struct pg_brick *west_brick, *middle_brick, *east_brick,
+			*west_brick1, *middle_brick1, *east_brick1,
+			*west_brick2, *middle_brick2, *east_brick2,
+			*west_brick3, *middle_brick3, *east_brick3;
 	struct pg_brick_config *config = pg_brick_config_new("mybrick", 4, 4,
 							     PG_MULTIPOLE);
+	struct pg_brick_config *config1 = pg_brick_config_new("mybrick", 1, 1,
+                                                             PG_DIPOLE);
+	struct pg_brick_config *config2 = pg_brick_config_new("mybrick", 1, 1,
+                                                             PG_MONOPOLE);
+	struct pg_brick_config *config3 = pg_brick_config_new("mybrick", 1, 1,
+                                                             4);
 	uint32_t links_count;
 	struct pg_error *error = NULL;
 
@@ -639,6 +757,27 @@ static void test_brick_core_verify_multiple_link(void)
 	middle_brick = pg_brick_new("nop", config, &error);
 	g_assert(!error);
 	east_brick = pg_brick_new("nop", config, &error);
+	g_assert(!error);
+
+	west_brick1 = pg_brick_new("nop", config1, &error);
+	g_assert(!error);
+	middle_brick1 = pg_brick_new("nop", config1, &error);
+	g_assert(!error);
+	east_brick1 = pg_brick_new("nop", config1, &error);
+	g_assert(!error);
+
+	west_brick2 = pg_brick_new("nop", config2, &error);
+	g_assert(!error);
+	middle_brick2 = pg_brick_new("nop", config2, &error);
+	g_assert(!error);
+	east_brick2 = pg_brick_new("nop", config2, &error);
+	g_assert(!error);
+
+	west_brick3 = pg_brick_new("nop", config3, &error);
+	g_assert(!error);
+	middle_brick3 = pg_brick_new("nop", config3, &error);
+	g_assert(!error);
+	east_brick3 = pg_brick_new("nop", config3, &error);
 	g_assert(!error);
 
 	/* create a few links */
@@ -652,47 +791,98 @@ static void test_brick_core_verify_multiple_link(void)
 	g_assert(!error);
 	pg_brick_link(middle_brick, east_brick, &error);
 	g_assert(!error);
+	pg_brick_link(middle_brick1, east_brick1, &error);
+	g_assert(!error);
+	pg_brick_link(middle_brick2, east_brick2, &error);
+	g_assert(!error);
+	
+	pg_brick_link(middle_brick1, west_brick1, &error);
+	PG_ERROR_EXISTS(error);
+	
+	pg_brick_link(middle_brick2, west_brick2, &error);
+	PG_ERROR_EXISTS(error);
 
+	pg_brick_link(middle_brick3, west_brick3, &error);
+	PG_ERROR_EXISTS(error);
+
+	pg_brick_link(west_brick3, middle_brick3, &error);
+	PG_ERROR_EXISTS(error);
+        
 	/* sanity checks */
 	test_brick_sanity_check(west_brick);
 	test_brick_sanity_check(middle_brick);
 	test_brick_sanity_check(east_brick);
 
-	/* check the link count */
+	/* check the link count */	
+	links_count = pg_brick_links_count_get(NULL, west_brick, &error);
+	g_assert(links_count == (uint32_t) -1);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "brick is NULL");
+	PG_ERROR_EXISTS(error);
+
+	links_count = pg_brick_links_count_get(middle_brick3, west_brick3, &error);
+	g_assert(links_count == (uint32_t)-1);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "brick config type is unknown");
+	PG_ERROR_EXISTS(error);
+
+	links_count = pg_brick_links_count_get(east_brick3, west_brick3, &error);
+	g_assert(links_count == (uint32_t)-1);
+	g_assert(error->message);
+	g_assert_cmpstr(error->message, ==, "brick config type is unknown");
+	PG_ERROR_EXISTS(error);
+
 	links_count = pg_brick_links_count_get(west_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(west_brick, middle_brick,
-					       &error);
+
+	links_count = pg_brick_links_count_get(west_brick, middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 2);
+
 	links_count = pg_brick_links_count_get(west_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 
-	links_count = pg_brick_links_count_get(middle_brick, middle_brick,
-					       &error);
+	links_count = pg_brick_links_count_get(middle_brick, middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick, west_brick,
-					       &error);
+
+	links_count = pg_brick_links_count_get(middle_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 2);
-	links_count = pg_brick_links_count_get(middle_brick, east_brick,
-					       &error);
+
+	links_count = pg_brick_links_count_get(middle_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
 
 	links_count = pg_brick_links_count_get(east_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
+
 	links_count = pg_brick_links_count_get(east_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(east_brick, middle_brick,
-					       &error);
+
+	links_count = pg_brick_links_count_get(east_brick, middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
+
+	links_count = pg_brick_links_count_get(middle_brick1,east_brick1, &error);
+	g_assert(!error);
+	g_assert(links_count == 1);
+
+	links_count = pg_brick_links_count_get(middle_brick2, east_brick2, &error);
+	g_assert(!error);
+	g_assert(links_count == 1);
+
+	links_count = pg_brick_links_count_get(west_brick2, middle_brick2, &error);
+	g_assert(!error);
+	g_assert(links_count == 0);
+
+	links_count = pg_brick_links_count_get(east_brick1, east_brick1, &error);
+	g_assert(!error);
+	g_assert(links_count == 0);
 
 	/* unlink the west brick */
 	pg_brick_unlink(west_brick, &error);
@@ -706,35 +896,36 @@ static void test_brick_core_verify_multiple_link(void)
 	links_count = pg_brick_links_count_get(west_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(west_brick, middle_brick,
-					       &error);
+
+	links_count = pg_brick_links_count_get(west_brick, middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
+
 	links_count = pg_brick_links_count_get(west_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
 
-	links_count = pg_brick_links_count_get(middle_brick,
-					       middle_brick, &error);
+	links_count = pg_brick_links_count_get(middle_brick, middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick,
-					       west_brick, &error);
+
+	links_count = pg_brick_links_count_get(middle_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(middle_brick,
-					       east_brick, &error);
+	
+	links_count = pg_brick_links_count_get(middle_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
 
 	links_count = pg_brick_links_count_get(east_brick, east_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
+
 	links_count = pg_brick_links_count_get(east_brick, west_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 0);
-	links_count = pg_brick_links_count_get(east_brick,
-					       middle_brick, &error);
+
+	links_count = pg_brick_links_count_get(east_brick, middle_brick, &error);
 	g_assert(!error);
 	g_assert(links_count == 3);
 
@@ -784,15 +975,34 @@ static void test_brick_core_verify_multiple_link(void)
 	g_assert(!error);
 	g_assert(links_count == 0);
 
-	/* destroy */
-	pg_brick_decref(west_brick, &error);
+	//destroy bricks
+	pg_brick_destroy(east_brick);
+	pg_brick_destroy(middle_brick);
+	pg_brick_destroy(west_brick);
+
+	pg_brick_decref(east_brick1, &error);
 	g_assert(!error);
-	pg_brick_decref(middle_brick, &error);
+	pg_brick_decref(middle_brick1, &error);
 	g_assert(!error);
-	pg_brick_decref(east_brick, &error);
+	pg_brick_decref(west_brick1, &error);
+	g_assert(!error);
+	pg_brick_decref(east_brick2, &error);
+	g_assert(!error);
+	pg_brick_decref(middle_brick2, &error);
+	g_assert(!error);
+	pg_brick_decref(west_brick2, &error);
+	g_assert(!error);
+	pg_brick_decref(east_brick3, &error);
+	g_assert(!error);
+	pg_brick_decref(middle_brick3, &error);
+	g_assert(!error);
+	pg_brick_decref(west_brick3, &error);
 	g_assert(!error);
 
 	pg_brick_config_free(config);
+	pg_brick_config_free(config1);
+	pg_brick_config_free(config2);
+	pg_brick_config_free(config3);
 }
 
 static void test_brick_core_verify_re_link(void)
@@ -821,12 +1031,18 @@ static void test_brick_core_verify_re_link(void)
 	test_brick_sanity_check_expected(f, 1, 1);
 	test_brick_sanity_check_expected(a, 1, 0);
 
+	pg_brick_chained_links(&e,v,NULL);
+	PG_ERROR_EXISTS(e);
+
 	/* Unlink f */
 	pg_brick_unlink(f, &e);
 	g_assert(!e);
 	test_brick_sanity_check_expected(v, 0, 0);
 	test_brick_sanity_check_expected(f, 0, 0);
 	test_brick_sanity_check_expected(a, 0, 0);
+
+	pg_brick_unlink(NULL, &e);
+	PG_ERROR_EXISTS(e);
 
 	/* Link v and s */
 	pg_brick_link(v, s, &e);
@@ -859,7 +1075,7 @@ static void test_brick_core_verify_re_link(void)
 
 static void test_brick_verify_re_link_monopole(void)
 {
-	struct pg_brick *west_brick, *east_brick;
+	pg_autobrick struct pg_brick *west_brick, *east_brick;
 	struct pg_error *error = NULL;
 
 	west_brick = pg_queue_new("q1", 1, &error);
@@ -878,9 +1094,6 @@ static void test_brick_verify_re_link_monopole(void)
 	/* We relink them to make sure unlink works */
 	pg_brick_link(west_brick, east_brick, &error);
 	g_assert(!error);
-
-	pg_brick_destroy(west_brick);
-	pg_brick_destroy(east_brick);
 }
 
 static void test_big_endian(void)
