@@ -107,8 +107,6 @@ static const struct vhost_device_ops virtio_net_device_ops = {
 static LIST_HEAD(socket_list, pg_vhost_socket) sockets;
 static char *sockets_path;
 static int vhost_start_ok;
-static int disable_freacture_mask;
-static int enable_freacture_mask;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -374,8 +372,6 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	state->flags = vhost_config->flags;
 	PG_PKTS_COUNT_SET(state->rx_bytes, 0);
 	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
-	pg_vhost_enable(brick, enable_freacture_mask);
-	pg_vhost_disable(brick, disable_freacture_mask);
 	printf("flags #3 %ld\n", vhost_config->flags);
 	vhost_create_socket(state, vhost_config->flags, errp);
 	if (pg_error_is_set(errp))
@@ -568,38 +564,6 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 	vhost_start_ok = 1;
 
 	return 0;
-}
-
-int pg_vhost_global_enable(uint64_t feature_mask)
-{
-	enable_freacture_mask |= feature_mask;
-	return 0;
-}
-
-int pg_vhost_global_disable(uint64_t feature_mask)
-{
-	disable_freacture_mask |= feature_mask;
-	return 0;
-}
-
-int pg_vhost_enable(struct pg_brick *brick, uint64_t feature_mask)
-{
-	const char *path = pg_vhost_socket_path(brick);
-
-	if (unlikely(!path))
-		return -1;
-	return rte_vhost_driver_enable_features(path,
-						feature_mask) ? -1 : 0;
-}
-
-int pg_vhost_disable(struct pg_brick *brick, uint64_t feature_mask)
-{
-	const char *path = pg_vhost_socket_path(brick);
-
-	if (unlikely(!path))
-		return -1;
-	return rte_vhost_driver_disable_features(path,
-						 feature_mask) ? -1 : 0;
 }
 
 static void vhost_link(struct pg_brick *brick, enum pg_side side, int edge)
