@@ -287,110 +287,6 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 #define RTE_VHOST_USER_DEQUEUE_ZERO_COPY 0
 #endif
 
-static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
-				struct pg_error **errp)
-{
-	struct pg_vhost_socket *s;
-	char *path;
-	int ret;
-
-	path = g_strdup_printf("%s/qemu-%s", sockets_path, state->brick.name);
-	/* If the socket is CLIENT do NOT destroy the socket. */
-	if((flags & 1) == 0)
-	{
-		g_remove(path);
-	}
-	/*else
-	{
-		flags = flags | 31;
-	}
-	*/
-	printf("New vhost-user socket: %s, zero-copy %s\n", path,
-	       (flags & RTE_VHOST_USER_DEQUEUE_ZERO_COPY) ?
-	       "enable" : "disable");
-
-	flags = flags & (RTE_VHOST_USER_CLIENT | RTE_VHOST_USER_NO_RECONNECT |
-			 RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
-
-	printf("flags #2 %ld\n", flags);
-	ret = rte_vhost_driver_register(path, flags);
-	if (ret) {
-		*errp = pg_error_new_errno(-ret,
-			"Failed to start vhost user driver");
-		goto free_exit;
-	}
-
-
-	ret = rte_vhost_driver_callback_register(path, &virtio_net_device_ops);
-	if (ret) {
-		*errp = pg_error_new_errno(-ret,
-			"Failed to register vhost-user callbacks");
-		goto free_exit;
-	}
-
-	rte_vhost_driver_start(path);
-	if (ret) {
-		*errp = pg_error_new_errno(-ret,
-			"Error registering driver for socket %s",
-			path);
-		goto free_exit;
-	}
-	pthread_mutex_lock(&mutex);
-
-	s = g_new0(struct pg_vhost_socket, 1);
-	s->path = path;
-
-	state->socket = s;
-	state->socket->state = state;
-
-	LIST_INSERT_HEAD(&sockets, s, socket_list);
-
-	pthread_mutex_unlock(&mutex);
-	return;
-free_exit:
-	g_free(path);
-}
-
-#define VHOST_NOT_READY							\
-	"vhost not ready, did you called vhost_start after packetgraph_start ?"
-
-static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
-		      struct pg_error **errp)
-{
-	struct pg_vhost_state *state;
-	struct pg_vhost_config *vhost_config;
-
-	state = pg_brick_get_state(brick, struct pg_vhost_state);
-	if (!vhost_start_ok) {
-		*errp = pg_error_new(VHOST_NOT_READY);
-		return -1;
-	}
-
-	vhost_config = (struct pg_vhost_config *) config->brick_config;
-	state->output = vhost_config->output;
-	state->vid = -1;
-	state->flags = vhost_config->flags;
-	PG_PKTS_COUNT_SET(state->rx_bytes, 0);
-	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
-	printf("flags #3 %ld\n", vhost_config->flags);
-	vhost_create_socket(state, vhost_config->flags, errp);
-	if (pg_error_is_set(errp))
-		return -1;
-
-	brick->burst = vhost_burst;
-	brick->poll = vhost_poll;
-
-	rte_atomic32_init(&state->allow_queuing);
-	rte_atomic32_set(&state->allow_queuing, 1);
-#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
-	state->check_atomic = 1024;
-	state->check_counter = 0;
-#endif /* PG_VHOST_FASTER_YET_BROKEN_POLL */
-
-	return 0;
-}
-
-#undef VHOST_NOT_READY
 
 static enum pg_side vhost_get_side(struct pg_brick *brick)
 {
@@ -500,6 +396,111 @@ static void on_destroy_device(int dev)
 	pthread_mutex_unlock(&mutex);
 
 }
+static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
+				struct pg_error **errp)
+{
+	struct pg_vhost_socket *s;
+	char *path;
+	int ret;
+
+	path = g_strdup_printf("%s/qemu-%s", sockets_path, state->brick.name);
+	/* If the socket is CLIENT do NOT destroy the socket. */
+	if((flags & 1) == 0)
+	{
+		g_remove(path);
+	}
+	/*else
+	{
+		flags = flags | 31;
+	}
+	*/
+	printf("New vhost-user socket: %s, zero-copy %s\n", path,
+	       (flags & RTE_VHOST_USER_DEQUEUE_ZERO_COPY) ?
+	       "enable" : "disable");
+
+	flags = flags & (RTE_VHOST_USER_CLIENT | RTE_VHOST_USER_NO_RECONNECT |
+			 RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
+
+	printf("flags #2 %ld\n", flags);
+	ret = rte_vhost_driver_register(path, flags);
+	if (ret) {
+		*errp = pg_error_new_errno(-ret,
+			"Failed to start vhost user driver");
+		goto free_exit;
+	}
+
+
+	ret = rte_vhost_driver_callback_register(path, &virtio_net_device_ops);
+	if (ret) {
+		*errp = pg_error_new_errno(-ret,
+			"Failed to register vhost-user callbacks");
+		goto free_exit;
+	}
+
+	rte_vhost_driver_start(path);
+	if (ret) {
+		*errp = pg_error_new_errno(-ret,
+			"Error registering driver for socket %s",
+			path);
+		goto free_exit;
+	}
+	pthread_mutex_lock(&mutex);
+
+	s = g_new0(struct pg_vhost_socket, 1);
+	s->path = path;
+
+	state->socket = s;
+	state->socket->state = state;
+
+	LIST_INSERT_HEAD(&sockets, s, socket_list);
+
+	pthread_mutex_unlock(&mutex);
+	return;
+free_exit:
+	g_free(path);
+}
+
+#define VHOST_NOT_READY							\
+	"vhost not ready, did you called vhost_start after packetgraph_start ?"
+
+static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
+		      struct pg_error **errp)
+{
+	struct pg_vhost_state *state;
+	struct pg_vhost_config *vhost_config;
+
+	state = pg_brick_get_state(brick, struct pg_vhost_state);
+	if (!vhost_start_ok) {
+		*errp = pg_error_new(VHOST_NOT_READY);
+		return -1;
+	}
+
+	vhost_config = (struct pg_vhost_config *) config->brick_config;
+	state->output = vhost_config->output;
+	state->vid = -1;
+	state->flags = vhost_config->flags;
+	PG_PKTS_COUNT_SET(state->rx_bytes, 0);
+	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
+	printf("flags #3 %ld\n", vhost_config->flags);
+	vhost_create_socket(state, vhost_config->flags, errp);
+	if (pg_error_is_set(errp))
+		return -1;
+
+	brick->burst = vhost_burst;
+	brick->poll = vhost_poll;
+
+	rte_atomic32_init(&state->allow_queuing);
+	rte_atomic32_set(&state->allow_queuing, 1);
+#ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
+	state->check_atomic = 1024;
+	state->check_counter = 0;
+#endif /* PG_VHOST_FASTER_YET_BROKEN_POLL */
+
+	return 0;
+}
+
+#undef VHOST_NOT_READY
+
 
 /**
  * Check that the socket path exists and has the right perm and store it
