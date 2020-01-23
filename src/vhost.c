@@ -97,11 +97,24 @@ struct pg_vhost_state {
 
 static int on_new_device(int dev);
 static void on_destroy_device(int dev);
+static int on_new_connection(int dev);
 
-static const struct vhost_device_ops virtio_net_device_ops = {
+static const struct vhost_device_ops virtio_net_device_ops_srv = {
 	.new_device = on_new_device,
 	.destroy_device = on_destroy_device,
 };
+static const struct vhost_device_ops virtio_net_device_ops_cli = {
+	.new_device = on_new_device,
+	.destroy_device = on_destroy_device,
+	.new_connection = on_new_connection,
+};
+
+static int on_new_connection(int dev){
+	char buf[256];
+	rte_vhost_get_ifname(dev, buf, 256);
+	printf("New co! socket: %s\n", buf);
+	return 0;
+}
 
 /* head of the socket list */
 static LIST_HEAD(socket_list, pg_vhost_socket) sockets;
@@ -429,8 +442,12 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 		goto free_exit;
 	}
 
-
-	ret = rte_vhost_driver_callback_register(path, &virtio_net_device_ops);
+	if ((flags & 1) == 0)
+		ret = rte_vhost_driver_callback_register(path,
+			&virtio_net_device_ops_srv);
+	else
+		ret = rte_vhost_driver_callback_register(path,
+			&virtio_net_device_ops_cli);
 	if (ret) {
 		*errp = pg_error_new_errno(-ret,
 			"Failed to register vhost-user callbacks");
