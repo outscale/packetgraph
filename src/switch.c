@@ -158,8 +158,7 @@ static void do_learn_filter_multicast(struct pg_switch_state *state,
 				     struct pg_address_source *source,
 				     struct rte_mbuf **pkts,
 				     uint64_t pkts_mask,
-				     uint64_t *unicast_mask,
-				     struct pg_error **errp)
+				     uint64_t *unicast_mask)
 {
 	uint64_t filtered_mask = 0, flood_mask = 0, mask;
 
@@ -272,7 +271,7 @@ static int switch_burst(struct pg_brick *brick, enum pg_side from,
 	source->edge_index = edge_index;
 
 	do_learn_filter_multicast(state, source, pkts,
-				  pkts_mask, &unicast_mask, errp);
+				  pkts_mask, &unicast_mask);
 
 	do_switch(state, source, pkts, unicast_mask);
 
