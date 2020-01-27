@@ -110,7 +110,6 @@ static void lanch_burst(struct pg_brick *acc,
 	struct rte_mbuf **result_pkts;
 	uint64_t pkts_mask = 0;
 	struct pg_error *error = NULL;
-	uint64_t i;
 
 	if (dir == PG_WEST_SIDE) {
 		pg_brick_burst_to_west(acc, 0, packets,
@@ -126,7 +125,7 @@ static void lanch_burst(struct pg_brick *acc,
 		pg_brick_burst_to_east(acc, 0, packets,
 				       pg_mask_firsts(NB_PKTS), &error);
 		result_pkts = pg_brick_west_burst_get(col2, &pkts_mask, &error);
-		for (i = 0; i < expected; i++) {
+		for (uint64_t i = 0; i < expected; i++) {
 			g_assert(result_pkts[i]->udata64 ==
 				 (i + pg_res_id) % NB_PKTS);
 		}
@@ -135,7 +134,7 @@ static void lanch_burst(struct pg_brick *acc,
 		result_pkts = pg_brick_east_burst_get(col, &pkts_mask, &error);
 	}
 
-	for (i = 0; i < expected; i++)
+	for (uint64_t i = 0; i < expected; i++)
 		g_assert(result_pkts[i]->udata64 == (i + pg_res_id) % NB_PKTS);
 
 	if (expected)
