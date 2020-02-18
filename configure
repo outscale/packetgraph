@@ -270,7 +270,7 @@ var_add GLIB_HEADERS "$(pkg-config --cflags glib-2.0)"
 var_add GLIB_LIBS "$(pkg-config --libs glib-2.0)"
 var_add PG_MARCH "core-avx-i"
 var_add PREFIX "/usr/local/"
-var_add EXTRA_CFLAGS ""
+var_add EXTRA_CFLAGS "-g -O2"
 
 if [ ! "$RTE_SDK" ]; then
 	echo
