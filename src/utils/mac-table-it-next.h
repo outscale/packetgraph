@@ -71,14 +71,20 @@ static inline void
 MAC_TABLE_IT_NEXT(struct pg_mac_table_iterator *it)
 {
 	struct pg_mac_table *ma = it->tbl;
-	uint32_t i = it->i;
-	uint32_t j = it->j;
+	/* So it seems gcc does some kind of loop unrolling and
+	 * go above PG_MAC_TABLE_MASK_SIZE, making 'i' volatile fix it...
+	 * I've made j volatile too because if 'i' need it
+	 * j' should might it too */
+	volatile uint32_t i = it->i;
+	volatile uint32_t j = it->j;
 	uint64_t m0 = it->m0;
 	uint64_t m1 = it->m1;
 	int been_out = 0;
 	int mi = it->mi;
 
-	for (;i < PG_MAC_TABLE_MASK_SIZE; m0 = ma->mask[++i]) {
+	for (;i < PG_MAC_TABLE_MASK_SIZE ; m0 = ma->mask[i]) {
+		/* mi is undefine if m0 is 0,
+		 * but if it's 0 we should skip the block */
 		for(;({mi = ctz64(m0); m0;});) {
 			struct ST *imt = ma->TARGET[i * 64 + mi];
 
@@ -105,6 +111,7 @@ MAC_TABLE_IT_NEXT(struct pg_mac_table_iterator *it)
 			j = 0;
 			m0 &= ~ (1LLU << mi);
 		}
+		++i;
 	}
 	it->i = UINT32_MAX;
 }

@@ -95,8 +95,8 @@ struct pg_mac_table_iterator {
 	 (ONE64 << pg_mac_table_mask_pos(mac_p)))
 
 #define pg_mac_table_mask_unset(ma, mac_p)		\
-	((ma).mask[pg_mac_table_mask_idx(mac_p)] ^=	\
-	 (ONE64 << pg_mac_table_mask_pos(mac_p)))
+	((ma).mask[pg_mac_table_mask_idx(mac_p)] &=	\
+	 ~(ONE64 << pg_mac_table_mask_pos(mac_p)))
 
 
 static inline int pg_mac_table_init(struct pg_mac_table *ma,
