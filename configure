@@ -39,6 +39,23 @@ function check_compiler {
 	fi
 }
 
+function compile_version_mk {
+    echo "Make tmp file version_.c"
+    echo '#include <stdio.h>' > version_.c
+    echo '#include <packetgraph/common.h>' >> version_.c
+    echo "int main(void) {" >> version_.c
+    echo 'printf("PG_VERSION = %d.%d.%d\n", PG_VERSION_YEAR, PG_VERSION_MONTH, PG_VERSION_REVISION);'  >> version_.c
+    echo 'printf("PG_VERSION1 = %d:%d:%d\n", PG_VERSION_YEAR, PG_VERSION_MONTH, PG_VERSION_REVISION);'  >> version_.c
+    echo 'printf("PG_VERSION_YEAR = %d\n", PG_VERSION_YEAR);'  >> version_.c
+    echo "}"  >> version_.c
+
+    echo "Compile it to tmp program get-mk-version"
+    $CC -I$srcdir/include/ -std=c99 version_.c -o get-mk-version
+    ./get-mk-version > version.mk
+    rm -v version_.c
+    rm -v get-mk-version
+}
+
 function print_help {
 		echo " --- HELP --- "
 		echo "Usage   : ./configure [options] [variable]"
@@ -249,6 +266,9 @@ if $doCheckCompiler; then
 fi
 export CC="$CC"
 var_add CC
+
+compile_version_mk
+
 if $addAsan;then
 	if [[ "$CC" == "gcc" ]]; then
 		var_add PG_ASAN_CFLAGS "-fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-sanitize=alignment --param asan-globals=0"

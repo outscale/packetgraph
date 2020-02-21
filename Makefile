@@ -1,6 +1,7 @@
 include config.mk
 include npf.mk
 include tests.mk
+include version.mk
 
 PG_SOURCES = \
 			 src/queue.c\
@@ -59,7 +60,7 @@ PG_HEADERS = \
 PG_LIBADD = $(RTE_SDK_LIBS) $(GLIB_LIBS)
 	#FIXME '^pg_[^_]' does not take all symbols needed (i.e. __pg_error_*)
 
-PG_LDFLAGS = -version-info 17:5:0 -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols $(PG_COV_LFLAGS)
+PG_LDFLAGS = -version-info $(PG_VERSION1) -export-symbols-regex 'pg_[^_]' -no-undefined --export-all-symbols $(PG_COV_LFLAGS)
 
 PG_CFLAGS = $(EXTRA_CFLAGS) -march=$(PG_MARCH) -fmessage-length=0 -Werror -Wall -Wextra -Winit-self -Wpointer-arith -Wstrict-aliasing -Wformat -Wmissing-declarations -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -fPIC -std=gnu11 $(GLIB_CFLAGS) $(RTE_SDK_CFLAGS) $(PG_ASAN_CFLAGS) -Wno-implicite-fallthrough -Wno-unknown-warning-option -Wno-deprecated-declarations -Wno-address-of-packed-member $(PG_COV_CFLAGS)
 
@@ -82,7 +83,7 @@ all: dev $(PG_NAME)
 
 $(PG_NAME): lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_OBJECTS)
 	ar rcv $(PG_NAME).a $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
-	$(CC) -shared -Wl,-soname,$(PG_NAME).so.17 -o $(PG_NAME).so.17.5.0 $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
+	$(CC) -shared -Wl,-soname,$(PG_NAME).so.$(PG_VERSION_YEAR) -o $(PG_NAME).so.$(PG_VERSION) $(PG_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
 	echo $(PG_NAME)" compiled"
 
 $(PG_OBJECTS) : src/%.o : src/%.c
@@ -108,7 +109,7 @@ check:
 
 dev: lpm cdb nvlist thmap qsbr sljit bpfjit npf npfkern $(PG_dev_OBJECTS)
 	ar rcv $(PG_NAME)-dev.a $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(nvlist_OBJECTS) $(thmap_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS)
-	$(CC) -shared -Wl,-soname,$(PG_NAME)-dev.so.17 -o $(PG_NAME)-dev.so.17.5.0 $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
+	$(CC) -shared -Wl,-soname,$(PG_NAME)-dev.so.$(PG_VERSION_YEAR) -o $(PG_NAME)-dev.so.$(PG_VERSION) $(PG_dev_OBJECTS) $(lpm_OBJECTS) $(cdb_OBJECTS) $(qsbr_OBJECTS) $(sljit_OBJECTS) $(bpfjit_OBJECTS) $(npf_OBJECTS) $(npfkern_OBJECTS) -lc
 	echo "$(PG_CFLAGS)-dev compiled"
 
 clean: clean_npf testcleanobj
@@ -131,8 +132,8 @@ endif
 fclean: clean fclean_npf testclean
 	@rm -fv $(PG_NAME).a
 	@rm -fv $(PG_dev_NAME).a
-	@rm -fv $(PG_NAME).so.17.5.0
-	@rm -fv $(PG_dev_NAME).so.17.5.0
+	@rm -fv $(PG_NAME).so.$(PG_VERSION)
+	@rm -fv $(PG_dev_NAME).so.$(PG_VERSION)
 ifdef BENCHMARK
 	$(MAKE) benchfclean
 endif
