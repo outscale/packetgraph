@@ -34,6 +34,8 @@ static inline void pg_autofree_(void *p)
 #define pg_autofree				\
 	__attribute__((__cleanup__(pg_autofree_)))
 
+#define pg_autobrick						\
+	__attribute__((__cleanup__(pg_brick_ptrptr_destroy)))
 
 static inline void pg_brick_ptrptr_destroy(struct pg_brick **brick)
 {
