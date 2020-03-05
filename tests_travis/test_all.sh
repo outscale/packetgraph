@@ -26,6 +26,7 @@ make bench_compile
 ./tests/pmtud/test.sh
 ./tests/tap/test.sh
 ./tests/thread/test.sh
+./tests/udp-filter/test.sh
 
 ./tests/antispoof/bench.sh
 ./tests/core/bench.sh

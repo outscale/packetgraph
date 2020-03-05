@@ -25,6 +25,11 @@ tests_diode_SOURCES = \
 	$(tests_diode_DIR)/tests.c
 tests_diode_OBJECTS = $(tests_diode_SOURCES:.c=.o)
 
+tests_udp_filter_DIR = tests/udp-filter
+tests_udp_filter_SOURCES = \
+	$(tests_udp_filter_DIR)/tests.c
+tests_udp_filter_OBJECTS = $(tests_udp_filter_SOURCES:.c=.o)
+
 tests_accumulator_DIR = tests/accumulator
 tests_accumulator_SOURCES = \
 	$(tests_accumulator_DIR)/tests.c
@@ -113,6 +118,7 @@ TESTS = \
 	tests/vtep/test.sh\
 	tests/tap/test.sh\
 	tests/thread/test.sh\
+	tests/udp-filter/test.sh\
 	tests/integration/test.sh\
 	tests/vhost/test.sh
 
@@ -120,10 +126,10 @@ TESTS = \
 ##                           Tests compilation rules                          ##
 ################################################################################
 
-test: dev tests-all-build antispoof core diode rxtx pmtud firewall nic print queue switch vtep tap thread integration vhost accumulator
+test: dev tests-all-build antispoof core diode rxtx pmtud firewall nic print queue switch vtep tap thread integration udp-filter vhost accumulator
 	@echo "tests ended"
 
-tests_compile: dev tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-firewall tests-accumulator
+tests_compile: dev tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-integration tests-nic tests-print tests-queue tests-switch tests-vhost tests-vtep tests-tap tests-thread tests-udp-filter tests-firewall tests-accumulator
 	@echo "Compilation done"
 
 tests-antispoof: dev $(tests_antispoof_OBJECTS)
@@ -136,6 +142,12 @@ tests-core: dev $(tests_core_OBJECTS)
 	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_core_OBJECTS) $(tests_LIBS) -o $@
 
 $(tests_core_OBJECTS): %.o : %.c
+	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
+
+tests-udp-filter: dev $(tests_udp_filter_OBJECTS)
+	$(CC) $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $(tests_udp_filter_OBJECTS) $(tests_LIBS) -o $@
+
+$(tests_udp_filter_OBJECTS): %.o : %.c
 	$(CC) -c $(tests_CFLAGS) $(PG_ASAN_CFLAGS) $< -o $@
 
 tests-diode: dev $(tests_diode_OBJECTS)
