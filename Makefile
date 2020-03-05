@@ -20,6 +20,7 @@ PG_SOURCES = \
 			 src/utils/tests.c\
 			 src/print.c\
 			 src/hub.c\
+			 src/udp-filter.c\
 			 src/brick.c\
 			 src/packetsgen.c\
 			 src/vhost.c\
