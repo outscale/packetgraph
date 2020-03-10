@@ -178,9 +178,6 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	return 0;
 }
 
-#define TCP_PROTOCOL_NUMBER 6
-#define UDP_PROTOCOL_NUMBER 17
-
 #ifdef PG_VHOST_FASTER_YET_BROKEN_POLL
 
 void pg_vhost_request_remove(struct pg_brick *brick)
@@ -260,9 +257,6 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 	pg_packets_free(in, pkts_mask);
 	return ret;
 }
-
-#undef TCP_PROTOCOL_NUMBER
-#undef UDP_PROTOCOL_NUMBER
 
 #ifndef RTE_VHOST_USER_CLIENT
 #define RTE_VHOST_USER_CLIENT 0
