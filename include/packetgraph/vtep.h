@@ -96,6 +96,16 @@ int pg_vtep6_add_vni(struct pg_brick *brick, struct pg_brick *neighbor,
 		     uint32_t vni, uint8_t *multicast_ip,
 		     struct pg_error **errp);
 
+int pg_vtep4_add_vni_dst(struct pg_brick *brick, uint32_t vni,
+			 struct ether_addr *mac_vm,
+			 struct ether_addr *dmac, uint32_t dip,
+			 struct pg_error **errp);
+
+int pg_vtep6_add_vni_dst(struct pg_brick *brick, uint32_t vni,
+			 struct ether_addr *mac_vm,
+			 struct ether_addr *dmac, uint8_t *dip,
+			 struct pg_error **errp);
+
 #ifndef __cplusplus
 
 /**

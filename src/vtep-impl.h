@@ -1086,6 +1086,61 @@ int pg_vtep_add_vni_(struct pg_brick *brick,
 	return 0;
 }
 
+#define pg_vtep_add_vni_dst__(version) CATCAT(pg_vtep, version, _add_vni_dst)
+#define pg_vtep_add_vni_dst_ pg_vtep_add_vni_dst__(IP_VERSION)
+
+int pg_vtep_add_vni_dst_(struct pg_brick *brick, uint32_t vni,
+			 struct ether_addr *mac_vm,
+			 struct ether_addr *dmac, IP_IN_TYPE dip,
+			 struct pg_error **errp)
+{
+	struct vtep_state *state = pg_brick_get_state(brick,
+						      struct vtep_state);
+	struct dest_addresses dst = {*dmac,
+#if IP_VERSION == 4
+				     dip,
+#else
+				     {.word8 = {0}},
+#endif
+				     state->vtep_tick};
+	union pg_mac tmp = {.rte_addr = *mac_vm};
+	struct vtep_port *ports = state->ports;
+	struct vtep_port *good_port = NULL;
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
+
+	if (!brick) {
+		*errp = pg_error_new("brick is NULL");
+		return -1;
+	}
+
+	if (!is_vni_valid(vni)) {
+		*errp = pg_error_new("Invalid VNI");
+		return -1;
+	}
+
+#if IP_VERSION != 4
+	pg_ip_copy(dip, &dst.ip);
+#endif
+
+	for (int i = 0; i < s->nb; ++i) {
+		if (ports[i].vni == vni) {
+			good_port = &ports[i];
+			break;
+		}
+	}
+
+	if (!good_port) {
+		*errp = pg_error_new("can't find good VNI");
+		return -1;
+	}
+
+	pg_mac_table_elem_set(&good_port->mac_to_dst, tmp, &dst,
+			      sizeof(struct dest_addresses));
+
+	return 0;
+}
+
+
 #define pg_vtep_clean_all_mac__(version)		\
 	CATCAT(pg_vtep, version, _clean_all_mac)
 #define pg_vtep_clean_all_mac_ pg_vtep_clean_all_mac__(IP_VERSION)
