@@ -182,7 +182,7 @@ struct pg_brick *pg_udp_filter_new(const char *name,
 static void udp_filter_destroy(struct pg_brick *brick,
 			       struct pg_error **errp)
 {
-	struct  pg_udp_filter_state* state =
+	struct  pg_udp_filter_state *state =
 		pg_brick_get_state(brick, struct pg_udp_filter_state);
 
 	g_free(state->filters);
