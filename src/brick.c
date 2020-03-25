@@ -567,8 +567,11 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 		return;
 
 	unlink_notify(pair_edge, pg_flip_side(side), errp);
+
+	/* TODO: This error come from tap_bust. But the goal here is to */
+	/* unlink brick. We will find the best way to ignore this error soon */
 	if (pg_error_is_set(errp))
-		return;
+		*errp = NULL;
 
 	pg_brick_decref(brick, errp);
 
