@@ -763,7 +763,7 @@ int pg_brick_unlink_edge(struct pg_brick *west,
 {
 	int i;
 	int west_max;
-	int west_index;
+	int west_index = 0;
 	struct pg_brick_edge *west_edge = NULL;
 
 	if (!is_brick_valid(west)) {
