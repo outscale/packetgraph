@@ -12,4 +12,5 @@ For specific brick'informations and shemas:
 * [VHOST brick.](VHOST.md)
 * [RXTX brick.](RXTX.md)
 * [VTEP brick.](VTEP.md)
+* [SWITCH brick.](SWITCH.md)
 
