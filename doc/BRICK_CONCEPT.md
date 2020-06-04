@@ -38,6 +38,26 @@ And now 2 basic bricks linked together:<br>
 Why having sides?<br>
 Because it makes it easier to perform operations between two sides such as acting as a diode, filter...<br>
 
+### Warning!
+
+While creating links, make sure that there is not 2 bricks modifying packets (VXLAN, VTEP) on the same side!<br>
+Here is why:<br>
+To improve our perfs, we do not copy packets so if a brick modify them, they will be modified for all other bricks on this side.<br>
+<br>
+Example:<br>
+We want to link some VMs to a VTEP. So we need VHOST bricks for each VMs and a switch.<br>
+The VTEP must NOT be on the same side than VHOST bricks.<br>
+Sides are decided by the order of the arguments of the method `pg_brick_link(BRICK_A, BRICK_B)`.<br>
+So basically we will do so:
+
+* `pg_brick_link(SWITCH, VTEP);`
+* `pg_brick_link(VHOST_0, SWITCH);`
+* `pg_brick_link(VHOST_1, SWITCH);`
+* `pg_brick_link(VHOST_2, SWITCH);`
+
+So we are sure that VTEP and VHOST_n are not on the same side.<br>
+If we cannot isolate as we want the VTEP, a NOT recommended way would be to disable the `NOCOPY` flag.
+ 
 ## How monopole/single edge brick works:
 ### Single edge:
 As the following content shows it, `edge` and `edges` are in an `union` so basically one side can have `edge` OR `edges`.
