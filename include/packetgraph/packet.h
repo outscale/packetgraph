@@ -21,6 +21,13 @@
 #include <stddef.h>
 #include <packetgraph/common.h>
 
+/**
+ * This typedef is here so you can handle packets as abstract type,
+ * usefull in C++, that tend to break with DPDK includes.
+ * But if you want to use struct rte_mbuf in you callback,
+ * We guarentee, that we'll keep pg_packet_t as a typdef of
+ * struct rte_mbuf
+ */
 IGNORE_NEW_TYPEDEFS typedef struct rte_mbuf pg_packet_t;
 
 /**
