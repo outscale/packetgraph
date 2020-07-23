@@ -30,6 +30,7 @@ fi
 ./tests/pmtud/test.sh
 ./tests/tap/test.sh
 ./tests/thread/test.sh
+./tests/udp-filter/test.sh
 
 ./tests/accumulator/bench.sh
 ./tests/antispoof/bench.sh

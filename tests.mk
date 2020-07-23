@@ -291,8 +291,11 @@ integration : tests-integration
 vhost : tests-vhost
 	tests/vhost/test.sh
 
+udp-filter: udp-filter
+	tests/udp-filter/test.sh
+
 testclean: testcleanobj
-	rm -fv tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep tests-tap tests-thread tests-integration tests-vhost tests-accumulator
+	rm -fv tests-antispoof tests-core tests-diode tests-rxtx tests-pmtud tests-firewall tests-nic tests-print tests-queue tests-switch tests-vtep tests-tap tests-thread tests-integration tests-vhost tests-accumulator udp-filter
 
 testcleanobj:
 	rm -fv $(tests_antispoof_OBJECTS) $(tests_core_OBJECTS) $(tests_diode_OBJECTS) $(tests_rxtx_OBJECTS) $(tests_pmtud_OBJECTS) $(tests_firewall_OBJECTS) $(tests_nic_OBJECTS) $(tests_print_OBJECTS) $(tests_queue_OBJECTS) $(tests_switch_OBJECTS) $(tests_vtep_OBJECTS) $(tests_tap_OBJECTS) $(tests_thread_OBJECTS) $(tests_integration_OBJECTS) $(tests_vhost_OBJECTS) $(tests_accumulator_OBJECTS)
