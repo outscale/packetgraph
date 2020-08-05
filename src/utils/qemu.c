@@ -25,7 +25,7 @@
 #include "utils/common.h"
 
 #ifndef PG_QEMU_MEM_SIZE
-#define PG_QEMU_MEM_SIZE "128M"
+#define PG_QEMU_MEM_SIZE "256M"
 #endif
 
 int pg_util_cmdloop(const char *cmd, int timeout_s)

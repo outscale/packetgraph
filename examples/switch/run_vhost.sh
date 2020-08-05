@@ -130,7 +130,7 @@ check_bin ssh -V
 check_bin sudo qemu-system-x86_64 -h
 check_bin sudo socat -h
 
-sudo ./example-switch -c1 -n1 --socket-mem 64 --no-shconf -- --vhost 2 "$@" &
+sudo ./example-switch -c1 -n1 --socket-mem 256 --no-shconf -- --vhost 2 "$@" &
 example_pid=$!
 sleep 10
 qemu_start 1
