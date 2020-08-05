@@ -77,5 +77,5 @@ if [  "$NB_HUGE" -lt 1 ]; then
 fi
 
 # Launch test
-sudo ./tests-integration -c1 -n1 --socket-mem 64 -- -vm vm.qcow -vm-key vm.rsa -hugepages /mnt/huge
+sudo ./tests-integration -c1 -n1 --socket-mem 256 -- -vm vm.qcow -vm-key vm.rsa -hugepages /mnt/huge
 

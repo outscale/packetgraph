@@ -77,4 +77,4 @@ if [  "$NB_HUGE" -lt 1 ]; then
 fi
 
 # Launch test
-sudo ./bench-vhost -c1 -n1 --socket-mem 64 -- -vm vm.qcow -vm-key vm.rsa -hugepages /mnt/huge "$@"
+sudo ./bench-vhost -c1 -n1 --socket-mem 256 -- -vm vm.qcow -vm-key vm.rsa -hugepages /mnt/huge "$@"
