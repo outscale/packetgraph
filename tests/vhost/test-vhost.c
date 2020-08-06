@@ -75,12 +75,12 @@ static void test_vhost_flow_(int qemu_exit_signal)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_0 = pg_vhost_new("vhost-0", 0,
+	vhost_0 = pg_vhost_new("vhost-0", 1,
 			       &error);
 	g_assert(!error);
 	g_assert(vhost_0);
 
-	vhost_1 = pg_vhost_new("vhost-1", 0,
+	vhost_1 = pg_vhost_new("vhost-1", 1,
 			       &error);
 	g_assert(!error);
 	g_assert(vhost_1);
@@ -103,6 +103,7 @@ static void test_vhost_flow_(int qemu_exit_signal)
 
 	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
 				      mac_addr_0, mac_addr_1,
+					  1, 0,
 				      glob_vm_path,
 				      glob_vm_key_path,
 				      glob_hugepages_path, &error);
@@ -219,22 +220,22 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_00 = pg_vhost_new("vhost-00", 0,
+	vhost_00 = pg_vhost_new("vhost-00", 1,
 				&error);
 	g_assert(!error);
 	g_assert(vhost_00);
 
-	vhost_01 = pg_vhost_new("vhost-01", 0,
+	vhost_01 = pg_vhost_new("vhost-01", 1,
 				&error);
 	g_assert(!error);
 	g_assert(vhost_01);
 
-	vhost_10 = pg_vhost_new("vhost-10", 0,
+	vhost_10 = pg_vhost_new("vhost-10", 1,
 				&error);
 	g_assert(!error);
 	g_assert(vhost_10);
 
-	vhost_11 = pg_vhost_new("vhost-11", 0,
+	vhost_11 = pg_vhost_new("vhost-11", 1,
 				&error);
 	g_assert(!error);
 	g_assert(vhost_11);
@@ -268,6 +269,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(socket_path_11);
 	qemu_pid0 = pg_util_spawn_qemu(socket_path_00, socket_path_01,
 				       mac_addr_00, mac_addr_01,
+					   1,1,
 				       glob_vm_path, glob_vm_key_path,
 				       glob_hugepages_path, &error);
 	g_assert(qemu_pid0);
@@ -286,6 +288,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 
 	qemu_pid1 = pg_util_spawn_qemu(socket_path_10, socket_path_11,
 				       mac_addr_10, mac_addr_11,
+					   1,1,
 				       glob_vm_path, glob_vm_key_path,
 				       glob_hugepages_path, &error);
 	g_assert(qemu_pid1);
@@ -395,7 +398,7 @@ static void test_vhost_fd(void)
 
 			vhost[i] =
 				pg_vhost_new(name,
-					     PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+					     PG_VHOST_USER_DEQUEUE_ZERO_COPY | 1 ,
 					     &error);
 			g_free(name);
 			g_assert(!error);
@@ -445,6 +448,7 @@ static void qemu_test(struct qemu_test_params *p)
 
 	qemu_pid = pg_util_spawn_qemu(p->socket_path[0], p->socket_path[1],
 				      mac_0, mac_1,
+					  1,1,
 				      glob_vm_path,
 				      glob_vm_key_path,
 				      glob_hugepages_path, &error);
@@ -520,13 +524,13 @@ static void test_vhost_reco(void)
 
 	/* instanciate brick */
 	params.vhost[0] = pg_vhost_new("vhost-0",
-				       PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+				       PG_VHOST_USER_DEQUEUE_ZERO_COPY | 1,
 				       &error);
 	g_assert(!error);
 	g_assert(params.vhost[0]);
 
 	params.vhost[1] = pg_vhost_new("vhost-1",
-				       PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+				       PG_VHOST_USER_DEQUEUE_ZERO_COPY | 1,
 				       &error);
 	g_assert(!error);
 	g_assert(params.vhost[1]);
@@ -599,12 +603,12 @@ static void test_vhost_destroy(void)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY | 1,
 			       &error);
 	g_assert(!error);
 	g_assert(vhost_0);
 
-	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY | 1,
 			       &error);
 	g_assert(!error);
 	g_assert(vhost_1);
@@ -619,6 +623,7 @@ static void test_vhost_destroy(void)
 
 	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
 				      mac_addr_0, mac_addr_1,
+					  1,1,
 				      glob_vm_path,
 				      glob_vm_key_path,
 				      glob_hugepages_path, &error);
@@ -681,7 +686,7 @@ static void qemu_duo_new(struct qemu_duo_test_params *p)
 	g_assert(!error);
 	for (int i = 0; i < 2; i++) {
 		tmp = g_strdup_printf("vhost-%i", i);
-		p->vhost[i] = pg_vhost_new(tmp, 0, &error);
+		p->vhost[i] = pg_vhost_new(tmp, 1, &error);
 		g_free(tmp);
 		g_assert(!error);
 		g_assert(p->vhost[i]);
@@ -692,6 +697,7 @@ static void qemu_duo_new(struct qemu_duo_test_params *p)
 		mac = g_strdup_printf("52:54:00:12:34:%02i", i);
 		p->qemu_pid[i] = pg_util_spawn_qemu(socket_path, NULL,
 						    mac, NULL,
+							1,1,
 						    glob_vm_path,
 						    glob_vm_key_path,
 						    glob_hugepages_path,
@@ -772,12 +778,12 @@ static void test_vhost_seccomp(void)
 	g_assert(!error);
 
 	/* instanciate brick */
-	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY | 1,
 			       &error);
 	g_assert(!error);
 	g_assert(vhost_0);
 
-	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY | 1,
 			       &error);
 	g_assert(!error);
 	g_assert(vhost_1);
@@ -808,6 +814,7 @@ void test_vhost(void)
 		pg_test_add_func("/vhost/reco", test_vhost_reco);
 	pg_test_add_func("/vhost/destroy", test_vhost_destroy);
 	pg_test_add_func("/vhost/seccomp", test_vhost_seccomp);
+	
 }
 
 #undef SSH

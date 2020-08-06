@@ -120,7 +120,6 @@ static struct pg_brick_config *vhost_config_new(const char *name,
 						      1);
 
 	config->brick_config = (void *) vhost_config;
-	printf("Here is 1 flag: %ld\n", flags);
 	vhost_config->flags = flags;
 	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
 }
@@ -141,7 +140,6 @@ static int vhost_burst(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(check_atomic &&
 		     !rte_atomic32_test_and_set(&state->allow_queuing)))
 		return 0;
-	printf("Lock ok\n");
 	virtio_net = state->vid;
 	pkts_count = pg_packets_pack(state->out, pkts, pkts_mask);
 	if (pkts_count > 32) {
@@ -346,7 +344,6 @@ static uint64_t tx_bytes(struct pg_brick *brick)
 
 static int on_new_device(int dev)
 {
-	printf("---------------I'm in the callback...-------\n");
 	struct pg_vhost_socket *s = NULL;
 	char buf[256];
 
@@ -421,7 +418,6 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 	flags = flags & (RTE_VHOST_USER_CLIENT | RTE_VHOST_USER_NO_RECONNECT |
 			 RTE_VHOST_USER_DEQUEUE_ZERO_COPY);
 
-	printf("flags #2 %ld\n", flags);
 	ret = rte_vhost_driver_register(path, flags);
 	if (ret) {
 		*errp = pg_error_new_errno(-ret,
@@ -481,7 +477,6 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	state->flags = vhost_config->flags;
 	PG_PKTS_COUNT_SET(state->rx_bytes, 0);
 	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
-	printf("flags #3 %ld\n", vhost_config->flags);
 	vhost_create_socket(state, vhost_config->flags, errp);
 	if (pg_error_is_set(errp))
 		return -1;
