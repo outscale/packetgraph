@@ -185,7 +185,7 @@ static inline int start_qemu_graph(struct branch *branch,
 	} while (0)
 	SSH("ifconfig br0 down");
 	SSH("/etc/init.d/networking restart");
-	SSH("/etc/init.d/networking restart")
+	SSH("/etc/init.d/networking restart");
 	SSH("brctl addbr br0");
 	SSH("ifconfig br0 up");
 	SSH("ifconfig ens4 up");
