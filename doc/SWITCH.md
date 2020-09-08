@@ -44,4 +44,17 @@ Please refer to the [warning section of the brick concept's overview](BRICK_CONC
 
 ## Let's go deeper into the MAC TABLE.
 
-wip
+from `src/utils/mac-table.h`:
+```
+A mac array containing pointers or elements
+the idea of this mac table, is that a mac is an unique identifier,
+as sure, doesn't need hashing we could just
+allocate an array for each possible mac
+Problem is that doing so require ~280 TByte
+So I've cut the mac in 2 part, example 01.02.03.04.05.06
+will now have "01.02.03" that will serve as index of the mac table
+and "04.05.06" will serve as the index of the sub mac table
+if order to take advantage of Virtual Memory, we use bitmask, so we
+don't have to allocate 512 MB of physical ram for each unlucky mac.
+
+```
