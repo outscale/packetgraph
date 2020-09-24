@@ -26,7 +26,7 @@ You can find a more detailed description here: https://www.redhat.com/en/blog/ha
 +-|-|-|-|-|-|-|-|-----------+  |                                                       |
 +-|-|-|-|-|-|-|-|--------------|-------------------------------------------------------|------+
 | v v v v v v v v              v                                                       v      |
-|                      Host's shared memmory, aka hugepage, containing packets.               |
+|                      Host's hugepage which is a shared memmory, containing packets.         |
 |                                                                                             |
 +---------------------------------------------------------------------------------------------+
 ```
