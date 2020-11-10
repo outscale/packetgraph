@@ -84,6 +84,7 @@ struct pg_vhost_state {
 	struct pg_vhost_socket *socket;
 	rte_atomic32_t allow_queuing;
 	int vid;
+	uint64_t flags;
 	struct rte_mbuf *in[PG_MAX_PKTS_BURST];
 	struct rte_mbuf *out[PG_MAX_PKTS_BURST];
 	PG_PKTS_COUNT_TYPE tx_bytes; /* TX: [vhost] --> VM */
@@ -94,20 +95,18 @@ struct pg_vhost_state {
 #endif
 };
 
-static int new_vm(int dev);
-static void destroy_vm(int dev);
+static int on_new_device(int dev);
+static void on_destroy_device(int dev);
 
 static const struct vhost_device_ops virtio_net_device_ops = {
-	.new_device = new_vm,
-	.destroy_device = destroy_vm,
+	.new_device = on_new_device,
+	.destroy_device = on_destroy_device,
 };
 
 /* head of the socket list */
 static LIST_HEAD(socket_list, pg_vhost_socket) sockets;
 static char *sockets_path;
 static int vhost_start_ok;
-static int disable_freacture_mask;
-static int enable_freacture_mask;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -123,6 +122,22 @@ static struct pg_brick_config *vhost_config_new(const char *name,
 	config->brick_config = (void *) vhost_config;
 	vhost_config->flags = flags;
 	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
+}
+
+/**
+ * This function tell whether the targeted brick is
+ * acting as vhost server or not.
+ *
+ * @param       brick the brick vhost brick targeted.
+ * @return      0 if acting as server else 1.
+ */
+static int pg_vhost_is_server(struct pg_brick *brick)
+{
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick,
+			struct pg_vhost_state);
+
+	return state->flags & PG_VHOST_USER_CLIENT;
 }
 
 static int vhost_burst(struct pg_brick *brick, enum pg_side from,
@@ -259,15 +274,15 @@ static int vhost_poll(struct pg_brick *brick, uint16_t *pkts_cnt,
 }
 
 #ifndef RTE_VHOST_USER_CLIENT
-#define RTE_VHOST_USER_CLIENT 0
+#define RTE_VHOST_USER_CLIENT (1ULL << 0)
 #endif
 
 #ifndef RTE_VHOST_USER_NO_RECONNECT
-#define RTE_VHOST_USER_NO_RECONNECT 0
+#define RTE_VHOST_USER_NO_RECONNECT (1ULL << 1)
 #endif
 
 #ifndef RTE_VHOST_USER_DEQUEUE_ZERO_COPY
-#define RTE_VHOST_USER_DEQUEUE_ZERO_COPY 0
+#define RTE_VHOST_USER_DEQUEUE_ZERO_COPY (1ULL << 2)
 #endif
 
 static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
@@ -278,7 +293,9 @@ static void vhost_create_socket(struct pg_vhost_state *state, uint64_t flags,
 	int ret;
 
 	path = g_strdup_printf("%s/qemu-%s", sockets_path, state->brick.name);
-	g_remove(path);
+	/* If the socket is CLIENT do NOT destroy the socket. */
+	if ((flags & 1) == 0)
+		g_remove(path);
 
 	printf("New vhost-user socket: %s, zero-copy %s\n", path,
 	       (flags & RTE_VHOST_USER_DEQUEUE_ZERO_COPY) ?
@@ -344,11 +361,9 @@ static int vhost_init(struct pg_brick *brick, struct pg_brick_config *config,
 	vhost_config = (struct pg_vhost_config *) config->brick_config;
 	state->output = vhost_config->output;
 	state->vid = -1;
+	state->flags = vhost_config->flags;
 	PG_PKTS_COUNT_SET(state->rx_bytes, 0);
 	PG_PKTS_COUNT_SET(state->tx_bytes, 0);
-	pg_vhost_enable(brick, enable_freacture_mask);
-	pg_vhost_disable(brick, disable_freacture_mask);
-
 	vhost_create_socket(state, vhost_config->flags, errp);
 	if (pg_error_is_set(errp))
 		return -1;
@@ -389,13 +404,16 @@ struct pg_brick *pg_vhost_new(const char *name, uint64_t flags,
 
 static void vhost_destroy(struct pg_brick *brick, struct pg_error **errp)
 {
-	struct pg_vhost_state *state;
-
-	state = pg_brick_get_state(brick, struct pg_vhost_state);
+	struct pg_vhost_state *state =
+		pg_brick_get_state(brick, struct pg_vhost_state);
 	rte_vhost_driver_unregister(state->socket->path);
 
 	pthread_mutex_lock(&mutex);
-	g_remove(state->socket->path);
+
+	/* If the socket is client, do NOT destroy the existing socket. */
+	if (pg_vhost_is_server(brick) == 0)
+		g_remove(state->socket->path);
+
 	LIST_REMOVE(state->socket, socket_list);
 	g_free(state->socket->path);
 	g_free(state->socket);
@@ -425,7 +443,7 @@ static uint64_t tx_bytes(struct pg_brick *brick)
 		pg_brick_get_state(brick, struct pg_vhost_state)->tx_bytes);
 }
 
-static int new_vm(int dev)
+static int on_new_device(int dev)
 {
 	struct pg_vhost_socket *s = NULL;
 	char buf[256];
@@ -448,7 +466,7 @@ static int new_vm(int dev)
 	return 0;
 }
 
-static void destroy_vm(int dev)
+static void on_destroy_device(int dev)
 {
 	struct pg_vhost_socket *s = NULL;
 	char buf[256];
@@ -540,38 +558,6 @@ int pg_vhost_start(const char *base_dir, struct pg_error **errp)
 	vhost_start_ok = 1;
 
 	return 0;
-}
-
-int pg_vhost_global_enable(uint64_t feature_mask)
-{
-	enable_freacture_mask |= feature_mask;
-	return 0;
-}
-
-int pg_vhost_global_disable(uint64_t feature_mask)
-{
-	disable_freacture_mask |= feature_mask;
-	return 0;
-}
-
-int pg_vhost_enable(struct pg_brick *brick, uint64_t feature_mask)
-{
-	const char *path = pg_vhost_socket_path(brick);
-
-	if (unlikely(!path))
-		return -1;
-	return rte_vhost_driver_enable_features(path,
-						feature_mask) ? -1 : 0;
-}
-
-int pg_vhost_disable(struct pg_brick *brick, uint64_t feature_mask)
-{
-	const char *path = pg_vhost_socket_path(brick);
-
-	if (unlikely(!path))
-		return -1;
-	return rte_vhost_driver_disable_features(path,
-						 feature_mask) ? -1 : 0;
 }
 
 static void vhost_link(struct pg_brick *brick, enum pg_side side, int edge)

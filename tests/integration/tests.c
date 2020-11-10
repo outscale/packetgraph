@@ -171,6 +171,7 @@ static inline int start_qemu_graph(struct branch *branch,
 	int qemu_pid = pg_util_spawn_qemu(sock_path_graph(branch),
 					  sock_read_path_graph(branch),
 					  tmp_mac, mac_reader,
+					  0,0,
 					  glob_vm_path,
 					  glob_vm_key_path,
 					  glob_hugepages_path, errp);

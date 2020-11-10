@@ -70,6 +70,8 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 		       const char *socket_path_1,
 		       const char *mac_0,
 		       const char *mac_1,
+		       const int is_client_0,
+		       const int is_client_1,
 		       const char *vm_image_path,
 		       const char *vm_key_path,
 		       const char *hugepages_path,
@@ -81,13 +83,15 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 	pg_autofree char *argv_qemu = NULL;
 	const char *argv_sock_0 = "";
 	const char *argv_sock_1 = "";
+	const char *server_params = ",server,nowait";
 	pg_autofree char *argv_sock_0_t = NULL;
 	pg_autofree char *argv_sock_1_t = NULL;
 	pg_autofree char *ssh_cmd = NULL;
 	GError *error = NULL;
 
-	g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
-	if (socket_path_1)
+	if (!is_client_1)
+		g_assert(g_file_test(socket_path_0, G_FILE_TEST_EXISTS));
+	if (socket_path_1 && !is_client_1)
 		g_assert(g_file_test(socket_path_1, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(vm_image_path, G_FILE_TEST_EXISTS));
 	g_assert(g_file_test(vm_key_path, G_FILE_TEST_EXISTS));
@@ -95,21 +99,25 @@ int pg_util_spawn_qemu(const char *socket_path_0,
 
 	if (socket_path_0) {
 		argv_sock_0_t = g_strdup_printf(
-			PG_STRCAT(" -chardev socket,id=char0,path=%s",
+			PG_STRCAT(" -chardev socket,id=char0,path=%s%s",
 				  " -netdev type=vhost-user,id=mynet0,",
 				  "chardev=char0,vhostforce",
 				  " -device virtio-net-pci,mac=%s",
-				  ",netdev=mynet0"), socket_path_0, mac_0);
+				  ",netdev=mynet0"), socket_path_0,
+				  is_client_0 ? server_params : "",
+				  mac_0);
 		argv_sock_0 = argv_sock_0_t;
 	}
 
 	if (socket_path_1) {
 		argv_sock_1_t = g_strdup_printf(
-			PG_STRCAT(" -chardev socket,id=char1,path=%s",
+			PG_STRCAT(" -chardev socket,id=char1,path=%s%s",
 				  " -netdev type=vhost-user,id=mynet1,",
 				  "chardev=char1,vhostforce",
 				  " -device virtio-net-pci,mac=%s",
-				  ",netdev=mynet1"), socket_path_1, mac_1);
+				  ",netdev=mynet1"), socket_path_1,
+				  is_client_0 ? server_params : "",
+				  mac_1);
 		argv_sock_1 = argv_sock_1_t;
 	}
 

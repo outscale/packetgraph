@@ -103,6 +103,7 @@ static void test_vhost_flow_(int qemu_exit_signal)
 
 	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
 				      mac_addr_0, mac_addr_1,
+				      0, 0,
 				      glob_vm_path,
 				      glob_vm_key_path,
 				      glob_hugepages_path, &error);
@@ -268,6 +269,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 	g_assert(socket_path_11);
 	qemu_pid0 = pg_util_spawn_qemu(socket_path_00, socket_path_01,
 				       mac_addr_00, mac_addr_01,
+				       0, 0,
 				       glob_vm_path, glob_vm_key_path,
 				       glob_hugepages_path, &error);
 	g_assert(qemu_pid0);
@@ -286,6 +288,7 @@ static void test_vhost_multivm_(int qemu_exit_signal)
 
 	qemu_pid1 = pg_util_spawn_qemu(socket_path_10, socket_path_11,
 				       mac_addr_10, mac_addr_11,
+				       0, 0,
 				       glob_vm_path, glob_vm_key_path,
 				       glob_hugepages_path, &error);
 	g_assert(qemu_pid1);
@@ -445,6 +448,7 @@ static void qemu_test(struct qemu_test_params *p)
 
 	qemu_pid = pg_util_spawn_qemu(p->socket_path[0], p->socket_path[1],
 				      mac_0, mac_1,
+				      0, 0,
 				      glob_vm_path,
 				      glob_vm_key_path,
 				      glob_hugepages_path, &error);
@@ -584,61 +588,6 @@ static void test_vhost_reco(void)
 	pg_vhost_stop();
 }
 
-static void test_vhost_destroy(void)
-{
-	const char mac_addr_0[18] = "52:54:00:12:34:11";
-	const char mac_addr_1[18] = "52:54:00:12:34:12";
-	struct pg_brick *vhost_0, *vhost_1;
-	const char *socket_path_0, *socket_path_1;
-	struct pg_error *error = NULL;
-	int ret, qemu_pid;
-
-	/* start vhost */
-	ret = pg_vhost_start("/tmp", &error);
-	g_assert(ret == 0);
-	g_assert(!error);
-
-	/* instanciate brick */
-	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
-			       &error);
-	g_assert(!error);
-	g_assert(vhost_0);
-
-	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_DEQUEUE_ZERO_COPY,
-			       &error);
-	g_assert(!error);
-	g_assert(vhost_1);
-
-	/* spawn QEMU */
-	socket_path_0 = pg_vhost_socket_path(vhost_0);
-	g_assert(!error);
-	g_assert(socket_path_0);
-	socket_path_1 = pg_vhost_socket_path(vhost_1);
-	g_assert(!error);
-	g_assert(socket_path_1);
-
-	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
-				      mac_addr_0, mac_addr_1,
-				      glob_vm_path,
-				      glob_vm_key_path,
-				      glob_hugepages_path, &error);
-
-	g_assert(!error);
-	g_assert(qemu_pid);
-
-	/* try to destroy vhost brick before qemu is killed */
-	pg_brick_destroy(vhost_0);
-	g_assert(!error);
-	pg_brick_destroy(vhost_1);
-	g_assert(!error);
-
-	/* kill QEMU */
-	pg_util_stop_qemu(qemu_pid, SIGQUIT);
-
-	/* stop vhost */
-	pg_vhost_stop();
-}
-
 /* qemu_duo_* create a graph to test ping/iperf/tcp/udp:
  * <qemu>--[vhost]--[vhost]--<qemu>
  *
@@ -692,6 +641,7 @@ static void qemu_duo_new(struct qemu_duo_test_params *p)
 		mac = g_strdup_printf("52:54:00:12:34:%02i", i);
 		p->qemu_pid[i] = pg_util_spawn_qemu(socket_path, NULL,
 						    mac, NULL,
+						    0, 0,
 						    glob_vm_path,
 						    glob_vm_key_path,
 						    glob_hugepages_path,
@@ -798,6 +748,266 @@ static void test_vhost_seccomp(void)
 	pg_vhost_stop();
 }
 
+static void test_vhost_as_cli(void)
+{
+	int qemu_exit_signal = SIGKILL;
+	const char mac_addr_0[18] = "52:54:00:12:34:11";
+	const char mac_addr_1[18] = "52:54:00:12:34:12";
+	struct rte_mempool *mbuf_pool = pg_get_mempool();
+	struct pg_brick *vhost_0, *vhost_1, *collect;
+	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
+	const char *socket_path_0, *socket_path_1;
+	struct pg_error *error = NULL;
+	struct rte_mbuf **result_pkts;
+	int ret, qemu_pid, i;
+	uint64_t pkts_mask;
+
+	/* start vhost */
+	ret = pg_vhost_start("/tmp", &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	/* instanciate brick */
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_CLIENT,
+				   &error);
+	g_assert(!error);
+	g_assert(vhost_0);
+
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_CLIENT,
+				   &error);
+	g_assert(!error);
+	g_assert(vhost_1);
+
+	collect = pg_collect_new("collect", &error);
+	g_assert(!error);
+	g_assert(collect);
+
+	/* build the graph */
+	pg_brick_link(collect, vhost_1, &error);
+	g_assert(!error);
+
+	/* spawn first QEMU */
+	socket_path_0 = pg_vhost_socket_path(vhost_0);
+	g_assert(!error);
+	g_assert(socket_path_0);
+	socket_path_1 = pg_vhost_socket_path(vhost_1);
+	g_assert(!error);
+	g_assert(socket_path_1);
+
+	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
+					  mac_addr_0, mac_addr_1,
+					  1, 1,
+					  glob_vm_path,
+					  glob_vm_key_path,
+					  glob_hugepages_path, &error);
+
+	g_assert(!error);
+	g_assert(qemu_pid);
+
+	/* Prepare VM's bridge. */
+	SSH("brctl addbr br0", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig br0 up", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig ens4 up", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig ens5 up", qemu_pid, qemu_exit_signal);
+	SSH("brctl addif br0 ens4", qemu_pid, qemu_exit_signal);
+	SSH("brctl addif br0 ens5", qemu_pid, qemu_exit_signal);
+	SSH("brctl setfd br0 0", qemu_pid, qemu_exit_signal);
+	SSH("brctl stp br0 off", qemu_pid, qemu_exit_signal);
+	ssh_port_id++;
+
+	/* prepare packet to send */
+	for (i = 0; i < NB_PKTS; i++) {
+		pkts[i] = rte_pktmbuf_alloc(mbuf_pool);
+		g_assert(pkts[i]);
+		rte_pktmbuf_append(pkts[i], ETHER_MIN_LEN);
+		/* set random dst/src mac address so the linux guest bridge
+		 * will not filter them
+		 */
+		pg_set_mac_addrs(pkts[i],
+				  "52:54:00:12:34:15", "52:54:00:12:34:16");
+		/* set size */
+		pg_set_ether_type(pkts[i], ETHER_MIN_LEN - ETHER_HDR_LEN - 4);
+	}
+
+	/* send packet to the guest via one interface */
+	pg_brick_burst_to_east(vhost_0, 0, pkts,
+				   pg_mask_firsts(NB_PKTS), &error);
+	g_assert(!error);
+
+	/* let the packet propagate and flow */
+	for (i = 0; i < 10; i++) {
+		uint16_t count = 0;
+
+		usleep(100000);
+		pg_brick_poll(vhost_1, &count, &error);
+		g_assert(!error);
+		if (count)
+			break;
+	}
+
+	result_pkts = pg_brick_east_burst_get(collect, &pkts_mask, &error);
+	g_assert(!error);
+	g_assert(result_pkts);
+	g_assert(pg_brick_rx_bytes(vhost_0) == 0);
+	g_assert(pg_brick_tx_bytes(vhost_0) != 0);
+	g_assert(pg_brick_rx_bytes(vhost_1) != 0);
+	g_assert(pg_brick_tx_bytes(vhost_1) == 0);
+
+	/* kill QEMU */
+	pg_util_stop_qemu(qemu_pid, qemu_exit_signal);
+
+	/* free sent packet */
+	for (i = 0; i < NB_PKTS; i++)
+		rte_pktmbuf_free(pkts[i]);
+
+	/* break the graph */
+	pg_brick_unlink(collect, &error);
+	g_assert(!error);
+
+	/* clean up */
+	/* pg_brick_decref(vhost_0, &error); */
+	pg_brick_destroy(vhost_0);
+	g_assert(!error);
+	pg_brick_destroy(vhost_1);
+	/* pg_brick_decref(vhost_1, &error); */
+	g_assert(!error);
+	pg_brick_decref(collect, &error);
+	g_assert(!error);
+
+	/* stop vhost */
+	pg_vhost_stop();
+}
+
+static void test_vhost_destroy(void)
+{
+	int qemu_exit_signal = SIGKILL;
+	const char mac_addr_0[18] = "52:54:00:12:34:11";
+	const char mac_addr_1[18] = "52:54:00:12:34:12";
+	struct rte_mempool *mbuf_pool = pg_get_mempool();
+	struct pg_brick *vhost_0, *vhost_1, *collect;
+	struct rte_mbuf *pkts[PG_MAX_PKTS_BURST];
+	const char *socket_path_0, *socket_path_1;
+	struct pg_error *error = NULL;
+	struct rte_mbuf **result_pkts;
+	int ret, qemu_pid, i;
+	uint64_t pkts_mask;
+
+	/* start vhost */
+	ret = pg_vhost_start("/tmp", &error);
+	g_assert(ret == 0);
+	g_assert(!error);
+
+	/* instanciate brick */
+	vhost_0 = pg_vhost_new("vhost-0", PG_VHOST_USER_CLIENT,
+				   &error);
+	g_assert(!error);
+	g_assert(vhost_0);
+
+	vhost_1 = pg_vhost_new("vhost-1", PG_VHOST_USER_CLIENT,
+				   &error);
+	g_assert(!error);
+	g_assert(vhost_1);
+
+	collect = pg_collect_new("collect", &error);
+	g_assert(!error);
+	g_assert(collect);
+
+	/* build the graph */
+	pg_brick_link(collect, vhost_1, &error);
+	g_assert(!error);
+
+	/* spawn first QEMU */
+	socket_path_0 = pg_vhost_socket_path(vhost_0);
+	g_assert(!error);
+	g_assert(socket_path_0);
+	socket_path_1 = pg_vhost_socket_path(vhost_1);
+	g_assert(!error);
+	g_assert(socket_path_1);
+
+	qemu_pid = pg_util_spawn_qemu(socket_path_0, socket_path_1,
+					  mac_addr_0, mac_addr_1,
+					  1, 1,
+					  glob_vm_path,
+					  glob_vm_key_path,
+					  glob_hugepages_path, &error);
+
+	g_assert(!error);
+	g_assert(qemu_pid);
+
+	/* Prepare VM's bridge. */
+	SSH("brctl addbr br0", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig br0 up", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig ens4 up", qemu_pid, qemu_exit_signal);
+	SSH("ifconfig ens5 up", qemu_pid, qemu_exit_signal);
+	SSH("brctl addif br0 ens4", qemu_pid, qemu_exit_signal);
+	SSH("brctl addif br0 ens5", qemu_pid, qemu_exit_signal);
+	SSH("brctl setfd br0 0", qemu_pid, qemu_exit_signal);
+	SSH("brctl stp br0 off", qemu_pid, qemu_exit_signal);
+	ssh_port_id++;
+
+	/* prepare packet to send */
+	for (i = 0; i < NB_PKTS; i++) {
+		pkts[i] = rte_pktmbuf_alloc(mbuf_pool);
+		g_assert(pkts[i]);
+		rte_pktmbuf_append(pkts[i], ETHER_MIN_LEN);
+		/* set random dst/src mac address so the linux guest bridge
+		 * will not filter them
+		 */
+		pg_set_mac_addrs(pkts[i],
+				  "52:54:00:12:34:15", "52:54:00:12:34:16");
+		/* set size */
+		pg_set_ether_type(pkts[i], ETHER_MIN_LEN - ETHER_HDR_LEN - 4);
+	}
+
+	/* send packet to the guest via one interface */
+	pg_brick_burst_to_east(vhost_0, 0, pkts,
+				   pg_mask_firsts(NB_PKTS), &error);
+	g_assert(!error);
+
+	/* let the packet propagate and flow */
+	for (i = 0; i < 10; i++) {
+		uint16_t count = 0;
+
+		usleep(100000);
+		pg_brick_poll(vhost_1, &count, &error);
+		g_assert(!error);
+		if (count)
+			break;
+	}
+
+	result_pkts = pg_brick_east_burst_get(collect, &pkts_mask, &error);
+	g_assert(!error);
+	g_assert(result_pkts);
+	g_assert(pg_brick_rx_bytes(vhost_0) == 0);
+	g_assert(pg_brick_tx_bytes(vhost_0) != 0);
+	g_assert(pg_brick_rx_bytes(vhost_1) != 0);
+	g_assert(pg_brick_tx_bytes(vhost_1) == 0);
+
+	/* kill QEMU */
+	pg_util_stop_qemu(qemu_pid, qemu_exit_signal);
+
+	/* free sent packet */
+	for (i = 0; i < NB_PKTS; i++)
+		rte_pktmbuf_free(pkts[i]);
+
+	/* break the graph */
+	pg_brick_unlink(collect, &error);
+	g_assert(!error);
+
+	/* clean up */
+	/* pg_brick_decref(vhost_0, &error); */
+	pg_brick_destroy(vhost_0);
+	g_assert(!error);
+	pg_brick_destroy(vhost_1);
+	/* pg_brick_decref(vhost_1, &error); */
+	g_assert(!error);
+	pg_brick_decref(collect, &error);
+	g_assert(!error);
+
+	/* stop vhost */
+	pg_vhost_stop();
+}
+
 void test_vhost(void)
 {
 	pg_test_add_func("/vhost/net_classics", test_vhost_net_classics);
@@ -808,6 +1018,7 @@ void test_vhost(void)
 		pg_test_add_func("/vhost/reco", test_vhost_reco);
 	pg_test_add_func("/vhost/destroy", test_vhost_destroy);
 	pg_test_add_func("/vhost/seccomp", test_vhost_seccomp);
+	pg_test_add_func("/vhost/as_cli", test_vhost_as_cli);
 }
 
 #undef SSH
