@@ -76,7 +76,7 @@ static struct pg_brick_config *tap_config_new(const char *name,
 	struct pg_tap_config *tap_config = g_new0(struct pg_tap_config, 1);
 
 	if (ifname)
-		strncpy(tap_config->ifname, ifname, IFNAMSIZ);
+		strncpy(tap_config->ifname, ifname, IFNAMSIZ - 1);
 	config->brick_config = (void *) tap_config;
 	return pg_brick_config_init(config, name, 1, 1, PG_MONOPOLE);
 }

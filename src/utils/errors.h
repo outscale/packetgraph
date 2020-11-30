@@ -58,4 +58,6 @@ pg_error_make_ctx_internal(const char *file, uint64_t line, const char *func);
 				   __func__);
 
 
+#define pg_panic(args...) ({fprintf(stderr, args); abort(); })
+
 #endif /* _PG_UTILS_ERRORS_H */
