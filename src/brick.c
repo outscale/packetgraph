@@ -23,6 +23,7 @@
 #include <glib.h>
 #include <packetgraph/packetgraph.h>
 #include "brick-int.h"
+#include "utils/errors.h"
 #include "utils/bitmask.h"
 
 /* All registred bricks. */
@@ -387,7 +388,19 @@ struct pg_brick_edge *pg_brick_get_edge(struct pg_brick *brick,
 	case PG_MONOPOLE:
 		return &brick->side.edge;
 	}
-	return NULL;
+	pg_panic("brick->type is unknow");
+}
+
+static int set_edge(struct pg_brick *brick,
+		    enum pg_side side, uint32_t edge,
+		    uint16_t index)
+{
+	struct pg_brick_edge *e = pg_brick_get_edge(brick, side, edge);
+
+	if (unlikely(!e))
+		return -1;
+	e->pair_index = index;
+	return 0;
 }
 
 /**
@@ -414,7 +427,7 @@ static uint16_t insert_link(struct pg_brick *from,
 		}
 
 		/* This should never happen */
-		g_assert(0);
+		pg_panic("can't find pair");
 		return 0;
 	case PG_DIPOLE:
 		from->sides[side].edge.link = to;
@@ -428,7 +441,7 @@ static uint16_t insert_link(struct pg_brick *from,
 		return 0;
 	}
 
-	return 0;
+	pg_panic("from->type is unknow");
 }
 
 static bool is_place_available(struct pg_brick *brick, enum pg_side side)
@@ -478,10 +491,15 @@ int pg_brick_link(struct pg_brick *west,
 		west->ops->link_notify(west, PG_EAST_SIDE, west_index);
 
 	/* finish the pairing of the edge */
-	pg_brick_get_edge(east, PG_WEST_SIDE,
-			  east_index)->pair_index = west_index;
-	pg_brick_get_edge(west, PG_EAST_SIDE,
-			  west_index)->pair_index = east_index;
+	if (set_edge(east, PG_WEST_SIDE, east_index, west_index) < 0) {
+		*errp = pg_error_new("Can't set edge");
+		return -1;
+	}
+
+	if (set_edge(west, PG_EAST_SIDE, west_index, east_index) < 0) {
+		*errp = pg_error_new("Can't set edge");
+		return -1;
+	}
 
 	return 0;
 }
@@ -523,7 +541,12 @@ static void reset_edge(struct pg_brick_edge *edge)
 static void unlink_notify(struct pg_brick_edge *edge, enum pg_side array_side,
 			  struct pg_error **errp)
 {
-	struct pg_brick *brick = edge->link;
+	struct pg_brick *brick;
+
+	if (!edge)
+		return;
+
+	brick = edge->link;
 
 	if (!brick)
 		return;
@@ -562,6 +585,8 @@ static void do_unlink(struct pg_brick *brick, enum pg_side side, uint16_t index,
 				      pg_flip_side(side),
 				      edge->pair_index);
 
+	if (!pair_edge || !pair_side)
+		return;
 	unlink_notify(edge, side, errp);
 	if (pg_error_is_set(errp))
 		return;
@@ -787,6 +812,10 @@ int pg_brick_unlink_edge(struct pg_brick *west,
 		struct pg_brick_edge *edge =
 			pg_brick_get_edge(west, PG_EAST_SIDE, i);
 
+		if (unlikely(!edge)) {
+			*error = pg_error_new("can't get edge");
+			return -1;
+		}
 		if (edge->link == east) {
 			west_edge = edge;
 			west_index = i;

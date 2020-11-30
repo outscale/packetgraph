@@ -161,6 +161,10 @@ static void multicast4_internal(struct vtep_state *state,
 	hdr = (struct multicast_pkt *) rte_pktmbuf_append(pkt[0],
 							  IGMP_PKT_LEN);
 
+	if (unlikely(!hdr)) {
+		*errp = pg_error_new("rte_pktmbuf_append fail");
+		return;
+	}
 	ether_addr_copy(&state->mac, &hdr->ethernet.s_addr);
 	ether_addr_copy(&dst, &hdr->ethernet.d_addr);
 	hdr->ethernet.ether_type = PG_BE_ETHER_TYPE_IPv4;

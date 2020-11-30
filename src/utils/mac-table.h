@@ -21,6 +21,7 @@
 #include <string.h>
 #include <rte_memcpy.h>
 #include <setjmp.h>
+#include <assert.h>
 #include "utils/mac.h"
 #include "utils/bitmask.h"
 #include "utils/malloc.h"
@@ -142,8 +143,12 @@ static inline void pg_mac_table_clear(struct pg_mac_table *ma)
 		PG_FOREACH_BIT(ma->mask[i], it) {
 			struct pg_mac_table_ptr *cur = ma->ptrs[i * 64 + it];
 
+			assert(cur);
 			free(cur->entries);
+			/* Uselsess but make -fanalyzer shut up */
+			cur->entries = NULL;
 			free(cur);
+			ma->ptrs[i * 64 + it] = NULL;
 		}
 		ma->mask[i] = 0;
 	}
@@ -159,8 +164,11 @@ static inline void pg_mac_table_free(struct pg_mac_table *ma)
 		PG_FOREACH_BIT(ma->mask[i], it) {
 			struct pg_mac_table_ptr *cur = ma->ptrs[i * 64 + it];
 
+			assert(cur);
 			free(cur->entries);
+			cur->entries = NULL;
 			free(cur);
+			ma->ptrs[i * 64 + it] = NULL;
 		}
 	}
 	free(ma->ptrs);

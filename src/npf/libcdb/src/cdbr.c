@@ -182,6 +182,8 @@ cdbr_open_mem(void *base, size_t size, int flags,
 	}
 
 	cdbr = malloc(sizeof(*cdbr));
+	if (!cdbr)
+		return NULL;
 	cdbr->unmap = unmap;
 	cdbr->cookie = cookie;
 
