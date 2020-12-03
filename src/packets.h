@@ -60,6 +60,10 @@ struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 					  uint64_t pkts_mask,
 					  uint16_t len);
 
+struct rte_mbuf **pg_packets_prepend_blank(struct rte_mbuf **pkts,
+					  uint64_t pkts_mask,
+					  uint16_t len);
+
 struct rte_mbuf **pg_packets_append_buf(struct rte_mbuf **pkts,
 					uint64_t pkts_mask,
 					const void *buf,
