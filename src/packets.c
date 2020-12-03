@@ -43,19 +43,32 @@ struct rte_mbuf **pg_packets_create(uint64_t pkts_mask)
 	return ret;
 }
 
+#define PG_PACKETS_OPS_BLANK(pkts, pkts_mask, len, ops)         \
+	char *tmp;                                              \
+	char *dst;                                              \
+	PG_FOREACH_BIT(pkts_mask, j) {                          \
+		if (!pkts[j])                                   \
+			continue;                               \
+		tmp = rte_pktmbuf_##ops(pkts[j], len);          \
+		if (!tmp)                                       \
+			return NULL;                            \
+		for (dst = tmp + len; tmp < dst; ++tmp)         \
+			*tmp = 0;                               \
+	}
+
 struct rte_mbuf **pg_packets_append_blank(struct rte_mbuf **pkts,
 					  uint64_t pkts_mask,
 					  uint16_t len)
 {
-	char *tmp;
+	PG_PACKETS_OPS_BLANK(pkts, pkts_mask, len, append);
+	return pkts;
+}
 
-	PG_FOREACH_BIT(pkts_mask, j) {
-		if (!pkts[j])
-			continue;
-		tmp = rte_pktmbuf_append(pkts[j], len);
-		if (!tmp)
-			return NULL;
-	}
+struct rte_mbuf **pg_packets_prepend_blank(struct rte_mbuf **pkts,
+					   uint64_t pkts_mask,
+					   uint16_t len)
+{
+	PG_PACKETS_OPS_BLANK(pkts, pkts_mask, len, prepend);
 	return pkts;
 }
 

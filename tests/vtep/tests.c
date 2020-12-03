@@ -787,6 +787,8 @@ static void test_vtep_vnis(int flag)
 					 i % NB_VNIS);
 		pg_packets_prepend_vxlan(pkts, mask & 0xff0000,
 					 (i + 1) % NB_VNIS);
+		pg_packets_prepend_blank(pkts, mask & (~0xffffff),
+					 sizeof(struct vxlan_hdr));
 
 		pg_packets_prepend_udp(pkts, mask, 1000, PG_VTEP_DST_PORT,
 				       1400);
