@@ -27,6 +27,8 @@ before_install:
        git checkout -b "$DPDK_VERSION" "$DPDK_VERSION";
        make config T=x86_64-native-linuxapp-clang;
        sed -i -e "s/CONFIG_RTE_LIBRTE_PMD_PCAP=n/CONFIG_RTE_LIBRTE_PMD_PCAP=y/" build/.config;
+       sed -i -e "s/CONFIG_RTE_EAL_IGB_UIO=y/CONFIG_RTE_EAL_IGB_UIO=n/" build/.config;
+       sed -i -e "s/CONFIG_RTE_KNI_KMOD=y/CONFIG_RTE_KNI_KMOD=n/" build/.config;
        make EXTRA_CFLAGS='-fPIC';
    fi
  - export RTE_SDK=$TRAVIS_BUILD_DIR/dpdk;
