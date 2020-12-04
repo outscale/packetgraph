@@ -49,7 +49,7 @@ int pg_brick_link(struct pg_brick *west, struct pg_brick *east,
  * @return	0 on success, -1 on error
  */
 #define pg_brick_chained_links(errp, west, args...)	\
-	(pg_brick_chained_links_int(errp, west, args, NULL))
+	(pg_brick_chained_links_int(errp, west, args, (void *)NULL))
 
 /**
  * Internal function for brick_chained_links
