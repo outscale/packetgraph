@@ -50,5 +50,6 @@
 #include <packetgraph/tap.h>
 #include <packetgraph/pmtud.h>
 #include <packetgraph/ip-fragment.h>
+#include <packetgraph/ttl.h>
 
 #endif /* _PG_PACKETGRAPH_H */
