@@ -86,6 +86,24 @@ $ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_
 $ wget http://cbs.centos.org/kojifiles/packages/jemalloc/3.6.0/8.el7.centos/x86_64/jemalloc-3.6.0-8.el7.centos.x86_64.rpm
 $ sudo rpm -i jemalloc-devel-3.6.0-8.el7.centos.x86_64.rpm jemalloc-3.6.0-8.el7.centos.x86_64.rpm
 ```
+You can install gcc 7 and clang 5 on CentOS with:
+
+```
+$ sudo su
+# cd /etc/pki/rpm-gpg
+# wget -O RPM-GPG-KEY-redhat-devel https://www.redhat.com/security/data/a5787476.txt
+# rpm --import RPM-GPG-KEY-redhat-devel
+
+# yum install devtoolset-7 llvm-toolset-7
+# yum install llvm-toolset-7-clang-analyzer llvm-toolset-7-clang-tools-extra # optional
+# exit
+
+$ scl enable devtoolset-7 llvm-toolset-7 bash
+
+$ # Optionally permanently enable GCC 7 / Clang 5
+$ echo "source scl_source enable devtoolset-7 llvm-toolset-7" >> ~/.bashrc
+```
+For more information you can see [developers.redhat.com](https://developers.redhat.com/blog/2018/07/07/yum-install-gcc7-clang)
 
 ## Build DPDK
 
