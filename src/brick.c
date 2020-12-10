@@ -839,6 +839,8 @@ static GList *pg_brick_dot_add(GList *todo, GList *done,
 			       struct pg_brick *b, struct pg_brick *n,
 			       enum pg_side i, GString *s)
 {
+	if (!n)
+		return todo;
 	if (!g_list_find(todo, n) &&
 	    !g_list_find(done, n))
 		todo = g_list_append(todo, n);
@@ -889,8 +891,6 @@ char *pg_brick_dot(struct pg_brick *brick)
 		if (b->type == PG_MONOPOLE) {
 			struct pg_brick *n = b->side.edge.link;
 
-			if (!n)
-				goto continue_while;
 			todo = pg_brick_dot_add(todo, done, b,
 						n, PG_WEST_SIDE, s);
 			goto continue_while;
@@ -899,10 +899,6 @@ char *pg_brick_dot(struct pg_brick *brick)
 		/* populate all connected bricks */
 		for (i = 0; i < PG_MAX_SIDE; i++)	{
 			if (b->type == PG_DIPOLE) {
-				struct pg_brick *n = b->sides[i].edge.link;
-
-				if (!n)
-					continue;
 				todo = pg_brick_dot_add(todo, done, b,
 							b->sides[i].edge.link,
 							i, s);
@@ -912,8 +908,6 @@ char *pg_brick_dot(struct pg_brick *brick)
 					struct pg_brick *n = b->sides[i]
 						.edges[j].link;
 
-					if (!n)
-						continue;
 					/* A new brick appears */
 					todo = pg_brick_dot_add(todo, done,
 								b, n, i, s);
