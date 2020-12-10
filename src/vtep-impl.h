@@ -355,10 +355,12 @@ static inline int vtep_header_prepend(struct vtep_state *state,
 
 static inline int vtep_encapsulate(struct vtep_state *state,
 				   struct vtep_port *port,
-				   struct rte_mbuf **pkts, uint64_t pkts_mask,
+				   struct rte_mbuf **pkts,
+				   uint64_t *maskp,
 				   struct pg_error **errp)
 {
 	struct rte_mempool *mp = pg_get_mempool();
+	uint64_t pkts_mask = *maskp;
 
 	/* do the encapsulation */
 	for (; pkts_mask;) {
@@ -386,6 +388,12 @@ static inline int vtep_encapsulate(struct vtep_state *state,
 				struct dest_addresses);
 			if (unlikely(!entry))
 				unicast = 0;
+		}
+
+		if (state->flags & PG_VTEP_NO_MULTICAST && !unicast) {
+			/* in this case all we can do is to skip the packet */
+			*maskp &= ~(i + 1);
+			continue;
 		}
 
 		if (unlikely(!(state->flags & PG_VTEP_NO_COPY))) {
@@ -459,11 +467,15 @@ static inline int to_vtep(struct pg_brick *brick, enum pg_side from,
 	if (unlikely(are_mac_tables_dead(port) &&
 		     try_fix_tables(state, port, errp) < 0))
 		return -1;
-	/* if the port VNI is not set up ignore the packets */
-	if (unlikely(!pg_is_multicast_ip(port->multicast_ip)))
-		return 0;
 
-	if (unlikely(vtep_encapsulate(state, port, pkts, pkts_mask, errp) < 0))
+	if (!(state->flags & PG_VTEP_NO_MULTICAST)) {
+		/* if the port VNI is not set up ignore the packets */
+		if (unlikely(!pg_is_multicast_ip(port->multicast_ip)))
+			return 0;
+	}
+
+	if (unlikely(vtep_encapsulate(state, port, pkts,
+				      &pkts_mask, errp) < 0))
 		return -1;
 
 	ret = pg_brick_side_forward(s, from, state->pkts, pkts_mask, errp);
@@ -795,7 +807,8 @@ static int do_add_vni(struct vtep_state *state, uint16_t edge_index,
 		*errp = pg_error_new("port already attached to a vni");
 		return -1;
 	}
-	if (unlikely(pg_is_multicast_ip(port->multicast_ip))) {
+	if (!(state->flags & PG_VTEP_NO_MULTICAST) &&
+	    unlikely(pg_is_multicast_ip(port->multicast_ip))) {
 		*errp = pg_error_new("port alread have a mutlicast IP");
 		return -1;
 	}
@@ -806,7 +819,8 @@ static int do_add_vni(struct vtep_state *state, uint16_t edge_index,
 	g_assert(!pg_mac_table_init(&port->mac_to_dst, &state->exeption_env));
 	g_assert(!pg_mac_table_init(&port->known_mac, &state->exeption_env));
 
-	multicast_subscribe(state, port, multicast_ip, errp);
+	if (!(state->flags & PG_VTEP_NO_MULTICAST))
+		multicast_subscribe(state, port, multicast_ip, errp);
 	return 0;
 }
 
@@ -827,8 +841,8 @@ static void do_remove_vni(struct vtep_state *state,
 	if (!pg_is_multicast_ip(port->multicast_ip))
 		return;
 
-	multicast_unsubscribe(state, port, port->multicast_ip,
-			      errp);
+	if (!(state->flags & PG_VTEP_NO_MULTICAST))
+		multicast_unsubscribe(state, port, port->multicast_ip, errp);
 
 	if (pg_error_is_set(errp))
 		return;
@@ -1053,12 +1067,6 @@ int pg_vtep_add_vni_(struct pg_brick *brick,
 
 	pg_ip_copy(multicast_ip, &tmp_ip);
 
-	if (!pg_is_multicast_ip(tmp_ip)) {
-		*errp = pg_error_new(
-			"Provided IP is not in the multicast range");
-		return -1;
-	}
-
 	/* lookup for the vtep brick index */
 	found = 0;
 	for (i = 0; i < brick->sides[side].max; i++)
@@ -1077,6 +1085,61 @@ int pg_vtep_add_vni_(struct pg_brick *brick,
 	do_add_mac(&state->ports[i], &mac);
 	return 0;
 }
+
+#define pg_vtep_add_vni_dst__(version) CATCAT(pg_vtep, version, _add_vni_dst)
+#define pg_vtep_add_vni_dst_ pg_vtep_add_vni_dst__(IP_VERSION)
+
+int pg_vtep_add_vni_dst_(struct pg_brick *brick, uint32_t vni,
+			 struct ether_addr *mac_vm,
+			 struct ether_addr *dmac, IP_IN_TYPE dip,
+			 struct pg_error **errp)
+{
+	struct vtep_state *state = pg_brick_get_state(brick,
+						      struct vtep_state);
+	struct dest_addresses dst = {*dmac,
+#if IP_VERSION == 4
+				     dip,
+#else
+				     {.word8 = {0}},
+#endif
+				     state->vtep_tick};
+	union pg_mac tmp = {.rte_addr = *mac_vm};
+	struct vtep_port *ports = state->ports;
+	struct vtep_port *good_port = NULL;
+	struct pg_brick_side *s = &brick->sides[pg_flip_side(state->output)];
+
+	if (!brick) {
+		*errp = pg_error_new("brick is NULL");
+		return -1;
+	}
+
+	if (!is_vni_valid(vni)) {
+		*errp = pg_error_new("Invalid VNI");
+		return -1;
+	}
+
+#if IP_VERSION != 4
+	pg_ip_copy(dip, &dst.ip);
+#endif
+
+	for (int i = 0; i < s->nb; ++i) {
+		if (ports[i].vni == vni) {
+			good_port = &ports[i];
+			break;
+		}
+	}
+
+	if (!good_port) {
+		*errp = pg_error_new("can't find good VNI");
+		return -1;
+	}
+
+	pg_mac_table_elem_set(&good_port->mac_to_dst, tmp, &dst,
+			      sizeof(struct dest_addresses));
+
+	return 0;
+}
+
 
 #define pg_vtep_clean_all_mac__(version)		\
 	CATCAT(pg_vtep, version, _clean_all_mac)

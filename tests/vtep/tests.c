@@ -1233,6 +1233,49 @@ static void test_vtep_lifetime(void)
 	g_free(pkts);
 }
 
+static void test_vtep_add_vni_dst(void)
+{
+	struct pg_error *error = NULL;
+	struct ether_addr  multicast_mac1 = {{0,0,0,0,0,1}};
+	struct ether_addr  multicast_mac2 = {{0,0,0,0,0,2}};
+	struct ether_addr  mac_dst = {{0xaa}};
+	struct rte_mbuf **pkts;
+
+	pg_autobrick struct pg_brick *col = pg_collect_new("collect", &error);
+	pg_autobrick struct pg_brick *nop = pg_nop_new("n", &error);
+	pg_autobrick struct pg_brick *vtep = pg_vtep_new(
+		"vt", 1, PG_EAST_SIDE, 15, multicast_mac1,
+		PG_VTEP_DST_PORT, PG_VTEP_ALL_OPTI | PG_VTEP_NO_MULTICAST,
+		&error);
+	CHECK_ERROR(error);
+
+	pg_brick_chained_links(&error, nop, vtep, col);
+	CHECK_ERROR(error);
+
+	pg_vtep_add_vni(vtep, nop, 0, inet_addr("225.0.0.43"), &error);
+	CHECK_ERROR(error);
+
+	pkts = pg_packets_create(-1LL);
+	pg_packets_append_ether(pkts, -1LL,
+				&(struct ether_addr){{0, 1}},
+				&mac_dst, ETHER_TYPE_IPv4);
+	pg_packets_append_ipv4(pkts, -1LL, 0, -1, 10, 17);
+
+	/* we test "no multicast", we didn't add any VNI DST
+	 * so packets should be blocked */
+	pg_brick_burst_to_east(vtep, 0, pkts, 1, &error);
+	g_assert(pg_brick_pkts_count_get(col, PG_EAST_SIDE) == 0);
+
+	/* manually add vni DST */
+	pg_vtep4_add_vni_dst(vtep, 0, &mac_dst, &multicast_mac2,
+			     1337, &error);
+
+	pg_brick_burst_to_east(vtep, 0, pkts, -1LLU, &error);
+	g_assert(pg_brick_pkts_count_get(col, PG_EAST_SIDE) == 64);
+	pg_packets_free(pkts, pg_mask_firsts(NB_PKTS));
+
+}
+
 int main(int argc, char **argv)
 {
 	int r;
@@ -1248,6 +1291,7 @@ int main(int argc, char **argv)
 	pg_test_add_func("/vtep/simple/no-copy", test_vtep_simple_no_copy);
 	pg_test_add_func("/vtep/simple/all-opti", test_vtep_simple_all_opti);
 	pg_test_add_func("/vtep/simple/lifetime", test_vtep_lifetime);
+	pg_test_add_func("/vtep/simple/add-vni-dst", test_vtep_add_vni_dst);
 
 	pg_test_add_func("/vtep/vnis/all-opti", test_vtep_vnis_all_opti);
 	pg_test_add_func("/vtep/vnis/no-copy", test_vtep_vnis_no_copy);

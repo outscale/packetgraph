@@ -34,7 +34,10 @@ enum pg_vtep_flags {
 	 * when incoming packets, just forward it */
 	PG_VTEP_NO_INNERMAC_CHECK = 2,
 	PG_VTEP_FORCE_UPD_IPV6_CHECKSUM = 4,
-	PG_VTEP_ALL_OPTI = PG_VTEP_NO_COPY | PG_VTEP_NO_INNERMAC_CHECK
+	PG_VTEP_ALL_OPTI = PG_VTEP_NO_COPY | PG_VTEP_NO_INNERMAC_CHECK,
+	/* in this mode we don't do multicast,
+	   dst mac must be add manually */
+	PG_VTEP_NO_MULTICAST = 8
 };
 
 struct ether_addr;
@@ -92,6 +95,16 @@ int pg_vtep4_add_vni(struct pg_brick *brick,
 int pg_vtep6_add_vni(struct pg_brick *brick, struct pg_brick *neighbor,
 		     uint32_t vni, uint8_t *multicast_ip,
 		     struct pg_error **errp);
+
+int pg_vtep4_add_vni_dst(struct pg_brick *brick, uint32_t vni,
+			 struct ether_addr *mac_vm,
+			 struct ether_addr *dmac, uint32_t dip,
+			 struct pg_error **errp);
+
+int pg_vtep6_add_vni_dst(struct pg_brick *brick, uint32_t vni,
+			 struct ether_addr *mac_vm,
+			 struct ether_addr *dmac, uint8_t *dip,
+			 struct pg_error **errp);
 
 #ifndef __cplusplus
 
