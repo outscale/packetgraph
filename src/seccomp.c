@@ -17,9 +17,39 @@
 
 #include <packetgraph/common.h>
 #include <packetgraph/seccomp-bpf.h>
+#include <errno.h>
+#include <signal.h>
+#include <string.h>
+
+/*
+ * * Catch violations so we see, which system call caused the problems
+ * *
+ */
+static void catchViolation(int sig, siginfo_t *si, void *void_context)
+{
+	fprintf(stderr,
+		"Catch sig [%d] when attemption to catch syscall: [%d]\n",
+			sig, si->si_syscall);
+}
+/*
+ * * Setup error handling
+ * *
+ */
+static void init_error_handling(void)
+{
+	struct sigaction sa = { .sa_sigaction = catchViolation,
+		.sa_flags = SA_SIGINFO | SA_NODEFER };
+
+	if (sigaction(SIGSYS, &sa, NULL)) {
+		printf("Failed to configure SIGSYS handler [%s]\n",
+				strerror(errno));
+	}
+}
 
 int pg_init_seccomp(void)
 {
+	init_error_handling();
+
 	struct sock_filter filter[] = {
 		VALIDATE_ARCHITECTURE,
 		EXAMINE_SYSCALL,
@@ -81,17 +111,31 @@ int pg_init_seccomp(void)
 		ALLOW_SYSCALL(gettimeofday),
 		ALLOW_SYSCALL(stat),
 		ALLOW_SYSCALL(clock_gettime),
+		ALLOW_SYSCALL(rt_sigreturn),
+		ALLOW_SYSCALL(epoll_create),
+		ALLOW_SYSCALL(epoll_ctl),
+		ALLOW_SYSCALL(epoll_wait),
+		ALLOW_SYSCALL(getsockopt),
+		ALLOW_SYSCALL(setsockopt),
+		ALLOW_SYSCALL(readlink),
+		ALLOW_SYSCALL(prlimit64),
+		ALLOW_SYSCALL(memfd_create),
+		ALLOW_SYSCALL(timerfd_create),
+		ALLOW_SYSCALL(uname),
+		ALLOW_SYSCALL(iopl),
 
-		KILL_PROCESS,
+		TRAP_PROCESS,
 	};
 	struct sock_fprog prog = {
 		.len = (unsigned short)(sizeof(filter) / sizeof(*filter)),
 		.filter = filter,
 	};
-
-	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) == -1)
 		return -1;
-	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog))
+	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog) == -1) {
+		fprintf(stderr, "unknown PR_GET_SECCOMP error: %s\n",
+				strerror(errno));
 		return -1;
+	}
 	return 0;
 }
