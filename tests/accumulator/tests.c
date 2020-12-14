@@ -46,11 +46,7 @@ static void accumulator_packets_poll(enum pg_side dir)
 	uint64_t filtered_mask;
 
 	memset(packets, 0, NB_PKTS * sizeof(struct rte_mbuf *));
-	for (int i = 0; i < NB_PKTS; i++) {
-		packets[i] = rte_pktmbuf_alloc(mp);
-		g_assert(packets[i]);
-		packets[i]->udata64 = i;
-	}
+	realloc_pkts(packets);
 	gen = pg_packetsgen_new("gen", 2, 2, pg_flip_side(dir),
 				packets, NB_PKTS, &error);
 	g_assert(!error);
