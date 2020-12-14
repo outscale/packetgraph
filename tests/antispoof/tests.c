@@ -50,6 +50,23 @@ static struct rte_mbuf *build_packet(const unsigned char *data, size_t len)
 	return pkt;
 }
 
+#define REPLAY(pass) \
+	for (i = 0; i < pkts_nb; i++) { \
+		g_assert(pg_brick_reset(col_east, &error) >= 0); \
+		g_assert(!error); \
+		packet = build_packet(pkts[i], pkts_size[i]); \
+		pg_brick_poll(gen_west, &packet_count, &error); \
+		g_assert(!error); \
+		g_assert(packet_count == 1); \
+		filtered_pkts = pg_brick_west_burst_get(col_east,	\
+							&filtered_pkts_mask, \
+							&error); \
+		g_assert(!error); \
+		g_assert(pg_mask_count(filtered_pkts_mask) == (pass)); \
+		g_assert(!!filtered_pkts == pass);			       \
+		rte_pktmbuf_free(packet); \
+	}
+
 static void test_antispoof_mac(void)
 {
 #	include "test-arp-gratuitous.c"
@@ -64,6 +81,7 @@ static void test_antispoof_mac(void)
 	uint16_t packet_count;
 	uint16_t i;
 	struct rte_mbuf *packet;
+	struct rte_mbuf **filtered_pkts;
 	uint64_t filtered_pkts_mask;
 
 	/* only those packets should pass */
@@ -83,17 +101,8 @@ static void test_antispoof_mac(void)
 	pg_brick_link(antispoof, col_east, &error);
 	g_assert(!error);
 
-	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
-		packet = build_packet(pkts[i], pkts_size[i]);
-		pg_brick_poll(gen_west, &packet_count, &error);
-		g_assert(!error);
-		g_assert(packet_count == 1);
-		pg_brick_west_burst_get(col_east, &filtered_pkts_mask, &error);
-		g_assert(!error);
-		g_assert(pg_mask_count(filtered_pkts_mask) == 0);
-		rte_pktmbuf_free(packet);
-	}
+	REPLAY(0);
+
 	pg_brick_destroy(gen_west);
 	pg_brick_destroy(antispoof);
 	pg_brick_destroy(col_east);
@@ -113,6 +122,7 @@ static void test_antispoof_rarp(void)
 	uint16_t packet_count;
 	uint16_t i;
 	struct rte_mbuf *packet;
+	struct rte_mbuf **filtered_pkts;
 	uint64_t filtered_pkts_mask;
 
 	pg_scan_ether_addr(&inside_mac, "00:23:df:ff:c9:23");
@@ -132,17 +142,8 @@ static void test_antispoof_rarp(void)
 	pg_brick_link(antispoof, col_east, &error);
 	g_assert(!error);
 
-	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
-		packet = build_packet(pkts[i], pkts_size[i]);
-		pg_brick_poll(gen_west, &packet_count, &error);
-		g_assert(!error);
-		g_assert(packet_count == 1);
-		pg_brick_west_burst_get(col_east, &filtered_pkts_mask, &error);
-		g_assert(!error);
-		g_assert(pg_mask_count(filtered_pkts_mask) == 0);
-		rte_pktmbuf_free(packet);
-	}
+	REPLAY(0);
+
 	pg_brick_destroy(gen_west);
 	pg_brick_destroy(antispoof);
 	pg_brick_destroy(col_east);
@@ -178,23 +179,6 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	g_assert(!error);
 	pg_brick_link(antispoof, col_east, &error);
 	g_assert(!error);
-
-#define REPLAY(pass) \
-	for (i = 0; i < pkts_nb; i++) { \
-		g_assert(pg_brick_reset(col_east, &error) >= 0); \
-		g_assert(!error); \
-		packet = build_packet(pkts[i], pkts_size[i]); \
-		pg_brick_poll(gen_west, &packet_count, &error); \
-		g_assert(!error); \
-		g_assert(packet_count == 1); \
-		filtered_pkts = pg_brick_west_burst_get(col_east,	\
-							&filtered_pkts_mask, \
-							&error); \
-		g_assert(!error); \
-		g_assert(pg_mask_count(filtered_pkts_mask) == (pass)); \
-		g_assert(!!filtered_pkts == pass);			       \
-		rte_pktmbuf_free(packet); \
-	}
 
 	/* enable ARP antispoof with the correct IP */
 	pg_antispoof_arp_enable(antispoof);
@@ -275,7 +259,6 @@ static void test_antispoof_generic(const unsigned char **pkts,
 	pg_brick_link(antispoof, col_east, &error);
 	g_assert(!error);
 	REPLAY(1);
-#undef REPLAY
 
 	pg_brick_destroy(gen_west);
 	pg_brick_destroy(antispoof);
@@ -322,38 +305,13 @@ static void test_pg_antispoof_arp_disable(void)
 	g_assert(!pg_antispoof_arp_add(antispoof, inside_ip, &error));
 	g_assert(!error);
 
-	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
-		packet = build_packet(pkts[i], pkts_size[i]);
-		pg_brick_poll(gen_west, &packet_count, &error);
-		g_assert(!error);
-		g_assert(packet_count == 1);
-		filtered_pkts = pg_brick_west_burst_get(col_east,
-							&filtered_pkts_mask,
-							&error);
-		g_assert(!error);
-		g_assert(pg_mask_count(filtered_pkts_mask) == 0);
-		pg_packets_free(filtered_pkts, filtered_pkts_mask);
-		rte_pktmbuf_free(packet);
-	}
+	REPLAY(0);
 
 	/* disable ARP antispoof, should now pass */
 	pg_antispoof_arp_disable(antispoof);
 
-	/* replay traffic */
-	for (i = 0; i < pkts_nb; i++) {
-		packet = build_packet(pkts[i], pkts_size[i]);
-		pg_brick_poll(gen_west, &packet_count, &error);
-		g_assert(!error);
-		g_assert(packet_count == 1);
-		filtered_pkts = pg_brick_west_burst_get(col_east,
-							&filtered_pkts_mask,
-							&error);
-		g_assert(!error);
-		g_assert(pg_mask_count(filtered_pkts_mask) == 1);
-		pg_packets_free(filtered_pkts, filtered_pkts_mask);
-		rte_pktmbuf_free(packet);
-	}
+	REPLAY(1);
+#undef REPLAY
 
 	pg_brick_destroy(gen_west);
 	pg_brick_destroy(antispoof);
