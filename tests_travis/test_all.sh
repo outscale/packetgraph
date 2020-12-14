@@ -14,6 +14,7 @@ make tests_compile
 make bench_compile
 
 ./tests/antispoof/test.sh
+./tests/accumulator/test.sh
 ./tests/core/test.sh
 ./tests/diode/test.sh
 ./tests/firewall/test.sh
@@ -29,6 +30,7 @@ make bench_compile
 ./tests/udp-filter/test.sh
 
 ./tests/antispoof/bench.sh
+./tests/accumulator/bench.sh
 ./tests/core/bench.sh
 ./tests/diode/bench.sh
 ./tests/firewall/bench.sh
