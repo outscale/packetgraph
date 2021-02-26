@@ -80,6 +80,7 @@ void test_benchmark_vhost(char *vm_image_path,
 	qemu_pid = pg_util_spawn_qemu(socket_path_enter,
 				      socket_path_exit,
 				      mac1_str, mac2_str,
+				      0,0,
 				      vm_image_path, vm_ssh_key_path,
 				      hugepages_path, &error);
 	g_assert(!error);
