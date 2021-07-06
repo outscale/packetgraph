@@ -92,14 +92,14 @@ $(PG_OBJECTS) : src/%.o : src/%.c
 $(PG_dev_OBJECTS): src/%-dev.o : src/%.c
 	$(CC) -c $(PG_dev_CFLAGS) $(PG_HEADERS) $< -o $@
 
-doxygen.conf: $(srcdir)/doc/doxygen.conf.template
+doxygen.conf: $(srcdir)/doxygen_build/doxygen.conf.template
 	$(shell sed "s|PG_SRC_PATH|$(srcdir)|g" $< > $@)
 
 doc: doxygen.conf
-	$(srcdir)/doc/sed_readme.sh
+	$(srcdir)/doxygen_build/sed_readme.sh
 	doxygen $^
-	$(srcdir)/doc/check_error.sh
-	$(srcdir)/doc/deploy_documentation.sh
+	$(srcdir)/doxygen_build/check_error.sh
+	$(srcdir)/doxygen_build/deploy_documentation.sh
 
 style:
 	$(srcdir)/tests/style/test.sh $(srcdir)

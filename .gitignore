@@ -38,3 +38,13 @@ html
 !*.h
 example-*
 dpdk_symbols_autogen.h
+tests/**/*.gcda
+tests/**/*.gcno
+src/**/*.gcda
+src/**/*.gcno
+src/npf
+libpacketgraph-dev.so.17.5.0
+libpacketgraph.so.17.5.0
+packetgraph_coverage/
+coverage.xml
+
