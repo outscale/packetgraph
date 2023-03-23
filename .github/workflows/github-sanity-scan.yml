@@ -1,0 +1,15 @@
+name: Github sanity scanner
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  cred-scan:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Github sanity scanner
+      uses: outscale/github-sanity-scan@main
+      with:
+        no-pull-request-target: true
