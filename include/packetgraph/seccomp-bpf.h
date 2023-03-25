@@ -34,6 +34,8 @@ struct seccomp_data {
 };
 #endif
 
+extern int errno;
+
 #define syscall_nr (offsetof(struct seccomp_data, nr))
 #define arch_nr (offsetof(struct seccomp_data, arch))
 
@@ -49,7 +51,8 @@ struct seccomp_data {
 #define VALIDATE_ARCHITECTURE \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, arch_nr), \
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, ARCH_NR, 1, 0), \
-	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_KILL)
+	BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRAP), \
+	BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW)
 
 #define EXAMINE_SYSCALL \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, syscall_nr)
@@ -60,6 +63,9 @@ struct seccomp_data {
 
 #define KILL_PROCESS \
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_KILL)
+
+#define TRAP_PROCESS \
+	BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRAP)
 
 #endif /* SECCOMP_BPF_H */
 
