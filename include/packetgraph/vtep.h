@@ -34,7 +34,10 @@ enum pg_vtep_flags {
 	 * when incoming packets, just forward it */
 	PG_VTEP_NO_INNERMAC_CHECK = 2,
 	PG_VTEP_FORCE_UPD_IPV6_CHECKSUM = 4,
-	PG_VTEP_ALL_OPTI = PG_VTEP_NO_COPY | PG_VTEP_NO_INNERMAC_CHECK
+	PG_VTEP_ALL_OPTI = PG_VTEP_NO_COPY | PG_VTEP_NO_INNERMAC_CHECK,
+	/* in this mode we don't do multicast,
+	   dst mac must be add manually */
+	PG_VTEP_NO_MULTICAST = 8
 };
 
 struct ether_addr;
