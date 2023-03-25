@@ -50,7 +50,7 @@ static inline int pg_nic_port(char *ifname)
 
 	return portid;
 #else
-	struct rte_dev_iterator it;
+	struct rte_dev_iterator it = {0};
 
 	if (rte_dev_probe(ifname) != 0)
 		return -1;
