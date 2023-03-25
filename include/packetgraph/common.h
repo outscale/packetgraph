@@ -21,6 +21,12 @@
 #include <sys/prctl.h>
 #include <linux/seccomp.h>
 
+#define PG_VERSION_YEAR 19
+#define PG_VERSION_MONTH 2
+#define PG_VERSION_REVISION 0
+
+#define PG_VERSION 190200
+
 enum pg_side {
 	PG_WEST_SIDE = 0,
 	PG_EAST_SIDE = 1,
